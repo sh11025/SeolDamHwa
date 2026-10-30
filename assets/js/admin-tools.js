@@ -271,10 +271,6 @@ function aiModelFor(provider, settings = loadAiSettings()) {
   return (settings.models[provider] || '').trim() || AI_PROVIDERS[provider].defaultModel;
 }
 
-// 예전 코드와의 호환 (Claude 키)
-function loadAiKey() {
-  return loadAiSettings().keys.claude || '';
-}
 
 async function getAnthropicClient(key) {
   if (!anthropicClientPromise) {
@@ -409,18 +405,3 @@ async function draftProductCopy({ name, category, meaningHint, priceText }, prov
   return { ...result, providerLabel };
 }
 
-async function draftInquiryReply(inq, settings, providerOverride) {
-  const schema = {
-    type: 'object',
-    properties: { reply: { type: 'string', description: '고객에게 보낼 답변 초안. 5~8문장, 인사와 마무리 포함' } },
-    required: ['reply'],
-    additionalProperties: false
-  };
-  const { result, providerLabel } = await askAiJson(
-    `다음 1:1 상담 문의에 보낼 답변 초안을 써 주세요. 가격·재고를 확정하지 말고, 확인 후 다시 연락드린다는 흐름으로 써 주세요.\n` +
-    `[매장 정보] 전화 ${settings.phone || '-'} / 이메일 ${settings.email || '-'}\n` +
-    `[문의] 이름: ${inq.name}\n상담 유형: ${inq.type || '-'}\n문의 상품: ${inq.productName || '-'}\n받고 싶은 날짜: ${inq.date || '-'}\n내용: ${inq.message || ''}`,
-    schema, providerOverride
-  );
-  return { reply: result.reply, providerLabel };
-}

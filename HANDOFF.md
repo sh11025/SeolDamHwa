@@ -1,9 +1,11 @@
 # 설담화 작업 이어받기 안내 (HANDOFF)
 
-> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-10-30 [36]
+> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-10-30 [37]
 
 ## 1. 프로젝트 한눈에
 - `index.html`: 손님 쇼핑몰 / `admin-index.html`: 관리자 센터. 둘 다 Tailwind CDN + 순수 JS, 데이터는 브라우저 `localStorage`(키 `seoldamhwa_*`).
+- [37]부터 화면 코드가 파일로 나뉨: 쇼핑몰 `assets/js/shop/*.js`(core→product→checkout→nav→curation→inquiry→guide→settings→router 순서로 불러옴), 관리자 `assets/js/admin/*.js`(dashboard→…→tools-ui). 일반 script라 함수는 전역 공유, **불러오는 순서를 바꾸지 말 것**.
+- 쇼핑몰 주소: `shop-router.js` — `switchView(view)`는 화면+주소를 함께 바꾸고, 실제 화면 그리기는 `showView(view)`. 새 페이지는 `SHOP_ROUTES['이름'] = params => {...}` 로 등록.
 - 공용 JS (`assets/js/`)
   - `products-data.js` 상품·맞춤 담화 태그 (`DATA_VERSION`은 올리지 말 것: 올리면 저장된 상품·재고가 초기화됨)
   - `site-settings.js` 매장 설정·운영시간·공휴일·사업자·배송비(`delivery`) + `calcDeliveryFee()`
@@ -16,7 +18,7 @@
 
 ## 2. 작업 방식 (꼭 지키기)
 1. 바꾸기 전 `git status` 확인, 끝나면 커밋 (커밋 메시지 끝에 공동 작성자 줄).
-2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[37]**.
+2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[38]**.
 3. 검증: `python -m http.server 5500`로 띄우고 브라우저에서 직접 클릭. 매번 확인할 것
    - 인라인 스크립트 문법(`node --check`), 모든 `getElementById` id 존재
    - 버튼이 부르는 함수가 모두 있는지: 콘솔에서 `[...new Set([...document.documentElement.outerHTML.matchAll(/on\w+="([A-Za-z_]\w*)\(/g)].map(m=>m[1]))].filter(n=>typeof window[n]!=='function')` → `[]` (예외: `if`)
@@ -35,7 +37,7 @@
 1. ~~[35] 손님 편의~~ 완료 (재입고 알림, 공유 미리보기, 모바일 하단 구매 버튼, 사진 늦게 불러오기). 남은 것: 도메인이 정해지면 `index.html`의 `og:image`를 https 전체 주소로 바꾸고 `og:url` 추가, 영상(2.2MB·2.8MB) 압축(ffmpeg 필요), 쇼핑몰 맨 아래 '관리자 센터 로그인' 링크는 오픈 전에 숨기기.
 2. ~~[36]~~ 완료 (CSV DB, 상담은 직접 연락 방식, 상품 검색·재고 ±, 꽃 사입 계획, 글씨 키움).
 3. **쇼핑몰 페이지 구조 개편 (사용자 확정 계획, 2026-10-30)** — 한 화면에 창이 겹치는 구조 → 주소가 있는 페이지로 나누기
-   - **[37] 기초 공사**: 코드 나누기(`index.html` 약 19만 자 → 화면별 JS 파일)와 코드 정리(안 쓰는 코드·중복 함수·오류 제거), 페이지 이동 구조(`#/`, `#/flowers`, `#/flower/<id>`, `#/checkout`, `#/guide`, `#/custom` 등 해시 주소 + 뒤로 가기).
+   - ~~[37] 기초 공사~~ 완료: 코드 나누기(`index.html` 약 19만 자 → 화면별 JS 파일)와 코드 정리(안 쓰는 코드·중복 함수·오류 제거), 페이지 이동 구조(`#/`, `#/flowers`, `#/flower/<id>`, `#/checkout`, `#/guide`, `#/custom` 등 해시 주소 + 뒤로 가기).
    - **[38] 상품 상세 페이지 + 결제 단계 페이지 + 말풍선 상담 + 최근 본 꽃·찜하기**
      - 상세: 사진 여러 장 넘겨 보기, PC는 오른쪽 구매 칸이 따라다님, 아래에 사용한 꽃·꽃말·포장·배송·관리법·비슷한 꽃 추천. 상품 링크 카톡 공유 가능.
      - 결제: ① 장바구니 확인 → ② 받는 분·배송 → ③ 확인·결제 → 완료 (③에 나중 PG 연결).

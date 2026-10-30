@@ -1,0 +1,208 @@
+// assets/js/admin/admin-pages.js
+// 설담화 관리자: 사업자 정보·안내 페이지·배송비·재입고 알림
+// admin-index.html에서 순서대로 불러옵니다 (함수는 전역으로 공유).
+
+// 10. 사업자 정보·안내 페이지
+let currentEditPageId = 'bojagi';
+
+function renderPagesAdmin() {
+  const s = loadSettings();
+  const b = s.business || {};
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el && document.activeElement !== el) el.value = v || ''; };
+  setVal('biz-company', b.companyName);
+  setVal('biz-ceo', b.ceo);
+  setVal('biz-privacy-officer', b.privacyOfficer);
+  setVal('biz-number', b.bizNumber);
+  setVal('biz-mailorder', b.mailOrderNumber);
+  setVal('biz-address', b.bizAddress);
+
+  const pages = loadPages();
+  const groupLabel = { guide: '정성 안내', legal: '약관·법적 안내' };
+  let html = '';
+  let lastGroup = '';
+  PAGE_ORDER.forEach(id => {
+    const pg = pages[id];
+    if (pg.group !== lastGroup) {
+      html += `<p class="px-2 pt-2 pb-1 text-[11px] font-bold text-ink-gray">${groupLabel[pg.group]}</p>`;
+      lastGroup = pg.group;
+    }
+    const active = id === currentEditPageId;
+    html += `<button type="button" onclick="selectPageForEdit('${id}')" class="w-full text-left px-3 py-2 rounded-xs text-sm font-bold flex items-center justify-between ${active ? 'bg-ink-black text-hanji' : 'hover:bg-[#EFECE6] text-ink-black'}">
+      <span>${escapeHtml(pg.title)}</span>${pg.edited ? `<span class="text-[10px] ${active ? 'text-amber-300' : 'text-emerald-700'}">수정됨</span>` : ''}
+    </button>`;
+  });
+  document.getElementById('page-list').innerHTML = html;
+  fillPageEditor(currentEditPageId);
+}
+
+function fillPageEditor(id) {
+  const pg = loadPages()[id];
+  document.getElementById('page-edit-id').value = id;
+  document.getElementById('page-edit-title').value = pg.title;
+  document.getElementById('page-edit-body').value = pg.body;
+  const badge = document.getElementById('page-edit-badge');
+  badge.innerText = pg.edited ? '직접 고친 문구' : '처음 문구 (초안)';
+  badge.className = `text-xs px-2 py-0.5 rounded font-bold ${pg.edited ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-700'}`;
+  document.getElementById('page-legal-note').classList.toggle('hidden', pg.group !== 'legal');
+  document.getElementById('page-message').innerText = '';
+  updatePagePreview();
+}
+
+function selectPageForEdit(id) {
+  currentEditPageId = id;
+  renderPagesAdmin();
+}
+
+function updatePagePreview() {
+  document.getElementById('page-preview').innerHTML = renderPageBody(document.getElementById('page-edit-body').value);
+}
+
+function savePageEditor(e) {
+  e.preventDefault();
+  const id = document.getElementById('page-edit-id').value;
+  savePage(id, document.getElementById('page-edit-title').value.trim(), document.getElementById('page-edit-body').value);
+  renderPagesAdmin();
+  setIntegrationMessage('page-message', '저장했어요. 쇼핑몰에 바로 반영돼요.', true);
+}
+
+function resetPageEditor() {
+  const id = document.getElementById('page-edit-id').value;
+  if (!confirm('이 페이지를 처음 문구로 되돌릴까요? 직접 고친 내용은 사라져요.')) return;
+  resetPage(id);
+  renderPagesAdmin();
+  setIntegrationMessage('page-message', '처음 문구로 되돌렸어요.', true);
+}
+
+function saveBusinessInfo(e) {
+  e.preventDefault();
+  const val = id => document.getElementById(id).value.trim();
+  const bizNumber = val('biz-number');
+  if (bizNumber && !/^\d{3}-?\d{2}-?\d{5}$/.test(bizNumber)) {
+    setIntegrationMessage('business-message', '사업자등록번호는 숫자 10자리예요 (예: 123-45-67890).', false);
+    return;
+  }
+  const s = loadSettings();
+  const digits = bizNumber.replace(/-/g, '');
+  saveSettings({
+    ...s,
+    business: {
+      companyName: val('biz-company') || '설담화',
+      ceo: val('biz-ceo'),
+      privacyOfficer: val('biz-privacy-officer'),
+      bizNumber: digits ? `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}` : '',
+      mailOrderNumber: val('biz-mailorder'),
+      bizAddress: val('biz-address')
+    }
+  });
+  renderPagesAdmin();
+  setIntegrationMessage('business-message', '저장했어요.', true);
+}
+
+function refreshAiProviderSelects() {
+  document.querySelectorAll('.ai-provider-select').forEach(sel => { sel.innerHTML = aiProviderOptionsHtml(); });
+}
+
+function updateProductImagePreview() {
+  refreshAiProviderSelects();
+  const v = document.getElementById('edit-prod-image').value.trim();
+  const img = document.getElementById('edit-prod-image-preview');
+  if (img) img.src = v && !v.endsWith('/') ? v : '';
+}
+
+// 배송 방법·배송비
+function renderDeliverySettings() {
+  const d = loadSettings().delivery;
+  if (!d || !document.getElementById('dlv-quick-on')) return;
+  ['quick', 'parcel', 'pickup'].forEach(k => {
+    document.getElementById(`dlv-${k}-on`).checked = !!d[k].enabled;
+    const fee = document.getElementById(`dlv-${k}-fee`);
+    if (fee) fee.value = d[k].fee;
+    document.getElementById(`dlv-${k}-area`).value = d[k].area || '';
+  });
+  document.getElementById('dlv-free-over').value = d.freeOver;
+  document.getElementById('dlv-note').value = d.note || '';
+}
+
+function saveDeliverySettings(e) {
+  e.preventDefault();
+  const on = k => document.getElementById(`dlv-${k}-on`).checked;
+  if (!on('quick') && !on('parcel') && !on('pickup')) {
+    setIntegrationMessage('delivery-message', '배송 방법을 하나 이상 켜 주세요.', false);
+    return;
+  }
+  const s = loadSettings();
+  if (on('pickup') && !s.showLocation && !confirm('매장 위치(오시는 길)가 아직 비공개예요. 그래도 매장 픽업을 켤까요?')) return;
+  const num = id => Math.max(0, Math.round(Number(document.getElementById(id).value) || 0));
+  const val = id => document.getElementById(id).value.trim();
+  saveSettings({
+    ...s,
+    delivery: {
+      quick: { enabled: on('quick'), fee: num('dlv-quick-fee'), area: val('dlv-quick-area') },
+      parcel: { enabled: on('parcel'), fee: num('dlv-parcel-fee'), area: val('dlv-parcel-area') },
+      pickup: { enabled: on('pickup'), fee: 0, area: val('dlv-pickup-area') },
+      freeOver: num('dlv-free-over'),
+      note: val('dlv-note')
+    }
+  });
+  setIntegrationMessage('delivery-message', '저장했어요. 쇼핑몰 주문서에 바로 반영돼요.', true);
+}
+
+// 재입고 알림 신청 목록 (상품별로 묶어 보기)
+function renderRestockList() {
+  const box = document.getElementById('admin-restock-list');
+  if (!box) return;
+  const list = loadRestock();
+  const waiting = list.filter(r => r.status === 'waiting');
+  const badge = document.getElementById('restock-counter-badge');
+  if (badge) badge.innerText = `${waiting.length}명 대기`;
+  if (list.length === 0) {
+    box.innerHTML = '<div class="p-6 text-center text-sm text-ink-gray bg-[#FAF7F2] border border-ink-black/10 rounded-sm">아직 신청이 없어요.</div>';
+    return;
+  }
+  const products = loadProducts();
+  const groups = {};
+  list.forEach(r => { (groups[r.productId] = groups[r.productId] || []).push(r); });
+  const s = loadSettings();
+  box.innerHTML = Object.entries(groups).map(([pid, rs]) => {
+    const prod = products.find(p => p.id === pid);
+    const stock = prod && typeof prod.stockQuantity === 'number' ? prod.stockQuantity : null;
+    const w = rs.filter(r => r.status === 'waiting');
+    const name = (prod && prod.name) || rs[0].productName;
+    const smsBody = `[설담화] 기다리시던 '${name}'이(가) 다시 들어왔어요. 쇼핑몰에서 주문하실 수 있어요. 문의 ${s.phone || ''}`;
+    const phones = w.map(r => normalizePhone(r.phone)).join(',');
+    return `<div class="admin-card rounded-sm p-4 space-y-2">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="font-bold text-ink-black">${escapeHtml(name)}</span>
+        ${stock === null ? '' : stock > 0 ? `<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800">재고 ${stock}개 · 알릴 수 있어요</span>` : '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-red-100 text-red-800">아직 품절</span>'}
+        <span class="text-xs text-ink-gray">대기 ${w.length}명</span>
+        ${w.length ? `<a href="sms:${escapeHtml(phones)}?body=${encodeURIComponent(smsBody)}" class="ml-auto px-3 py-1.5 text-xs font-bold rounded-xs bg-ink-black text-white hover:bg-seal-red">대기 ${w.length}명에게 문자로 알리기</a>
+          <button type="button" onclick="markRestockNotified('${escapeHtml(pid)}')" class="px-3 py-1.5 text-xs font-bold rounded-xs border border-ink-black/20 bg-white cursor-pointer hover:border-ink-black">모두 알림 완료</button>` : ''}
+      </div>
+      <table class="w-full text-left text-sm">
+        <tbody class="divide-y divide-ink-black/5">${rs.map(r => `
+          <tr class="${r.status === 'waiting' ? '' : 'opacity-50'}">
+            <td class="py-1.5 pr-2">${escapeHtml(r.name || '-')}</td>
+            <td class="py-1.5 pr-2"><a href="tel:${escapeHtml(normalizePhone(r.phone))}" class="underline">${escapeHtml(r.phone)}</a></td>
+            <td class="py-1.5 pr-2 text-xs text-ink-gray">${escapeHtml(r.createdDate || '')} 신청</td>
+            <td class="py-1.5 text-right text-xs">${r.status === 'waiting'
+              ? `<button type="button" onclick="markRestockNotified('${escapeHtml(pid)}', '${escapeHtml(r.id)}')" class="underline text-ink-gray cursor-pointer">알림 완료</button>`
+              : '<span class="font-bold text-emerald-700">알림 완료</span>'}</td>
+          </tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+  }).join('');
+}
+
+function markRestockNotified(productId, requestId) {
+  saveRestock(loadRestock().map(r => (r.productId === productId && (!requestId || r.id === requestId) && r.status === 'waiting') ? { ...r, status: 'notified' } : r));
+  renderRestockList();
+  renderProductsTable();
+}
+
+function clearNotifiedRestock() {
+  const done = loadRestock().filter(r => r.status !== 'waiting').length;
+  if (!done) { alert('지울 신청이 없어요. 알림 완료로 바꾼 신청만 지워져요.'); return; }
+  if (!confirm(`알림 완료된 신청 ${done}건의 연락처를 지울까요? (안내가 끝난 연락처는 지우는 게 안전해요)`)) return;
+  saveRestock(loadRestock().filter(r => r.status === 'waiting'));
+  renderRestockList();
+}

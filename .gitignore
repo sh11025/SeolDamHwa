@@ -13,3 +13,6 @@ DATA/inquiries.csv
 DATA/restock.csv
 DATA/expenses.csv
 DATA/images.csv
+
+# 사용자 압축 파일
+*.zip
