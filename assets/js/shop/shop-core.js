@@ -8,43 +8,26 @@ let currentSelectedProduct = null;
 let currentSelectedSize = null;
 let currentQty = 1;
 let currentCategory = 'all';
-let selectedDelivery = { date: '', time: '' };
 
-// 배송일 드롭다운 생성 (영업일 기준 14일치 옵션, 정기 휴무 및 임시 휴무 제외)
-function buildDeliveryDateOptions(selectEl) {
-  if (!selectEl) return;
-  const prevVal = selectEl.value;
-  selectEl.innerHTML = '';
+// 고를 수 있는 배송일 (내일부터 영업일 14일, 정기 휴무·임시 휴무 제외). [{ value: 'YYYY-MM-DD'(한국 날짜), label }]
+function getAvailableDeliveryDates() {
   const currentLang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'ko';
   const settings = typeof loadSettings === 'function' ? loadSettings() : {};
-
   const now = new Date();
-  let foundDays = 0;
-  let dayOffset = 1;
-
+  const list = [];
   // 최대 60일까지 탐색하며 open인 날 14일 수집
-  while (foundDays < 14 && dayOffset <= 60) {
+  for (let dayOffset = 1; list.length < 14 && dayOffset <= 60; dayOffset++) {
     const d = new Date(now.getTime() + dayOffset * 24 * 60 * 60 * 1000);
     const kp = typeof getKoreaTimeParts === 'function' ? getKoreaTimeParts(d) : { dateStr: d.toISOString().slice(0, 10), day: d.getDay() };
     const sched = typeof getDaySchedule === 'function' ? getDaySchedule(kp.dateStr, settings) : { open: true };
-
-    if (sched.open) {
-      const val = kp.dateStr;
-      const label = typeof formatDeliveryDateOption === 'function'
-        ? formatDeliveryDateOption(d, currentLang)
-        : `${val} 도착 희망`;
-      const opt = document.createElement('option');
-      opt.value = val;
-      opt.textContent = label;
-      selectEl.appendChild(opt);
-      foundDays++;
-    }
-    dayOffset++;
+    if (!sched.open) continue;
+    const [y, m, day] = kp.dateStr.split('-').map(Number);
+    const label = typeof formatDeliveryDateOption === 'function'
+      ? formatDeliveryDateOption(new Date(y, m - 1, day), currentLang)
+      : `${kp.dateStr} 도착 희망`;
+    list.push({ value: kp.dateStr, label });
   }
-
-  if (prevVal && selectEl.querySelector(`option[value="${prevVal}"]`)) {
-    selectEl.value = prevVal;
-  }
+  return list;
 }
 
 // 초기 실행

@@ -1021,20 +1021,6 @@
               </select>
             </div>
 
-            <!-- 생화 희망 배송일 및 시간 선택 -->
-            <div id="pdp-delivery-container" class="space-y-1">
-              <label data-i18n="pdp_delivery_label" class="block text-xs font-bold text-ink-black">생화 희망 배송일 및 시간 (필수)</label>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <select id="pdp-delivery-date" class="w-full bg-white border border-ink-black/20 p-2.5 text-xs font-medium rounded-xs focus:border-seal-red">
-                </select>
-                <select id="pdp-delivery-time" class="w-full bg-white border border-ink-black/20 p-2.5 text-xs font-medium rounded-xs focus:border-seal-red">
-                  <option value="오전 10:00~13:00">오전 10:00~13:00</option>
-                  <option value="오후 14:00~18:00">오후 14:00~18:00</option>
-                  <option value="저녁 18:00~21:00">저녁 18:00~21:00</option>
-                </select>
-              </div>
-            </div>
-
             <!-- 보자기 포장 옵션 선택 -->
             <div id="pdp-package-container" class="space-y-1">
               <label data-i18n="pdp_package_label" class="block text-xs font-bold text-ink-black">보자기 포장</label>
@@ -1179,16 +1165,25 @@
           <p id="address-area-warning" class="hidden text-[11px] font-bold text-seal-red"></p>
         </fieldset>
 
-        <!-- 희망일 -->
-        <div class="text-xs">
-          <label id="co-date-label" data-i18n="checkout_delivery_label" class="block font-bold text-seal-red mb-1">생화 희망 배송일 및 시간 (필수)</label>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <select id="order-delivery-date" class="w-full bg-white border border-seal-red/40 p-2 font-bold text-seal-red rounded-xs"></select>
-            <select id="order-delivery-time" class="w-full bg-white border border-seal-red/40 p-2 font-bold text-seal-red rounded-xs">
-              <option value="오전 10:00~13:00">오전 10:00~13:00</option>
-              <option value="오후 14:00~18:00">오후 14:00~18:00</option>
-              <option value="저녁 18:00~21:00">저녁 18:00~21:00</option>
-            </select>
+        <!-- 희망일: 달력에서 고르기, 시간대는 퀵·픽업일 때만 -->
+        <div class="text-xs space-y-2">
+          <p id="co-date-label" data-i18n="co_date_label" class="block font-bold text-seal-red">생화 희망 배송일 (필수)</p>
+          <input type="hidden" id="order-delivery-date">
+          <div class="flex flex-col sm:flex-row gap-4 sm:items-start">
+            <div id="delivery-calendar" class="w-full sm:w-72 shrink-0 bg-white border border-ink-black/15 rounded-xs p-3" aria-describedby="delivery-date-picked"></div>
+            <div class="flex-1 space-y-3">
+              <p id="delivery-date-picked" class="font-bold text-seal-red text-sm" aria-live="polite"></p>
+              <div id="co-time-wrap">
+                <label id="co-time-label" for="order-delivery-time" data-i18n="co_time_label" class="block font-bold text-ink-black mb-1">받으실 시간대</label>
+                <select id="order-delivery-time" class="w-full bg-white border border-seal-red/40 p-2 font-bold text-seal-red rounded-xs">
+                  <option value="오전 10:00~13:00">오전 10:00~13:00</option>
+                  <option value="오후 14:00~18:00">오후 14:00~18:00</option>
+                  <option value="저녁 18:00~21:00">저녁 18:00~21:00</option>
+                </select>
+              </div>
+              <p id="co-time-parcel-note" data-i18n="co_time_parcel_note" class="hidden text-[11px] text-ink-gray leading-relaxed">택배는 시간을 고를 수 없어요. 고른 날짜에 도착하도록 보내 드려요.</p>
+              <p data-i18n="co_date_note" class="text-[11px] text-ink-gray leading-relaxed">쉬는 날은 고를 수 없어요. 내일부터 영업일 기준 14일 안에서 골라 주세요.</p>
+            </div>
           </div>
         </div>
 

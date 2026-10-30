@@ -285,15 +285,8 @@ function renderSiteSettings() {
     }
   }
 
-  // 7) 배송일 드롭다운 갱신
-  const pdpDateSelect = document.getElementById('pdp-delivery-date');
-  if (pdpDateSelect && typeof buildDeliveryDateOptions === 'function') {
-    buildDeliveryDateOptions(pdpDateSelect);
-  }
-  const orderDateSelect = document.getElementById('order-delivery-date');
-  if (orderDateSelect && typeof buildDeliveryDateOptions === 'function') {
-    buildDeliveryDateOptions(orderDateSelect);
-  }
+  // 7) 결제 페이지 배송일 달력 갱신 (휴무일이 바뀌었을 수 있음)
+  if (typeof renderDeliveryCalendar === 'function') renderDeliveryCalendar();
 }
   
 // 60초마다 공개/비공개 예약 상태 확인 및 필요 시 재렌더링

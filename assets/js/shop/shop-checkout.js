@@ -96,6 +96,105 @@ function selectedDeliveryMethod() {
   return r ? r.value : '';
 }
 
+// 퀵·픽업만 시간대를 고름 (택배는 날짜만)
+function deliveryNeedsTime(method) {
+  return method === 'quick' || method === 'pickup';
+}
+
+/* ---------- 배송일 달력 (② 받는 분·배송) ---------- */
+let deliveryCalMonth = ''; // 'YYYY-MM'
+
+function initDeliveryCalendar() {
+  const input = document.getElementById('order-delivery-date');
+  const dates = getAvailableDeliveryDates();
+  if (input && !dates.some(d => d.value === input.value)) input.value = dates.length ? dates[0].value : '';
+  deliveryCalMonth = (input && input.value ? input.value : (dates[0] ? dates[0].value : '')).slice(0, 7);
+  renderDeliveryCalendar();
+}
+
+function moveDeliveryCalendar(delta) {
+  let [y, m] = deliveryCalMonth.split('-').map(Number);
+  m += delta;
+  if (m < 1) { m = 12; y--; }
+  if (m > 12) { m = 1; y++; }
+  deliveryCalMonth = `${y}-${String(m).padStart(2, '0')}`;
+  renderDeliveryCalendar();
+}
+
+function pickDeliveryDate(value) {
+  document.getElementById('order-delivery-date').value = value;
+  renderDeliveryCalendar();
+}
+
+function renderDeliveryCalendar() {
+  const box = document.getElementById('delivery-calendar');
+  const input = document.getElementById('order-delivery-date');
+  if (!box || !input) return;
+  const dates = getAvailableDeliveryDates();
+  if (input.value && !dates.some(d => d.value === input.value)) input.value = dates.length ? dates[0].value : '';
+  if (!deliveryCalMonth) deliveryCalMonth = (input.value || (dates[0] ? dates[0].value : '')).slice(0, 7);
+  if (!deliveryCalMonth) { box.innerHTML = ''; return; }
+  const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'ko';
+  const months = [...new Set(dates.map(d => d.value.slice(0, 7)))];
+  const [y, m] = deliveryCalMonth.split('-').map(Number);
+  const open = new Set(dates.map(d => d.value));
+  const today = typeof getKoreaTimeParts === 'function' ? getKoreaTimeParts(new Date()).dateStr : '';
+
+  box.innerHTML = '';
+  const head = document.createElement('div');
+  head.className = 'flex items-center justify-between mb-2';
+  const nav = (text, delta, label, disabled) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = text;
+    b.setAttribute('aria-label', label);
+    b.disabled = disabled;
+    b.className = 'w-8 h-8 rounded-full text-lg font-bold hover:bg-[#FAF7F2] disabled:opacity-20 disabled:pointer-events-none cursor-pointer';
+    b.onclick = () => moveDeliveryCalendar(delta);
+    return b;
+  };
+  const title = document.createElement('p');
+  title.className = 'font-bold text-ink-black text-sm';
+  title.textContent = lang === 'en' ? new Date(y, m - 1, 1).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : lang === 'ja' ? `${y}年${m}月` : `${y}년 ${m}월`;
+  head.append(nav('‹', -1, coT('co_cal_prev', '이전 달'), deliveryCalMonth <= months[0]), title, nav('›', 1, coT('co_cal_next', '다음 달'), deliveryCalMonth >= months[months.length - 1]));
+  box.appendChild(head);
+
+  const grid = document.createElement('div');
+  grid.className = 'grid grid-cols-7 gap-1 text-center';
+  grid.setAttribute('role', 'grid');
+  const weekdays = lang === 'en' ? ['S', 'M', 'T', 'W', 'T', 'F', 'S'] : lang === 'ja' ? ['日', '月', '火', '水', '木', '金', '土'] : ['일', '월', '화', '수', '목', '금', '토'];
+  weekdays.forEach((w, i) => {
+    const c = document.createElement('span');
+    c.className = `text-[11px] font-bold pb-1 ${i === 0 ? 'text-seal-red' : 'text-ink-gray'}`;
+    c.textContent = w;
+    grid.appendChild(c);
+  });
+  const firstDay = new Date(y, m - 1, 1).getDay();
+  const daysInMonth = new Date(y, m, 0).getDate();
+  for (let i = 0; i < firstDay; i++) grid.appendChild(document.createElement('span'));
+  for (let d = 1; d <= daysInMonth; d++) {
+    const value = `${deliveryCalMonth}-${String(d).padStart(2, '0')}`;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = d;
+    const ok = open.has(value);
+    const on = value === input.value;
+    b.disabled = !ok;
+    b.dataset.date = value;
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    const info = dates.find(x => x.value === value);
+    b.setAttribute('aria-label', info ? info.label : value);
+    b.className = `h-9 rounded-full text-sm font-bold ${on ? 'bg-seal-red text-white' : ok ? 'text-ink-black hover:bg-[#FAF7F2] border border-ink-black/10 cursor-pointer' : 'text-ink-black/25 cursor-not-allowed'}${value === today ? ' underline' : ''}`;
+    if (ok) b.onclick = () => pickDeliveryDate(value);
+    grid.appendChild(b);
+  }
+  box.appendChild(grid);
+
+  const picked = document.getElementById('delivery-date-picked');
+  const sel = dates.find(x => x.value === input.value);
+  if (picked) picked.textContent = sel ? `📅 ${sel.label}` : coT('co_date_required', '달력에서 날짜를 골라 주세요.');
+}
+
 function renderDeliveryMethodOptions() {
   const wrap = document.getElementById('delivery-method-options');
   if (!wrap || typeof getDeliveryMethods !== 'function') return;
@@ -156,7 +255,12 @@ function recalcCheckout() {
   const isPickup = method === 'pickup';
   document.getElementById('address-fields').classList.toggle('hidden', isPickup);
   document.getElementById('order-address').required = !isPickup;
-  document.getElementById('co-date-label').textContent = isPickup ? coT('co_pickup_date_label', '픽업 날짜 및 시간 (필수)') : coT('checkout_delivery_label', '생화 희망 배송일 및 시간 (필수)');
+  // 시간대는 퀵·픽업만, 택배는 날짜만
+  const needsTime = deliveryNeedsTime(method);
+  document.getElementById('co-date-label').textContent = isPickup ? coT('co_pickup_day_label', '픽업 날짜 (필수)') : coT('co_date_label', '생화 희망 배송일 (필수)');
+  document.getElementById('co-time-wrap').classList.toggle('hidden', !needsTime);
+  document.getElementById('co-time-label').textContent = isPickup ? coT('co_pickup_time_label', '픽업 시간대') : coT('co_time_label', '받으실 시간대');
+  document.getElementById('co-time-parcel-note').classList.toggle('hidden', method !== 'parcel');
   checkAddressArea();
 }
 
@@ -340,17 +444,8 @@ function openCheckoutModal() {
   if (typeof updatePopupVisibility === 'function') updatePopupVisibility();
 
   const itemsSummary = document.getElementById('checkout-items-summary');
-  const orderDate = document.getElementById('order-delivery-date');
   const orderTime = document.getElementById('order-delivery-time');
-
-  buildDeliveryDateOptions(orderDate);
-  if (selectedDelivery.date) {
-    const exists = Array.from(orderDate.options).some(o => o.value === selectedDelivery.date);
-    if (exists) orderDate.value = selectedDelivery.date;
-  }
-  if (selectedDelivery.time && orderTime) {
-    orderTime.value = selectedDelivery.time;
-  }
+  initDeliveryCalendar();
 
   if (orderTime && orderTime.options && orderTime.options.length >= 3) {
     orderTime.options[0].text = typeof t === 'function' ? t('pdp_delivery_time_morning', '오전 10:00~13:00') : '오전 10:00~13:00';
@@ -436,6 +531,11 @@ function validateCheckoutStep2() {
     if (!el.checkValidity()) { el.reportValidity(); return false; }
   }
   if (!selectedDeliveryMethod()) { alert(coT('co_method_required', '배송 방법을 골라 주세요.')); return false; }
+  if (!document.getElementById('order-delivery-date').value) {
+    alert(coT('co_date_required', '달력에서 날짜를 골라 주세요.'));
+    document.getElementById('delivery-calendar').scrollIntoView({ block: 'center' });
+    return false;
+  }
   const phoneOk = v => String(v || '').replace(/\D/g, '').length >= 9;
   if (!phoneOk(document.getElementById('order-orderer-phone').value) || !phoneOk(document.getElementById('order-phone').value)) {
     alert(coT('co_phone_invalid', '연락처를 숫자 9자리 이상으로 적어 주세요.'));
@@ -451,9 +551,10 @@ function renderCheckoutReview() {
   if (document.getElementById('order-same-recipient').checked) toggleSameRecipient();
   const val = id => (document.getElementById(id) || {}).value || '';
   const method = selectedDeliveryMethod();
-  const dateSel = document.getElementById('order-delivery-date');
   const timeSel = document.getElementById('order-delivery-time');
-  const dateText = `${dateSel.options[dateSel.selectedIndex] ? dateSel.options[dateSel.selectedIndex].text : ''} · ${timeSel.options[timeSel.selectedIndex] ? timeSel.options[timeSel.selectedIndex].text : ''}`;
+  const picked = getAvailableDeliveryDates().find(d => d.value === val('order-delivery-date'));
+  const timeText = deliveryNeedsTime(method) && timeSel.options[timeSel.selectedIndex] ? ` · ${timeSel.options[timeSel.selectedIndex].text}` : '';
+  const dateText = `${picked ? picked.label : val('order-delivery-date')}${timeText}`;
   const rows = [
     [coT('co_orderer_title', '주문하시는 분'), `${val('order-orderer-name')} · ${val('order-orderer-phone')}`],
     [coT('co_recipient_title', '받으시는 분'), `${val('order-name')} · ${val('order-phone')}`],
@@ -483,7 +584,7 @@ function submitCustomerOrder(e) {
   e.preventDefault();
   const dateVal = document.getElementById('order-delivery-date').value;
   if (!dateVal) {
-    alert(coT('pdp_delivery_label', '희망 배송일을 선택해 주세요.'));
+    alert(coT('co_date_required', '달력에서 날짜를 골라 주세요.'));
     return;
   }
   const method = selectedDeliveryMethod();
@@ -505,7 +606,7 @@ function submitCustomerOrder(e) {
 
   const settings = loadSettings();
   const timeVal = document.getElementById('order-delivery-time').value;
-  const deliveryDate = `${dateVal} ${timeVal}`;
+  const deliveryDate = deliveryNeedsTime(method) ? `${dateVal} ${timeVal}` : dateVal;
   const orderNumber = `SDH-${Date.now().toString().slice(-8)}`;
   const itemsTotal = cart.reduce((sum, i) => sum + (i.price + i.optionPrice) * i.quantity, 0);
   const deliveryFee = calcDeliveryFee(method, itemsTotal, settings);

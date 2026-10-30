@@ -43,17 +43,9 @@ function renderProductPage(productId, isPreview = false) {
     pkgOpt.options[1].text = typeof t === 'function' ? t('pdp_package_silk', '전통 실크 본견 보자기 & 노리개 포장 (+15,000원)') : '전통 실크 본견 보자기 & 노리개 포장 (+15,000원)';
   }
 
-  const timeSelect = document.getElementById('pdp-delivery-time');
-  if (timeSelect && timeSelect.options && timeSelect.options.length >= 3) {
-    timeSelect.options[0].text = typeof t === 'function' ? t('pdp_delivery_time_morning', '오전 10:00~13:00') : '오전 10:00~13:00';
-    timeSelect.options[1].text = typeof t === 'function' ? t('pdp_delivery_time_afternoon', '오후 14:00~18:00') : '오후 14:00~18:00';
-    timeSelect.options[2].text = typeof t === 'function' ? t('pdp_delivery_time_evening', '저녁 18:00~21:00') : '저녁 18:00~21:00';
-  }
-
   const stockNoticeEl = document.getElementById('pdp-stock-notice');
   const sizeContainer = document.getElementById('pdp-size-container');
   const sizeSelect = document.getElementById('pdp-size-select');
-  const deliveryContainer = document.getElementById('pdp-delivery-container');
   const packageContainer = document.getElementById('pdp-package-container');
   const qtyContainer = document.getElementById('pdp-qty-container');
   const normalBtns = document.getElementById('pdp-normal-btns');
@@ -65,7 +57,6 @@ function renderProductPage(productId, isPreview = false) {
   if (prod.inquiryOnly) {
     document.getElementById('pdp-price').innerText = typeof t === 'function' ? t('inquiry_price_label', '상담 후 견적') : '상담 후 견적';
     if (sizeContainer) sizeContainer.classList.add('hidden');
-    if (deliveryContainer) deliveryContainer.classList.add('hidden');
     if (packageContainer) packageContainer.classList.add('hidden');
     if (qtyContainer) qtyContainer.classList.add('hidden');
     if (normalTotalRow) normalTotalRow.classList.add('hidden');
@@ -73,7 +64,6 @@ function renderProductPage(productId, isPreview = false) {
     if (inquiryContainer) inquiryContainer.classList.remove('hidden');
     if (stockNoticeEl) stockNoticeEl.innerText = '';
   } else {
-    if (deliveryContainer) deliveryContainer.classList.remove('hidden');
     if (packageContainer) packageContainer.classList.remove('hidden');
     if (qtyContainer) qtyContainer.classList.remove('hidden');
     if (normalTotalRow) normalTotalRow.classList.remove('hidden');
@@ -140,7 +130,6 @@ function renderProductPage(productId, isPreview = false) {
     }
   }
 
-  buildDeliveryDateOptions(document.getElementById('pdp-delivery-date'));
   updatePDPPrice();
   try { updateRestockBox(prod, typeof isPreviewMode !== 'undefined' && isPreviewMode); } catch (e) { console.error('restock box error:', e); }
   document.getElementById('pdp-modal').classList.remove('hidden');
@@ -274,11 +263,6 @@ function addToCartFromPDP() {
     ? '전통 실크 본견 보자기 & 노리개 포장'
     : '기본 단아 한지 포장';
 
-  const pdpDate = document.getElementById('pdp-delivery-date');
-  const pdpTime = document.getElementById('pdp-delivery-time');
-  if (pdpDate && pdpDate.value) selectedDelivery.date = pdpDate.value;
-  if (pdpTime && pdpTime.value) selectedDelivery.time = pdpTime.value;
-
   const basePrice = currentSelectedSize ? currentSelectedSize.price : (currentSelectedProduct.price || 0);
 
   cart.push({
@@ -312,11 +296,6 @@ function buyNowFromPDP() {
   const optName = (optPrice === 15000)
     ? '전통 실크 본견 보자기 & 노리개 포장'
     : '기본 단아 한지 포장';
-
-  const pdpDate = document.getElementById('pdp-delivery-date');
-  const pdpTime = document.getElementById('pdp-delivery-time');
-  if (pdpDate && pdpDate.value) selectedDelivery.date = pdpDate.value;
-  if (pdpTime && pdpTime.value) selectedDelivery.time = pdpTime.value;
 
   const basePrice = currentSelectedSize ? currentSelectedSize.price : (currentSelectedProduct.price || 0);
 

@@ -182,7 +182,6 @@ const I18N = {
     pdp_price_label: "판매가",
     pdp_meaning_prefix: "꽃말: ",
     pdp_size_label: "크기 선택",
-    pdp_delivery_label: "생화 희망 배송일 및 시간 (필수)",
     pdp_delivery_time_morning: "오전 10:00~13:00",
     pdp_delivery_time_afternoon: "오후 14:00~18:00",
     pdp_delivery_time_evening: "저녁 18:00~21:00",
@@ -242,6 +241,15 @@ const I18N = {
     co_delivery_fee: "배송비",
     co_free_hint: "{amount} 더 담으면 배송비가 무료예요.",
     co_submit: "주문하기",
+    co_date_label: "생화 희망 배송일 (필수)",
+    co_pickup_day_label: "픽업 날짜 (필수)",
+    co_time_label: "받으실 시간대",
+    co_pickup_time_label: "픽업 시간대",
+    co_time_parcel_note: "택배는 시간을 고를 수 없어요. 고른 날짜에 도착하도록 보내 드려요.",
+    co_date_note: "쉬는 날은 고를 수 없어요. 내일부터 영업일 기준 14일 안에서 골라 주세요.",
+    co_date_required: "달력에서 날짜를 골라 주세요.",
+    co_cal_prev: "이전 달",
+    co_cal_next: "다음 달",
     nav_dictionary: "꽃 사전",
     dict_title: "꽃 사전",
     dict_desc: "설담화가 쓰는 꽃의 꽃말과 제철을 모았어요. 상품 이름을 누르면 그 꽃이 든 상품으로 가요.",
@@ -294,7 +302,6 @@ const I18N = {
     co_prev: "← 이전",
     co_anonymous: "익명",
     co_payment_note: "온라인 결제는 준비 중이에요. 주문을 확인한 뒤 결제 방법을 연락처로 안내드려요.",
-    co_pickup_date_label: "픽업 날짜 및 시간 (필수)",
     co_quick_area_warn: "퀵 당일 배송은 서울 지역만 가능해요. 다른 배송 방법을 고르거나 1:1 상담으로 문의해 주세요.",
     co_address_search_fail: "주소 찾기를 불러오지 못했어요. 주소를 직접 적어 주세요.",
     co_method_required: "배송 방법을 골라 주세요.",
@@ -322,7 +329,6 @@ const I18N = {
     st_cancelled: "주문이 취소되었어요.",
     checkout_name_label: "받으시는 분 성함",
     checkout_phone_label: "연락처",
-    checkout_delivery_label: "생화 희망 배송일 및 시간 (필수)",
     checkout_address_label: "배송 주소",
     checkout_message_label: "보자기 동봉 전통 한지 메시지",
     checkout_message_placeholder: "동봉할 메시지를 적어주세요.",
@@ -571,7 +577,6 @@ const I18N = {
     pdp_price_label: "Price",
     pdp_meaning_prefix: "Flower Meaning: ",
     pdp_size_label: "Select Size",
-    pdp_delivery_label: "Desired Delivery Date & Time (Required)",
     pdp_delivery_time_morning: "Morning 10:00 - 13:00",
     pdp_delivery_time_afternoon: "Afternoon 14:00 - 18:00",
     pdp_delivery_time_evening: "Evening 18:00 - 21:00",
@@ -631,6 +636,15 @@ const I18N = {
     co_delivery_fee: "Delivery",
     co_free_hint: "Add {amount} more for free delivery.",
     co_submit: "Place order",
+    co_date_label: "Delivery date (required)",
+    co_pickup_day_label: "Pickup date (required)",
+    co_time_label: "Delivery time",
+    co_pickup_time_label: "Pickup time",
+    co_time_parcel_note: "Parcel delivery has no time slot. We ship so it arrives on the chosen date.",
+    co_date_note: "Closed days cannot be chosen. Pick a day within the next 14 business days.",
+    co_date_required: "Please pick a date on the calendar.",
+    co_cal_prev: "Previous month",
+    co_cal_next: "Next month",
     nav_dictionary: "Flower Guide",
     dict_title: "Flower Guide",
     dict_desc: "The meanings and seasons of the flowers we use. Tap a product name to see it.",
@@ -683,7 +697,6 @@ const I18N = {
     co_prev: "← Back",
     co_anonymous: "anonymous",
     co_payment_note: "Online payment is coming soon. After we confirm your order, we will contact you with payment details.",
-    co_pickup_date_label: "Pickup date & time (required)",
     co_quick_area_warn: "Same-day courier is available in Seoul only. Please choose another method or ask us in a 1:1 consultation.",
     co_address_search_fail: "Could not load the address search. Please type the address.",
     co_method_required: "Please choose a delivery method.",
@@ -711,7 +724,6 @@ const I18N = {
     st_cancelled: "This order was cancelled.",
     checkout_name_label: "Recipient Name",
     checkout_phone_label: "Contact Phone",
-    checkout_delivery_label: "Desired Delivery Date & Time (Required)",
     checkout_address_label: "Shipping Address",
     checkout_message_label: "Traditional Hanji Note to Include",
     checkout_message_placeholder: "Enter the message to enclose with your gift.",
@@ -960,7 +972,6 @@ const I18N = {
     pdp_price_label: "販売価格",
     pdp_meaning_prefix: "花言葉: ",
     pdp_size_label: "サイズ選択",
-    pdp_delivery_label: "生花のご希望お届け日時（必須）",
     pdp_delivery_time_morning: "午前 10:00〜13:00",
     pdp_delivery_time_afternoon: "午後 14:00〜18:00",
     pdp_delivery_time_evening: "夕方 18:00〜21:00",
@@ -1020,6 +1031,15 @@ const I18N = {
     co_delivery_fee: "送料",
     co_free_hint: "あと{amount}で送料無料です。",
     co_submit: "注文する",
+    co_date_label: "お届け希望日（必須）",
+    co_pickup_day_label: "受け取り日（必須）",
+    co_time_label: "お届け時間帯",
+    co_pickup_time_label: "受け取り時間帯",
+    co_time_parcel_note: "宅配便は時間帯を指定できません。選んだ日に届くようにお送りします。",
+    co_date_note: "定休日は選べません。明日から営業日14日以内でお選びください。",
+    co_date_required: "カレンダーから日付を選んでください。",
+    co_cal_prev: "前の月",
+    co_cal_next: "次の月",
     nav_dictionary: "花図鑑",
     dict_title: "花図鑑",
     dict_desc: "說談花で使う花の花言葉と旬をまとめました。商品名を押すとその商品へ移動します。",
@@ -1072,7 +1092,6 @@ const I18N = {
     co_prev: "← 戻る",
     co_anonymous: "匿名",
     co_payment_note: "オンライン決済は準備中です。ご注文を確認後、お支払い方法をご連絡いたします。",
-    co_pickup_date_label: "受け取り日時（必須）",
     co_quick_area_warn: "当日バイク便はソウル市内のみです。他の配送方法を選ぶか、1:1相談でお問い合わせください。",
     co_address_search_fail: "住所検索を読み込めませんでした。住所を直接入力してください。",
     co_method_required: "配送方法を選んでください。",
@@ -1100,7 +1119,6 @@ const I18N = {
     st_cancelled: "ご注文はキャンセルされました。",
     checkout_name_label: "お届け先のお名前",
     checkout_phone_label: "ご連絡先電話番号",
-    checkout_delivery_label: "生花のご希望お届け日時（必須）",
     checkout_address_label: "お届け先住所",
     checkout_message_label: "風呂敷に同封する伝統韓紙メッセージ",
     checkout_message_placeholder: "同封するメッセージをご記入ください。",
@@ -1316,19 +1334,19 @@ function formatPrice(price, lang = getCurrentLang()) {
 
 // 배송일 요일 및 텍스트 언어별 포맷
 function formatDeliveryDateOption(d, lang = getCurrentLang()) {
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
+  const m = d.getMonth() + 1;
+  const day = d.getDate();
   const dayIdx = d.getDay();
 
   if (lang === 'en') {
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    return `${m}/${day} (${dayNames[dayIdx]}) Desired Arrival`;
+    return `${dayNames[dayIdx]}, ${m}/${day}`;
   } else if (lang === 'ja') {
     const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
-    return `${m}月 ${day}日 (${dayNames[dayIdx]}) 到着希望`;
+    return `${m}月${day}日 (${dayNames[dayIdx]})`;
   }
   const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-  return `${m}월 ${day}일 (${dayNames[dayIdx]}) 도착 희망`;
+  return `${m}월 ${day}일 (${dayNames[dayIdx]})`;
 }
 
 // 언어 전환 드롭다운 토글
@@ -1436,15 +1454,8 @@ function applyLanguage(lang = getCurrentLang()) {
     }
   });
 
-  // 8. 배송일자 드롭다운 옵션 재생성
-  const pdpDateSelect = document.getElementById('pdp-delivery-date');
-  if (pdpDateSelect && typeof buildDeliveryDateOptions === 'function') {
-    buildDeliveryDateOptions(pdpDateSelect);
-  }
-  const orderDateSelect = document.getElementById('order-delivery-date');
-  if (orderDateSelect && typeof buildDeliveryDateOptions === 'function') {
-    buildDeliveryDateOptions(orderDateSelect);
-  }
+  // 8. 결제 페이지 배송일 달력 (요일·달 이름)
+  if (typeof renderDeliveryCalendar === 'function') renderDeliveryCalendar();
 
   // 9. 주요 동적 컴포넌트 재렌더링
   if (typeof renderProducts === 'function') {
@@ -1472,6 +1483,8 @@ function applyLanguage(lang = getCurrentLang()) {
   const checkoutModal = document.getElementById('checkout-modal');
   if (checkoutModal && !checkoutModal.classList.contains('hidden') && typeof renderDeliveryMethodOptions === 'function') {
     renderDeliveryMethodOptions();
+    if (typeof renderDeliveryCalendar === 'function') renderDeliveryCalendar();
+    if (typeof recalcCheckout === 'function') recalcCheckout();
     recalcCheckout();
   }
   if (typeof showGuideTab === 'function' && typeof currentGuideTab !== 'undefined') {
