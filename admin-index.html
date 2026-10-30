@@ -21,6 +21,8 @@
   <script src="assets/js/admin-tools.js"></script>
   <script src="assets/js/site-pages.js"></script>
   <script src="assets/js/image-library.js"></script>
+  <!-- 운송장 바코드: JsBarcode -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
   <!-- 차트: Chart.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script>
@@ -128,6 +130,28 @@
       #report-sheet .num { text-align: right; white-space: nowrap; }
       #report-sheet .avoid-break { break-inside: avoid; }
       #report-sheet h2 { font-size: 13px; font-weight: 800; margin: 14px 0 6px; }
+      #report-sheet .label-grid { display: grid; grid-template-columns: 92mm 92mm; grid-auto-rows: 132mm; gap: 2mm; }
+      #report-sheet .ship-label { border: 1px dashed #999; padding: 4mm; display: flex; flex-direction: column; gap: 2mm; break-inside: avoid; overflow: hidden; font-size: 10px; }
+      #report-sheet .ship-label:nth-child(4n+1) { break-before: page; }
+      #report-sheet .ship-label:first-child { break-before: auto; }
+      #report-sheet .sl-top { display: flex; justify-content: space-between; align-items: center; }
+      #report-sheet .sl-brand { display: flex; align-items: center; gap: 2mm; font-weight: 800; font-size: 12px; }
+      #report-sheet .sl-brand img { width: 9mm; height: 9mm; }
+      #report-sheet .sl-fragile { border: 1.5px solid #8B2500; color: #8B2500; font-weight: 800; padding: 1mm 2mm; font-size: 10px; }
+      #report-sheet .sl-date { font-size: 15px; font-weight: 800; border-bottom: 1.5px solid #1A1A1A; padding-bottom: 1.5mm; }
+      #report-sheet .sl-date span { font-size: 12px; }
+      #report-sheet .sl-block { border: 1px solid #ccc; padding: 2mm; }
+      #report-sheet .sl-label { font-size: 9px; color: #666; font-weight: 700; }
+      #report-sheet .sl-to .sl-name { font-size: 18px; font-weight: 800; }
+      #report-sheet .sl-to .sl-phone { font-size: 13px; font-weight: 700; }
+      #report-sheet .sl-to .sl-addr { font-size: 12px; font-weight: 700; line-height: 1.35; }
+      #report-sheet .sl-from { font-size: 9.5px; color: #333; }
+      #report-sheet .sl-items { font-size: 10px; line-height: 1.4; flex: 1; }
+      #report-sheet .sl-bottom { display: flex; justify-content: space-between; align-items: flex-end; gap: 2mm; }
+      #report-sheet .sl-barcode { max-width: 60mm; height: auto; }
+      #report-sheet .sl-code-text { font-family: monospace; font-size: 14px; font-weight: 700; letter-spacing: 1px; }
+      #report-sheet .sl-track { text-align: right; font-size: 10px; }
+      #report-sheet .sl-warn { text-align: center; font-size: 9px; color: #8B2500; font-weight: 700; border-top: 1px dotted #999; padding-top: 1mm; }
     }
   </style>
 </head>
@@ -444,16 +468,52 @@
       </section>
 
       <!-- TAB 3: 주문 및 신선 배송 관리 (Orders & Fresh Flower Delivery Dates) -->
-      <section id="panel-orders" class="space-y-6 hidden">
-        <div>
-          <h1 class="text-2xl font-extrabold text-ink-black tracking-tight">주문 및 생화 희망 배송일 관리</h1>
-          <p class="text-xs text-ink-gray mt-1">
-            생화의 시들지 않는 신선함을 위해 <strong>'희망 배송일'</strong>을 중심으로 제작 및 특송 상태를 추적합니다.
-          </p>
+      <section id="panel-orders" class="space-y-4 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+          <div>
+            <h1 class="text-2xl font-extrabold text-ink-black tracking-tight">주문 및 배송 관리</h1>
+            <p class="text-sm text-ink-gray mt-1">줄을 누르면 연락처·주소·카드 메시지·운송장 입력이 펼쳐져요. 체크한 주문은 운송장을 한 번에 출력할 수 있어요.</p>
+          </div>
+          <button type="button" onclick="printSelectedLabels()" id="print-labels-btn" class="jakae-btn px-4 py-2 rounded-sm text-sm font-bold cursor-pointer whitespace-nowrap">선택한 주문 운송장 출력</button>
         </div>
 
-        <div id="admin-orders-list" class="grid grid-cols-1 gap-4">
-          <!-- 동적 렌더링 -->
+        <!-- 거르기 -->
+        <div class="admin-card p-3 rounded-sm flex flex-wrap items-center gap-2 text-sm">
+          <div id="order-status-tabs" class="flex flex-wrap gap-1" role="group" aria-label="주문 상태"></div>
+          <span class="hidden md:block w-px h-6 bg-ink-black/10 mx-1"></span>
+          <select id="order-date-filter" onchange="renderOrdersList()" class="bg-white border border-ink-black/20 p-1.5 rounded-xs text-sm" aria-label="배송일">
+            <option value="all">배송일 전체</option>
+            <option value="today">오늘 배송</option>
+            <option value="tomorrow">내일 배송</option>
+            <option value="next7">앞으로 7일</option>
+            <option value="past">지난 배송</option>
+          </select>
+          <input type="search" id="order-search" oninput="renderOrdersList()" placeholder="이름·전화·주문번호 찾기" class="flex-1 min-w-[180px] bg-white border border-ink-black/20 p-1.5 rounded-xs text-sm">
+        </div>
+
+        <div class="admin-card rounded-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead>
+                <tr class="bg-[#EFECE6] border-b border-ink-black/10 text-ink-gray text-xs font-bold">
+                  <th class="py-2.5 pl-3 pr-1 w-8"><input type="checkbox" id="order-check-all" onchange="toggleAllOrderChecks(this.checked)" aria-label="전체 선택" class="w-4 h-4"></th>
+                  <th class="py-2.5 px-2">희망 배송일</th>
+                  <th class="py-2.5 px-2">주문번호</th>
+                  <th class="py-2.5 px-2">받는 분</th>
+                  <th class="py-2.5 px-2">상품</th>
+                  <th class="py-2.5 px-2 text-right">금액</th>
+                  <th class="py-2.5 px-2">상태</th>
+                  <th class="py-2.5 px-2">운송장</th>
+                  <th class="py-2.5 px-2 w-8"></th>
+                </tr>
+              </thead>
+              <tbody id="admin-orders-list"></tbody>
+            </table>
+          </div>
+          <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-t border-ink-black/10 text-xs text-ink-gray">
+            <span id="order-list-count"></span>
+            <button type="button" id="order-more-btn" onclick="showMoreOrders()" class="hidden px-3 py-1.5 border border-ink-black/20 bg-white rounded-xs font-bold text-ink-black cursor-pointer hover:border-ink-black">더 보기</button>
+          </div>
         </div>
       </section>
 
@@ -1514,60 +1574,239 @@
       });
     }
 
-    // 3. 주문 및 희망 배송일 관리 리스트 렌더링
-    function renderOrdersList() {
-      const orders = loadAdminOrders();
-      const container = document.getElementById('admin-orders-list');
-      container.innerHTML = '';
+    // 3. 주문 및 배송 관리 (한 줄 목록 + 거르기 + 펼쳐 보기)
+    const COURIERS = ['직접 배송', '퀵서비스', 'CJ대한통운', '우체국택배', '한진택배', '롯데택배', '로젠택배'];
+    const ORDER_PAGE_SIZE = 30;
+    let orderStatusFilter = 'all';
+    let orderShowCount = ORDER_PAGE_SIZE;
+    const expandedOrders = new Set();
+    const checkedOrders = new Set();
 
-      if (orders.length === 0) {
-        container.innerHTML = '<div class="admin-card p-8 rounded-sm text-center text-sm text-ink-gray">아직 들어온 주문이 없어요.</div>';
+    function setOrderStatusFilter(st) {
+      orderStatusFilter = st;
+      orderShowCount = ORDER_PAGE_SIZE;
+      renderOrdersList();
+    }
+
+    function showMoreOrders() {
+      orderShowCount += ORDER_PAGE_SIZE;
+      renderOrdersList();
+    }
+
+    function toggleOrderExpand(id) {
+      if (expandedOrders.has(id)) expandedOrders.delete(id); else expandedOrders.add(id);
+      renderOrdersList();
+    }
+
+    function toggleOrderCheck(id, on) {
+      if (on) checkedOrders.add(id); else checkedOrders.delete(id);
+      updatePrintButton();
+    }
+
+    function toggleAllOrderChecks(on) {
+      document.querySelectorAll('.order-check').forEach(cb => { cb.checked = on; toggleOrderCheck(cb.dataset.id, on); });
+    }
+
+    function updatePrintButton() {
+      const btn = document.getElementById('print-labels-btn');
+      if (btn) btn.innerText = checkedOrders.size ? `선택한 ${checkedOrders.size}건 운송장 출력` : '선택한 주문 운송장 출력';
+    }
+
+    function filteredOrders() {
+      const today = financeToday();
+      const tomorrow = addDays(today, 1);
+      const in7 = addDays(today, 6);
+      const dateFilter = (document.getElementById('order-date-filter') || {}).value || 'all';
+      const q = ((document.getElementById('order-search') || {}).value || '').trim().toLowerCase().replace(/-/g, '');
+      return loadAdminOrders().filter(o => {
+        if (orderStatusFilter !== 'all' && o.status !== orderStatusFilter) return false;
+        const d = getDeliveryDate(o);
+        if (dateFilter === 'today' && d !== today) return false;
+        if (dateFilter === 'tomorrow' && d !== tomorrow) return false;
+        if (dateFilter === 'next7' && !(d >= today && d <= in7)) return false;
+        if (dateFilter === 'past' && !(d && d < today)) return false;
+        if (q) {
+          const hay = [o.orderNumber, o.customerName, o.phone, o.trackingNumber].join(' ').toLowerCase().replace(/-/g, '');
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      }).sort((a, b) => {
+        // 진행 중인 주문은 배송일이 가까운 순, 끝난 주문(배송 완료·취소)은 뒤에서 최근 순
+        const doneA = a.status === 'completed' || a.status === 'cancelled';
+        const doneB = b.status === 'completed' || b.status === 'cancelled';
+        if (doneA !== doneB) return doneA ? 1 : -1;
+        const da = a.deliveryDate || '', db = b.deliveryDate || '';
+        return doneA ? db.localeCompare(da) : da.localeCompare(db);
+      });
+    }
+
+    function renderOrderStatusTabs(all) {
+      const wrap = document.getElementById('order-status-tabs');
+      if (!wrap) return;
+      const tabs = [['all', '전체'], ['preparing', '제작 중'], ['packaged', '포장 완료'], ['delivering', '배송 중'], ['completed', '배송 완료'], ['cancelled', '취소']];
+      wrap.innerHTML = tabs.map(([st, label]) => {
+        const n = st === 'all' ? all.length : all.filter(o => o.status === st).length;
+        const on = st === orderStatusFilter;
+        return `<button type="button" onclick="setOrderStatusFilter('${st}')" class="px-3 py-1.5 rounded-xs text-xs font-bold cursor-pointer ${on ? 'bg-ink-black text-white' : 'bg-white border border-ink-black/15 text-ink-black hover:border-ink-black'}">${label} <span class="${on ? 'text-white/70' : 'text-ink-gray'}">${n}</span></button>`;
+      }).join('');
+    }
+
+    function renderOrdersList() {
+      const all = loadAdminOrders();
+      renderOrderStatusTabs(all);
+      const tbody = document.getElementById('admin-orders-list');
+      if (!tbody) return;
+      const list = filteredOrders();
+      const shown = list.slice(0, orderShowCount);
+      const today = financeToday();
+      const tomorrow = addDays(today, 1);
+      document.getElementById('order-list-count').innerText = list.length ? `${list.length}건 중 ${shown.length}건 표시` : '';
+      document.getElementById('order-more-btn').classList.toggle('hidden', shown.length >= list.length);
+      document.getElementById('order-check-all').checked = shown.length > 0 && shown.every(o => checkedOrders.has(o.id));
+      updatePrintButton();
+
+      if (shown.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="py-10 text-center text-ink-gray">${all.length ? '조건에 맞는 주문이 없어요.' : '아직 들어온 주문이 없어요.'}</td></tr>`;
         return;
       }
 
-      orders.forEach(ord => {
-        const isCancelled = ord.status === 'cancelled';
-        const card = document.createElement('div');
-        card.className = `admin-card p-5 rounded-sm flex flex-col lg:flex-row lg:items-center justify-between gap-5 ${isCancelled ? 'opacity-60' : ''}`;
-        const statusBtn = (st, label) => `<button onclick="updateOrderStatus('${ord.id}', '${st}')" ${isCancelled ? 'disabled' : ''} class="py-1 px-2 rounded-xs ${ord.status === st ? 'bg-seal-red text-white' : 'bg-white text-ink-gray hover:bg-gray-100 border border-ink-black/10'} ${isCancelled ? 'cursor-not-allowed' : 'cursor-pointer'}">${label}</button>`;
-
-        card.innerHTML = `
-          <div class="space-y-1.5 flex-1 text-xs">
-            <div class="flex items-center gap-3">
-              <span class="font-mono font-bold text-sm text-ink-black ${isCancelled ? 'line-through' : ''}">${escapeHtml(ord.orderNumber)}</span>
-              <span class="text-ink-gray">접수: ${escapeHtml(getOrderDate(ord))} ${escapeHtml(ord.createdAt || '')}</span>
-              ${isCancelled ? '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-gray-200 text-gray-700">주문 취소</span>' : ''}
-            </div>
-            <p class="text-sm font-bold text-ink-black">수령인: ${escapeHtml(ord.customerName)} 님 (${escapeHtml(ord.phone)})</p>
-            <p class="text-ink-gray">배송지: ${escapeHtml(ord.address)}</p>
-            ${ord.message ? `<p class="text-seal-red font-serif italic bg-[#F3EDE3] p-2 rounded-xs border-l-2 border-seal-red">보자기 한지 메시지: "${escapeHtml(ord.message)}"</p>` : ''}
-            <div class="pt-1 flex flex-wrap gap-2">
-              ${(ord.items || []).map(i => `<span class="bg-white px-2 py-0.5 border border-ink-black/10 font-medium">${escapeHtml(i.product && i.product.name)}${i.sizeLabel ? ` (${escapeHtml(i.sizeLabel)})` : ''} ${Number(i.quantity) || 1}개</span>`).join('')}
-            </div>
-          </div>
-
-          <div class="bg-[#EFECE6]/60 p-4 rounded-xs border border-ink-black/10 min-w-[260px] space-y-2">
-            <div>
-              <span class="text-[11px] font-bold text-seal-red uppercase">★ 생화 희망 배송일</span>
-              <p class="text-sm font-bold text-ink-black break-keep">${escapeHtml(ord.deliveryDate)}</p>
-              <p class="text-xs font-bold text-ink-black mt-0.5">결제금액: ${formatWon(ord.totalAmount)}</p>
-            </div>
-            <div class="pt-2 border-t border-ink-black/10">
-              <span class="text-[11px] text-ink-gray font-bold block mb-1">배송 상태 즉시 변경:</span>
-              <div class="grid grid-cols-2 gap-1 text-[11px] font-bold">
-                ${statusBtn('preparing', '제작 중')}
-                ${statusBtn('packaged', '포장 완료')}
-                ${statusBtn('delivering', '배송 중')}
-                ${statusBtn('completed', '배송 완료')}
+      tbody.innerHTML = shown.map(o => {
+        const d = getDeliveryDate(o);
+        const time = String(o.deliveryDate || '').slice(d.length).trim();
+        const soon = o.status !== 'cancelled' && o.status !== 'completed' ? (d === today ? '오늘' : d === tomorrow ? '내일' : '') : '';
+        const isCancelled = o.status === 'cancelled';
+        const items = o.items || [];
+        const first = items[0] ? `${items[0].product && items[0].product.name}${items[0].sizeLabel ? ` (${items[0].sizeLabel})` : ''} ×${Number(items[0].quantity) || 1}` : '-';
+        const open = expandedOrders.has(o.id);
+        const statusSelect = isCancelled
+          ? '<span class="px-2 py-0.5 rounded text-xs font-bold bg-gray-200 text-gray-600">주문 취소</span>'
+          : `<select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold rounded-xs border border-ink-black/15 py-1 px-1.5 ${ORDER_STATUS_STYLE[o.status] || ''}" aria-label="배송 상태">
+              ${['preparing', 'packaged', 'delivering', 'completed'].map(st => `<option value="${st}" ${o.status === st ? 'selected' : ''}>${ORDER_STATUS_LABELS[st]}</option>`).join('')}
+            </select>`;
+        const row = `
+          <tr class="border-b border-ink-black/5 ${soon ? 'bg-amber-50/70' : ''} ${isCancelled ? 'opacity-55' : ''} hover:bg-[#F3EDE3]/50">
+            <td class="py-2 pl-3 pr-1"><input type="checkbox" class="order-check w-4 h-4" data-id="${o.id}" ${checkedOrders.has(o.id) ? 'checked' : ''} onchange="toggleOrderCheck('${o.id}', this.checked)" aria-label="${escapeHtml(o.orderNumber)} 선택"></td>
+            <td class="py-2 px-2 whitespace-nowrap cursor-pointer" onclick="toggleOrderExpand('${o.id}')">
+              ${soon ? `<span class="px-1.5 py-0.5 mr-1 rounded text-[11px] font-bold bg-amber-200 text-amber-900">${soon}</span>` : ''}<span class="font-bold text-ink-black">${escapeHtml(d ? shortDate(d) + ' (' + weekdayLabel(d) + ')' : o.deliveryDate)}</span>
+              <span class="block text-[11px] text-ink-gray">${escapeHtml(time)}</span>
+            </td>
+            <td class="py-2 px-2 cursor-pointer" onclick="toggleOrderExpand('${o.id}')"><span class="font-mono text-xs ${isCancelled ? 'line-through' : ''}">${escapeHtml(o.orderNumber)}</span><span class="block text-[11px] text-ink-gray">${escapeHtml(getOrderDate(o))} 접수</span></td>
+            <td class="py-2 px-2 font-bold text-ink-black cursor-pointer" onclick="toggleOrderExpand('${o.id}')">${escapeHtml(o.customerName)}</td>
+            <td class="py-2 px-2 text-ink-black cursor-pointer max-w-[220px] truncate" onclick="toggleOrderExpand('${o.id}')" title="${escapeHtml(items.map(i => i.product && i.product.name).join(', '))}">${escapeHtml(first)}${items.length > 1 ? ` <span class="text-ink-gray">외 ${items.length - 1}</span>` : ''}</td>
+            <td class="py-2 px-2 text-right font-bold whitespace-nowrap">${isCancelled ? `<s>${formatWon(o.totalAmount)}</s>` : formatWon(o.totalAmount)}</td>
+            <td class="py-2 px-2">${statusSelect}</td>
+            <td class="py-2 px-2 text-xs whitespace-nowrap">${o.trackingNumber ? `<span class="text-ink-black">${escapeHtml(o.courier || '')}</span><span class="block font-mono text-ink-gray">${escapeHtml(o.trackingNumber)}</span>` : o.courier ? escapeHtml(o.courier) : '<span class="text-ink-light">-</span>'}</td>
+            <td class="py-2 px-2 text-center"><button type="button" onclick="toggleOrderExpand('${o.id}')" class="text-ink-gray hover:text-seal-red cursor-pointer" aria-label="자세히" aria-expanded="${open}">${open ? '▴' : '▾'}</button></td>
+          </tr>`;
+        if (!open) return row;
+        return row + `
+          <tr class="bg-[#FAF7F2] border-b border-ink-black/10">
+            <td></td>
+            <td colspan="8" class="py-3 px-2">
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
+                <div class="space-y-1">
+                  <p class="font-bold text-ink-gray">받는 분</p>
+                  <p class="text-sm font-bold text-ink-black">${escapeHtml(o.customerName)} · <a href="tel:${escapeHtml(o.phone)}" class="underline">${escapeHtml(o.phone)}</a></p>
+                  <p class="text-ink-black">${escapeHtml(o.address)}</p>
+                  ${o.message ? `<p class="mt-2 text-seal-red font-serif italic bg-[#F3EDE3] p-2 rounded-xs border-l-2 border-seal-red">✉️ "${escapeHtml(o.message)}"</p>` : '<p class="text-ink-light mt-2">카드 메시지 없음</p>'}
+                </div>
+                <div class="space-y-1">
+                  <p class="font-bold text-ink-gray">주문 상품</p>
+                  ${items.map(i => `<p class="text-ink-black">• ${escapeHtml(i.product && i.product.name)}${i.sizeLabel ? ` (${escapeHtml(i.sizeLabel)})` : ''} × ${Number(i.quantity) || 1}<span class="block pl-3 text-ink-gray">${escapeHtml(i.optionName || '기본 포장')}</span></p>`).join('')}
+                  <p class="pt-1 text-ink-gray">접수 ${escapeHtml(getOrderDate(o))} ${escapeHtml(o.createdAt || '')}</p>
+                </div>
+                <div class="space-y-2">
+                  <p class="font-bold text-ink-gray">운송장</p>
+                  <div class="flex gap-1.5">
+                    <select id="courier-${o.id}" class="bg-white border border-ink-black/20 p-1.5 rounded-xs text-xs" aria-label="택배사">
+                      ${COURIERS.map(c => `<option ${o.courier === c ? 'selected' : ''}>${c}</option>`).join('')}
+                    </select>
+                    <input type="text" id="tracking-${o.id}" value="${escapeHtml(o.trackingNumber || '')}" placeholder="운송장 번호 (선택)" class="flex-1 min-w-0 bg-white border border-ink-black/20 p-1.5 rounded-xs text-xs font-mono">
+                    <button type="button" onclick="saveTracking('${o.id}')" class="px-2.5 py-1.5 bg-ink-black text-white rounded-xs font-bold cursor-pointer hover:bg-seal-red">저장</button>
+                  </div>
+                  <div class="flex flex-wrap gap-1.5">
+                    <button type="button" onclick="printLabels(['${o.id}'])" class="px-3 py-1.5 border border-ink-black/20 bg-white rounded-xs font-bold cursor-pointer hover:border-ink-black">🏷 운송장 출력</button>
+                    <button type="button" onclick="${isCancelled ? `restoreOrder('${o.id}')` : `cancelOrder('${o.id}')`}" class="px-3 py-1.5 border rounded-xs font-bold cursor-pointer ${isCancelled ? 'border-ink-black/20 bg-white text-ink-black' : 'border-seal-red/30 text-seal-red bg-white hover:bg-seal-red/10'}">${isCancelled ? '취소 되돌리기' : '주문 취소'}</button>
+                  </div>
+                </div>
               </div>
-              <button onclick="${isCancelled ? `restoreOrder('${ord.id}')` : `cancelOrder('${ord.id}')`}" class="mt-2 w-full py-1 text-[11px] font-bold rounded-xs border cursor-pointer ${isCancelled ? 'border-ink-black/20 bg-white text-ink-black hover:bg-gray-100' : 'border-seal-red/30 text-seal-red bg-white hover:bg-seal-red/10'}">
-                ${isCancelled ? '취소 되돌리기' : '주문 취소'}
-              </button>
-            </div>
+            </td>
+          </tr>`;
+      }).join('');
+    }
+
+    function saveTracking(ordId) {
+      const courier = document.getElementById(`courier-${ordId}`).value;
+      const trackingNumber = document.getElementById(`tracking-${ordId}`).value.trim().replace(/\s+/g, '');
+      if (trackingNumber && !/^[0-9A-Za-z-]{6,30}$/.test(trackingNumber)) {
+        alert('운송장 번호는 숫자·영문 6~30자로 적어 주세요.');
+        return;
+      }
+      saveOrders(loadAdminOrders().map(o => o.id === ordId ? { ...o, courier, trackingNumber } : o));
+      renderOrdersList();
+    }
+
+    // 운송장(배송 라벨) 출력: A4 한 장에 4장 (92×132mm), 인쇄 창에서 프린터나 'PDF로 저장' 선택
+    function printSelectedLabels() {
+      const ids = [...checkedOrders];
+      if (ids.length === 0) { alert('운송장을 출력할 주문을 먼저 체크해 주세요.'); return; }
+      printLabels(ids);
+    }
+
+    function printLabels(ids) {
+      const orders = loadAdminOrders().filter(o => ids.includes(o.id));
+      const cancelled = orders.filter(o => o.status === 'cancelled');
+      const targets = orders.filter(o => o.status !== 'cancelled');
+      if (cancelled.length && !confirm(`취소된 주문 ${cancelled.length}건은 빼고 출력할게요.`)) return;
+      if (targets.length === 0) { alert('출력할 주문이 없어요.'); return; }
+      const s = loadSettings();
+      const b = s.business || {};
+      const senderName = b.companyName || '설담화';
+      const senderAddr = b.bizAddress || [s.address, s.addressDetail].filter(Boolean).join(' ');
+      const sheet = document.getElementById('report-sheet');
+      sheet.innerHTML = `<div class="label-grid">${targets.map(o => {
+        const d = getDeliveryDate(o);
+        const time = String(o.deliveryDate || '').slice(d.length).trim();
+        const items = (o.items || []).map(i => `${escapeHtml(i.product && i.product.name)}${i.sizeLabel ? `(${escapeHtml(i.sizeLabel)})` : ''} ×${Number(i.quantity) || 1}`).join(', ');
+        return `<div class="ship-label">
+          <div class="sl-top">
+            <div class="sl-brand"><img src="assets/images/seal.svg" alt=""><span>${escapeHtml(senderName)}</span></div>
+            <div class="sl-fragile">생화 · 취급주의</div>
           </div>
-        `;
-        container.appendChild(card);
-      });
+          <div class="sl-date">${escapeHtml(d ? `${Number(d.slice(5, 7))}월 ${Number(d.slice(8, 10))}일 (${weekdayLabel(d)})` : o.deliveryDate)} <span>${escapeHtml(time)}</span></div>
+          <div class="sl-block sl-to">
+            <div class="sl-label">받는 분</div>
+            <div class="sl-name">${escapeHtml(o.customerName)}</div>
+            <div class="sl-phone">${escapeHtml(o.phone)}</div>
+            <div class="sl-addr">${escapeHtml(o.address)}</div>
+          </div>
+          <div class="sl-block sl-from">
+            <div class="sl-label">보내는 분</div>
+            <div>${escapeHtml(senderName)} · ${escapeHtml(s.phone || '')}</div>
+            <div>${escapeHtml(senderAddr)}</div>
+          </div>
+          <div class="sl-items"><b>상품</b> ${items}${o.message ? '<br><b>✉ 카드 메시지 동봉</b>' : ''}</div>
+          <div class="sl-bottom">
+            <svg class="sl-barcode" data-code="${escapeHtml(o.orderNumber)}"></svg>
+            <div class="sl-track">${o.courier ? escapeHtml(o.courier) : ''}${o.trackingNumber ? `<br><b>${escapeHtml(o.trackingNumber)}</b>` : ''}</div>
+          </div>
+          <div class="sl-warn">⬆ 이쪽이 위 · 눕히지 마세요 · 물기 주의</div>
+        </div>`;
+      }).join('')}</div>`;
+      if (typeof JsBarcode === 'function') {
+        sheet.querySelectorAll('.sl-barcode').forEach(svg => {
+          try { JsBarcode(svg, svg.dataset.code, { format: 'CODE128', height: 34, width: 1.3, fontSize: 11, margin: 0, displayValue: true }); } catch (e) { svg.outerHTML = `<div class="sl-code-text">${svg.dataset.code}</div>`; }
+        });
+      } else {
+        sheet.querySelectorAll('.sl-barcode').forEach(svg => { svg.outerHTML = `<div class="sl-code-text">${escapeHtml(svg.dataset.code)}</div>`; });
+      }
+      const prevTitle = document.title;
+      document.title = `설담화_운송장_${financeToday()}_${targets.length}건`;
+      const restore = () => { document.title = prevTitle; window.removeEventListener('afterprint', restore); };
+      window.addEventListener('afterprint', restore);
+      const imgs = [...sheet.querySelectorAll('img')];
+      Promise.all(imgs.map(img => img.complete ? Promise.resolve() : new Promise(r => { img.onload = img.onerror = r; })))
+        .then(() => setTimeout(() => window.print(), 50));
     }
 
     function updateOrderStatus(ordId, newStatus) {
@@ -1635,69 +1874,103 @@
       const newCount = inquiries.filter(i => i.status === 'new').length;
       if (badge) badge.innerText = `${newCount}건 대기`;
 
-      container.innerHTML = '';
+      // 쓰던 답변은 다시 그려도 남도록 보관
+      const drafts = {};
+      container.querySelectorAll('textarea[data-reply-for]').forEach(ta => { if (ta.value.trim()) drafts[ta.dataset.replyFor] = ta.value; });
 
+      container.innerHTML = '';
       if (inquiries.length === 0) {
-        container.innerHTML = `
-          <div class="p-8 text-center text-xs text-ink-gray bg-[#FAF7F2] border border-ink-black/10 rounded-sm">
-            접수된 문의가 없습니다.
-          </div>
-        `;
+        container.innerHTML = '<div class="p-8 text-center text-sm text-ink-gray bg-[#FAF7F2] border border-ink-black/10 rounded-sm">접수된 문의가 없어요.</div>';
         return;
       }
 
-      inquiries.forEach(inq => {
+      const sorted = inquiries.slice().sort((a, b) => (a.status === 'new' ? 0 : 1) - (b.status === 'new' ? 0 : 1) || String(b.createdDate || '').localeCompare(String(a.createdDate || '')));
+      sorted.forEach(inq => {
         const isNew = inq.status === 'new';
+        const replies = Array.isArray(inq.replies) ? inq.replies : [];
         const card = document.createElement('div');
-        card.className = `p-4 sm:p-5 rounded-sm border transition-all ${isNew ? 'bg-white border-seal-red/40 shadow-xs' : 'bg-[#FAF7F2]/80 border-ink-black/10 opacity-80'}`;
-
-        const statusBadge = isNew
-          ? '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-seal-red text-white">신규</span>'
-          : '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-gray-200 text-gray-700">답변 완료</span>';
-
+        card.className = `p-4 sm:p-5 rounded-sm border ${isNew ? 'bg-white border-seal-red/40 shadow-xs' : 'bg-[#FAF7F2]/80 border-ink-black/10'}`;
+        const phoneDigits = String(inq.phone || '').replace(/[^0-9+]/g, '');
         card.innerHTML = `
-          <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 text-xs">
-            <div class="space-y-1.5 flex-1">
-              <div class="flex items-center gap-2">
-                ${statusBadge}
-                <span class="font-bold text-sm text-ink-black">${escapeHtml(inq.name)} 님</span>
-                <span class="text-ink-gray">(${escapeHtml(inq.phone)})</span>
-                <span class="text-ink-light text-[11px] ml-auto sm:ml-2">접수일: ${inq.createdDate || '-'}</span>
-              </div>
-              <div class="flex flex-wrap gap-x-4 gap-y-1 text-ink-gray pt-0.5">
-                <span>상담 유형: <strong class="text-ink-black">${escapeHtml(inq.type || inq.productName || '일반 상담')}</strong></span>
-                ${inq.productName && inq.productName !== inq.type ? `<span>문의 상품: <strong class="text-seal-red">${escapeHtml(inq.productName)}</strong></span>` : ''}
-                <span>받고 싶은 날짜: <strong class="text-seal-red">${escapeHtml(inq.date)}</strong></span>
-              </div>
-              <div class="mt-2 bg-[#FAF7F2] p-3 rounded-xs border border-ink-black/10 text-ink-black leading-relaxed font-sans">
-                <span class="font-bold block text-ink-gray text-[11px] mb-0.5">문의 내용:</span>
-                ${escapeHtml(inq.message || '').replace(/\n/g, '<br>')}
-              </div>
-            </div>
-
-            <div class="sm:self-center pt-2 sm:pt-0 flex flex-col gap-1.5">
-              <button onclick="aiDraftInquiryReply('${inq.id}', this)" class="px-4 py-2 text-xs font-bold rounded-xs border border-seal-red/40 bg-white text-seal-red hover:bg-seal-red/10 cursor-pointer whitespace-nowrap">✨ AI 답변 초안</button>
-              ${isNew ? `
-                <button onclick="markInquiryDone('${inq.id}')" class="jakae-btn px-4 py-2 text-xs font-bold rounded-xs cursor-pointer shadow-xs whitespace-nowrap">
-                  답변 완료 처리
-                </button>
-              ` : `
-                <span class="text-[11px] text-ink-gray font-medium px-3 py-1.5 bg-gray-100 rounded-xs block text-center">
-                  답변 완료
-                </span>
-              `}
-            </div>
+          <div class="flex flex-wrap items-center gap-2 text-sm">
+            ${isNew ? '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-seal-red text-white">답변 대기</span>' : '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800">답변 완료</span>'}
+            <span class="font-bold text-ink-black">${escapeHtml(inq.name)} 님</span>
+            <a href="tel:${escapeHtml(phoneDigits)}" class="text-ink-gray underline">${escapeHtml(inq.phone)}</a>
+            <span class="text-ink-light text-xs ml-auto">접수 ${escapeHtml(inq.createdDate || '-')}</span>
           </div>
-          <div id="ai-reply-${inq.id}" class="hidden mt-3 space-y-1.5">
-            <div class="flex items-center justify-between text-[11px] font-bold text-ink-gray">
-              <span>AI 답변 초안 (보내기 전에 꼭 읽고 고쳐 주세요)</span>
-              <button type="button" onclick="copyAiReply('${inq.id}', this)" class="px-2 py-0.5 border border-ink-black/20 bg-white rounded-xs cursor-pointer">복사</button>
+          <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-gray mt-2">
+            <span>상담 유형: <strong class="text-ink-black">${escapeHtml(inq.type || inq.productName || '일반 상담')}</strong></span>
+            ${inq.productName && inq.productName !== inq.type ? `<span>문의 상품: <strong class="text-seal-red">${escapeHtml(inq.productName)}</strong></span>` : ''}
+            <span>받고 싶은 날짜: <strong class="text-seal-red">${escapeHtml(inq.date)}</strong></span>
+          </div>
+          <div class="mt-2 bg-[#FAF7F2] p-3 rounded-xs border border-ink-black/10 text-sm text-ink-black leading-relaxed">${escapeHtml(inq.message || '').replace(/\n/g, '<br>')}</div>
+
+          ${replies.length ? `<div class="mt-3 space-y-2">${replies.map(r => `
+            <div class="ml-4 sm:ml-8 p-3 rounded-xs bg-emerald-50 border border-emerald-200 text-sm leading-relaxed">
+              <p class="text-[11px] font-bold text-emerald-800 mb-1">설담화 답변 · ${escapeHtml(String(r.at || '').replace('T', ' ').slice(0, 16))}${r.via ? ` · ${escapeHtml(r.via)}` : ''}</p>
+              ${escapeHtml(r.text).replace(/\n/g, '<br>')}
+            </div>`).join('')}</div>` : ''}
+
+          <div class="mt-3 ml-4 sm:ml-8 space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-bold text-ink-gray">${replies.length ? '답변 더 쓰기' : '답변 쓰기'}</span>
+              <span class="flex items-center gap-1">
+                <select class="ai-provider-select text-[11px] border border-ink-black/20 rounded-xs bg-white py-1 px-1" aria-label="초안을 쓸 AI">${aiProviderOptionsHtml()}</select>
+                <button type="button" onclick="aiDraftInquiryReply('${inq.id}', this)" class="px-2.5 py-1 text-[11px] font-bold rounded-xs border border-seal-red/40 bg-white text-seal-red hover:bg-seal-red/10 cursor-pointer">✨ AI 초안 채우기</button>
+              </span>
             </div>
-            <textarea rows="6" class="w-full bg-white border border-ink-black/20 p-2.5 rounded-xs text-xs leading-relaxed"></textarea>
+            <textarea data-reply-for="${inq.id}" rows="4" placeholder="고객에게 보낼 답변을 적어 주세요." class="w-full bg-white border border-ink-black/20 p-2.5 rounded-xs text-sm leading-relaxed">${escapeHtml(drafts[inq.id] || '')}</textarea>
+            <div class="flex flex-wrap items-center gap-1.5 text-xs">
+              <button type="button" onclick="saveInquiryReply('${inq.id}', '')" class="px-3 py-1.5 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">답변 저장</button>
+              <button type="button" onclick="saveInquiryReply('${inq.id}', 'sms')" class="px-3 py-1.5 border border-ink-black/20 bg-white font-bold rounded-xs cursor-pointer hover:border-ink-black">저장 + 문자로 보내기</button>
+              <button type="button" onclick="copyReplyText('${inq.id}', this)" class="px-3 py-1.5 border border-ink-black/20 bg-white font-bold rounded-xs cursor-pointer hover:border-ink-black">복사</button>
+              ${isNew
+                ? `<button type="button" onclick="markInquiryDone('${inq.id}')" class="ml-auto px-3 py-1.5 text-ink-gray underline cursor-pointer">답변 없이 완료로 표시</button>`
+                : `<button type="button" onclick="reopenInquiry('${inq.id}')" class="ml-auto px-3 py-1.5 text-ink-gray underline cursor-pointer">다시 대기로</button>`}
+            </div>
           </div>
         `;
         container.appendChild(card);
       });
+    }
+
+    function saveInquiryReply(inquiryId, via) {
+      const ta = document.querySelector(`textarea[data-reply-for="${inquiryId}"]`);
+      const text = ta ? ta.value.trim() : '';
+      if (!text) { alert('답변 내용을 먼저 적어 주세요.'); return; }
+      const now = new Date();
+      const at = `${toDateStr(now)}T${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      let target = null;
+      const inquiries = loadAdminInquiries().map(inq => {
+        if (inq.id !== inquiryId) return inq;
+        target = inq;
+        return { ...inq, status: 'done', replies: [...(Array.isArray(inq.replies) ? inq.replies : []), { text, at, via: via === 'sms' ? '문자' : '' }] };
+      });
+      localStorage.setItem('seoldamhwa_inquiries', JSON.stringify(inquiries));
+      ta.value = '';
+      renderInquiriesList();
+      renderDashboard();
+      if (via === 'sms' && target) {
+        // 휴대폰에서는 문자 앱이, 컴퓨터에서는 연결된 문자 앱이 열려요
+        const phone = String(target.phone || '').replace(/[^0-9+]/g, '');
+        window.location.href = `sms:${phone}?body=${encodeURIComponent(text)}`;
+      }
+    }
+
+    function copyReplyText(inquiryId, btn) {
+      const ta = document.querySelector(`textarea[data-reply-for="${inquiryId}"]`);
+      if (!ta || !ta.value.trim()) { alert('복사할 답변이 없어요.'); return; }
+      navigator.clipboard.writeText(ta.value).then(() => {
+        btn.innerText = '복사했어요';
+        setTimeout(() => { btn.innerText = '복사'; }, 1500);
+      }).catch(() => ta.select());
+    }
+
+    function reopenInquiry(inquiryId) {
+      const inquiries = loadAdminInquiries().map(inq => inq.id === inquiryId ? { ...inq, status: 'new' } : inq);
+      localStorage.setItem('seoldamhwa_inquiries', JSON.stringify(inquiries));
+      renderInquiriesList();
+      renderDashboard();
     }
 
     function markInquiryDone(inquiryId) {
@@ -3238,33 +3511,30 @@
       }
     }
 
-    // 상담 문의: AI 답변 초안
+    // 상담 문의: AI 답변 초안 → 답변 쓰기 칸에 채우기
     async function aiDraftInquiryReply(inquiryId, btn) {
       const inq = loadAdminInquiries().find(i => i.id === inquiryId);
       if (!inq) return;
-      const box = document.getElementById(`ai-reply-${inquiryId}`);
+      const ta = document.querySelector(`textarea[data-reply-for="${inquiryId}"]`);
+      if (ta && ta.value.trim() && !confirm('쓰던 답변이 있어요. AI 초안으로 바꿀까요?')) return;
+      const sel = btn.parentElement.querySelector('.ai-provider-select');
       const original = btn.innerText;
       btn.disabled = true;
       btn.innerText = '쓰는 중…';
       try {
-        const { reply } = await draftInquiryReply(inq, typeof loadSettings === 'function' ? loadSettings() : {});
-        box.classList.remove('hidden');
-        box.querySelector('textarea').value = reply;
+        const { reply, providerLabel } = await draftInquiryReply(inq, typeof loadSettings === 'function' ? loadSettings() : {}, sel && sel.value ? sel.value : undefined);
+        if (ta) {
+          ta.value = reply;
+          ta.focus();
+        }
+        btn.innerText = `${providerLabel.split(' ')[0]} 초안 채움`;
+        setTimeout(() => { btn.innerText = original; }, 2000);
       } catch (err) {
         alert(aiErrorMessage(err));
+        btn.innerText = original;
       } finally {
         btn.disabled = false;
-        btn.innerText = original;
       }
-    }
-
-    function copyAiReply(inquiryId, btn) {
-      const ta = document.querySelector(`#ai-reply-${inquiryId} textarea`);
-      if (!ta) return;
-      navigator.clipboard.writeText(ta.value).then(() => {
-        btn.innerText = '복사했어요';
-        setTimeout(() => { btn.innerText = '복사'; }, 1500);
-      }).catch(() => { ta.select(); });
     }
 
     // 10. 사업자 정보·안내 페이지
