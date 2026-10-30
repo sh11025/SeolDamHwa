@@ -16,6 +16,9 @@
   <script src="assets/js/products-data.js"></script>
   <script src="assets/js/site-settings.js"></script>
   <script src="assets/js/popups.js"></script>
+  <script src="assets/js/finance-data.js"></script>
+  <!-- 차트: Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -96,6 +99,26 @@
       border: 1px solid rgba(26, 26, 26, 0.1);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     }
+
+    /* 대시보드 기간 탭 */
+    .period-btn { padding: 6px 12px; font-size: 13px; font-weight: 700; border-radius: 2px; border: 1px solid rgba(26,26,26,0.2); background: #fff; color: #1A1A1A; cursor: pointer; }
+    .period-btn.active { background: #1A1A1A; color: #FBF9F5; border-color: #1A1A1A; }
+    .legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+
+    /* PDF 리포트: 화면에서는 숨기고 인쇄할 때만 리포트만 보이기 */
+    #report-sheet { display: none; }
+    @media print {
+      @page { size: A4; margin: 14mm 12mm; }
+      body { background: #fff !important; }
+      body > *:not(#report-sheet) { display: none !important; }
+      #report-sheet { display: block !important; color: #1A1A1A; font-size: 11px; }
+      #report-sheet table { width: 100%; border-collapse: collapse; }
+      #report-sheet th, #report-sheet td { border-bottom: 1px solid #ddd; padding: 4px 6px; text-align: left; }
+      #report-sheet th { background: #F4F1EA; font-weight: 700; }
+      #report-sheet .num { text-align: right; white-space: nowrap; }
+      #report-sheet .avoid-break { break-inside: avoid; }
+      #report-sheet h2 { font-size: 13px; font-weight: 800; margin: 14px 0 6px; }
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col selection:bg-seal-red/15 selection:text-seal-red">
@@ -162,15 +185,23 @@
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
               <span>주문 및 신선 배송 관리</span>
             </div>
-            <span id="badge-order-count" class="text-xs bg-seal-red text-white px-1.5 py-0.5 rounded font-bold">4</span>
+            <span id="badge-order-count" class="text-xs bg-seal-red text-white px-1.5 py-0.5 rounded font-bold">0</span>
+          </button>
+
+          <button onclick="switchAdminTab('finance')" id="tab-btn-finance" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
+            <div class="flex items-center gap-2.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+              <span>매출·지출 관리</span>
+            </div>
+            <span>›</span>
           </button>
 
           <button onclick="switchAdminTab('reviews')" id="tab-btn-reviews" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
             <div class="flex items-center gap-2.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-              <span>고객 및 리뷰 관리</span>
+              <span>고객 상담 문의</span>
             </div>
-            <span class="text-xs bg-black/10 text-ink-gray px-1.5 py-0.5 rounded">3</span>
+            <span id="badge-inquiry-count" class="text-xs bg-black/10 text-ink-gray px-1.5 py-0.5 rounded">0</span>
           </button>
           <button onclick="switchAdminTab('settings')" id="tab-btn-settings" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
             <div class="flex items-center gap-2.5">
@@ -206,71 +237,109 @@
     <main class="flex-1 p-6 md:p-10 overflow-y-auto">
       
       <!-- TAB 1: 대시보드 요약 (Dashboard Summary) -->
-      <section id="panel-dashboard" class="space-y-8">
-        <div>
-          <h1 class="text-2xl font-extrabold text-ink-black tracking-tight">대시보드 운영 현황</h1>
-          <p class="text-xs text-ink-gray mt-1">생화 신선 출고 현황 및 일일 주문/매출 데이터를 실시간으로 모니터링합니다.</p>
-        </div>
-
-        <!-- 3대 핵심 메트릭스 카드 (Metrics Cards) -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          
-          <div class="admin-card p-5 rounded-sm space-y-2">
-            <div class="flex justify-between items-center text-xs font-bold text-ink-gray">
-              <span>일일 총 결제액 (Daily Sales)</span>
-              <span class="text-seal-red">₩</span>
-            </div>
-            <p id="metric-revenue" class="text-3xl font-extrabold text-ink-black">-</p>
-            <p id="metric-revenue-sub" class="text-[11px] text-seal-red font-semibold">오늘 주문 0건</p>
+      <section id="panel-dashboard" class="space-y-6">
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-extrabold text-ink-black tracking-tight">대시보드 운영 현황</h1>
+            <p class="text-sm text-ink-gray mt-1">매출·지출과 다가오는 생화 배송 일정을 한눈에 봅니다. <span class="text-ink-light">(이 컴퓨터에 저장된 주문 기준)</span></p>
           </div>
-
-          <div class="admin-card p-5 rounded-sm space-y-2">
-            <div class="flex justify-between items-center text-xs font-bold text-ink-gray">
-              <span>활성 신규 주문 (Active Orders)</span>
-              <svg class="w-4 h-4 text-ink-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="flex gap-1" role="group" aria-label="기간 선택">
+              <button type="button" class="period-btn active" data-period="today" onclick="setDashboardPeriod('today')">오늘</button>
+              <button type="button" class="period-btn" data-period="week" onclick="setDashboardPeriod('week')">이번 주</button>
+              <button type="button" class="period-btn" data-period="month" onclick="setDashboardPeriod('month')">이번 달</button>
+              <button type="button" class="period-btn" data-period="30d" onclick="setDashboardPeriod('30d')">최근 30일</button>
             </div>
-            <p id="metric-orders" class="text-3xl font-extrabold text-ink-black">-</p>
-            <p id="metric-orders-sub" class="text-[11px] text-ink-gray">제작 중: 0건 · 배송 중: 0건</p>
-          </div>
-
-          <div class="admin-card p-5 rounded-sm space-y-2">
-            <div class="flex justify-between items-center text-xs font-bold text-ink-gray">
-              <span>맞춤 담화 문의 (Inquiries)</span>
-              <svg class="w-4 h-4 text-ink-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-            </div>
-            <p id="metric-inquiries" class="text-3xl font-extrabold text-ink-black">-</p>
-            <p id="metric-inquiries-sub" class="text-[11px] text-seal-red font-semibold">답변 대기 0건</p>
-          </div>
-
-        </div>
-
-        <!-- 최근 주문 현황 테이블 (미리보기) -->
-        <div class="admin-card p-6 rounded-sm space-y-4">
-          <div class="flex items-center justify-between">
-            <div>
-              <h2 class="text-base font-bold text-ink-black">최근 접수된 주문 & 생화 희망 배송일</h2>
-              <p class="text-xs text-ink-gray">생화는 지정된 희망 배송일 아침에 수작업으로 준비됩니다.</p>
-            </div>
-            <button onclick="switchAdminTab('orders')" class="text-xs font-bold text-seal-red hover:underline cursor-pointer">
-              전체 주문 관리 &gt;
+            <button type="button" onclick="openReportModal()" class="jakae-btn px-4 py-2 rounded-sm text-sm font-bold flex items-center gap-1.5 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M6 20h12a2 2 0 002-2V8l-6-6H6a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+              <span>PDF 리포트</span>
             </button>
           </div>
+        </div>
 
+        <!-- 핵심 숫자 카드 -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="admin-card p-5 rounded-sm space-y-1.5">
+            <p class="text-sm font-bold text-ink-gray"><span class="legend-dot" style="background:#A8401A"></span>매출</p>
+            <p id="metric-revenue" class="text-2xl lg:text-3xl font-extrabold text-ink-black">-</p>
+            <p id="metric-revenue-sub" class="text-xs text-ink-gray">주문 0건</p>
+          </div>
+          <div class="admin-card p-5 rounded-sm space-y-1.5">
+            <p class="text-sm font-bold text-ink-gray"><span class="legend-dot" style="background:#1F7FA3"></span>지출</p>
+            <p id="metric-expense" class="text-2xl lg:text-3xl font-extrabold text-ink-black">-</p>
+            <p id="metric-expense-sub" class="text-xs text-ink-gray">지출 0건</p>
+          </div>
+          <div class="admin-card p-5 rounded-sm space-y-1.5">
+            <p class="text-sm font-bold text-ink-gray">순이익 (매출 − 지출)</p>
+            <p id="metric-profit" class="text-2xl lg:text-3xl font-extrabold text-ink-black">-</p>
+            <p id="metric-profit-sub" class="text-xs text-ink-gray">-</p>
+          </div>
+          <div class="admin-card p-5 rounded-sm space-y-1.5">
+            <p class="text-sm font-bold text-ink-gray">처리할 일</p>
+            <p id="metric-orders" class="text-2xl lg:text-3xl font-extrabold text-ink-black">-</p>
+            <p id="metric-orders-sub" class="text-xs text-ink-gray">-</p>
+            <p id="metric-inquiries-sub" class="text-xs text-seal-red font-semibold cursor-pointer hover:underline" onclick="switchAdminTab('reviews')">새 상담 0건</p>
+          </div>
+        </div>
+
+        <!-- 차트 -->
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+          <div class="admin-card p-5 rounded-sm xl:col-span-2">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <h2 class="text-base font-bold text-ink-black" id="chart-flow-title">날짜별 매출·지출</h2>
+              <div class="text-xs text-ink-gray flex gap-3">
+                <span><span class="legend-dot" style="background:#A8401A"></span>매출</span>
+                <span><span class="legend-dot" style="background:#1F7FA3"></span>지출</span>
+              </div>
+            </div>
+            <div class="relative h-64"><canvas id="chart-flow" aria-label="날짜별 매출과 지출 막대 차트" role="img"></canvas></div>
+          </div>
+          <div class="admin-card p-5 rounded-sm">
+            <h2 class="text-base font-bold text-ink-black mb-3" id="chart-products-title">상품별 매출</h2>
+            <div class="relative h-64"><canvas id="chart-products" aria-label="상품별 매출 가로 막대 차트" role="img"></canvas></div>
+            <p id="chart-products-empty" class="hidden text-sm text-ink-gray text-center py-24">이 기간에 판매된 상품이 없어요.</p>
+          </div>
+        </div>
+
+        <div class="admin-card p-5 rounded-sm">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div>
+              <h2 class="text-base font-bold text-ink-black">앞으로 7일 배송 일정</h2>
+              <p class="text-xs text-ink-gray">날짜별로 몇 개를 만들고 보내야 하는지 상태별로 보여 줘요.</p>
+            </div>
+            <div class="text-xs text-ink-gray flex flex-wrap gap-3">
+              <span><span class="legend-dot" style="background:#A8401A"></span>제작 중</span>
+              <span><span class="legend-dot" style="background:#C9850F"></span>포장 완료</span>
+              <span><span class="legend-dot" style="background:#1F7FA3"></span>배송 중</span>
+              <span><span class="legend-dot" style="background:#4C8A3B"></span>배송 완료</span>
+            </div>
+          </div>
+          <div class="relative h-56"><canvas id="chart-schedule" aria-label="앞으로 7일 배송 건수 상태별 누적 막대 차트" role="img"></canvas></div>
+        </div>
+
+        <!-- 최근 주문 -->
+        <div class="admin-card p-5 rounded-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-bold text-ink-black">최근 주문</h2>
+              <p class="text-xs text-ink-gray">배송일이 오늘·내일인 주문은 색으로 표시돼요.</p>
+            </div>
+            <button onclick="switchAdminTab('orders')" class="text-sm font-bold text-seal-red hover:underline cursor-pointer">전체 주문 관리 &gt;</button>
+          </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
+            <table class="w-full text-left text-sm">
               <thead>
-                <tr class="border-b border-ink-black/10 text-ink-gray font-bold">
+                <tr class="border-b border-ink-black/10 text-ink-gray text-xs font-bold">
+                  <th class="py-2.5 px-3">주문일</th>
                   <th class="py-2.5 px-3">주문번호</th>
-                  <th class="py-2.5 px-3">주문자 / 수령인</th>
-                  <th class="py-2.5 px-3">주문 꽃 상품</th>
-                  <th class="py-2.5 px-3 text-seal-red">★ 생화 희망 배송일</th>
-                  <th class="py-2.5 px-3">결제금액</th>
+                  <th class="py-2.5 px-3">주문자</th>
+                  <th class="py-2.5 px-3">상품</th>
+                  <th class="py-2.5 px-3">희망 배송일</th>
+                  <th class="py-2.5 px-3 text-right">금액</th>
                   <th class="py-2.5 px-3">상태</th>
                 </tr>
               </thead>
-              <tbody id="dashboard-recent-orders" class="divide-y divide-ink-black/5">
-                <!-- 동적 렌더링 -->
-              </tbody>
+              <tbody id="dashboard-recent-orders" class="divide-y divide-ink-black/5"></tbody>
             </table>
           </div>
         </div>
@@ -336,6 +405,90 @@
         </div>
       </section>
 
+      <!-- TAB: 매출·지출 관리 -->
+      <section id="panel-finance" class="space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-extrabold text-ink-black tracking-tight">매출·지출 관리</h1>
+            <p class="text-sm text-ink-gray mt-1">꽃 사입, 포장재, 배송비 같은 지출을 적어 두면 대시보드와 PDF 리포트에 순이익이 계산돼요.</p>
+          </div>
+          <button type="button" onclick="openReportModal()" class="jakae-btn px-4 py-2 rounded-sm text-sm font-bold cursor-pointer">PDF 리포트 만들기</button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <!-- 지출 입력 -->
+          <form id="expense-form" onsubmit="saveExpense(event)" class="admin-card p-5 rounded-sm space-y-3 text-sm">
+            <h2 id="expense-form-title" class="text-base font-bold text-ink-black">지출 적기</h2>
+            <input type="hidden" id="expense-id">
+            <div class="grid grid-cols-2 gap-3">
+              <label class="block space-y-1">
+                <span class="font-bold text-ink-black">날짜</span>
+                <input type="date" id="expense-date" required class="w-full bg-white border border-ink-black/20 p-2 rounded-xs">
+              </label>
+              <label class="block space-y-1">
+                <span class="font-bold text-ink-black">분류</span>
+                <select id="expense-category" required class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></select>
+              </label>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <label class="block space-y-1">
+                <span class="font-bold text-ink-black">금액 (원)</span>
+                <input type="number" id="expense-amount" required min="1" step="1" inputmode="numeric" placeholder="예: 120000" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs">
+              </label>
+              <label class="block space-y-1">
+                <span class="font-bold text-ink-black">결제 수단</span>
+                <select id="expense-method" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></select>
+              </label>
+            </div>
+            <label class="block space-y-1">
+              <span class="font-bold text-ink-black">메모 (선택)</span>
+              <input type="text" id="expense-memo" maxlength="60" placeholder="예: 양재 꽃시장 장미 3단" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs">
+            </label>
+            <div class="flex gap-2 pt-1">
+              <button type="submit" id="expense-submit-btn" class="flex-1 py-2.5 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">지출 추가</button>
+              <button type="button" id="expense-cancel-edit" onclick="resetExpenseForm()" class="hidden px-4 py-2.5 border border-ink-black/20 bg-white font-bold rounded-xs cursor-pointer">취소</button>
+            </div>
+          </form>
+
+          <!-- 월 요약 -->
+          <div class="admin-card p-5 rounded-sm lg:col-span-2 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h2 class="text-base font-bold text-ink-black">월별 요약</h2>
+              <input type="month" id="finance-month" onchange="renderFinance()" class="bg-white border border-ink-black/20 p-1.5 rounded-xs text-sm">
+            </div>
+            <div class="grid grid-cols-3 gap-3 text-center">
+              <div class="bg-white border border-ink-black/10 rounded-xs p-3"><p class="text-xs text-ink-gray font-bold">매출</p><p id="fin-revenue" class="text-lg font-extrabold">-</p></div>
+              <div class="bg-white border border-ink-black/10 rounded-xs p-3"><p class="text-xs text-ink-gray font-bold">지출</p><p id="fin-expense" class="text-lg font-extrabold">-</p></div>
+              <div class="bg-white border border-ink-black/10 rounded-xs p-3"><p class="text-xs text-ink-gray font-bold">순이익</p><p id="fin-profit" class="text-lg font-extrabold">-</p></div>
+            </div>
+            <div>
+              <p class="text-sm font-bold text-ink-black mb-2">분류별 지출</p>
+              <div id="fin-category-bars" class="space-y-1.5 text-sm"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 지출 목록 -->
+        <div class="admin-card p-5 rounded-sm space-y-3">
+          <h2 class="text-base font-bold text-ink-black">지출 내역 <span id="fin-expense-count" class="text-sm text-ink-gray font-normal"></span></h2>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead>
+                <tr class="border-b border-ink-black/10 text-ink-gray text-xs font-bold">
+                  <th class="py-2 px-3">날짜</th>
+                  <th class="py-2 px-3">분류</th>
+                  <th class="py-2 px-3">메모</th>
+                  <th class="py-2 px-3">결제 수단</th>
+                  <th class="py-2 px-3 text-right">금액</th>
+                  <th class="py-2 px-3 text-center">관리</th>
+                </tr>
+              </thead>
+              <tbody id="fin-expense-table" class="divide-y divide-ink-black/5"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <!-- TAB 4: 고객 및 리뷰 관리 (Customers & Reviews) -->
       <section id="panel-reviews" class="space-y-8 hidden">
         <!-- 맞춤 담화 1:1 상담 문의 관리 -->
@@ -355,19 +508,6 @@
           </div>
         </div>
 
-        <!-- 2030 감성 포토 리뷰 관리 -->
-        <div class="space-y-4 pt-4 border-t border-ink-black/10">
-          <div>
-            <h2 class="text-xl font-extrabold text-ink-black tracking-tight">2030 감성 포토 리뷰 관리</h2>
-            <p class="text-xs text-ink-gray mt-1">
-              고객들이 업로드한 감성 후기를 검수하고 쇼핑몰 노출 여부를 토글합니다.
-            </p>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="admin-reviews-list">
-            <!-- 동적 렌더링 -->
-          </div>
-        </div>
       </section>
 
       <!-- 5. 매장 정보 설정 패널 -->
@@ -742,105 +882,14 @@
 
   <!-- JavaScript: Admin 로직 & 쇼핑몰 데이터 양방향 실시간 동기화 -->
   <script>
-    // 기본 리뷰 데이터
-    const DEFAULT_REVIEWS = [
-      {
-        id: 'rev-01',
-        productName: '부귀모란 다발',
-        author: '이지민 (20대, 한남동)',
-        comment: '성수동 친구 팝업 선물로 보냈는데 전통 보자기 포장이 너무 힙해서 반응 폭발이었어요!',
-        photoUrl: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=600&q=80',
-        createdAt: '2026-10-28',
-        isApproved: true
-      },
-      {
-        id: 'rev-02',
-        productName: '달항아리 난초 오브제',
-        author: '박준혁 (30대, 삼청동)',
-        comment: '조선 백자의 둥근 곡선과 한국 춘란의 선이 거실을 단아한 갤러리로 만들어주네요.',
-        photoUrl: 'https://images.unsplash.com/photo-1599733589046-10c005739ef9?auto=format&fit=crop&w=600&q=80',
-        createdAt: '2026-10-27',
-        isApproved: true
-      },
-      {
-        id: 'rev-03',
-        productName: '자개함 프리저브드 플라워',
-        author: '최서연 (20대, 판교)',
-        comment: '어머니 환갑 선물로 최고였습니다. 자개의 영롱한 빛깔과 압화 편지가 감동적이었어요.',
-        photoUrl: 'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=600&q=80',
-        createdAt: '2026-10-26',
-        isApproved: true
-      }
-    ];
-
-    // 기본 초기 주문 (쇼핑몰에서 주문 시 여기에 누적됨)
-    const DEFAULT_ORDERS = [
-      {
-        id: 'ord-01',
-        orderNumber: 'SDH-261029-01',
-        customerName: '김단아',
-        phone: '010-3849-5921',
-        deliveryDate: '2026-10-30 (내일 오전 신선특송)',
-        address: '서울특별시 성동구 성수이로 20길 12, 401호',
-        message: '소중한 인연에 깊은 감사와 행복을 담아 보냅니다.',
-        items: [{ product: { name: '부귀모란 다발', price: 68000 }, optionName: '옥빛 보자기 포장', quantity: 1 }],
-        totalAmount: 83000,
-        status: 'preparing',
-        createdAt: '10:24'
-      },
-      {
-        id: 'ord-02',
-        orderNumber: 'SDH-261028-09',
-        customerName: '이현우',
-        phone: '010-8812-3921',
-        deliveryDate: '2026-10-29 (오후 배송)',
-        address: '서울특별시 종로구 삼청로 102 화동빌딩 4층',
-        message: '선생님의 따뜻한 은혜에 깊이 감사드립니다.',
-        items: [{ product: { name: '달항아리 난초 오브제', price: 145000 }, optionName: '기본 포장', quantity: 1 }],
-        totalAmount: 145000,
-        status: 'delivering',
-        createdAt: '16:45'
-      },
-      {
-        id: 'ord-03',
-        orderNumber: 'SDH-261028-04',
-        customerName: '최서연',
-        phone: '010-2938-5819',
-        deliveryDate: '2026-10-29 (새벽 배송)',
-        address: '경기도 성남시 분당구 판교역로 166',
-        message: '결혼 1주년을 기념하며, 언제나 그대 곁에서.',
-        items: [{ product: { name: '노을빛 작약 한아름', price: 74000 }, optionName: '실크 보자기', quantity: 1 }],
-        totalAmount: 89000,
-        status: 'packaged',
-        createdAt: '11:10'
-      },
-      {
-        id: 'ord-04',
-        orderNumber: 'SDH-261027-12',
-        customerName: '한도윤',
-        phone: '010-6712-4491',
-        deliveryDate: '2026-10-28 (배송완료)',
-        address: '서울특별시 용산구 한남대로 20길 9',
-        message: '새 보금자리 입주를 축하합니다.',
-        items: [{ product: { name: '자개함 프리저브드', price: 110000 }, optionName: '기본 포장', quantity: 1 }],
-        totalAmount: 110000,
-        status: 'completed',
-        createdAt: '15:30'
-      }
-    ];
-
     // 데이터 가져오기 및 초기화
     function loadAdminProducts() {
       return loadProducts();
     }
 
+    // 주문 불러오기 (예전 예시 주문은 finance-data.js의 loadOrders()에서 자동 정리)
     function loadAdminOrders() {
-      const stored = localStorage.getItem('seoldamhwa_orders');
-      if (!stored) {
-        localStorage.setItem('seoldamhwa_orders', JSON.stringify(DEFAULT_ORDERS));
-        return DEFAULT_ORDERS;
-      }
-      return JSON.parse(stored);
+      return loadOrders();
     }
 
     // 초기 실행
@@ -848,10 +897,10 @@
       try { renderDashboard(); } catch (e) { console.error('renderDashboard error:', e); }
       try { renderProductsTable(); } catch (e) { console.error('renderProductsTable error:', e); }
       try { renderOrdersList(); } catch (e) { console.error('renderOrdersList error:', e); }
-      try { renderReviewsList(); } catch (e) { console.error('renderReviewsList error:', e); }
       try { renderInquiriesList(); } catch (e) { console.error('renderInquiriesList error:', e); }
       try { renderAdminSettings(); } catch (e) { console.error('renderAdminSettings error:', e); }
       try { initPopupsAdmin(); } catch (e) { console.error('initPopupsAdmin error:', e); }
+      try { initFinanceForm(); renderFinance(); } catch (e) { console.error('renderFinance error:', e); }
     });
 
     // 1. 대시보드 요약 렌더링
@@ -861,61 +910,235 @@
       return JSON.parse(stored);
     }
 
+    // 차트 색 (색약 검사 통과: 매출 #A8401A / 지출 #1F7FA3)
+    const CHART_COLORS = {
+      revenue: '#A8401A',
+      expense: '#1F7FA3',
+      preparing: '#A8401A',
+      packaged: '#C9850F',
+      delivering: '#1F7FA3',
+      completed: '#4C8A3B'
+    };
+    const ORDER_STATUS_STYLE = {
+      preparing: 'bg-seal-red/15 text-seal-red',
+      packaged: 'bg-amber-100 text-amber-800',
+      delivering: 'bg-blue-100 text-blue-800',
+      completed: 'bg-emerald-100 text-emerald-800',
+      cancelled: 'bg-gray-200 text-gray-600 line-through'
+    };
+    let dashboardPeriod = 'today';
+    const dashboardCharts = {};
+
+    function setDashboardPeriod(preset) {
+      dashboardPeriod = preset;
+      document.querySelectorAll('#panel-dashboard .period-btn').forEach(b => b.classList.toggle('active', b.dataset.period === preset));
+      renderDashboard();
+    }
+
+    function shortDate(dateStr) {
+      const [, m, d] = dateStr.split('-').map(Number);
+      return `${m}/${d}`;
+    }
+
+    function weekdayLabel(dateStr) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      return ['일', '월', '화', '수', '목', '금', '토'][new Date(y, m - 1, d).getDay()];
+    }
+
+    function wonAxis(v) {
+      if (v >= 10000) return `${Math.round(v / 10000).toLocaleString('ko-KR')}만`;
+      return v.toLocaleString('ko-KR');
+    }
+
+    function drawChart(key, canvasId, config) {
+      if (typeof Chart === 'undefined') return null;
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return null;
+      if (dashboardCharts[key]) dashboardCharts[key].destroy();
+      dashboardCharts[key] = new Chart(canvas, config);
+      return dashboardCharts[key];
+    }
+
+    const CHART_BASE = {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 250 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1A1A1A',
+          padding: 10,
+          titleFont: { family: 'Pretendard', weight: '700' },
+          bodyFont: { family: 'Pretendard' }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#666', font: { family: 'Pretendard', size: 12 } } },
+        y: { beginAtZero: true, grid: { color: 'rgba(26,26,26,0.06)' }, border: { display: false }, ticks: { color: '#666', font: { family: 'Pretendard', size: 12 } } }
+      }
+    };
+
     function renderDashboard() {
       const orders = loadAdminOrders();
       const products = loadAdminProducts();
       const inquiries = loadAdminInquiries();
+      const today = financeToday();
+      const range = getPeriodRange(dashboardPeriod, today);
+      const sum = summarizePeriod(range.from, range.to);
 
-      // 오늘 날짜 계산 (YYYY-MM-DD)
-      const now = new Date();
-      const y = now.getFullYear();
-      const m = String(now.getMonth() + 1).padStart(2, '0');
-      const d = String(now.getDate()).padStart(2, '0');
-      const today = `${y}-${m}-${d}`;
+      // 1) 숫자 카드
+      document.getElementById('metric-revenue').innerText = formatWon(sum.revenue);
+      document.getElementById('metric-revenue-sub').innerText = `${range.label} 주문 ${sum.orderCount}건 · 평균 ${formatWon(sum.avgOrder)}` + (sum.cancelled.length ? ` · 취소 ${sum.cancelled.length}건` : '');
+      document.getElementById('metric-expense').innerText = formatWon(sum.expense);
+      document.getElementById('metric-expense-sub').innerText = `${range.label} 지출 ${sum.expenses.length}건`;
+      const profitEl = document.getElementById('metric-profit');
+      profitEl.innerText = (sum.profit < 0 ? '−' : '') + formatWon(Math.abs(sum.profit));
+      profitEl.classList.toggle('text-seal-red', sum.profit < 0);
+      document.getElementById('metric-profit-sub').innerText = sum.revenue > 0 ? `이익률 ${Math.round(sum.profit / sum.revenue * 100)}%` : `${range.label} 매출 없음`;
 
-      // 1) 일일 총 결제액: 오늘(today) 주문만 합산 (createdDate 없는 샘플은 제외)
-      const todayOrders = orders.filter(o => o.createdDate === today);
-      const todayRev = todayOrders.reduce((sum, o) => sum + o.totalAmount, 0);
-      document.getElementById('metric-revenue').innerText = `${todayRev.toLocaleString()}원`;
-      const revSub = document.getElementById('metric-revenue-sub');
-      if (revSub) revSub.innerText = `오늘 주문 ${todayOrders.length}건`;
-
-      // 2) 활성 신규 주문: 완료되지 않은 주문 카운트
-      const activeOrders = orders.filter(o => o.status !== 'completed');
-      document.getElementById('metric-orders').innerText = `${activeOrders.length}건`;
       const prepCount = orders.filter(o => o.status === 'preparing').length;
-      const delivCount = orders.filter(o => o.status === 'delivering' || o.status === 'packaged').length;
-      const ordSub = document.getElementById('metric-orders-sub');
-      if (ordSub) ordSub.innerHTML = `제작 중: <strong class="text-seal-red font-bold">${prepCount}건</strong> · 배송 중: ${delivCount}건`;
+      const packCount = orders.filter(o => o.status === 'packaged').length;
+      const delivCount = orders.filter(o => o.status === 'delivering').length;
+      document.getElementById('metric-orders').innerText = `${prepCount + packCount + delivCount}건`;
+      document.getElementById('metric-orders-sub').innerText = `제작 중 ${prepCount} · 포장 완료 ${packCount} · 배송 중 ${delivCount}`;
+      const newInquiries = inquiries.filter(i => i.status === 'new').length;
+      document.getElementById('metric-inquiries-sub').innerText = `새 상담 ${newInquiries}건 →`;
 
-      // 3) 맞춤 담화 문의: 'new' 상태 카운트
-      const newInquiries = inquiries.filter(i => i.status === 'new');
-      const inqMetric = document.getElementById('metric-inquiries');
-      if (inqMetric) inqMetric.innerText = `${newInquiries.length}건`;
-      const inqSub = document.getElementById('metric-inquiries-sub');
-      if (inqSub) inqSub.innerText = `답변 대기 ${newInquiries.length}건 (전체 ${inquiries.length}건)`;
-
-      document.getElementById('badge-order-count').innerText = orders.length;
+      // 사이드바 숫자
+      document.getElementById('badge-order-count').innerText = prepCount + packCount + delivCount;
       document.getElementById('badge-prod-count').innerText = products.length;
+      const inqBadge = document.getElementById('badge-inquiry-count');
+      if (inqBadge) {
+        inqBadge.innerText = newInquiries;
+        inqBadge.className = newInquiries > 0 ? 'text-xs bg-seal-red text-white px-1.5 py-0.5 rounded font-bold' : 'text-xs bg-black/10 text-ink-gray px-1.5 py-0.5 rounded';
+      }
 
+      // 2) 차트 (대시보드가 보일 때만 그리기)
+      const panel = document.getElementById('panel-dashboard');
+      if (panel && !panel.classList.contains('hidden')) {
+        renderDashboardCharts(range, today);
+      }
+
+      // 3) 최근 주문
       const recentContainer = document.getElementById('dashboard-recent-orders');
       recentContainer.innerHTML = '';
-
-      orders.slice(0, 4).forEach(ord => {
+      const tomorrow = addDays(today, 1);
+      const recent = orders.slice().sort((a, b) => String(b.id).localeCompare(String(a.id))).slice(0, 8);
+      if (recent.length === 0) {
+        recentContainer.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-ink-gray">아직 들어온 주문이 없어요.</td></tr>';
+        return;
+      }
+      recent.forEach(ord => {
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-[#F3EDE3]/40';
-        const stLabel = ord.status === 'preparing' ? '제작 중' : ord.status === 'packaged' ? '포장 완료' : ord.status === 'delivering' ? '배송 중' : '배송 완료';
-        const stColor = ord.status === 'preparing' ? 'bg-seal-red/15 text-seal-red' : ord.status === 'packaged' ? 'bg-amber-100 text-amber-800' : ord.status === 'delivering' ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800';
-
+        const dDate = getDeliveryDate(ord);
+        const soon = dDate === today ? '오늘' : dDate === tomorrow ? '내일' : '';
+        tr.className = soon && ord.status !== 'cancelled' ? 'bg-amber-50/70' : 'hover:bg-[#F3EDE3]/40';
+        const stLabel = ORDER_STATUS_LABELS[ord.status] || ord.status;
+        const firstItem = (ord.items && ord.items[0] && ord.items[0].product && ord.items[0].product.name) || '꽃 상품';
         tr.innerHTML = `
-          <td class="py-3 px-3 font-mono font-bold text-ink-black">${ord.orderNumber}</td>
-          <td class="py-3 px-3 font-bold text-ink-black">${ord.customerName}</td>
-          <td class="py-3 px-3 text-ink-black">${ord.items[0]?.product?.name || '꽃 상품'}${ord.items.length > 1 ? ` 외 ${ord.items.length - 1}건` : ''}</td>
-          <td class="py-3 px-3 font-bold text-seal-red">${ord.deliveryDate}</td>
-          <td class="py-3 px-3 font-bold text-ink-black">${ord.totalAmount.toLocaleString()}원</td>
-          <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${stColor}">${stLabel}</span></td>
+          <td class="py-2.5 px-3 text-ink-gray whitespace-nowrap">${escapeHtml(getOrderDate(ord) || '-')} ${escapeHtml(ord.createdAt || '')}</td>
+          <td class="py-2.5 px-3 font-mono text-xs text-ink-black">${escapeHtml(ord.orderNumber)}</td>
+          <td class="py-2.5 px-3 font-bold text-ink-black">${escapeHtml(ord.customerName)}</td>
+          <td class="py-2.5 px-3 text-ink-black">${escapeHtml(firstItem)}${ord.items && ord.items.length > 1 ? ` 외 ${ord.items.length - 1}건` : ''}</td>
+          <td class="py-2.5 px-3 whitespace-nowrap">${soon ? `<span class="px-1.5 py-0.5 mr-1 rounded text-[11px] font-bold bg-amber-200 text-amber-900">${soon}</span>` : ''}<span class="font-bold text-ink-black">${escapeHtml(ord.deliveryDate)}</span></td>
+          <td class="py-2.5 px-3 font-bold text-ink-black text-right whitespace-nowrap">${formatWon(ord.totalAmount)}</td>
+          <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-xs font-bold ${ORDER_STATUS_STYLE[ord.status] || ''}">${escapeHtml(stLabel)}</span></td>
         `;
         recentContainer.appendChild(tr);
+      });
+    }
+
+    function renderDashboardCharts(range, today) {
+      // 날짜별 매출·지출: 오늘/이번 주는 최근 14일, 그 외는 선택 기간
+      const spanFrom = (dashboardPeriod === 'today' || dashboardPeriod === 'week') ? addDays(today, -13) : range.from;
+      const flow = dailySeries(spanFrom, today);
+      document.getElementById('chart-flow-title').innerText = `날짜별 매출·지출 (${shortDate(spanFrom)} ~ ${shortDate(today)})`;
+      drawChart('flow', 'chart-flow', {
+        type: 'bar',
+        data: {
+          labels: flow.map(r => shortDate(r.date)),
+          datasets: [
+            { label: '매출', data: flow.map(r => r.revenue), backgroundColor: CHART_COLORS.revenue, borderRadius: 4, maxBarThickness: 18, categoryPercentage: 0.7, barPercentage: 0.9 },
+            { label: '지출', data: flow.map(r => r.expense), backgroundColor: CHART_COLORS.expense, borderRadius: 4, maxBarThickness: 18, categoryPercentage: 0.7, barPercentage: 0.9 }
+          ]
+        },
+        options: {
+          ...CHART_BASE,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            ...CHART_BASE.plugins,
+            tooltip: {
+              ...CHART_BASE.plugins.tooltip,
+              callbacks: {
+                title: items => { const r = flow[items[0].dataIndex]; return `${shortDate(r.date)} (${weekdayLabel(r.date)}) · 주문 ${r.orderCount}건`; },
+                label: c => ` ${c.dataset.label} ${formatWon(c.raw)}`,
+                footer: items => `순이익 ${formatWon(flow[items[0].dataIndex].profit)}`
+              }
+            }
+          },
+          scales: { ...CHART_BASE.scales, y: { ...CHART_BASE.scales.y, ticks: { ...CHART_BASE.scales.y.ticks, callback: wonAxis } } }
+        }
+      });
+
+      // 상품별 매출 (선택 기간)
+      const prod = productRevenue(range.from, range.to).slice(0, 7);
+      document.getElementById('chart-products-title').innerText = `상품별 매출 (${range.label})`;
+      const prodCanvas = document.getElementById('chart-products');
+      const prodEmpty = document.getElementById('chart-products-empty');
+      prodCanvas.parentElement.classList.toggle('hidden', prod.length === 0);
+      prodEmpty.classList.toggle('hidden', prod.length > 0);
+      if (prod.length > 0) {
+        drawChart('products', 'chart-products', {
+          type: 'bar',
+          data: {
+            labels: prod.map(p => p.name.length > 9 ? p.name.slice(0, 9) + '…' : p.name),
+            datasets: [{ label: '매출', data: prod.map(p => p.amount), backgroundColor: CHART_COLORS.revenue, borderRadius: 4, maxBarThickness: 16 }]
+          },
+          options: {
+            ...CHART_BASE,
+            indexAxis: 'y',
+            plugins: { ...CHART_BASE.plugins, tooltip: { ...CHART_BASE.plugins.tooltip, callbacks: { title: items => prod[items[0].dataIndex].name, label: c => ` ${formatWon(c.raw)}` } } },
+            scales: {
+              x: { beginAtZero: true, grid: { color: 'rgba(26,26,26,0.06)' }, border: { display: false }, ticks: { color: '#666', font: { family: 'Pretendard', size: 12 }, callback: wonAxis } },
+              y: { grid: { display: false }, ticks: { color: '#1A1A1A', font: { family: 'Pretendard', size: 12 } } }
+            }
+          }
+        });
+      }
+
+      // 앞으로 7일 배송 일정 (상태별 누적)
+      const sched = deliverySchedule(7, today);
+      const statuses = ['preparing', 'packaged', 'delivering', 'completed'];
+      drawChart('schedule', 'chart-schedule', {
+        type: 'bar',
+        data: {
+          labels: sched.map((r, i) => i === 0 ? `오늘 ${shortDate(r.date)}` : i === 1 ? `내일 ${shortDate(r.date)}` : `${shortDate(r.date)} (${weekdayLabel(r.date)})`),
+          datasets: statuses.map(s => ({
+            label: ORDER_STATUS_LABELS[s],
+            data: sched.map(r => r.counts[s]),
+            backgroundColor: CHART_COLORS[s],
+            borderColor: '#FAF7F2',
+            borderWidth: { top: 2 },
+            borderSkipped: false,
+            maxBarThickness: 36
+          }))
+        },
+        options: {
+          ...CHART_BASE,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            ...CHART_BASE.plugins,
+            tooltip: {
+              ...CHART_BASE.plugins.tooltip,
+              filter: c => c.raw > 0,
+              callbacks: { label: c => ` ${c.dataset.label} ${c.raw}건`, footer: items => `합계 ${sched[items[0].dataIndex].total}건` }
+            }
+          },
+          scales: {
+            x: { ...CHART_BASE.scales.x, stacked: true },
+            y: { ...CHART_BASE.scales.y, stacked: true, ticks: { ...CHART_BASE.scales.y.ticks, precision: 0, stepSize: 1 } }
+          }
+        }
       });
     }
 
@@ -1033,38 +1256,49 @@
       const container = document.getElementById('admin-orders-list');
       container.innerHTML = '';
 
+      if (orders.length === 0) {
+        container.innerHTML = '<div class="admin-card p-8 rounded-sm text-center text-sm text-ink-gray">아직 들어온 주문이 없어요.</div>';
+        return;
+      }
+
       orders.forEach(ord => {
+        const isCancelled = ord.status === 'cancelled';
         const card = document.createElement('div');
-        card.className = 'admin-card p-5 rounded-sm flex flex-col lg:flex-row lg:items-center justify-between gap-5';
+        card.className = `admin-card p-5 rounded-sm flex flex-col lg:flex-row lg:items-center justify-between gap-5 ${isCancelled ? 'opacity-60' : ''}`;
+        const statusBtn = (st, label) => `<button onclick="updateOrderStatus('${ord.id}', '${st}')" ${isCancelled ? 'disabled' : ''} class="py-1 px-2 rounded-xs ${ord.status === st ? 'bg-seal-red text-white' : 'bg-white text-ink-gray hover:bg-gray-100 border border-ink-black/10'} ${isCancelled ? 'cursor-not-allowed' : 'cursor-pointer'}">${label}</button>`;
 
         card.innerHTML = `
           <div class="space-y-1.5 flex-1 text-xs">
             <div class="flex items-center gap-3">
-              <span class="font-mono font-bold text-sm text-ink-black">${ord.orderNumber}</span>
-              <span class="text-ink-gray">접수: ${ord.createdAt}</span>
+              <span class="font-mono font-bold text-sm text-ink-black ${isCancelled ? 'line-through' : ''}">${escapeHtml(ord.orderNumber)}</span>
+              <span class="text-ink-gray">접수: ${escapeHtml(getOrderDate(ord))} ${escapeHtml(ord.createdAt || '')}</span>
+              ${isCancelled ? '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-gray-200 text-gray-700">주문 취소</span>' : ''}
             </div>
-            <p class="text-sm font-bold text-ink-black">수령인: ${ord.customerName} 님 (${ord.phone})</p>
-            <p class="text-ink-gray">배송지: ${ord.address}</p>
-            ${ord.message ? `<p class="text-seal-red font-serif italic bg-[#F3EDE3] p-2 rounded-xs border-l-2 border-seal-red">보자기 한지 메시지: "${ord.message}"</p>` : ''}
+            <p class="text-sm font-bold text-ink-black">수령인: ${escapeHtml(ord.customerName)} 님 (${escapeHtml(ord.phone)})</p>
+            <p class="text-ink-gray">배송지: ${escapeHtml(ord.address)}</p>
+            ${ord.message ? `<p class="text-seal-red font-serif italic bg-[#F3EDE3] p-2 rounded-xs border-l-2 border-seal-red">보자기 한지 메시지: "${escapeHtml(ord.message)}"</p>` : ''}
             <div class="pt-1 flex flex-wrap gap-2">
-              ${ord.items.map(i => `<span class="bg-white px-2 py-0.5 border border-ink-black/10 font-medium">${i.product.name} (${i.quantity}개)</span>`).join('')}
+              ${(ord.items || []).map(i => `<span class="bg-white px-2 py-0.5 border border-ink-black/10 font-medium">${escapeHtml(i.product && i.product.name)}${i.sizeLabel ? ` (${escapeHtml(i.sizeLabel)})` : ''} ${Number(i.quantity) || 1}개</span>`).join('')}
             </div>
           </div>
 
           <div class="bg-[#EFECE6]/60 p-4 rounded-xs border border-ink-black/10 min-w-[260px] space-y-2">
             <div>
               <span class="text-[11px] font-bold text-seal-red uppercase">★ 생화 희망 배송일</span>
-              <p class="text-sm font-bold text-ink-black break-keep">${ord.deliveryDate}</p>
-              <p class="text-xs font-bold text-ink-black mt-0.5">결제금액: ${ord.totalAmount.toLocaleString()}원</p>
+              <p class="text-sm font-bold text-ink-black break-keep">${escapeHtml(ord.deliveryDate)}</p>
+              <p class="text-xs font-bold text-ink-black mt-0.5">결제금액: ${formatWon(ord.totalAmount)}</p>
             </div>
             <div class="pt-2 border-t border-ink-black/10">
               <span class="text-[11px] text-ink-gray font-bold block mb-1">배송 상태 즉시 변경:</span>
               <div class="grid grid-cols-2 gap-1 text-[11px] font-bold">
-                <button onclick="updateOrderStatus('${ord.id}', 'preparing')" class="py-1 px-2 rounded-xs ${ord.status === 'preparing' ? 'bg-seal-red text-white' : 'bg-white text-ink-gray hover:bg-gray-100 border border-ink-black/10'}">제작 중</button>
-                <button onclick="updateOrderStatus('${ord.id}', 'packaged')" class="py-1 px-2 rounded-xs ${ord.status === 'packaged' ? 'bg-seal-red text-white' : 'bg-white text-ink-gray hover:bg-gray-100 border border-ink-black/10'}">포장 완료</button>
-                <button onclick="updateOrderStatus('${ord.id}', 'delivering')" class="py-1 px-2 rounded-xs ${ord.status === 'delivering' ? 'bg-seal-red text-white' : 'bg-white text-ink-gray hover:bg-gray-100 border border-ink-black/10'}">배송 중</button>
-                <button onclick="updateOrderStatus('${ord.id}', 'completed')" class="py-1 px-2 rounded-xs ${ord.status === 'completed' ? 'bg-seal-red text-white' : 'bg-white text-ink-gray hover:bg-gray-100 border border-ink-black/10'}">배송 완료</button>
+                ${statusBtn('preparing', '제작 중')}
+                ${statusBtn('packaged', '포장 완료')}
+                ${statusBtn('delivering', '배송 중')}
+                ${statusBtn('completed', '배송 완료')}
               </div>
+              <button onclick="${isCancelled ? `restoreOrder('${ord.id}')` : `cancelOrder('${ord.id}')`}" class="mt-2 w-full py-1 text-[11px] font-bold rounded-xs border cursor-pointer ${isCancelled ? 'border-ink-black/20 bg-white text-ink-black hover:bg-gray-100' : 'border-seal-red/30 text-seal-red bg-white hover:bg-seal-red/10'}">
+                ${isCancelled ? '취소 되돌리기' : '주문 취소'}
+              </button>
             </div>
           </div>
         `;
@@ -1075,9 +1309,46 @@
     function updateOrderStatus(ordId, newStatus) {
       const orders = loadAdminOrders();
       const updated = orders.map(o => o.id === ordId ? { ...o, status: newStatus } : o);
-      localStorage.setItem('seoldamhwa_orders', JSON.stringify(updated));
+      saveOrders(updated);
       renderOrdersList();
       renderDashboard();
+      try { renderFinance(); } catch (e) {}
+    }
+
+    // 주문 취소: 매출에서 빠지고, 줄었던 재고를 되돌림
+    function adjustStockForOrder(ord, direction) {
+      const products = loadProducts();
+      (ord.items || []).forEach(it => {
+        const prod = products.find(p => it.product && p.id === it.product.id);
+        if (prod && typeof prod.stockQuantity === 'number' && !prod.inquiryOnly) {
+          prod.stockQuantity = Math.max(0, prod.stockQuantity + direction * (Number(it.quantity) || 1));
+        }
+      });
+      saveProducts(products);
+    }
+
+    function cancelOrder(ordId) {
+      const ord = loadAdminOrders().find(o => o.id === ordId);
+      if (!ord) return;
+      if (!confirm(`${ord.orderNumber} (${ord.customerName} 님) 주문을 취소할까요?\n매출에서 빠지고, 주문했던 수량만큼 재고가 다시 늘어나요.`)) return;
+      adjustStockForOrder(ord, +1);
+      saveOrders(loadAdminOrders().map(o => o.id === ordId ? { ...o, status: 'cancelled', statusBeforeCancel: o.status } : o));
+      renderOrdersList();
+      renderProductsTable();
+      renderDashboard();
+      try { renderFinance(); } catch (e) {}
+    }
+
+    function restoreOrder(ordId) {
+      const ord = loadAdminOrders().find(o => o.id === ordId);
+      if (!ord) return;
+      if (!confirm(`${ord.orderNumber} 주문 취소를 되돌릴까요?\n다시 매출에 포함되고 재고가 줄어들어요.`)) return;
+      adjustStockForOrder(ord, -1);
+      saveOrders(loadAdminOrders().map(o => o.id === ordId ? { ...o, status: o.statusBeforeCancel || 'preparing' } : o));
+      renderOrdersList();
+      renderProductsTable();
+      renderDashboard();
+      try { renderFinance(); } catch (e) {}
     }
 
     // 4. 맞춤 담화 1:1 상담 문의 관리
@@ -1125,18 +1396,18 @@
             <div class="space-y-1.5 flex-1">
               <div class="flex items-center gap-2">
                 ${statusBadge}
-                <span class="font-bold text-sm text-ink-black">${inq.name} 님</span>
-                <span class="text-ink-gray">(${inq.phone})</span>
+                <span class="font-bold text-sm text-ink-black">${escapeHtml(inq.name)} 님</span>
+                <span class="text-ink-gray">(${escapeHtml(inq.phone)})</span>
                 <span class="text-ink-light text-[11px] ml-auto sm:ml-2">접수일: ${inq.createdDate || '-'}</span>
               </div>
               <div class="flex flex-wrap gap-x-4 gap-y-1 text-ink-gray pt-0.5">
-                <span>상담 유형: <strong class="text-ink-black">${inq.type || inq.productName || '일반 상담'}</strong></span>
-                ${inq.productName && inq.productName !== inq.type ? `<span>문의 상품: <strong class="text-seal-red">${inq.productName}</strong></span>` : ''}
-                <span>받고 싶은 날짜: <strong class="text-seal-red">${inq.date}</strong></span>
+                <span>상담 유형: <strong class="text-ink-black">${escapeHtml(inq.type || inq.productName || '일반 상담')}</strong></span>
+                ${inq.productName && inq.productName !== inq.type ? `<span>문의 상품: <strong class="text-seal-red">${escapeHtml(inq.productName)}</strong></span>` : ''}
+                <span>받고 싶은 날짜: <strong class="text-seal-red">${escapeHtml(inq.date)}</strong></span>
               </div>
               <div class="mt-2 bg-[#FAF7F2] p-3 rounded-xs border border-ink-black/10 text-ink-black leading-relaxed font-sans">
                 <span class="font-bold block text-ink-gray text-[11px] mb-0.5">문의 내용:</span>
-                ${(inq.message || '').replace(/\n/g, '<br>')}
+                ${escapeHtml(inq.message || '').replace(/\n/g, '<br>')}
               </div>
             </div>
 
@@ -1165,36 +1436,6 @@
       renderDashboard();
     }
 
-
-    // 4. 리뷰 관리 리스트 렌더링
-    function renderReviewsList() {
-      const container = document.getElementById('admin-reviews-list');
-      container.innerHTML = '';
-
-      DEFAULT_REVIEWS.forEach(rev => {
-        const div = document.createElement('div');
-        div.className = 'admin-card rounded-sm overflow-hidden flex flex-col justify-between';
-        div.innerHTML = `
-          <div>
-            <img src="${rev.photoUrl}" class="w-full aspect-[4/3] object-cover">
-            <div class="p-4 space-y-2 text-xs">
-              <span class="font-bold text-seal-red block">${rev.productName}</span>
-              <p class="font-medium text-ink-black leading-relaxed">"${rev.comment}"</p>
-              <div class="text-[11px] text-ink-gray pt-2 border-t border-ink-black/10 flex justify-between">
-                <span>작성자: ${rev.author}</span>
-                <span>${rev.createdAt}</span>
-              </div>
-            </div>
-          </div>
-          <div class="p-4 pt-0">
-            <button class="w-full py-2 text-xs font-bold bg-emerald-100 text-emerald-800 rounded-xs">
-              ✓ 쇼핑몰 노출 중
-            </button>
-          </div>
-        `;
-        container.appendChild(div);
-      });
-    }
 
     // 5. 상품 등록/수정 모달 로직
     // 견적 문의 전용 여부에 따른 폼 필드 토글
@@ -2231,8 +2472,282 @@
       window.open('index.html?popupPreview=1', '_blank');
     }
 
+    // 7. 매출·지출 관리
+    function initFinanceForm() {
+      const cat = document.getElementById('expense-category');
+      const method = document.getElementById('expense-method');
+      if (cat && !cat.options.length) cat.innerHTML = EXPENSE_CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+      if (method && !method.options.length) method.innerHTML = EXPENSE_METHODS.map(c => `<option value="${c}">${c}</option>`).join('');
+      const monthEl = document.getElementById('finance-month');
+      if (monthEl && !monthEl.value) monthEl.value = financeToday().slice(0, 7);
+      resetExpenseForm();
+    }
+
+    function resetExpenseForm() {
+      document.getElementById('expense-id').value = '';
+      document.getElementById('expense-date').value = financeToday();
+      document.getElementById('expense-category').selectedIndex = 0;
+      document.getElementById('expense-method').selectedIndex = 0;
+      document.getElementById('expense-amount').value = '';
+      document.getElementById('expense-memo').value = '';
+      document.getElementById('expense-form-title').innerText = '지출 적기';
+      document.getElementById('expense-submit-btn').innerText = '지출 추가';
+      document.getElementById('expense-cancel-edit').classList.add('hidden');
+    }
+
+    function saveExpense(e) {
+      e.preventDefault();
+      const id = document.getElementById('expense-id').value;
+      const amount = Math.round(Number(document.getElementById('expense-amount').value));
+      if (!amount || amount <= 0) {
+        alert('금액을 1원 이상으로 적어 주세요.');
+        return;
+      }
+      const entry = {
+        id: id || `exp-${Date.now()}`,
+        date: document.getElementById('expense-date').value,
+        category: document.getElementById('expense-category').value,
+        amount,
+        method: document.getElementById('expense-method').value,
+        memo: document.getElementById('expense-memo').value.trim()
+      };
+      const list = loadExpenses();
+      const idx = list.findIndex(x => x.id === entry.id);
+      if (idx >= 0) list[idx] = entry; else list.push(entry);
+      saveExpenses(list);
+      // 방금 적은 지출이 보이도록 그 달로 이동
+      document.getElementById('finance-month').value = entry.date.slice(0, 7);
+      resetExpenseForm();
+      renderFinance();
+      renderDashboard();
+    }
+
+    function editExpense(id) {
+      const x = loadExpenses().find(e => e.id === id);
+      if (!x) return;
+      document.getElementById('expense-id').value = x.id;
+      document.getElementById('expense-date').value = x.date;
+      document.getElementById('expense-category').value = x.category;
+      document.getElementById('expense-method').value = x.method || EXPENSE_METHODS[0];
+      document.getElementById('expense-amount').value = x.amount;
+      document.getElementById('expense-memo').value = x.memo || '';
+      document.getElementById('expense-form-title').innerText = '지출 고치기';
+      document.getElementById('expense-submit-btn').innerText = '고친 내용 저장';
+      document.getElementById('expense-cancel-edit').classList.remove('hidden');
+      document.getElementById('expense-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function deleteExpense(id) {
+      const x = loadExpenses().find(e => e.id === id);
+      if (!x) return;
+      if (!confirm(`${x.date} ${x.category} ${formatWon(x.amount)} 지출을 지울까요?`)) return;
+      saveExpenses(loadExpenses().filter(e => e.id !== id));
+      renderFinance();
+      renderDashboard();
+    }
+
+    function renderFinance() {
+      const monthEl = document.getElementById('finance-month');
+      if (!monthEl) return;
+      if (!monthEl.value) monthEl.value = financeToday().slice(0, 7);
+      const [y, m] = monthEl.value.split('-').map(Number);
+      const from = `${monthEl.value}-01`;
+      const to = toDateStr(new Date(y, m, 0)); // 그 달 마지막 날
+      const sum = summarizePeriod(from, to);
+
+      document.getElementById('fin-revenue').innerText = formatWon(sum.revenue);
+      document.getElementById('fin-expense').innerText = formatWon(sum.expense);
+      const profitEl = document.getElementById('fin-profit');
+      profitEl.innerText = (sum.profit < 0 ? '−' : '') + formatWon(Math.abs(sum.profit));
+      profitEl.classList.toggle('text-seal-red', sum.profit < 0);
+
+      // 분류별 지출 막대 (한 가지 색, 값은 글자로 함께 표시)
+      const bars = document.getElementById('fin-category-bars');
+      const max = Math.max(1, ...Object.values(sum.byCategory));
+      bars.innerHTML = EXPENSE_CATEGORIES.map(c => {
+        const v = sum.byCategory[c] || 0;
+        const pct = Math.round(v / max * 100);
+        return `<div class="grid grid-cols-[88px_1fr_96px] items-center gap-2">
+          <span class="text-ink-gray">${c}</span>
+          <span class="h-3 bg-black/5 rounded-sm overflow-hidden"><span class="block h-full rounded-sm" style="width:${pct}%;background:${CHART_COLORS.expense}"></span></span>
+          <span class="text-right font-bold text-ink-black">${formatWon(v)}</span>
+        </div>`;
+      }).join('');
+
+      const tbody = document.getElementById('fin-expense-table');
+      const rows = sum.expenses.slice().sort((a, b) => b.date.localeCompare(a.date));
+      document.getElementById('fin-expense-count').innerText = `(${m}월 ${rows.length}건)`;
+      if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-ink-gray">이 달에 적은 지출이 없어요. 왼쪽에서 지출을 적어 보세요.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows.map(x => `
+        <tr class="hover:bg-[#F3EDE3]/40">
+          <td class="py-2 px-3 whitespace-nowrap">${escapeHtml(x.date)}</td>
+          <td class="py-2 px-3">${escapeHtml(x.category)}</td>
+          <td class="py-2 px-3 text-ink-gray">${escapeHtml(x.memo || '-')}</td>
+          <td class="py-2 px-3">${escapeHtml(x.method || '-')}</td>
+          <td class="py-2 px-3 text-right font-bold whitespace-nowrap">${formatWon(x.amount)}</td>
+          <td class="py-2 px-3 text-center whitespace-nowrap space-x-1">
+            <button onclick="editExpense('${x.id}')" class="px-2 py-0.5 border border-ink-black/20 bg-white rounded-xs text-xs font-bold cursor-pointer hover:border-seal-red hover:text-seal-red">수정</button>
+            <button onclick="deleteExpense('${x.id}')" class="px-2 py-0.5 border border-ink-black/20 bg-white rounded-xs text-xs font-bold cursor-pointer hover:border-seal-red hover:text-seal-red">삭제</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    // 8. PDF 리포트 (브라우저 인쇄 → 'PDF로 저장')
+    let reportPreset = 'today';
+
+    function openReportModal() {
+      document.getElementById('report-modal').classList.remove('hidden');
+      document.getElementById('report-error').classList.add('hidden');
+      setReportPreset(reportPreset);
+    }
+
+    function closeReportModal() {
+      document.getElementById('report-modal').classList.add('hidden');
+    }
+
+    function setReportPreset(preset) {
+      reportPreset = preset;
+      document.querySelectorAll('.report-preset').forEach(b => b.classList.toggle('active', b.dataset.preset === preset));
+      const fromEl = document.getElementById('report-from');
+      const toEl = document.getElementById('report-to');
+      if (preset !== 'custom') {
+        const r = getPeriodRange(preset);
+        fromEl.value = r.from;
+        toEl.value = r.to;
+      }
+      fromEl.disabled = toEl.disabled = preset !== 'custom';
+    }
+
+    function reportTable(headers, rows, numericCols = []) {
+      const th = headers.map((h, i) => `<th class="${numericCols.includes(i) ? 'num' : ''}">${h}</th>`).join('');
+      const body = rows.length
+        ? rows.map(r => `<tr>${r.map((c, i) => `<td class="${numericCols.includes(i) ? 'num' : ''}">${c}</td>`).join('')}</tr>`).join('')
+        : `<tr><td colspan="${headers.length}" style="text-align:center;color:#888;padding:10px">기록이 없습니다.</td></tr>`;
+      return `<table><thead><tr>${th}</tr></thead><tbody>${body}</tbody></table>`;
+    }
+
+    // 인쇄용 차트는 그림(PNG)으로 넣어야 PDF에서 깨지지 않음
+    function renderReportChartImage(daily) {
+      if (typeof Chart === 'undefined' || daily.length < 2) return '';
+      const holder = document.createElement('div');
+      holder.style.cssText = 'position:fixed;left:-10000px;top:0;width:1000px;height:300px;';
+      const canvas = document.createElement('canvas');
+      canvas.width = 1000;
+      canvas.height = 300;
+      holder.appendChild(canvas);
+      document.body.appendChild(holder);
+      const chart = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: daily.map(r => shortDate(r.date)),
+          datasets: [
+            { label: '매출', data: daily.map(r => r.revenue), backgroundColor: CHART_COLORS.revenue, borderRadius: 3, maxBarThickness: 16 },
+            { label: '지출', data: daily.map(r => r.expense), backgroundColor: CHART_COLORS.expense, borderRadius: 3, maxBarThickness: 16 }
+          ]
+        },
+        options: {
+          responsive: false,
+          animation: false,
+          devicePixelRatio: 2,
+          plugins: { legend: { display: true, position: 'top', align: 'end', labels: { boxWidth: 10, font: { family: 'Pretendard', size: 12 } } } },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { family: 'Pretendard', size: 11 } } },
+            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { callback: wonAxis, font: { family: 'Pretendard', size: 11 } } }
+          }
+        }
+      });
+      const url = canvas.toDataURL('image/png');
+      chart.destroy();
+      holder.remove();
+      return `<div class="avoid-break"><h2>날짜별 매출·지출</h2><img src="${url}" alt="날짜별 매출과 지출 막대 차트" style="width:100%;height:auto"></div>`;
+    }
+
+    function generateReport() {
+      const from = document.getElementById('report-from').value;
+      const to = document.getElementById('report-to').value;
+      const errEl = document.getElementById('report-error');
+      const showErr = msg => { errEl.innerText = msg; errEl.classList.remove('hidden'); };
+      if (!from || !to) return showErr('시작일과 종료일을 모두 골라 주세요.');
+      if (from > to) return showErr('시작일이 종료일보다 늦어요.');
+      if (daysBetween(from, to) > 366) return showErr('리포트는 최대 1년까지 만들 수 있어요.');
+
+      const sum = summarizePeriod(from, to);
+      const daily = dailySeries(from, to);
+      const products = productRevenue(from, to);
+      const settings = typeof loadSettings === 'function' ? loadSettings() : {};
+      const periodText = from === to ? `${from} (${weekdayLabel(from)})` : `${from} ~ ${to} (${daysBetween(from, to) + 1}일)`;
+      const now = new Date();
+      const made = `${toDateStr(now)} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+      const summaryRows = [
+        ['매출 (취소 제외)', formatWon(sum.revenue)],
+        ['주문 수', `${sum.orderCount}건`],
+        ['평균 주문 금액', formatWon(sum.avgOrder)],
+        ['취소된 주문', `${sum.cancelled.length}건 · ${formatWon(sum.cancelledAmount)}`],
+        ['지출', formatWon(sum.expense)],
+        ['순이익 (매출 − 지출)', `<strong>${sum.profit < 0 ? '−' : ''}${formatWon(Math.abs(sum.profit))}</strong>`],
+        ['이익률', sum.revenue > 0 ? `${Math.round(sum.profit / sum.revenue * 100)}%` : '-']
+      ];
+
+      const orderRows = sum.orders.concat(sum.cancelled)
+        .sort((a, b) => String(a.id).localeCompare(String(b.id)))
+        .map(o => [
+          escapeHtml(getOrderDate(o)),
+          escapeHtml(o.orderNumber),
+          escapeHtml(o.customerName),
+          escapeHtml((o.items || []).map(i => `${i.product && i.product.name}${i.sizeLabel ? ` (${i.sizeLabel})` : ''} ×${Number(i.quantity) || 1}`).join(', ')),
+          escapeHtml(getDeliveryDate(o) || o.deliveryDate || ''),
+          escapeHtml(ORDER_STATUS_LABELS[o.status] || o.status),
+          o.status === 'cancelled' ? `<s>${formatWon(o.totalAmount)}</s>` : formatWon(o.totalAmount)
+        ]);
+
+      const expenseRows = [];
+      EXPENSE_CATEGORIES.forEach(c => {
+        const items = sum.expenses.filter(x => x.category === c).sort((a, b) => a.date.localeCompare(b.date));
+        if (!items.length) return;
+        items.forEach(x => expenseRows.push([escapeHtml(x.date), escapeHtml(c), escapeHtml(x.memo || '-'), escapeHtml(x.method || '-'), formatWon(x.amount)]));
+        expenseRows.push(['', `<strong>${escapeHtml(c)} 합계</strong>`, '', '', `<strong>${formatWon(sum.byCategory[c])}</strong>`]);
+      });
+
+      const sheet = document.getElementById('report-sheet');
+      sheet.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1A1A1A;padding-bottom:8px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <img src="assets/images/seal.svg" alt="" style="width:34px;height:34px">
+            <div>
+              <div style="font-size:18px;font-weight:800">설담화(說談花) 매출·지출 리포트</div>
+              <div style="color:#555">기간: ${periodText}</div>
+            </div>
+          </div>
+          <div style="text-align:right;color:#555;font-size:10px">
+            작성: ${made}<br>${escapeHtml(settings.phone || '')} ${settings.email ? '· ' + escapeHtml(settings.email) : ''}
+          </div>
+        </div>
+        <div class="avoid-break"><h2>요약</h2>${reportTable(['항목', '금액'], summaryRows, [1])}</div>
+        ${renderReportChartImage(daily)}
+        ${daily.length > 1 ? `<div><h2>날짜별 내역 <span style="font-weight:400;color:#888;font-size:10px">(주문·지출이 있던 날만)</span></h2>${reportTable(['날짜', '주문 수', '매출', '지출', '순이익'], daily.filter(r => r.orderCount || r.expense).map(r => [`${r.date} (${weekdayLabel(r.date)})`, `${r.orderCount}건`, formatWon(r.revenue), formatWon(r.expense), (r.profit < 0 ? '−' : '') + formatWon(Math.abs(r.profit))]), [1, 2, 3, 4])}</div>` : ''}
+        <div><h2>상품별 매출</h2>${reportTable(['상품', '매출'], products.map(p => [escapeHtml(p.name), formatWon(p.amount)]), [1])}</div>
+        <div><h2>주문 내역 (${sum.orderCount + sum.cancelled.length}건)</h2>${reportTable(['주문일', '주문번호', '주문자', '상품', '배송일', '상태', '금액'], orderRows, [6])}</div>
+        <div><h2>지출 내역 (${sum.expenses.length}건)</h2>${reportTable(['날짜', '분류', '메모', '결제 수단', '금액'], expenseRows, [4])}</div>
+        <p style="margin-top:14px;color:#888;font-size:9px">이 리포트는 관리자 컴퓨터에 저장된 주문·지출 기록으로 만들었습니다. 매출은 주문일 기준이며 취소된 주문은 빠져 있습니다.</p>
+      `;
+
+      closeReportModal();
+      const prevTitle = document.title;
+      document.title = `설담화_리포트_${from}${from === to ? '' : '_' + to}`;
+      const restore = () => { document.title = prevTitle; window.removeEventListener('afterprint', restore); };
+      window.addEventListener('afterprint', restore);
+      // 로고 이미지가 준비된 뒤 인쇄
+      const imgs = [...sheet.querySelectorAll('img')];
+      Promise.all(imgs.map(img => img.complete ? Promise.resolve() : new Promise(r => { img.onload = img.onerror = r; })))
+        .then(() => setTimeout(() => window.print(), 50));
+    }
+
     function switchAdminTab(tabName) {
-      ['dashboard', 'products', 'orders', 'reviews', 'settings', 'popups'].forEach(t => {
+      ['dashboard', 'products', 'orders', 'finance', 'reviews', 'settings', 'popups'].forEach(t => {
         document.getElementById(`panel-${t}`).classList.add('hidden');
         document.getElementById(`tab-btn-${t}`).className = 'sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors';
       });
@@ -2240,6 +2755,8 @@
       document.getElementById(`panel-${tabName}`).classList.remove('hidden');
       document.getElementById(`tab-btn-${tabName}`).className = 'sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm bg-ink-black text-hanji font-bold cursor-pointer transition-colors';
       if (tabName === 'popups') { try { initPopupsAdmin(); } catch (e) { console.error('initPopupsAdmin error:', e); } }
+      if (tabName === 'dashboard') { try { renderDashboard(); } catch (e) { console.error('renderDashboard error:', e); } }
+      if (tabName === 'finance') { try { renderFinance(); } catch (e) { console.error('renderFinance error:', e); } }
     }
 
     // 60초마다 상품 목록 자동 새로고침 (예약 공개 전환 반영, 현재 필터 탭 유지)
@@ -2363,5 +2880,31 @@
       </form>
     </div>
   </div>
+  <!-- PDF 리포트 기간 선택 창 -->
+  <div id="report-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-black/60 hidden">
+    <div class="bg-white w-full max-w-md rounded-sm shadow-xl border border-ink-black/10 p-6 space-y-4 text-sm">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-extrabold text-ink-black">PDF 리포트 만들기</h3>
+        <button type="button" onclick="closeReportModal()" class="text-ink-gray hover:text-ink-black text-xl leading-none cursor-pointer" aria-label="닫기">×</button>
+      </div>
+      <div class="grid grid-cols-4 gap-1.5" role="group" aria-label="리포트 기간">
+        <button type="button" class="period-btn report-preset active" data-preset="today" onclick="setReportPreset('today')">하루</button>
+        <button type="button" class="period-btn report-preset" data-preset="week" onclick="setReportPreset('week')">이번 주</button>
+        <button type="button" class="period-btn report-preset" data-preset="month" onclick="setReportPreset('month')">이번 달</button>
+        <button type="button" class="period-btn report-preset" data-preset="custom" onclick="setReportPreset('custom')">직접</button>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="block space-y-1"><span class="font-bold">시작일</span><input type="date" id="report-from" class="w-full border border-ink-black/20 p-2 rounded-xs"></label>
+        <label class="block space-y-1"><span class="font-bold">종료일</span><input type="date" id="report-to" class="w-full border border-ink-black/20 p-2 rounded-xs"></label>
+      </div>
+      <p class="text-xs text-ink-gray leading-relaxed">[PDF 저장]을 누르면 인쇄 창이 열려요. 대상(프린터)을 <strong class="text-ink-black">'PDF로 저장'</strong>으로 고른 뒤 저장하세요.</p>
+      <p id="report-error" class="hidden text-xs text-seal-red font-bold"></p>
+      <button type="button" onclick="generateReport()" class="w-full py-3 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">PDF 저장</button>
+    </div>
+  </div>
+
+  <!-- 인쇄용 리포트 (화면에서는 숨김) -->
+  <div id="report-sheet"></div>
+
 </body>
 </html>
