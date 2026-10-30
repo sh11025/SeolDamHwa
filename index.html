@@ -319,14 +319,14 @@
       <!-- 좌측: 데스크톱 메뉴 + 모바일 햄버거 버튼 -->
       <div class="flex items-center justify-start">
         <!-- 모바일 햄버거 메뉴 버튼 (md 미만 표시) -->
-        <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden p-2 -ml-2 text-ink-black hover:text-seal-red cursor-pointer" aria-label="메뉴 열기">
+        <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="lg:hidden p-2 -ml-2 text-ink-black hover:text-seal-red cursor-pointer" aria-label="메뉴 열기">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
           </svg>
         </button>
 
         <!-- 데스크톱 내비게이션 (순서: 설담화 이야기 -> 꽃 둘러보기 (Shop) -> 맞춤 담화) -->
-        <nav class="hidden md:flex items-center space-x-8 text-sm font-semibold tracking-tight">
+        <nav class="hidden lg:flex items-center space-x-6 xl:space-x-8 text-sm font-semibold tracking-tight">
           <button onclick="switchView('story')" id="nav-story" data-i18n="nav_story" class="nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors">
             설담화 이야기
           </button>
@@ -335,6 +335,9 @@
           </button>
           <button onclick="switchView('custom')" id="nav-custom" data-i18n="nav_custom" class="nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors">
             맞춤 담화
+          </button>
+          <button onclick="switchView('guide')" id="nav-guide" data-i18n="nav_guide" class="nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors">
+            정성 안내
           </button>
         </nav>
       </div>
@@ -410,15 +413,18 @@
     </div>
 
     <!-- 모바일 전체 너비 드롭다운 메뉴 패널 (md 미만 전용) -->
-    <div id="mobile-menu-dropdown" class="hidden md:hidden bg-hanji/98 backdrop-blur-md border-t border-ink-black/10 shadow-lg px-6 py-4 space-y-2">
+    <div id="mobile-menu-dropdown" class="hidden lg:hidden bg-hanji/98 backdrop-blur-md border-t border-ink-black/10 shadow-lg px-6 py-4 space-y-2">
       <button onclick="handleMobileNav('story')" data-i18n="nav_story" class="block w-full text-left py-2 text-sm font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-b border-ink-black/5">
         설담화 이야기
       </button>
       <button onclick="handleMobileNav('shop')" data-i18n="nav_shop" class="block w-full text-left py-2 text-sm font-bold text-seal-red border-b border-ink-black/5">
         꽃 둘러보기 (Shop)
       </button>
-      <button onclick="handleMobileNav('custom')" data-i18n="nav_custom" class="block w-full text-left py-2 text-sm font-semibold text-ink-charcoal hover:text-seal-red transition-colors">
+      <button onclick="handleMobileNav('custom')" data-i18n="nav_custom" class="block w-full text-left py-2 text-sm font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-b border-ink-black/5">
         맞춤 담화
+      </button>
+      <button onclick="handleMobileNav('guide')" data-i18n="nav_guide" class="block w-full text-left py-2 text-sm font-semibold text-ink-charcoal hover:text-seal-red transition-colors">
+        정성 안내
       </button>
       <!-- 모바일 언어 선택 -->
       <div class="pt-3 mt-1 border-t border-ink-black/10 flex items-center justify-between text-xs px-1">
@@ -869,6 +875,30 @@
       </div>
     </div>
 
+    <!-- 정성 안내 (보자기 포장 · 생화 관리 · 배송 · 교환·환불) -->
+    <div id="view-guide" class="hidden py-16 md:py-24 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <div class="text-center space-y-2">
+        <p class="text-xs font-bold tracking-[0.2em] text-seal-red">CUSTOMER GUIDE</p>
+        <h1 data-i18n="nav_guide" class="text-3xl md:text-4xl font-extrabold text-ink-black font-serif">정성 안내</h1>
+        <p data-i18n="guide_subtitle" class="text-sm text-ink-gray">주문 전후에 알아 두시면 좋은 이야기를 모았어요.</p>
+      </div>
+      <div class="flex flex-wrap justify-center gap-2" role="tablist" aria-label="정성 안내">
+        <button type="button" role="tab" data-guide="bojagi" onclick="showGuideTab('bojagi')" data-i18n="footer_link_bojagi" class="guide-tab px-4 py-2 rounded-full border text-sm font-bold cursor-pointer">전통 보자기 패키징 안내</button>
+        <button type="button" role="tab" data-guide="care" onclick="showGuideTab('care')" data-i18n="footer_link_care" class="guide-tab px-4 py-2 rounded-full border text-sm font-bold cursor-pointer">생화 관리 팁</button>
+        <button type="button" role="tab" data-guide="delivery" onclick="showGuideTab('delivery')" data-i18n="footer_link_delivery" class="guide-tab px-4 py-2 rounded-full border text-sm font-bold cursor-pointer">배송 안내</button>
+        <button type="button" role="tab" data-guide="refund" onclick="showGuideTab('refund')" data-i18n="footer_link_refund" class="guide-tab px-4 py-2 rounded-full border text-sm font-bold cursor-pointer">교환·환불 안내</button>
+      </div>
+      <article class="relative bg-white/70 border border-ink-black/10 rounded-sm p-6 md:p-10 shadow-xs">
+        <div class="corner-tl"></div><div class="corner-tr"></div><div class="corner-bl"></div><div class="corner-br"></div>
+        <h2 id="guide-title" class="text-xl font-extrabold text-ink-black mb-1"></h2>
+        <p id="guide-lang-note" class="hidden mb-3 text-xs text-ink-gray"></p>
+        <div id="guide-body" class="info-page-body text-sm md:text-base text-ink-charcoal leading-relaxed mt-4" role="tabpanel"></div>
+      </article>
+      <div class="text-center">
+        <button type="button" onclick="goToCustomInquiry('')" data-i18n="guide_cta" class="jakae-btn px-8 py-3 text-sm font-bold rounded-sm cursor-pointer">더 궁금한 점은 1:1 상담으로 물어보세요</button>
+      </div>
+    </div>
+
   </main>
 
     <!-- 3. 아틀리에 오시는 길 (Location Section: 오프라인 매장 미공개 시 섹션 전체 숨김) -->
@@ -995,10 +1025,10 @@
           <h4 data-i18n="footer_guide_title" class="font-bold text-ink-black text-sm">정성 안내</h4>
           <ul class="space-y-1.5 text-ink-gray">
             <li><a href="#gallery-section" data-i18n="footer_link_season" class="hover:text-seal-red">계절 꽃 둘러보기</a></li>
-            <li><button type="button" onclick="openInfoPage('bojagi')" data-i18n="footer_link_bojagi" class="hover:text-seal-red cursor-pointer">전통 보자기 패키징 안내</button></li>
-            <li><button type="button" onclick="openInfoPage('care')" data-i18n="footer_link_care" class="hover:text-seal-red cursor-pointer">생화 관리 팁</button></li>
-            <li><button type="button" onclick="openInfoPage('delivery')" data-i18n="footer_link_delivery" class="hover:text-seal-red cursor-pointer">배송 안내</button></li>
-            <li><button type="button" onclick="openInfoPage('refund')" data-i18n="footer_link_refund" class="hover:text-seal-red cursor-pointer">교환·환불 안내</button></li>
+            <li><button type="button" onclick="openGuide('bojagi')" data-i18n="footer_link_bojagi" class="hover:text-seal-red cursor-pointer">전통 보자기 패키징 안내</button></li>
+            <li><button type="button" onclick="openGuide('care')" data-i18n="footer_link_care" class="hover:text-seal-red cursor-pointer">생화 관리 팁</button></li>
+            <li><button type="button" onclick="openGuide('delivery')" data-i18n="footer_link_delivery" class="hover:text-seal-red cursor-pointer">배송 안내</button></li>
+            <li><button type="button" onclick="openGuide('refund')" data-i18n="footer_link_refund" class="hover:text-seal-red cursor-pointer">교환·환불 안내</button></li>
             <li><a href="admin-index.html" data-i18n="footer_link_admin" class="text-seal-red font-bold hover:underline">관리자 센터 로그인</a></li>
           </ul>
         </div>
@@ -2462,6 +2492,7 @@
       document.getElementById('view-shop').classList.add('hidden');
       document.getElementById('view-story').classList.add('hidden');
       document.getElementById('view-custom').classList.add('hidden');
+      document.getElementById('view-guide').classList.add('hidden');
 
       document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.className = 'nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors';
@@ -2478,6 +2509,10 @@
         document.getElementById('nav-custom').className = 'nav-btn py-1 text-seal-red font-bold border-b-2 border-seal-red transition-colors';
         initInquiryProductOptions();
         try { initCurationUI(); } catch (e) { console.error('initCurationUI error:', e); }
+      } else if (view === 'guide') {
+        document.getElementById('view-guide').classList.remove('hidden');
+        document.getElementById('nav-guide').className = 'nav-btn py-1 text-seal-red font-bold border-b-2 border-seal-red transition-colors';
+        showGuideTab(currentGuideTab);
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -2937,7 +2972,7 @@
 
         let score = 0;
         const matchedParts = [];
-        const pTags = tags[p.id];
+        const pTags = tags[p.id] || p.curationTags;
 
         if (pTags) {
           // 누구에게 (가중치 3)
@@ -3379,6 +3414,33 @@
     }
 
     
+    // 정성 안내 화면 탭
+    let currentGuideTab = 'bojagi';
+    const GUIDE_TITLE_KEYS = { bojagi: 'footer_link_bojagi', care: 'footer_link_care', delivery: 'footer_link_delivery', refund: 'footer_link_refund' };
+
+    function showGuideTab(id) {
+      if (typeof loadPages !== 'function' || !GUIDE_TITLE_KEYS[id]) return;
+      currentGuideTab = id;
+      const page = loadPages()[id];
+      const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'ko';
+      document.querySelectorAll('.guide-tab').forEach(b => {
+        const on = b.dataset.guide === id;
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+        b.className = `guide-tab px-4 py-2 rounded-full border text-sm font-bold cursor-pointer transition-colors ${on ? 'bg-ink-black text-hanji border-ink-black' : 'bg-white text-ink-black border-ink-black/20 hover:border-seal-red hover:text-seal-red'}`;
+      });
+      document.getElementById('guide-title').textContent = lang !== 'ko' && typeof t === 'function' ? t(GUIDE_TITLE_KEYS[id], page.title) : page.title;
+      const note = document.getElementById('guide-lang-note');
+      note.textContent = typeof t === 'function' ? t('page_korean_only', '') : '';
+      note.classList.toggle('hidden', lang === 'ko' || !note.textContent);
+      document.getElementById('guide-body').innerHTML = renderPageBody(page.body);
+    }
+
+    // 맨 아래 정성 안내 링크 → 정성 안내 화면의 해당 탭
+    function openGuide(id) {
+      currentGuideTab = id;
+      switchView('guide');
+    }
+
     // 정성 안내·약관 페이지 열기
     function openInfoPage(id) {
       if (typeof loadPages !== 'function') return;
@@ -3435,6 +3497,9 @@
       if (e.key === 'seoldamhwa_settings') {
         renderSiteSettings();
         renderBusinessInfo();
+      }
+      if (e.key === 'seoldamhwa_pages' && !document.getElementById('view-guide').classList.contains('hidden')) {
+        showGuideTab(currentGuideTab);
       }
       if (e.key === 'seoldamhwa_orders') {
         // 주문 관련 갱신 필요시 대응

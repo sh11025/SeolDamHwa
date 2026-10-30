@@ -7,6 +7,9 @@ const I18N = {
     nav_story: "설담화 이야기",
     nav_shop: "꽃 둘러보기 (Shop)",
     nav_custom: "맞춤 담화",
+    nav_guide: "정성 안내",
+    guide_subtitle: "주문 전후에 알아 두시면 좋은 이야기를 모았어요.",
+    guide_cta: "더 궁금한 점은 1:1 상담으로 물어보세요",
     lang_label: "언어 선택",
     search_title: "검색",
     cart_title_badge: "장바구니",
@@ -274,6 +277,9 @@ const I18N = {
     nav_story: "Our Story",
     nav_shop: "Floral Shop",
     nav_custom: "Curator",
+    nav_guide: "Guide",
+    guide_subtitle: "Helpful notes to read before and after your order.",
+    guide_cta: "Have more questions? Ask us in a 1:1 consultation",
     lang_label: "Language",
     search_title: "Search",
     cart_title_badge: "Cart",
@@ -541,6 +547,9 @@ const I18N = {
     nav_story: "說談花の物語",
     nav_shop: "花を愛でる (Shop)",
     nav_custom: "お誂え談花",
+    nav_guide: "ご案内",
+    guide_subtitle: "ご注文の前後に知っておきたいことをまとめました。",
+    guide_cta: "ご不明な点は1:1相談でお気軽にどうぞ",
     lang_label: "言語選択",
     search_title: "検索",
     cart_title_badge: "買い物かご",
@@ -1101,6 +1110,10 @@ function applyLanguage(lang = getCurrentLang()) {
   }
   if (typeof renderBusinessInfo === 'function') {
     renderBusinessInfo();
+  }
+  if (typeof showGuideTab === 'function' && typeof currentGuideTab !== 'undefined') {
+    const guideView = document.getElementById('view-guide');
+    if (guideView && !guideView.classList.contains('hidden')) showGuideTab(currentGuideTab);
   }
   if (typeof updatePDPPrice === 'function' && currentSelectedProduct) {
     updatePDPPrice();
