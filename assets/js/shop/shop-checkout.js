@@ -140,6 +140,8 @@ function recalcCheckout() {
   const method = selectedDeliveryMethod();
   const fee = method ? calcDeliveryFee(method, checkoutItemsTotal, s) : 0;
   document.getElementById('checkout-items-total').innerText = formatPrice(checkoutItemsTotal);
+  const t1 = document.getElementById('checkout-items-total-1');
+  if (t1) t1.innerText = formatPrice(checkoutItemsTotal);
   document.getElementById('checkout-delivery-fee').innerText = fee === 0 ? coT('co_free', '무료') : formatPrice(fee);
   document.getElementById('checkout-final-price').innerText = formatPrice(checkoutItemsTotal + fee);
   const hint = document.getElementById('checkout-free-hint');
@@ -239,7 +241,7 @@ function copyDoneOrderNumber(btn) {
 
 // ---- 주문 조회 ----
 function openOrderLookup(prefillNumber) {
-  document.getElementById('checkout-modal').classList.add('hidden');
+  toggleCheckoutModal(false); // 결제 페이지에서 왔으면 홈으로 돌아간 뒤 조회 창 열기
   document.getElementById('order-lookup-modal').classList.remove('hidden');
   document.getElementById('lookup-result').classList.add('hidden');
   if (typeof prefillNumber === 'string' && prefillNumber) document.getElementById('lookup-order-number').value = prefillNumber;
@@ -388,16 +390,92 @@ function openCheckoutModal() {
   checkoutItemsTotal = subtotal;
   renderDeliveryMethodOptions();
   recalcCheckout();
+  goCheckoutStep(1);
   toggleCheckoutModal(true);
 }
 
+// 결제 페이지 보이기/닫기 (#/checkout). 닫으면 홈으로
 function toggleCheckoutModal(open) {
-  const modal = document.getElementById('checkout-modal');
-  if (modal) {
-    if (open) modal.classList.remove('hidden');
-    else modal.classList.add('hidden');
+  const page = document.getElementById('checkout-modal');
+  if (!page) return;
+  if (open) {
+    if (typeof hideMainViews === 'function') hideMainViews();
+    const pdp = document.getElementById('pdp-modal');
+    if (pdp) pdp.classList.add('hidden');
+    page.classList.remove('hidden');
+    document.title = `${coT('checkout_title', '주문 및 결제')} | 설담화`;
+    if (typeof setRouteHash === 'function') setRouteHash('#/checkout');
+    window.scrollTo({ top: 0 });
+  } else if (!page.classList.contains('hidden')) {
+    page.classList.add('hidden');
+    if (typeof switchView === 'function') switchView('shop');
   }
   if (typeof updatePopupVisibility === 'function') updatePopupVisibility();
+}
+
+// ---- 결제 단계 (① 주문할 꽃 → ② 받는 분·배송 → ③ 확인·주문) ----
+let checkoutStep = 1;
+
+function goCheckoutStep(n) {
+  if (n === 3 && !validateCheckoutStep2()) return;
+  checkoutStep = n;
+  document.querySelectorAll('#checkout-form [data-co-step]').forEach(sec => sec.classList.toggle('hidden', Number(sec.dataset.coStep) !== n));
+  document.querySelectorAll('#checkout-stepper [data-step-label]').forEach(li => {
+    const k = Number(li.dataset.stepLabel);
+    li.className = `py-2 rounded-xs border ${k === n ? 'bg-ink-black text-hanji border-ink-black' : k < n ? 'bg-[#FAF7F2] text-seal-red border-seal-red/30' : 'bg-white text-ink-gray border-ink-black/10'}`;
+  });
+  if (n === 3) renderCheckoutReview();
+  const page = document.getElementById('checkout-modal');
+  if (page && !page.classList.contains('hidden')) window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function validateCheckoutStep2() {
+  const sec = document.querySelector('#checkout-form [data-co-step="2"]');
+  if (!sec) return true;
+  for (const el of sec.querySelectorAll('input, select, textarea')) {
+    if (!el.checkValidity()) { el.reportValidity(); return false; }
+  }
+  if (!selectedDeliveryMethod()) { alert(coT('co_method_required', '배송 방법을 골라 주세요.')); return false; }
+  const phoneOk = v => String(v || '').replace(/\D/g, '').length >= 9;
+  if (!phoneOk(document.getElementById('order-orderer-phone').value) || !phoneOk(document.getElementById('order-phone').value)) {
+    alert(coT('co_phone_invalid', '연락처를 숫자 9자리 이상으로 적어 주세요.'));
+    return false;
+  }
+  if (!checkAddressArea()) { document.getElementById('address-area-warning').scrollIntoView({ block: 'center' }); return false; }
+  return true;
+}
+
+function renderCheckoutReview() {
+  const dl = document.getElementById('checkout-review');
+  if (!dl) return;
+  if (document.getElementById('order-same-recipient').checked) toggleSameRecipient();
+  const val = id => (document.getElementById(id) || {}).value || '';
+  const method = selectedDeliveryMethod();
+  const dateSel = document.getElementById('order-delivery-date');
+  const timeSel = document.getElementById('order-delivery-time');
+  const dateText = `${dateSel.options[dateSel.selectedIndex] ? dateSel.options[dateSel.selectedIndex].text : ''} · ${timeSel.options[timeSel.selectedIndex] ? timeSel.options[timeSel.selectedIndex].text : ''}`;
+  const rows = [
+    [coT('co_orderer_title', '주문하시는 분'), `${val('order-orderer-name')} · ${val('order-orderer-phone')}`],
+    [coT('co_recipient_title', '받으시는 분'), `${val('order-name')} · ${val('order-phone')}`],
+    [coT('co_method_title', '배송 방법'), coT(`co_method_${method}`, method)],
+    ...(method === 'pickup' ? [] : [[coT('checkout_address_label', '배송 주소'), [val('order-zipcode') ? `(${val('order-zipcode')})` : '', val('order-address'), val('order-address-detail')].filter(Boolean).join(' ')]]),
+    [method === 'pickup' ? coT('co_pickup_date_short', '픽업일') : coT('co_delivery_date_short', '배송일'), dateText],
+    ...(val('order-message') ? [[coT('checkout_message_label', '카드 메시지'), val('order-message') + (document.getElementById('order-hide-sender').checked ? ` (${coT('co_anonymous', '익명')})` : '')]] : []),
+    ...(val('order-request') ? [[coT('co_request', '배송 요청'), val('order-request')]] : [])
+  ];
+  dl.innerHTML = '';
+  rows.forEach(([k, v]) => {
+    const row = document.createElement('div');
+    row.className = 'flex justify-between gap-4';
+    const dt = document.createElement('dt');
+    dt.className = 'text-ink-gray whitespace-nowrap';
+    dt.textContent = k;
+    const dd = document.createElement('dd');
+    dd.className = 'font-bold text-ink-black text-right break-keep';
+    dd.textContent = v;
+    row.append(dt, dd);
+    dl.appendChild(row);
+  });
 }
 
 // 주문 제출 -> localStorage 'seoldamhwa_orders'에 저장 및 실시간 재고 차감!

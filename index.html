@@ -1074,6 +1074,161 @@
     <section id="pdp-details" class="space-y-10"></section>
   </div>
 
+  <!-- 결제 페이지 (#/checkout) - 예전 창(checkout-modal)을 단계 페이지로 바꿈, id는 그대로 -->
+  <div id="checkout-modal" class="hidden max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-16">
+    <div class="relative bg-hanji w-full rounded-xs border border-ink-black/10 p-6 sm:p-8">
+
+      <form id="checkout-form" onsubmit="submitCustomerOrder(event)" class="space-y-5">
+        <div class="text-center border-b border-ink-black/10 pb-3">
+          <span data-i18n="checkout_sub" class="font-brush text-2xl text-seal-red">단정한 마음을 묶어 보내며</span>
+          <h2 data-i18n="checkout_title" class="text-2xl font-bold text-ink-black">주문 및 결제</h2>
+        </div>
+        <ol id="checkout-stepper" class="grid grid-cols-3 gap-2 text-center text-xs font-bold" aria-label="주문 단계">
+          <li data-step-label="1" class="py-2 rounded-xs border"><span data-i18n="co_step1">① 주문할 꽃</span></li>
+          <li data-step-label="2" class="py-2 rounded-xs border"><span data-i18n="co_step2">② 받는 분·배송</span></li>
+          <li data-step-label="3" class="py-2 rounded-xs border"><span data-i18n="co_step3">③ 확인·주문</span></li>
+        </ol>
+
+        <!-- ① 주문할 꽃 -->
+        <section data-co-step="1" class="space-y-4">
+          <div id="checkout-items-summary" class="space-y-1 bg-white/70 border border-ink-black/10 rounded-xs p-4"></div>
+          <div class="flex justify-between text-sm"><span data-i18n="co_items_total" class="text-ink-gray">상품 금액</span><span id="checkout-items-total-1" class="font-bold">0원</span></div>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <button type="button" onclick="toggleCartDrawer(true)" data-i18n="co_edit_cart" class="sm:w-40 py-3 border border-ink-black/20 bg-white text-sm font-bold rounded-xs cursor-pointer hover:border-ink-black">장바구니 고치기</button>
+            <button type="button" onclick="goCheckoutStep(2)" data-i18n="co_next_to_2" class="flex-1 jakae-btn py-3 text-sm font-bold rounded-xs cursor-pointer">다음: 받는 분·배송 →</button>
+          </div>
+        </section>
+
+        <!-- ② 받는 분·배송 -->
+        <section data-co-step="2" class="space-y-5">
+
+        <!-- 주문하시는 분 -->
+        <fieldset class="space-y-2 text-xs">
+          <legend data-i18n="co_orderer_title" class="text-sm font-extrabold text-ink-black mb-1">주문하시는 분</legend>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <label class="block"><span data-i18n="co_name" class="block font-bold text-ink-black mb-1">이름</span>
+              <input type="text" id="order-orderer-name" required maxlength="20" autocomplete="name" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red"></label>
+            <label class="block"><span data-i18n="co_phone" class="block font-bold text-ink-black mb-1">연락처</span>
+              <input type="tel" id="order-orderer-phone" required maxlength="20" autocomplete="tel" placeholder="010-0000-0000" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red"></label>
+          </div>
+        </fieldset>
+
+        <!-- 받으시는 분 -->
+        <fieldset class="space-y-2 text-xs">
+          <div class="flex items-center justify-between">
+            <legend data-i18n="co_recipient_title" class="text-sm font-extrabold text-ink-black">받으시는 분</legend>
+            <label class="flex items-center gap-1.5 cursor-pointer text-ink-gray"><input type="checkbox" id="order-same-recipient" onchange="toggleSameRecipient()" class="w-4 h-4"> <span data-i18n="co_same_as_orderer">주문하시는 분과 같아요</span></label>
+          </div>
+          <div id="recipient-fields" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <label class="block"><span data-i18n="co_name" class="block font-bold text-ink-black mb-1">이름</span>
+              <input type="text" id="order-name" required maxlength="20" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red"></label>
+            <label class="block"><span data-i18n="co_phone" class="block font-bold text-ink-black mb-1">연락처</span>
+              <input type="tel" id="order-phone" required maxlength="20" placeholder="010-0000-0000" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red"></label>
+          </div>
+        </fieldset>
+
+        <!-- 배송 방법 -->
+        <fieldset class="space-y-2 text-xs">
+          <legend data-i18n="co_method_title" class="text-sm font-extrabold text-ink-black mb-1">배송 방법</legend>
+          <div id="delivery-method-options" class="grid grid-cols-1 gap-2"></div>
+          <p id="delivery-note" class="hidden text-[11px] text-ink-gray"></p>
+        </fieldset>
+
+        <!-- 배송 주소 -->
+        <fieldset id="address-fields" class="space-y-2 text-xs">
+          <legend data-i18n="checkout_address_label" class="text-sm font-extrabold text-ink-black mb-1">배송 주소</legend>
+          <div class="flex gap-2">
+            <input type="text" id="order-zipcode" readonly placeholder="우편번호" data-i18n-placeholder="co_zip" class="w-28 bg-[#F4F1EA] border border-ink-black/20 p-2 rounded-xs">
+            <button type="button" onclick="openAddressSearch()" data-i18n="co_find_address" class="px-3 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red whitespace-nowrap">주소 찾기</button>
+          </div>
+          <input type="text" id="order-address" required placeholder="기본 주소 (주소 찾기를 누르거나 직접 적어 주세요)" data-i18n-placeholder="co_address_ph" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+          <input type="text" id="order-address-detail" maxlength="60" placeholder="상세 주소 (동·호수, 층)" data-i18n-placeholder="co_address_detail_ph" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+          <p id="address-area-warning" class="hidden text-[11px] font-bold text-seal-red"></p>
+        </fieldset>
+
+        <!-- 희망일 -->
+        <div class="text-xs">
+          <label id="co-date-label" data-i18n="checkout_delivery_label" class="block font-bold text-seal-red mb-1">생화 희망 배송일 및 시간 (필수)</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <select id="order-delivery-date" class="w-full bg-white border border-seal-red/40 p-2 font-bold text-seal-red rounded-xs"></select>
+            <select id="order-delivery-time" class="w-full bg-white border border-seal-red/40 p-2 font-bold text-seal-red rounded-xs">
+              <option value="오전 10:00~13:00">오전 10:00~13:00</option>
+              <option value="오후 14:00~18:00">오후 14:00~18:00</option>
+              <option value="저녁 18:00~21:00">저녁 18:00~21:00</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 카드 메시지 · 요청 -->
+        <div class="space-y-2 text-xs">
+          <label class="block"><span data-i18n="checkout_message_label" class="block font-bold text-ink-black mb-1">보자기 동봉 전통 한지 메시지</span>
+            <textarea id="order-message" rows="2" maxlength="200" data-i18n-placeholder="checkout_message_placeholder" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs" placeholder="동봉할 메시지를 적어주세요."></textarea></label>
+          <label class="flex items-center gap-2 cursor-pointer text-ink-black"><input type="checkbox" id="order-hide-sender" class="w-4 h-4"> <span data-i18n="co_hide_sender">카드에 보내는 분 이름을 적지 않을게요 (익명 선물)</span></label>
+          <label class="block"><span data-i18n="co_request" class="block font-bold text-ink-black mb-1">배송 요청 (선택)</span>
+            <input type="text" id="order-request" maxlength="80" data-i18n-placeholder="co_request_ph" placeholder="예: 부재 시 경비실에 맡겨 주세요" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+        </div>
+
+          <div class="flex gap-2 pt-2">
+            <button type="button" onclick="goCheckoutStep(1)" data-i18n="co_prev" class="w-28 py-3 border border-ink-black/20 bg-white text-sm font-bold rounded-xs cursor-pointer hover:border-ink-black">← 이전</button>
+            <button type="button" onclick="goCheckoutStep(3)" data-i18n="co_next_to_3" class="flex-1 jakae-btn py-3 text-sm font-bold rounded-xs cursor-pointer">다음: 확인 →</button>
+          </div>
+        </section>
+
+        <!-- ③ 확인·주문 -->
+        <section data-co-step="3" class="space-y-5">
+        <dl id="checkout-review" class="bg-white/70 border border-ink-black/10 rounded-xs p-4 text-sm space-y-1.5"></dl>
+        <div class="space-y-2 text-xs">
+          <label class="flex items-start gap-2 text-ink-black cursor-pointer">
+            <input type="checkbox" id="checkout-consent-privacy" required class="mt-0.5 w-4 h-4 shrink-0">
+            <span><span data-i18n="consent_privacy_order">[필수] 주문·배송을 위한 개인정보(이름·연락처·주소) 수집·이용 및 배송 업체 제공에 동의합니다.</span>
+              <button type="button" onclick="openInfoPage('privacy')" data-i18n="consent_view" class="ml-1 underline text-ink-gray hover:text-seal-red cursor-pointer">자세히</button></span>
+          </label>
+          <label class="flex items-start gap-2 text-ink-black cursor-pointer">
+            <input type="checkbox" id="checkout-consent-refund" required class="mt-0.5 w-4 h-4 shrink-0">
+            <span><span data-i18n="consent_refund">[필수] 생화 특성상 받는 날 1일 전부터는 취소·환불이 어렵다는 안내를 확인했습니다.</span>
+              <button type="button" onclick="openInfoPage('refund')" data-i18n="consent_view" class="ml-1 underline text-ink-gray hover:text-seal-red cursor-pointer">자세히</button></span>
+          </label>
+        </div>
+
+        <div class="pt-3 border-t border-ink-black/10">
+          <div class="space-y-1 text-xs mb-2">
+            <div class="flex justify-between text-ink-gray"><span data-i18n="co_items_total">상품 금액</span><span id="checkout-items-total">0원</span></div>
+            <div class="flex justify-between text-ink-gray"><span data-i18n="co_delivery_fee">배송비</span><span id="checkout-delivery-fee">0원</span></div>
+            <p id="checkout-free-hint" class="hidden text-[11px] text-seal-red text-right"></p>
+          </div>
+          <div class="flex justify-between items-baseline mb-3">
+            <span data-i18n="checkout_total_label" class="text-xs text-ink-gray">최종 결제 금액</span>
+            <span id="checkout-final-price" class="text-2xl font-bold text-seal-red">0원</span>
+          </div>
+          <div class="flex gap-2">
+            <button type="button" onclick="goCheckoutStep(2)" data-i18n="co_prev" class="w-28 py-4 border border-ink-black/20 bg-white text-sm font-bold rounded-xs cursor-pointer hover:border-ink-black">← 이전</button>
+            <button type="submit" data-i18n="co_submit" class="flex-1 jakae-btn py-4 text-sm font-bold tracking-wider rounded-xs cursor-pointer shadow-lg">주문하기</button>
+          </div>
+          <p data-i18n="co_payment_note" class="mt-2 text-[11px] text-ink-gray text-center">온라인 결제는 준비 중이에요. 주문을 확인한 뒤 결제 방법을 연락처로 안내드려요.</p>
+        </div>
+        </section>
+      </form>
+
+      <!-- 주문 완료 화면 -->
+      <div id="order-complete" class="hidden text-center space-y-4 py-2">
+        <img src="assets/images/seal.svg" alt="" class="w-14 h-14 mx-auto">
+        <h2 data-i18n="co_done_title" class="text-2xl font-extrabold text-ink-black">주문이 접수됐어요</h2>
+        <p data-i18n="co_done_desc" class="text-sm text-ink-gray">정성껏 지어 보내 드릴게요. 아래 주문번호로 언제든 주문 상태를 확인할 수 있어요.</p>
+        <div class="bg-white border border-ink-black/10 rounded-xs p-4 space-y-1">
+          <p data-i18n="co_order_number" class="text-xs text-ink-gray">주문번호</p>
+          <p id="done-order-number" class="text-2xl font-mono font-extrabold text-seal-red tracking-wider"></p>
+          <button type="button" onclick="copyDoneOrderNumber(this)" data-i18n="co_copy" class="text-xs underline text-ink-gray hover:text-seal-red cursor-pointer">복사하기</button>
+        </div>
+        <dl id="done-summary" class="text-left text-sm bg-[#FAF7F2] border border-ink-black/10 rounded-xs p-4 space-y-1.5"></dl>
+        <p data-i18n="co_payment_note" class="text-xs text-ink-gray">온라인 결제는 준비 중이에요. 주문을 확인한 뒤 결제 방법을 연락처로 안내드려요.</p>
+        <div class="flex flex-col sm:flex-row gap-2 justify-center">
+          <button type="button" onclick="openOrderLookup(document.getElementById('done-order-number').innerText)" data-i18n="co_lookup_btn" class="px-5 py-2.5 border border-ink-black/20 bg-white text-sm font-bold rounded-xs cursor-pointer hover:border-ink-black">주문 조회하기</button>
+          <button type="button" onclick="toggleCheckoutModal(false)" data-i18n="co_continue" class="jakae-btn px-5 py-2.5 text-sm font-bold rounded-xs cursor-pointer">쇼핑 계속하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   </main>
 
     <!-- 3. 아틀리에 오시는 길 (Location Section: 오프라인 매장 미공개 시 섹션 전체 숨김) -->
@@ -1325,131 +1480,6 @@
   </div>
 
   <!-- 7. 주문 결제 모달 (Checkout Modal) -->
-  <div id="checkout-modal" class="fixed inset-0 z-50 overflow-y-auto bg-black/65 backdrop-blur-xs hidden flex items-center justify-center p-4">
-    <div class="fixed inset-0" onclick="toggleCheckoutModal(false)"></div>
-    <div class="relative bg-hanji w-full max-w-xl rounded-xs shadow-2xl border border-ink-black/20 z-10 p-6 sm:p-8 my-8">
-      <button onclick="toggleCheckoutModal(false)" class="absolute top-4 right-4 p-1.5 text-ink-gray hover:text-ink-black cursor-pointer">✕</button>
-
-      <form id="checkout-form" onsubmit="submitCustomerOrder(event)" class="space-y-5">
-        <div class="text-center border-b border-ink-black/10 pb-3">
-          <span data-i18n="checkout_sub" class="font-brush text-2xl text-seal-red">단정한 마음을 묶어 보내며</span>
-          <h2 data-i18n="checkout_title" class="text-2xl font-bold text-ink-black">주문 및 결제</h2>
-        </div>
-
-        <!-- 주문하시는 분 -->
-        <fieldset class="space-y-2 text-xs">
-          <legend data-i18n="co_orderer_title" class="text-sm font-extrabold text-ink-black mb-1">주문하시는 분</legend>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <label class="block"><span data-i18n="co_name" class="block font-bold text-ink-black mb-1">이름</span>
-              <input type="text" id="order-orderer-name" required maxlength="20" autocomplete="name" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red"></label>
-            <label class="block"><span data-i18n="co_phone" class="block font-bold text-ink-black mb-1">연락처</span>
-              <input type="tel" id="order-orderer-phone" required maxlength="20" autocomplete="tel" placeholder="010-0000-0000" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red"></label>
-          </div>
-        </fieldset>
-
-        <!-- 받으시는 분 -->
-        <fieldset class="space-y-2 text-xs">
-          <div class="flex items-center justify-between">
-            <legend data-i18n="co_recipient_title" class="text-sm font-extrabold text-ink-black">받으시는 분</legend>
-            <label class="flex items-center gap-1.5 cursor-pointer text-ink-gray"><input type="checkbox" id="order-same-recipient" onchange="toggleSameRecipient()" class="w-4 h-4"> <span data-i18n="co_same_as_orderer">주문하시는 분과 같아요</span></label>
-          </div>
-          <div id="recipient-fields" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <label class="block"><span data-i18n="co_name" class="block font-bold text-ink-black mb-1">이름</span>
-              <input type="text" id="order-name" required maxlength="20" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red"></label>
-            <label class="block"><span data-i18n="co_phone" class="block font-bold text-ink-black mb-1">연락처</span>
-              <input type="tel" id="order-phone" required maxlength="20" placeholder="010-0000-0000" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red"></label>
-          </div>
-        </fieldset>
-
-        <!-- 배송 방법 -->
-        <fieldset class="space-y-2 text-xs">
-          <legend data-i18n="co_method_title" class="text-sm font-extrabold text-ink-black mb-1">배송 방법</legend>
-          <div id="delivery-method-options" class="grid grid-cols-1 gap-2"></div>
-          <p id="delivery-note" class="hidden text-[11px] text-ink-gray"></p>
-        </fieldset>
-
-        <!-- 배송 주소 -->
-        <fieldset id="address-fields" class="space-y-2 text-xs">
-          <legend data-i18n="checkout_address_label" class="text-sm font-extrabold text-ink-black mb-1">배송 주소</legend>
-          <div class="flex gap-2">
-            <input type="text" id="order-zipcode" readonly placeholder="우편번호" data-i18n-placeholder="co_zip" class="w-28 bg-[#F4F1EA] border border-ink-black/20 p-2 rounded-xs">
-            <button type="button" onclick="openAddressSearch()" data-i18n="co_find_address" class="px-3 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red whitespace-nowrap">주소 찾기</button>
-          </div>
-          <input type="text" id="order-address" required placeholder="기본 주소 (주소 찾기를 누르거나 직접 적어 주세요)" data-i18n-placeholder="co_address_ph" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
-          <input type="text" id="order-address-detail" maxlength="60" placeholder="상세 주소 (동·호수, 층)" data-i18n-placeholder="co_address_detail_ph" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
-          <p id="address-area-warning" class="hidden text-[11px] font-bold text-seal-red"></p>
-        </fieldset>
-
-        <!-- 희망일 -->
-        <div class="text-xs">
-          <label id="co-date-label" data-i18n="checkout_delivery_label" class="block font-bold text-seal-red mb-1">생화 희망 배송일 및 시간 (필수)</label>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <select id="order-delivery-date" class="w-full bg-white border border-seal-red/40 p-2 font-bold text-seal-red rounded-xs"></select>
-            <select id="order-delivery-time" class="w-full bg-white border border-seal-red/40 p-2 font-bold text-seal-red rounded-xs">
-              <option value="오전 10:00~13:00">오전 10:00~13:00</option>
-              <option value="오후 14:00~18:00">오후 14:00~18:00</option>
-              <option value="저녁 18:00~21:00">저녁 18:00~21:00</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- 카드 메시지 · 요청 -->
-        <div class="space-y-2 text-xs">
-          <label class="block"><span data-i18n="checkout_message_label" class="block font-bold text-ink-black mb-1">보자기 동봉 전통 한지 메시지</span>
-            <textarea id="order-message" rows="2" maxlength="200" data-i18n-placeholder="checkout_message_placeholder" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs" placeholder="동봉할 메시지를 적어주세요."></textarea></label>
-          <label class="flex items-center gap-2 cursor-pointer text-ink-black"><input type="checkbox" id="order-hide-sender" class="w-4 h-4"> <span data-i18n="co_hide_sender">카드에 보내는 분 이름을 적지 않을게요 (익명 선물)</span></label>
-          <label class="block"><span data-i18n="co_request" class="block font-bold text-ink-black mb-1">배송 요청 (선택)</span>
-            <input type="text" id="order-request" maxlength="80" data-i18n-placeholder="co_request_ph" placeholder="예: 부재 시 경비실에 맡겨 주세요" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
-        </div>
-
-        <div class="space-y-2 text-xs">
-          <label class="flex items-start gap-2 text-ink-black cursor-pointer">
-            <input type="checkbox" id="checkout-consent-privacy" required class="mt-0.5 w-4 h-4 shrink-0">
-            <span><span data-i18n="consent_privacy_order">[필수] 주문·배송을 위한 개인정보(이름·연락처·주소) 수집·이용 및 배송 업체 제공에 동의합니다.</span>
-              <button type="button" onclick="openInfoPage('privacy')" data-i18n="consent_view" class="ml-1 underline text-ink-gray hover:text-seal-red cursor-pointer">자세히</button></span>
-          </label>
-          <label class="flex items-start gap-2 text-ink-black cursor-pointer">
-            <input type="checkbox" id="checkout-consent-refund" required class="mt-0.5 w-4 h-4 shrink-0">
-            <span><span data-i18n="consent_refund">[필수] 생화 특성상 받는 날 1일 전부터는 취소·환불이 어렵다는 안내를 확인했습니다.</span>
-              <button type="button" onclick="openInfoPage('refund')" data-i18n="consent_view" class="ml-1 underline text-ink-gray hover:text-seal-red cursor-pointer">자세히</button></span>
-          </label>
-        </div>
-
-        <div class="pt-3 border-t border-ink-black/10">
-          <div id="checkout-items-summary" class="mb-3 space-y-1 max-h-40 overflow-y-auto"></div>
-          <div class="space-y-1 text-xs mb-2">
-            <div class="flex justify-between text-ink-gray"><span data-i18n="co_items_total">상품 금액</span><span id="checkout-items-total">0원</span></div>
-            <div class="flex justify-between text-ink-gray"><span data-i18n="co_delivery_fee">배송비</span><span id="checkout-delivery-fee">0원</span></div>
-            <p id="checkout-free-hint" class="hidden text-[11px] text-seal-red text-right"></p>
-          </div>
-          <div class="flex justify-between items-baseline mb-3">
-            <span data-i18n="checkout_total_label" class="text-xs text-ink-gray">최종 결제 금액</span>
-            <span id="checkout-final-price" class="text-2xl font-bold text-seal-red">0원</span>
-          </div>
-          <button type="submit" data-i18n="co_submit" class="jakae-btn w-full py-4 text-sm font-bold tracking-wider rounded-xs cursor-pointer shadow-lg">주문하기</button>
-          <p data-i18n="co_payment_note" class="mt-2 text-[11px] text-ink-gray text-center">온라인 결제는 준비 중이에요. 주문을 확인한 뒤 결제 방법을 연락처로 안내드려요.</p>
-        </div>
-      </form>
-
-      <!-- 주문 완료 화면 -->
-      <div id="order-complete" class="hidden text-center space-y-4 py-2">
-        <img src="assets/images/seal.svg" alt="" class="w-14 h-14 mx-auto">
-        <h2 data-i18n="co_done_title" class="text-2xl font-extrabold text-ink-black">주문이 접수됐어요</h2>
-        <p data-i18n="co_done_desc" class="text-sm text-ink-gray">정성껏 지어 보내 드릴게요. 아래 주문번호로 언제든 주문 상태를 확인할 수 있어요.</p>
-        <div class="bg-white border border-ink-black/10 rounded-xs p-4 space-y-1">
-          <p data-i18n="co_order_number" class="text-xs text-ink-gray">주문번호</p>
-          <p id="done-order-number" class="text-2xl font-mono font-extrabold text-seal-red tracking-wider"></p>
-          <button type="button" onclick="copyDoneOrderNumber(this)" data-i18n="co_copy" class="text-xs underline text-ink-gray hover:text-seal-red cursor-pointer">복사하기</button>
-        </div>
-        <dl id="done-summary" class="text-left text-sm bg-[#FAF7F2] border border-ink-black/10 rounded-xs p-4 space-y-1.5"></dl>
-        <p data-i18n="co_payment_note" class="text-xs text-ink-gray">온라인 결제는 준비 중이에요. 주문을 확인한 뒤 결제 방법을 연락처로 안내드려요.</p>
-        <div class="flex flex-col sm:flex-row gap-2 justify-center">
-          <button type="button" onclick="openOrderLookup(document.getElementById('done-order-number').innerText)" data-i18n="co_lookup_btn" class="px-5 py-2.5 border border-ink-black/20 bg-white text-sm font-bold rounded-xs cursor-pointer hover:border-ink-black">주문 조회하기</button>
-          <button type="button" onclick="toggleCheckoutModal(false)" data-i18n="co_continue" class="jakae-btn px-5 py-2.5 text-sm font-bold rounded-xs cursor-pointer">쇼핑 계속하기</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- 주문 조회 창 -->
   <div id="order-lookup-modal" class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="order-lookup-title">

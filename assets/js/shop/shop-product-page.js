@@ -261,7 +261,7 @@ function renderProductDetails(p) {
 }
 
 function hideMainViews() {
-  ['view-shop', 'view-story', 'view-custom', 'view-guide', 'view-wishlist', 'view-checkout', 'view-flowers'].forEach(id => {
+  ['view-shop', 'view-story', 'view-custom', 'view-guide', 'view-wishlist', 'view-flowers', 'checkout-modal'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
   });
@@ -358,12 +358,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (page) page.classList.add('hidden');
     const wish = document.getElementById('view-wishlist');
     if (wish) wish.classList.add('hidden');
+    const checkout = document.getElementById('checkout-modal');
+    if (checkout) checkout.classList.add('hidden');
     document.title = '설담화 (說談花) | 힙 트래디셔널 플로럴 아틀리에';
     originalShowView(view);
   };
   if (typeof SHOP_ROUTES !== 'undefined') {
     SHOP_ROUTES.flower = params => openProductDetail(params[0], false, true);
     SHOP_ROUTES.wishlist = () => showWishlistPage();
+    SHOP_ROUTES.checkout = () => { if (cart.length) openCheckoutModal(); else showView('shop'); };
   }
   updateWishBadge();
 });
