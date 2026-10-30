@@ -1305,6 +1305,7 @@
   <script src="assets/js/i18n.js"></script>
   <script src="assets/js/site-settings.js"></script>
   <script src="assets/js/popups.js"></script>
+  <script src="assets/js/integrations.js"></script>
 
   <!-- JavaScript: 쇼핑몰 동작 & 인터랙션 로직 -->
   <script>
@@ -2074,6 +2075,7 @@
       const existingOrders = JSON.parse(localStorage.getItem('seoldamhwa_orders') || '[]');
       existingOrders.unshift(newOrder);
       localStorage.setItem('seoldamhwa_orders', JSON.stringify(existingOrders));
+      try { if (typeof notifyOrderToDiscord === 'function') notifyOrderToDiscord(newOrder); } catch (e) { console.error('discord notify error:', e); }
 
       // 2) 상품 재고 수량 실시간 차감
       const currentProducts = loadProducts();
@@ -3247,6 +3249,7 @@
       const inquiries = JSON.parse(localStorage.getItem('seoldamhwa_inquiries') || '[]');
       inquiries.unshift(inquiry);
       localStorage.setItem('seoldamhwa_inquiries', JSON.stringify(inquiries));
+      try { if (typeof notifyInquiryToDiscord === 'function') notifyInquiryToDiscord(inquiry); } catch (e) { console.error('discord notify error:', e); }
 
       alert(`[상담 신청 완료] ${name} 님의 맞춤 상담 문의가 정상 접수되었습니다!
 설담화 화훼 장인이 확인 후 기재해주신 연락처(${phone})로 정성껏 안내드리겠습니다.`);
