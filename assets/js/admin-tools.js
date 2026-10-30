@@ -67,6 +67,68 @@ const SAMPLE_PRODUCTS = [
   }
 ];
 
+// 상품이 많을 때 화면 점검용 예시 22개 더 (모두 30개). 일부러 까다로운 경우를 섞음:
+// 아주 긴 이름, 사이즈 0~4개, 사진 여러 장, 깨진 사진 주소, 품절·품절 임박, 비공개·예약, 홈에 숨김, 꽃 사전 연결
+(function addStressSampleProducts() {
+  const photos = ['signature-bouquet', 'norigae-basket', 'space-design', 'bohemian-autumn', 'pale-pink-rose', 'creamy-sunshine', 'royal-blue-garden'].map(n => `assets/images/products/${n}.jpg`);
+  const R = ['연인', '부모님·어른', '친구', '동료·상사', '스승·은인', '나에게', '공간·기업'];
+  const O = ['생일', '기념일·프러포즈', '졸업·입학', '승진·개업', '결혼·상견례', '어버이날·스승의날', '위로·병문안', '특별한 날 없이'];
+  const F = ['축하', '감사', '사랑', '응원', '위로', '공간 연출'];
+  const C = ['레드·버건디', '핑크·피치', '화이트·그린', '옐로우·오렌지', '블루·퍼플', '여러 색 섞어서'];
+  // [이름, 영문, 종류, 기본가, 사이즈 수, 재고, 꽃 사전 id들, 특이사항]
+  const rows = [
+    ['튤립 봄 인사 꽃다발', 'Tulip Spring Hello', 'bouquet', 32000, 2, 20, ['tulip'], ''],
+    ['프리지아 졸업 꽃다발', 'Freesia Graduation', 'bouquet', 28000, 3, 30, ['freesia', 'babys-breath'], ''],
+    ['라넌큘러스 파스텔 바구니', 'Ranunculus Pastel Basket', 'basket', 68000, 1, 4, ['ranunculus'], ''],
+    ['동백 겨울 한 가지', 'Camellia Branch', 'bouquet', 42000, 0, 9, ['camellia'], ''],
+    ['매화 서재 화병꽂이', 'Plum Blossom Vase', 'space', 85000, 1, 3, ['plum-blossom'], ''],
+    ['수국 한가득 여름 바구니', 'Hydrangea Summer Basket', 'basket', 95000, 2, 0, ['hydrangea', 'eucalyptus'], ''],
+    ['카네이션 어버이날 꽃바구니', 'Carnation Basket', 'basket', 55000, 3, 40, ['carnation'], ''],
+    ['백합 위로의 꽃다발', 'Lily Comfort Bouquet', 'bouquet', 49000, 2, 12, ['lily'], ''],
+    ['코스모스 들판 핸드타이드', 'Cosmos Handtied', 'bouquet', 36000, 1, 18, ['cosmos'], ''],
+    ['맨드라미 가을 드라이 리스', 'Cockscomb Dry Wreath', 'space', 120000, 0, 2, ['cockscomb'], ''],
+    ['다알리아 버건디 센터피스', 'Dahlia Centerpiece', 'space', 150000, 2, 5, ['dahlia', 'rose'], 'home1'],
+    ['국화 감사 꽃바구니', 'Chrysanthemum Thanks', 'basket', 62000, 2, 7, ['chrysanthemum'], ''],
+    ['거베라 응원 미니 꽃다발', 'Gerbera Cheer Mini', 'bouquet', 25000, 1, 1, ['gerbera'], ''],
+    ['연꽃 차 테이블 장식', 'Lotus Tea Table', 'space', 0, 0, 0, ['lotus'], 'inquiry'],
+    ['아주 긴 이름을 가진 예시 상품으로 줄바꿈과 말줄임이 화면에서 어떻게 보이는지 확인하는 꽃다발', 'A Very Long Product Name To Check Wrapping', 'bouquet', 58000, 4, 11, ['rose', 'lisianthus', 'stock'], ''],
+    ['사진 여러 장 갤러리 꽃바구니', 'Multi-photo Basket', 'basket', 78000, 3, 8, ['peony', 'rose'], 'photos'],
+    ['사진 주소가 깨진 꽃다발', 'Broken Image Bouquet', 'bouquet', 31000, 1, 6, ['anemone'], 'broken'],
+    ['비공개 확인용 꽃다발', 'Private Check', 'bouquet', 44000, 1, 10, ['stock'], 'private'],
+    ['예약 공개 확인용 꽃바구니', 'Scheduled Check', 'basket', 72000, 2, 10, ['magnolia'], 'scheduled'],
+    ['홈에 숨긴 꽃다발', 'Hidden on Home', 'bouquet', 47000, 2, 14, ['calla'], 'hideHome'],
+    ['해바라기·델피늄 여름 바구니', 'Sunflower Delphinium Basket', 'basket', 110000, 2, 3, ['sunflower', 'delphinium'], ''],
+    ['호접란 개업 화분 (대형)', 'Large Moth Orchid', 'space', 250000, 1, 2, ['phalaenopsis'], '']
+  ];
+  rows.forEach(([name, en, category, base, nSizes, stock, flowers, flag], i) => {
+    const labels = ['S', 'M', 'L', 'XL'];
+    const sizes = Array.from({ length: nSizes }, (_, k) => ({ label: nSizes === 1 ? 'Standard' : labels[k], price: base + k * 20000, ...(k === Math.min(1, nSizes - 1) ? { recommended: true } : {}) }));
+    const pick = (arr, n) => Array.from({ length: n }, (_, k) => arr[(i * 3 + k * 2) % arr.length]).filter((v, k, a) => a.indexOf(v) === k);
+    const image = flag === 'broken' ? 'assets/images/products/no-such-photo.jpg' : photos[i % photos.length];
+    const p = {
+      id: `sample-x${String(i + 1).padStart(2, '0')}`,
+      name: `[예시] ${name}`,
+      englishName: en,
+      category,
+      price: flag === 'inquiry' ? 0 : base,
+      sizes: flag === 'inquiry' ? [] : sizes,
+      inquiryOnly: flag === 'inquiry',
+      poeticLine: `${name.slice(0, 12)}에 담은 오늘의 마음`,
+      flowerMeaning: flowers.join(' · '),
+      stockQuantity: flag === 'inquiry' ? 99 : stock,
+      image,
+      images: flag === 'photos' ? [image, ...photos.filter(x => x !== image).slice(0, 4)] : [image],
+      flowers,
+      curationTags: { recipients: pick(R, 2), occasions: pick(O, 2), feelings: pick(F, 2), colors: pick(C, 1 + (i % 2)) }
+    };
+    if (flag === 'private') p.visibility = 'private';
+    if (flag === 'scheduled') p.visibility = 'scheduled';
+    if (flag === 'hideHome') p.hideOnHome = true;
+    if (flag === 'home1') p.homeOrder = 1;
+    SAMPLE_PRODUCTS.push(p);
+  });
+})();
+
 function hasSampleData() {
   const products = loadProducts();
   return products.some(p => String(p.id).startsWith(SAMPLE_PRODUCT_PREFIX))
@@ -86,7 +148,15 @@ function addSampleData({ showInShop = true } = {}) {
 
   // 상품
   const products = loadProducts();
-  SAMPLE_PRODUCTS.forEach(p => products.push({ ...p, description: SAMPLE_NOTE, visibility: showInShop ? 'public' : 'private' }));
+  // 예약 공개 예시는 1주 뒤로 (그 전에는 쇼핑몰에 안 보임)
+  const weekLater = new Date(Date.now() + 7 * 864e5);
+  const publishAt = typeof getKoreaISOString === 'function' ? getKoreaISOString(weekLater) : weekLater.toISOString().slice(0, 16);
+  SAMPLE_PRODUCTS.forEach(p => products.push({
+    ...p,
+    description: SAMPLE_NOTE,
+    visibility: !showInShop ? 'private' : (p.visibility || 'public'),
+    ...(p.visibility === 'scheduled' && showInShop ? { publishAt } : {})
+  }));
   saveProducts(products);
 
   // 주문: 최근 90일 + 앞으로 며칠 배송 예정 (요일별로 들쭉날쭉하게)

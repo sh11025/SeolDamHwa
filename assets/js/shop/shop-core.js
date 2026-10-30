@@ -150,6 +150,8 @@ function buildProductCard(p) {
 
 // 홈 '제철 꽃 컬렉션'에 보일 상품: 관리자에서 '홈에 숨기기'가 아닌 것, '홈 순서'가 작은 것부터,
 // 순서를 안 정한 상품끼리는 지금 제철인 꽃이 든 상품이 먼저 (꽃 사전 flowers-data.js)
+const HOME_SLIDER_MAX = 12;
+
 function homeOrderOf(p) {
   return typeof p.homeOrder === 'number' && Number.isFinite(p.homeOrder) ? p.homeOrder : 999;
 }
@@ -173,7 +175,8 @@ function renderProducts(category) {
   const grid = document.getElementById('product-grid');
   if (grid) {
     grid.innerHTML = '';
-    const items = homeProducts(category);
+    // 홈에는 앞쪽 12개만 (나머지는 '꽃 전체 둘러보기')
+    const items = homeProducts(category).slice(0, HOME_SLIDER_MAX);
     items.forEach(p => {
       const slide = document.createElement('div');
       slide.className = 'home-slide shrink-0 snap-start w-[78%] sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-6rem)/4)]';

@@ -222,3 +222,15 @@ const CURATION_TAGS = {
     colors: ['블루·퍼플', '화이트·그린']
   }
 };
+
+// 상품 사진 주소가 깨졌을 때 빈 아이콘 대신 낙관 표시 (쇼핑몰·관리자 공통)
+if (typeof document !== 'undefined') {
+  document.addEventListener('error', e => {
+    const img = e.target;
+    if (!img || img.tagName !== 'IMG' || img.dataset.fallback) return;
+    if (!/assets\/images\/products\/|^data:image|^https?:/.test(img.getAttribute('src') || '')) return;
+    img.dataset.fallback = '1';
+    img.src = 'assets/images/seal.svg';
+    img.classList.add('object-contain', 'p-[18%]', 'opacity-30');
+  }, true);
+}
