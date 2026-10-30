@@ -1,0 +1,19 @@
+﻿key,value
+phone,"""02-764-1920"""
+hours,"""평일 10:00 - 18:00"""
+lunch,"""점심시간 12:30 - 13:30"""
+closed,"""주말 · 공휴일 휴무"""
+email,"""contact@seoldamhwa.kr"""
+address,"""서울시 종로구 북촌로 42"""
+addressDetail,"""(임시 주소)"""
+directions,""""""
+kakaoChannelUrl,""""""
+showLocation,false
+business,"{""companyName"":""설담화"",""ceo"":"""",""bizNumber"":"""",""mailOrderNumber"":"""",""bizAddress"":"""",""privacyOfficer"":""""}"
+delivery,"{""quick"":{""enabled"":true,""fee"":15000,""area"":""서울 전 지역""},""parcel"":{""enabled"":false,""fee"":4000,""area"":""전국 (생화 특성상 제주·도서 지역 제외)""},""pickup"":{""enabled"":false,""fee"":0,""area"":""""},""freeOver"":100000,""note"":""""}"
+weeklyHours,"[{""open"":false,""start"":""10:00"",""end"":""18:00"",""lunch"":false,""lunchStart"":""12:30"",""lunchEnd"":""13:30""},{""open"":true,""start"":""10:00"",""end"":""18:00"",""lunch"":true,""lunchStart"":""12:30"",""lunchEnd"":""13:30""},{""open"":true,""start"":""10:00"",""end"":""18:00"",""lunch"":true,""lunchStart"":""12:30"",""lunchEnd"":""13:30""},{""open"":true,""start"":""10:00"",""end"":""18:00"",""lunch"":true,""lunchStart"":""12:30"",""lunchEnd"":""13:30""},{""open"":true,""start"":""10:00"",""end"":""18:00"",""lunch"":true,""lunchStart"":""12:30"",""lunchEnd"":""13:30""},{""open"":true,""start"":""10:00"",""end"":""18:00"",""lunch"":true,""lunchStart"":""12:30"",""lunchEnd"":""13:30""},{""open"":false,""start"":""10:00"",""end"":""18:00"",""lunch"":false,""lunchStart"":""12:30"",""lunchEnd"":""13:30""}]"
+closures,[]
+holidayClosed,true
+holidayOverrides,{}
+customHolidays,[]
+__popupsEnabled,false

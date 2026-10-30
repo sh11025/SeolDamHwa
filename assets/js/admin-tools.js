@@ -191,7 +191,7 @@ function removeSampleData() {
 /* ------------------------------------------------------------------
  * 2) 백업·복원: seoldamhwa_ 로 시작하는 저장 데이터 (AI 키·웨훅 주소는 제외)
  * ------------------------------------------------------------------ */
-const BACKUP_EXCLUDED_KEYS = ['seoldamhwa_ai_key', 'seoldamhwa_ai_settings', 'seoldamhwa_integrations', 'seoldamhwa_lang', 'seoldamhwa_popup_dismissed_date'];
+const BACKUP_EXCLUDED_KEYS = ['seoldamhwa_ai_key', 'seoldamhwa_ai_settings', 'seoldamhwa_csv_autosave', 'seoldamhwa_integrations', 'seoldamhwa_lang', 'seoldamhwa_popup_dismissed_date'];
 
 function collectBackupData() {
   const data = {};

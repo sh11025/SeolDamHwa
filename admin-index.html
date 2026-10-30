@@ -22,6 +22,7 @@
   <script src="assets/js/site-pages.js"></script>
   <script src="assets/js/image-library.js"></script>
   <script src="assets/js/restock.js"></script>
+  <script src="assets/js/csv-db.js"></script>
   <!-- 운송장 바코드: JsBarcode -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
   <!-- 차트: Chart.js -->
@@ -113,6 +114,11 @@
     .info-page-body .page-p { margin: 6px 0; }
     .info-page-body .page-ul { list-style: disc; padding-left: 20px; margin: 6px 0; }
 
+    /* 읽기 편하게: 관리자 화면 작은 글씨 한 단계씩 키우기 */
+    main .text-xs, aside .text-xs, #admin-product-modal .text-xs, #slide-edit-modal .text-xs { font-size: 13px; line-height: 1.5; }
+    main .text-\[11px\], aside .text-\[11px\], #admin-product-modal .text-\[11px\] { font-size: 12px; line-height: 1.45; }
+    main .text-\[10px\], aside .text-\[10px\] { font-size: 11px; }
+
     /* 대시보드 기간 탭 */
     .period-btn { padding: 6px 12px; font-size: 13px; font-weight: 700; border-radius: 2px; border: 1px solid rgba(26,26,26,0.2); background: #fff; color: #1A1A1A; cursor: pointer; }
     .period-btn.active { background: #1A1A1A; color: #FBF9F5; border-color: #1A1A1A; }
@@ -168,14 +174,12 @@
       <span class="text-xs bg-seal-red text-white px-2 py-0.5 rounded font-bold tracking-wider">
         전용 관리자 센터
       </span>
-      <span class="text-xs text-ink-light hidden sm:inline">
-        | Modern Oriental Floral Atelier Operations
-      </span>
+
     </div>
 
     <!-- 고객 쇼핑몰 바로가기 링크 -->
     <a href="index.html" class="flex items-center gap-2 bg-[#FAF7F2] text-ink-black hover:bg-seal-red hover:text-white px-3.5 py-1.5 rounded-sm text-xs font-bold transition-all shadow-xs">
-      <span>고객 쇼핑몰 바로가기 (index.html)</span>
+      <span>쇼핑몰 보기</span>
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
     </a>
   </header>
@@ -394,6 +398,18 @@
           <div class="relative h-56"><canvas id="chart-schedule" aria-label="앞으로 7일 배송 건수 상태별 누적 막대 차트" role="img"></canvas></div>
         </div>
 
+        <!-- 꽃 사입 계획 -->
+        <div class="admin-card p-5 rounded-sm">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <div>
+              <h2 class="text-base font-bold text-ink-black">꽃 사입 계획 · 앞으로 3일</h2>
+              <p class="text-xs text-ink-gray">꽃시장 가기 전에 날짜별로 몇 개를 만들어야 하는지 봐요. (취소·배송 완료 제외)</p>
+            </div>
+            <button type="button" onclick="sendPurchasePlanToDiscord(this)" class="px-3 py-1.5 text-xs font-bold rounded-xs bg-[#4C8A3B] text-white cursor-pointer hover:opacity-90">디스코드로 보내기</button>
+          </div>
+          <div id="purchase-plan" class="overflow-x-auto"></div>
+        </div>
+
         <!-- 최근 주문 -->
         <div class="admin-card p-5 rounded-sm space-y-3">
           <div class="flex items-center justify-between">
@@ -438,11 +454,18 @@
         </div>
 
         <!-- 공개 상태 필터 (전체 / 공개 / 비공개 / 예약) -->
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
           <button type="button" onclick="setProductFilter('all')" id="prod-filter-all" class="prod-filter-btn px-3 py-1.5 text-xs font-bold rounded-xs bg-ink-black text-white cursor-pointer shadow-xs">전체</button>
           <button type="button" onclick="setProductFilter('public')" id="prod-filter-public" class="prod-filter-btn px-3 py-1.5 text-xs font-bold rounded-xs bg-white text-ink-black border border-ink-black/20 hover:border-ink-black cursor-pointer">공개</button>
           <button type="button" onclick="setProductFilter('private')" id="prod-filter-private" class="prod-filter-btn px-3 py-1.5 text-xs font-bold rounded-xs bg-white text-ink-black border border-ink-black/20 hover:border-ink-black cursor-pointer">비공개</button>
           <button type="button" onclick="setProductFilter('scheduled')" id="prod-filter-scheduled" class="prod-filter-btn px-3 py-1.5 text-xs font-bold rounded-xs bg-white text-ink-black border border-ink-black/20 hover:border-ink-black cursor-pointer">예약</button>
+          <select id="prod-stock-filter" onchange="renderProductsTable()" class="ml-1 bg-white border border-ink-black/20 py-1.5 px-2 rounded-xs text-xs font-bold" aria-label="재고">
+            <option value="all">재고 전체</option>
+            <option value="low">품절 임박</option>
+            <option value="out">품절</option>
+            <option value="restock">재입고 알림 있음</option>
+          </select>
+          <input type="search" id="prod-search" oninput="renderProductsTable()" placeholder="상품명·꽃 이름 찾기" class="flex-1 min-w-[160px] bg-white border border-ink-black/20 py-1.5 px-2 rounded-xs text-sm">
         </div>
 
         <!-- 상품 목록 테이블 -->
@@ -453,7 +476,7 @@
                 <tr class="bg-[#EFECE6] border-b border-ink-black/10 text-ink-gray font-bold">
                   <th class="py-3 px-4">꽃 이미지</th>
                   <th class="py-3 px-4">상품명 / 카테고리</th>
-                  <th class="py-3 px-4 max-w-xs text-seal-red">한 줄 글귀 (Storytelling Copy)</th>
+                  <th class="py-3 px-4 max-w-xs text-seal-red">한 줄 글귀</th>
                   <th class="py-3 px-4">판매가</th>
                   <th class="py-3 px-4">재고 상태</th>
                   <th class="py-3 px-4">공개 상태</th>
@@ -610,6 +633,30 @@
         </div>
 
         <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 text-sm">
+
+          <!-- CSV 데이터 폴더 -->
+          <div class="admin-card p-5 rounded-sm space-y-3 xl:col-span-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h2 class="text-base font-bold text-ink-black">CSV 데이터 저장소 (DATA 폴더)</h2>
+              <span id="csv-folder-status" class="text-xs font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-700">연결 안 됨</span>
+            </div>
+            <p class="text-ink-gray leading-relaxed">상품·주문·주문 상품·지출·상담·재입고·팝업·안내 페이지·매장 설정·사진을 <strong class="text-ink-black">표 하나 = CSV 파일 하나</strong>로 프로젝트의 <code>DATA</code> 폴더에 저장해요. 엑셀로 열어 볼 수 있고, 나중에 서버 데이터베이스로 옮길 때 그대로 표로 쓰면 돼요. 표 구조는 <code>DATA/README.md</code>에 있어요.</p>
+            <div id="csv-folder-actions" class="flex flex-wrap items-center gap-2">
+              <button type="button" onclick="handleConnectDataFolder()" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">DATA 폴더 연결</button>
+              <button type="button" onclick="handleSaveCsv()" class="px-4 py-2 border border-ink-black/20 bg-white font-bold rounded-xs cursor-pointer hover:border-ink-black">지금 CSV로 저장</button>
+              <button type="button" onclick="handleLoadCsvFromFolder()" class="px-4 py-2 border border-ink-black/20 bg-white font-bold rounded-xs cursor-pointer hover:border-ink-black">DATA 폴더에서 불러오기</button>
+              <label class="flex items-center gap-1.5 cursor-pointer ml-1"><input type="checkbox" id="csv-autosave" onchange="toggleCsvAutosave(this.checked)" class="w-4 h-4"> 바뀔 때마다 자동 저장</label>
+            </div>
+            <div id="csv-fallback-actions" class="hidden flex flex-wrap items-center gap-2">
+              <button type="button" onclick="handleDownloadCsv()" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">CSV 파일 내려받기</button>
+              <label class="px-4 py-2 border border-ink-black/20 bg-white font-bold rounded-xs cursor-pointer hover:border-ink-black">CSV 파일 골라 불러오기
+                <input type="file" accept=".csv,text/csv" multiple class="hidden" onchange="handleLoadCsvFiles(this)">
+              </label>
+              <span class="text-xs text-ink-gray">이 브라우저는 폴더에 바로 저장할 수 없어서 파일로 내려받아요. 크롬·엣지에서는 폴더에 바로 저장돼요.</span>
+            </div>
+            <p id="csv-message" class="text-xs text-ink-gray"></p>
+          </div>
+
           <!-- 예시 데이터 -->
           <div class="admin-card p-5 rounded-sm space-y-3">
             <h2 class="text-base font-bold text-ink-black">예시 데이터</h2>
@@ -678,7 +725,7 @@
           <!-- AI -->
           <form id="ai-form" onsubmit="saveAiForm(event)" class="admin-card p-5 rounded-sm space-y-3">
             <h2 class="text-base font-bold text-ink-black">AI 도우미 (Claude · GPT · Gemini)</h2>
-            <p class="text-ink-gray leading-relaxed">상품 글귀·꽃말·설명 초안과 상담 답변 초안을 써 줘요. 쓰시는 AI의 키를 넣고, 기본으로 쓸 AI를 고르세요. 초안을 만들 때 다른 AI로 바꿀 수도 있어요. 사용한 만큼 각 회사 요금이 나가요.</p>
+            <p class="text-ink-gray leading-relaxed">상품 등록 때 한 줄 글귀·꽃말·설명 초안을 써 줘요. 쓰시는 AI의 키를 넣고, 기본으로 쓸 AI를 고르세요. 초안을 만들 때 다른 AI로 바꿀 수도 있어요. 사용한 만큼 각 회사 요금이 나가요.</p>
             <div class="flex flex-wrap gap-2" role="radiogroup" aria-label="기본 AI">
               <span class="font-bold text-ink-black self-center mr-1">기본 AI</span>
               <label class="flex items-center gap-1.5 px-3 py-1.5 border border-ink-black/20 rounded-xs bg-white cursor-pointer"><input type="radio" name="ai-provider" value="claude"> Claude</label>
@@ -689,7 +736,7 @@
             <div class="flex flex-wrap gap-2">
               <button type="submit" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">저장</button>
             </div>
-            <p class="text-xs text-ink-gray leading-relaxed">• 사용하는 곳: 상품 등록 창의 <strong>[✨ AI로 문구 초안]</strong>, 상담 문의의 <strong>[✨ AI 답변 초안]</strong><br>• 모델 이름은 비워 두면 기본값을 써요. 새 모델이 나오면 각 회사 사이트에서 이름을 확인해 바꿔 넣으세요.<br>• 키는 관리자 화면에서만 쓰고, 손님 화면이나 백업 파일에는 들어가지 않아요.</p>
+            <p class="text-xs text-ink-gray leading-relaxed">• 사용하는 곳: 상품 등록 창의 <strong>[✨ AI로 문구 초안]</strong><br>• 모델 이름은 비워 두면 기본값을 써요. 새 모델이 나오면 각 회사 사이트에서 이름을 확인해 바꿔 넣으세요.<br>• 키는 관리자 화면에서만 쓰고, 손님 화면이나 백업 파일에는 들어가지 않아요.</p>
             <p id="ai-message" class="text-xs text-ink-gray"></p>
           </form>
         </div>
@@ -761,7 +808,7 @@
                 <span>맞춤 담화 1:1 상담 문의</span>
                 <span id="inquiry-counter-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-seal-red text-white">0건 대기</span>
               </h2>
-              <p class="text-xs text-ink-gray mt-1">고객이 맞춤 담화 탭에서 신청한 1:1 플로럴 스타일링 및 공간 연출 문의 내역입니다.</p>
+              <p class="text-xs text-ink-gray mt-1">손님이 남긴 상담 문의예요. 전화나 문자로 직접 연락드린 뒤 [연락 완료로 표시]를 눌러 주세요. 메모는 손님에게 보이지 않아요.</p>
             </div>
           </div>
 
@@ -1109,7 +1156,7 @@
         <!-- 핵심: 브랜드 특화 한 줄 글귀 -->
         <div class="bg-[#FAF7F2] p-3 rounded-xs border border-seal-red/40 space-y-1">
           <label class="block font-bold text-seal-red flex items-center justify-between gap-1">
-            <span>★ 브랜드 특화 한 줄 글귀 (Storytelling Copy)</span>
+            <span>★ 한 줄 글귀 (상품명 아래에 보이는 문장)</span>
             <span class="flex items-center gap-1">
               <select id="ai-provider-product" class="ai-provider-select text-[11px] border border-ink-black/20 rounded-xs bg-white py-1 px-1 font-normal text-ink-black" aria-label="초안을 쓸 AI"></select>
               <button type="button" onclick="aiDraftProductCopy(this)" class="px-2 py-1 text-[11px] font-bold rounded-xs border border-seal-red/40 bg-white text-seal-red hover:bg-seal-red/10 cursor-pointer">✨ AI로 문구 초안</button>
@@ -1381,6 +1428,8 @@
         renderDashboardCharts(range, today);
       }
 
+      try { renderPurchasePlan(); } catch (e) { console.error('renderPurchasePlan error:', e); }
+
       // 3) 최근 주문
       const recentContainer = document.getElementById('dashboard-recent-orders');
       recentContainer.innerHTML = '';
@@ -1545,7 +1594,17 @@
         space: '웨딩·공간'
       };
 
+      const q = ((document.getElementById('prod-search') || {}).value || '').trim().toLowerCase();
+      const stockFilter = (document.getElementById('prod-stock-filter') || {}).value || 'all';
       const filtered = allProducts.filter(p => {
+        if (q && ![p.name, p.englishName, p.flowerMeaning, p.poeticLine].join(' ').toLowerCase().includes(q)) return false;
+        if (stockFilter !== 'all') {
+          if (p.inquiryOnly) return false;
+          const st = getStockStatus(p.stockQuantity);
+          if (stockFilter === 'low' && st !== 'low_stock') return false;
+          if (stockFilter === 'out' && st !== 'out_of_stock') return false;
+          if (stockFilter === 'restock' && !(typeof restockWaitingCount === 'function' && restockWaitingCount(p.id))) return false;
+        }
         const isVis = typeof isProductVisible === 'function' ? isProductVisible(p) : true;
         if (currentProductFilter === 'all') return true;
         if (currentProductFilter === 'public') return isVis;
@@ -1611,7 +1670,11 @@
           <td class="py-3 px-4 font-bold text-ink-black text-sm">${p.name}<p class="text-[11px] text-ink-gray font-normal">${catLabel}</p></td>
           <td class="py-3 px-4 max-w-xs font-serif text-seal-red font-semibold leading-relaxed line-clamp-2">"${p.poeticLine}"</td>
           <td class="py-3 px-4 font-bold text-ink-black">${priceText}</td>
-          <td class="py-3 px-4">${stBadge}${typeof restockWaitingCount === 'function' && restockWaitingCount(p.id) ? `<span class="block mt-1 text-[11px] font-bold text-amber-700">🔔 재입고 알림 ${restockWaitingCount(p.id)}명</span>` : ''}</td>
+          <td class="py-3 px-4">${stBadge}${p.inquiryOnly ? '' : `<div class="mt-1.5 inline-flex items-center border border-ink-black/20 rounded-xs bg-white overflow-hidden" role="group" aria-label="재고 조절">
+              <button type="button" onclick="adjustStock('${p.id}', -1)" class="px-2 py-0.5 font-bold hover:bg-[#EFECE6] cursor-pointer" aria-label="재고 하나 빼기">−</button>
+              <span class="px-2 font-bold min-w-[2.5em] text-center">${p.stockQuantity ?? 0}</span>
+              <button type="button" onclick="adjustStock('${p.id}', 1)" class="px-2 py-0.5 font-bold hover:bg-[#EFECE6] cursor-pointer" aria-label="재고 하나 더하기">+</button>
+            </div>`}${typeof restockWaitingCount === 'function' && restockWaitingCount(p.id) ? `<span class="block mt-1 text-[11px] font-bold text-amber-700">🔔 재입고 알림 ${restockWaitingCount(p.id)}명</span>` : ''}</td>
           <td class="py-3 px-4">${visBadge}</td>
           <td class="py-3 px-4 text-center whitespace-nowrap space-x-1">
             <button onclick="previewProduct('${p.id}')" class="px-2.5 py-1 border border-ink-black/20 bg-white hover:border-seal-red hover:text-seal-red rounded-xs font-bold cursor-pointer">미리보기</button>
@@ -1924,11 +1987,7 @@
       if (!container) return;
 
       const newCount = inquiries.filter(i => i.status === 'new').length;
-      if (badge) badge.innerText = `${newCount}건 대기`;
-
-      // 쓰던 답변은 다시 그려도 남도록 보관
-      const drafts = {};
-      container.querySelectorAll('textarea[data-reply-for]').forEach(ta => { if (ta.value.trim()) drafts[ta.dataset.replyFor] = ta.value; });
+      if (badge) badge.innerText = `연락 대기 ${newCount}건`;
 
       container.innerHTML = '';
       if (inquiries.length === 0) {
@@ -1939,15 +1998,15 @@
       const sorted = inquiries.slice().sort((a, b) => (a.status === 'new' ? 0 : 1) - (b.status === 'new' ? 0 : 1) || String(b.createdDate || '').localeCompare(String(a.createdDate || '')));
       sorted.forEach(inq => {
         const isNew = inq.status === 'new';
-        const replies = Array.isArray(inq.replies) ? inq.replies : [];
+        const oldReplies = Array.isArray(inq.replies) ? inq.replies : [];
         const card = document.createElement('div');
         card.className = `p-4 sm:p-5 rounded-sm border ${isNew ? 'bg-white border-seal-red/40 shadow-xs' : 'bg-[#FAF7F2]/80 border-ink-black/10'}`;
         const phoneDigits = String(inq.phone || '').replace(/[^0-9+]/g, '');
         card.innerHTML = `
           <div class="flex flex-wrap items-center gap-2 text-sm">
-            ${isNew ? '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-seal-red text-white">답변 대기</span>' : '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800">답변 완료</span>'}
+            ${isNew ? '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-seal-red text-white">연락 대기</span>' : `<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800">연락 완료${inq.contactedAt ? ` · ${escapeHtml(String(inq.contactedAt).replace('T', ' ').slice(5, 16))}` : ''}</span>`}
             <span class="font-bold text-ink-black">${escapeHtml(inq.name)} 님</span>
-            <a href="tel:${escapeHtml(phoneDigits)}" class="text-ink-gray underline">${escapeHtml(inq.phone)}</a>
+            <span class="text-ink-black font-mono">${escapeHtml(inq.phone)}</span>
             <span class="text-ink-light text-xs ml-auto">접수 ${escapeHtml(inq.createdDate || '-')}</span>
           </div>
           <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-gray mt-2">
@@ -1956,78 +2015,57 @@
             <span>받고 싶은 날짜: <strong class="text-seal-red">${escapeHtml(inq.date)}</strong></span>
           </div>
           <div class="mt-2 bg-[#FAF7F2] p-3 rounded-xs border border-ink-black/10 text-sm text-ink-black leading-relaxed">${escapeHtml(inq.message || '').replace(/\n/g, '<br>')}</div>
+          ${oldReplies.length ? `<details class="mt-2 text-xs"><summary class="cursor-pointer text-ink-gray">지난 답변 기록 ${oldReplies.length}건</summary>${oldReplies.map(r => `<p class="mt-1 p-2 bg-emerald-50 border border-emerald-200 rounded-xs">${escapeHtml(String(r.at || '').replace('T', ' ').slice(0, 16))} · ${escapeHtml(r.text)}</p>`).join('')}</details>` : ''}
 
-          ${replies.length ? `<div class="mt-3 space-y-2">${replies.map(r => `
-            <div class="ml-4 sm:ml-8 p-3 rounded-xs bg-emerald-50 border border-emerald-200 text-sm leading-relaxed">
-              <p class="text-[11px] font-bold text-emerald-800 mb-1">설담화 답변 · ${escapeHtml(String(r.at || '').replace('T', ' ').slice(0, 16))}${r.via ? ` · ${escapeHtml(r.via)}` : ''}</p>
-              ${escapeHtml(r.text).replace(/\n/g, '<br>')}
-            </div>`).join('')}</div>` : ''}
-
-          <div class="mt-3 ml-4 sm:ml-8 space-y-2">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <span class="text-xs font-bold text-ink-gray">${replies.length ? '답변 더 쓰기' : '답변 쓰기'}</span>
-              <span class="flex items-center gap-1">
-                <select class="ai-provider-select text-[11px] border border-ink-black/20 rounded-xs bg-white py-1 px-1" aria-label="초안을 쓸 AI">${aiProviderOptionsHtml()}</select>
-                <button type="button" onclick="aiDraftInquiryReply('${inq.id}', this)" class="px-2.5 py-1 text-[11px] font-bold rounded-xs border border-seal-red/40 bg-white text-seal-red hover:bg-seal-red/10 cursor-pointer">✨ AI 초안 채우기</button>
-              </span>
-            </div>
-            <textarea data-reply-for="${inq.id}" rows="4" placeholder="고객에게 보낼 답변을 적어 주세요." class="w-full bg-white border border-ink-black/20 p-2.5 rounded-xs text-sm leading-relaxed">${escapeHtml(drafts[inq.id] || '')}</textarea>
-            <div class="flex flex-wrap items-center gap-1.5 text-xs">
-              <button type="button" onclick="saveInquiryReply('${inq.id}', '')" class="px-3 py-1.5 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">답변 저장</button>
-              <button type="button" onclick="saveInquiryReply('${inq.id}', 'sms')" class="px-3 py-1.5 border border-ink-black/20 bg-white font-bold rounded-xs cursor-pointer hover:border-ink-black">저장 + 문자로 보내기</button>
-              <button type="button" onclick="copyReplyText('${inq.id}', this)" class="px-3 py-1.5 border border-ink-black/20 bg-white font-bold rounded-xs cursor-pointer hover:border-ink-black">복사</button>
-              ${isNew
-                ? `<button type="button" onclick="markInquiryDone('${inq.id}')" class="ml-auto px-3 py-1.5 text-ink-gray underline cursor-pointer">답변 없이 완료로 표시</button>`
-                : `<button type="button" onclick="reopenInquiry('${inq.id}')" class="ml-auto px-3 py-1.5 text-ink-gray underline cursor-pointer">다시 대기로</button>`}
-            </div>
+          <div class="mt-3 flex flex-wrap items-center gap-1.5 text-xs">
+            <a href="tel:${escapeHtml(phoneDigits)}" class="px-3 py-1.5 bg-ink-black text-white font-bold rounded-xs hover:bg-seal-red">📞 전화하기</a>
+            <a href="sms:${escapeHtml(phoneDigits)}" class="px-3 py-1.5 border border-ink-black/20 bg-white font-bold rounded-xs hover:border-ink-black">💬 문자 보내기</a>
+            <button type="button" onclick="copyInquiryPhone('${inq.id}', this)" class="px-3 py-1.5 border border-ink-black/20 bg-white font-bold rounded-xs cursor-pointer hover:border-ink-black">번호 복사</button>
+            ${isNew
+              ? `<button type="button" onclick="markInquiryDone('${inq.id}')" class="ml-auto px-3 py-1.5 bg-emerald-700 text-white font-bold rounded-xs cursor-pointer hover:opacity-90">✓ 연락 완료로 표시</button>`
+              : `<button type="button" onclick="reopenInquiry('${inq.id}')" class="ml-auto px-3 py-1.5 text-ink-gray underline cursor-pointer">다시 연락 대기로</button>`}
+          </div>
+          <div class="mt-2 flex gap-1.5 text-xs">
+            <input type="text" id="inq-memo-${inq.id}" value="${escapeHtml(inq.memo || '')}" maxlength="120" placeholder="메모 (손님에게는 안 보여요) 예: 11/3 통화, 60만원 견적 안내" class="flex-1 min-w-0 bg-white border border-ink-black/15 p-1.5 rounded-xs">
+            <button type="button" onclick="saveInquiryMemo('${inq.id}', this)" class="px-3 py-1.5 border border-ink-black/20 bg-white font-bold rounded-xs cursor-pointer hover:border-ink-black">메모 저장</button>
           </div>
         `;
         container.appendChild(card);
       });
     }
 
-    function saveInquiryReply(inquiryId, via) {
-      const ta = document.querySelector(`textarea[data-reply-for="${inquiryId}"]`);
-      const text = ta ? ta.value.trim() : '';
-      if (!text) { alert('답변 내용을 먼저 적어 주세요.'); return; }
-      const now = new Date();
-      const at = `${toDateStr(now)}T${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      let target = null;
-      const inquiries = loadAdminInquiries().map(inq => {
-        if (inq.id !== inquiryId) return inq;
-        target = inq;
-        return { ...inq, status: 'done', replies: [...(Array.isArray(inq.replies) ? inq.replies : []), { text, at, via: via === 'sms' ? '문자' : '' }] };
-      });
+    function updateInquiry(inquiryId, patch) {
+      const inquiries = loadAdminInquiries().map(inq => inq.id === inquiryId ? { ...inq, ...patch } : inq);
       localStorage.setItem('seoldamhwa_inquiries', JSON.stringify(inquiries));
-      ta.value = '';
-      renderInquiriesList();
-      renderDashboard();
-      if (via === 'sms' && target) {
-        // 휴대폰에서는 문자 앱이, 컴퓨터에서는 연결된 문자 앱이 열려요
-        const phone = String(target.phone || '').replace(/[^0-9+]/g, '');
-        window.location.href = `sms:${phone}?body=${encodeURIComponent(text)}`;
-      }
     }
 
-    function copyReplyText(inquiryId, btn) {
-      const ta = document.querySelector(`textarea[data-reply-for="${inquiryId}"]`);
-      if (!ta || !ta.value.trim()) { alert('복사할 답변이 없어요.'); return; }
-      navigator.clipboard.writeText(ta.value).then(() => {
+    function copyInquiryPhone(inquiryId, btn) {
+      const inq = loadAdminInquiries().find(i => i.id === inquiryId);
+      if (!inq) return;
+      navigator.clipboard.writeText(inq.phone || '').then(() => {
         btn.innerText = '복사했어요';
-        setTimeout(() => { btn.innerText = '복사'; }, 1500);
-      }).catch(() => ta.select());
+        setTimeout(() => { btn.innerText = '번호 복사'; }, 1500);
+      }).catch(() => {});
+    }
+
+    function saveInquiryMemo(inquiryId, btn) {
+      const memo = document.getElementById(`inq-memo-${inquiryId}`).value.trim();
+      updateInquiry(inquiryId, { memo });
+      btn.innerText = '저장했어요';
+      setTimeout(() => { btn.innerText = '메모 저장'; }, 1500);
     }
 
     function reopenInquiry(inquiryId) {
-      const inquiries = loadAdminInquiries().map(inq => inq.id === inquiryId ? { ...inq, status: 'new' } : inq);
-      localStorage.setItem('seoldamhwa_inquiries', JSON.stringify(inquiries));
+      updateInquiry(inquiryId, { status: 'new', contactedAt: '' });
       renderInquiriesList();
       renderDashboard();
     }
 
     function markInquiryDone(inquiryId) {
       let inquiries = loadAdminInquiries();
-      inquiries = inquiries.map(inq => inq.id === inquiryId ? { ...inq, status: 'done' } : inq);
+      const now = new Date();
+      const contactedAt = `${toDateStr(now)}T${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      inquiries = inquiries.map(inq => inq.id === inquiryId ? { ...inq, status: 'done', contactedAt } : inq);
       localStorage.setItem('seoldamhwa_inquiries', JSON.stringify(inquiries));
       renderInquiriesList();
       renderDashboard();
@@ -3573,32 +3611,6 @@
       }
     }
 
-    // 상담 문의: AI 답변 초안 → 답변 쓰기 칸에 채우기
-    async function aiDraftInquiryReply(inquiryId, btn) {
-      const inq = loadAdminInquiries().find(i => i.id === inquiryId);
-      if (!inq) return;
-      const ta = document.querySelector(`textarea[data-reply-for="${inquiryId}"]`);
-      if (ta && ta.value.trim() && !confirm('쓰던 답변이 있어요. AI 초안으로 바꿀까요?')) return;
-      const sel = btn.parentElement.querySelector('.ai-provider-select');
-      const original = btn.innerText;
-      btn.disabled = true;
-      btn.innerText = '쓰는 중…';
-      try {
-        const { reply, providerLabel } = await draftInquiryReply(inq, typeof loadSettings === 'function' ? loadSettings() : {}, sel && sel.value ? sel.value : undefined);
-        if (ta) {
-          ta.value = reply;
-          ta.focus();
-        }
-        btn.innerText = `${providerLabel.split(' ')[0]} 초안 채움`;
-        setTimeout(() => { btn.innerText = original; }, 2000);
-      } catch (err) {
-        alert(aiErrorMessage(err));
-        btn.innerText = original;
-      } finally {
-        btn.disabled = false;
-      }
-    }
-
     // 10. 사업자 정보·안내 페이지
     let currentEditPageId = 'bojagi';
 
@@ -3804,6 +3816,168 @@
       renderRestockList();
     }
 
+    // 11. CSV 데이터 저장소 (DATA 폴더)
+    let csvFolderHandle = null;
+    let csvAutoSaveTimer = null;
+    let csvSaving = false;
+
+    async function refreshCsvStatus() {
+      const status = document.getElementById('csv-folder-status');
+      if (!status) return;
+      document.getElementById('csv-folder-actions').classList.toggle('hidden', !csvFolderSupported());
+      document.getElementById('csv-fallback-actions').classList.toggle('hidden', csvFolderSupported());
+      if (!csvFolderSupported()) { status.innerText = '파일 내려받기 방식'; return; }
+      if (!csvFolderHandle) csvFolderHandle = await getSavedDataFolder();
+      const granted = csvFolderHandle ? await ensureFolderPermission(csvFolderHandle, false) : false;
+      status.innerText = csvFolderHandle ? (granted ? `연결됨 · ${csvFolderHandle.name} 폴더` : `${csvFolderHandle.name} 폴더 (다시 허락 필요)`) : '연결 안 됨';
+      status.className = `text-xs font-bold px-2 py-0.5 rounded ${granted ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-700'}`;
+      const auto = document.getElementById('csv-autosave');
+      if (auto) auto.checked = localStorage.getItem('seoldamhwa_csv_autosave') === '1';
+    }
+
+    async function handleConnectDataFolder() {
+      try {
+        csvFolderHandle = await connectDataFolder();
+        if (csvFolderHandle.name !== 'DATA' && !confirm(`'${csvFolderHandle.name}' 폴더를 골랐어요. 프로젝트의 DATA 폴더가 맞나요?`)) { csvFolderHandle = null; return; }
+        setIntegrationMessage('csv-message', `'${csvFolderHandle.name}' 폴더에 연결했어요. [지금 CSV로 저장]을 눌러 보세요.`, true);
+      } catch (e) {
+        if (e && e.name !== 'AbortError') setIntegrationMessage('csv-message', '폴더를 연결하지 못했어요.', false);
+      }
+      refreshCsvStatus();
+    }
+
+    async function handleSaveCsv(silent) {
+      if (!csvFolderHandle) csvFolderHandle = await getSavedDataFolder();
+      if (!csvFolderHandle) { if (!silent) setIntegrationMessage('csv-message', '먼저 [DATA 폴더 연결]을 눌러 주세요.', false); return; }
+      if (!(await ensureFolderPermission(csvFolderHandle, !silent))) { if (!silent) setIntegrationMessage('csv-message', '폴더에 저장할 권한이 없어요. 다시 허락해 주세요.', false); refreshCsvStatus(); return; }
+      if (csvSaving) return;
+      csvSaving = true;
+      try {
+        const n = await writeCsvToFolder(csvFolderHandle);
+        const now = new Date();
+        setIntegrationMessage('csv-message', `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} CSV ${n}개 파일을 저장했어요.`, true);
+      } catch (e) {
+        setIntegrationMessage('csv-message', `저장하지 못했어요. (${String(e.message || e).slice(0, 60)})`, false);
+      } finally {
+        csvSaving = false;
+        refreshCsvStatus();
+      }
+    }
+
+    function applyImportedCsv(files) {
+      const names = Object.keys(files);
+      if (!names.length) { setIntegrationMessage('csv-message', '불러올 CSV 파일이 없어요.', false); return; }
+      if (!confirm(`CSV 파일 ${names.length}개로 지금 데이터를 바꿀까요?\n(혹시 모르니 먼저 백업 파일을 내려받아 두세요.)`)) return;
+      try {
+        const result = importCsvTables(files);
+        setIntegrationMessage('csv-message', `불러왔어요: ${result.join(', ')}. 화면을 새로 고칩니다.`, true);
+        setTimeout(() => location.reload(), 800);
+      } catch (e) {
+        setIntegrationMessage('csv-message', `불러오지 못했어요. ${String(e.message || e).slice(0, 80)}`, false);
+      }
+    }
+
+    async function handleLoadCsvFromFolder() {
+      if (!csvFolderHandle) csvFolderHandle = await getSavedDataFolder();
+      if (!csvFolderHandle) { setIntegrationMessage('csv-message', '먼저 [DATA 폴더 연결]을 눌러 주세요.', false); return; }
+      if (!(await ensureFolderPermission(csvFolderHandle, true))) return;
+      applyImportedCsv(await readCsvFromFolder(csvFolderHandle));
+    }
+
+    function handleDownloadCsv() {
+      const n = downloadAllCsv();
+      setIntegrationMessage('csv-message', `CSV ${n}개 파일을 내려받고 있어요. 프로젝트의 DATA 폴더에 넣어 주세요.`, true);
+    }
+
+    function handleLoadCsvFiles(input) {
+      const list = [...(input.files || [])];
+      input.value = '';
+      Promise.all(list.map(f => f.text().then(text => [f.name, text]))).then(pairs => applyImportedCsv(Object.fromEntries(pairs)));
+    }
+
+    function toggleCsvAutosave(on) {
+      localStorage.setItem('seoldamhwa_csv_autosave', on ? '1' : '0');
+      if (on) handleSaveCsv();
+    }
+
+    // 데이터가 바뀌면 2초 뒤 자동 저장 (권한이 있을 때만, 묻지 않음)
+    function scheduleCsvAutoSave(key) {
+      if (!key || !key.startsWith('seoldamhwa_') || /_(lang|csv_autosave|popup_dismissed_date|ai_settings|ai_key|integrations)$/.test(key)) return;
+      if (localStorage.getItem('seoldamhwa_csv_autosave') !== '1' || !csvFolderSupported()) return;
+      clearTimeout(csvAutoSaveTimer);
+      csvAutoSaveTimer = setTimeout(() => handleSaveCsv(true), 2000);
+    }
+    (function hookCsvAutoSave() {
+      const original = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (key, value) {
+        original.call(this, key, value);
+        if (this === window.localStorage) scheduleCsvAutoSave(key);
+      };
+      window.addEventListener('storage', e => scheduleCsvAutoSave(e.key)); // 쇼핑몰 탭에서 들어온 주문·상담도
+    })();
+
+    // 상품 목록에서 재고 바로 조절
+    function adjustStock(prodId, delta) {
+      const products = loadProducts();
+      const p = products.find(x => x.id === prodId);
+      if (!p || p.inquiryOnly) return;
+      const before = Number(p.stockQuantity) || 0;
+      p.stockQuantity = Math.max(0, before + delta);
+      saveProducts(products);
+      renderProductsTable();
+      renderDashboard();
+      const waiting = typeof restockWaitingCount === 'function' ? restockWaitingCount(prodId) : 0;
+      if (before <= 0 && p.stockQuantity > 0 && waiting > 0) {
+        setTimeout(() => {
+          if (confirm(`재고를 채웠어요. 이 상품의 재입고 알림을 기다리는 손님이 ${waiting}명 있어요.\n지금 알림 목록으로 갈까요?`)) {
+            switchAdminTab('reviews');
+            setTimeout(() => document.getElementById('admin-restock-list').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+          }
+        }, 50);
+      }
+    }
+
+    // 꽃 사입 계획: 앞으로 3일 배송할 상품 합계 (취소·배송 완료 제외)
+    function purchasePlan(days = 3) {
+      const today = financeToday();
+      const dates = Array.from({ length: days }, (_, i) => addDays(today, i));
+      const rows = {};
+      loadOrders().filter(o => o.status !== 'cancelled' && o.status !== 'completed').forEach(o => {
+        const d = getDeliveryDate(o);
+        const idx = dates.indexOf(d);
+        if (idx < 0) return;
+        (o.items || []).forEach(i => {
+          const key = `${(i.product && i.product.name) || '꽃 상품'}${i.sizeLabel ? ` · ${i.sizeLabel}` : ''}`;
+          rows[key] = rows[key] || { name: key, byDay: Array(days).fill(0), total: 0 };
+          rows[key].byDay[idx] += Number(i.quantity) || 1;
+          rows[key].total += Number(i.quantity) || 1;
+        });
+      });
+      return { dates, rows: Object.values(rows).sort((a, b) => b.total - a.total) };
+    }
+
+    function renderPurchasePlan() {
+      const box = document.getElementById('purchase-plan');
+      if (!box) return;
+      const { dates, rows } = purchasePlan(3);
+      const head = ['오늘', '내일', '모레'].map((l, i) => `<th class="py-2 px-2 text-right">${l}<span class="block font-normal text-ink-gray">${shortDate(dates[i])}</span></th>`).join('');
+      box.innerHTML = rows.length
+        ? `<table class="w-full text-sm"><thead><tr class="border-b border-ink-black/10 text-xs text-ink-gray"><th class="py-2 px-2 text-left">상품 · 사이즈</th>${head}<th class="py-2 px-2 text-right">합계</th></tr></thead>
+            <tbody class="divide-y divide-ink-black/5">${rows.map(r => `<tr><td class="py-2 px-2 font-bold text-ink-black">${escapeHtml(r.name)}</td>${r.byDay.map(n => `<td class="py-2 px-2 text-right ${n ? 'font-bold text-ink-black' : 'text-ink-light'}">${n || '-'}</td>`).join('')}<td class="py-2 px-2 text-right font-extrabold text-seal-red">${r.total}</td></tr>`).join('')}</tbody></table>`
+        : '<p class="py-6 text-center text-sm text-ink-gray">앞으로 3일 동안 만들 주문이 없어요.</p>';
+    }
+
+    async function sendPurchasePlanToDiscord(btn) {
+      const url = typeof getWebhookFor === 'function' ? getWebhookFor('order') : '';
+      if (!url) { alert("먼저 '연동·데이터'에서 디스코드 주문 채널 주소를 넣어 주세요."); return; }
+      const { dates, rows } = purchasePlan(3);
+      const lines = rows.length ? rows.map(r => `☐ **${discordSafe(r.name, 60)}** × ${r.total}  (${r.byDay.map((n, i) => `${['오늘', '내일', '모레'][i]} ${n}`).join(' / ')})`).join('\n') : '앞으로 3일 동안 만들 주문이 없어요.';
+      btn.disabled = true;
+      const r = await sendDiscord({ embeds: [{ title: `🌷 꽃 사입 계획 (${shortDate(dates[0])}~${shortDate(dates[2])})`, description: lines.slice(0, 4000), color: 0x4C8A3B }] }, url);
+      btn.disabled = false;
+      alert(r.ok ? '디스코드 주문 채널로 보냈어요.' : '보내지 못했어요. 웹후크 주소를 확인해 주세요.');
+    }
+
     function switchAdminTab(tabName) {
       ['dashboard', 'products', 'orders', 'finance', 'reviews', 'settings', 'popups', 'integrations', 'pages'].forEach(t => {
         document.getElementById(`panel-${t}`).classList.add('hidden');
@@ -3818,6 +3992,7 @@
       if (tabName === 'settings') { try { renderDeliverySettings(); } catch (e) { console.error('renderDeliverySettings error:', e); } }
       if (tabName === 'reviews') { try { renderRestockList(); } catch (e) { console.error('renderRestockList error:', e); } }
       if (tabName === 'pages') { try { renderPagesAdmin(); } catch (e) { console.error('renderPagesAdmin error:', e); } }
+      if (tabName === 'integrations') { try { refreshCsvStatus(); } catch (e) {} }
       if (tabName === 'integrations') { try { renderIntegrations(); } catch (e) { console.error('renderIntegrations error:', e); } }
     }
 

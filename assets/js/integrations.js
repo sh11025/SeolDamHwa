@@ -139,7 +139,7 @@ function notifyInquiryToDiscord(inq) {
         ...(inq.productName ? [`🌷 **문의 상품** ${discordSafe(inq.productName, 60)}`] : [])
       ].join('\n'),
       fields: [{ name: '문의 내용', value: `> ${discordSafe(inq.message, 900).replace(/\n/g, '\n> ') || '-'}` }],
-      footer: { text: '답변은 관리자 센터 > 고객 상담 문의에서 남겨 주세요' },
+      footer: { text: '연락처는 관리자 센터 > 고객 상담 문의에서 확인하고 직접 연락해 주세요' },
       timestamp: new Date().toISOString()
     }]
   }, url);

@@ -5,3 +5,11 @@ SeolDamHwa_Webpage-main/
 # 임시 파일
 *.log
 node_modules/
+
+# DATA 폴더: 손님 개인정보가 담기는 CSV는 Git에 올리지 않음 (표 구조는 DATA/README.md)
+DATA/orders.csv
+DATA/order_items.csv
+DATA/inquiries.csv
+DATA/restock.csv
+DATA/expenses.csv
+DATA/images.csv
