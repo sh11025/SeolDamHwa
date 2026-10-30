@@ -145,6 +145,23 @@ function notifyInquiryToDiscord(inq) {
   }, url);
 }
 
+// 재입고 알림 신청 알림 (상담 채널, 전화번호는 보내지 않음)
+function notifyRestockToDiscord(req, waitingTotal) {
+  const cfg = loadIntegrations();
+  const url = getWebhookFor('inquiry');
+  if (!cfg.notifyInquiries || !isValidDiscordWebhook(url) || req.isSample) return Promise.resolve({ ok: false, reason: 'off' });
+  return sendDiscord({
+    embeds: [{
+      author: { name: '🔔 재입고 알림 신청' },
+      title: discordPlain(req.productName, 80),
+      color: DISCORD_COLORS.slot,
+      description: `${discordSafe(req.name, 20) || '손님'} 님이 재입고 알림을 신청했어요.\n지금 이 상품을 기다리는 손님: **${Number(waitingTotal) || 1}명**`,
+      footer: { text: '연락처는 관리자 센터 > 고객 상담 문의 > 재입고 알림에서 확인하세요' },
+      timestamp: new Date().toISOString()
+    }]
+  }, url);
+}
+
 // 특정 배송일의 제작 목록 (디스코드 제작 지시서) - 합계 + 시간대별 주문
 function buildProductionMessage(orders, dateStr) {
   const list = orders.filter(o => o.status !== 'cancelled' && String(o.deliveryDate || '').startsWith(dateStr));

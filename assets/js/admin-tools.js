@@ -166,6 +166,16 @@ function addSampleData({ showInShop = true } = {}) {
   );
   localStorage.setItem('seoldamhwa_inquiries', JSON.stringify(inquiries));
 
+  // 재입고 알림 신청 (품절 예시 상품)
+  if (typeof saveRestock === 'function') {
+    const rs = loadRestock();
+    rs.unshift(
+      { id: 'rs-sample-1', productId: 'sample-sunflower', productName: '[예시] 해바라기 축하 꽃다발', name: '[예시] 남궁별', phone: '010-0000-0000', createdDate: addDays(today, -2), status: 'waiting', isSample: true },
+      { id: 'rs-sample-2', productId: 'sample-sunflower', productName: '[예시] 해바라기 축하 꽃다발', name: '[예시] 류하늘', phone: '010-0000-0001', createdDate: addDays(today, -1), status: 'waiting', isSample: true }
+    );
+    saveRestock(rs);
+  }
+
   return { products: SAMPLE_PRODUCTS.length, orders: seq, expenses: ex, inquiries: 3, showInShop };
 }
 
@@ -175,6 +185,7 @@ function removeSampleData() {
   saveExpenses(loadExpenses().filter(e => !e.isSample));
   const inquiries = JSON.parse(localStorage.getItem('seoldamhwa_inquiries') || '[]');
   localStorage.setItem('seoldamhwa_inquiries', JSON.stringify(inquiries.filter(i => !i.isSample)));
+  if (typeof saveRestock === 'function') saveRestock(loadRestock().filter(r => !r.isSample));
 }
 
 /* ------------------------------------------------------------------

@@ -4,6 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>설담화 (說談花) | 힙 트래디셔널 플로럴 아틀리에</title>
+  <meta name="description" content="버려지는 포장 대신, 오래 간직하는 복주머니 포장. 2030을 위한 모던 한국 헤리티지 꽃집 설담화의 1:1 맞춤 꽃 선물.">
+  <meta name="theme-color" content="#8B2500">
+  <link rel="icon" type="image/svg+xml" href="assets/images/seal.svg">
+  <!-- 카카오톡·SNS 공유 미리보기 (도메인이 정해지면 og:url과 og:image를 https://도메인/... 전체 주소로 바꿔 주세요) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="설담화 說談花">
+  <meta property="og:title" content="설담화 | 오래 간직하는 복주머니 포장의 꽃 선물">
+  <meta property="og:description" content="받는 분의 이야기를 듣고 한 송이씩 엮는 1:1 맞춤 꽃. 한지와 보자기로 감싼 모던 한국 헤리티지 꽃집.">
+  <meta property="og:image" content="assets/images/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="ko_KR">
+  <meta name="twitter:card" content="summary_large_image">
   
   <!-- 웹폰트: 2030 가독성을 위한 Pretendard + 붓글씨 Nanum Brush Script + Noto Serif KR -->
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
@@ -1177,8 +1190,8 @@
             </div>
           </div>
 
-          <!-- 하단 금액 및 버튼 -->
-          <div class="pt-4 border-t border-ink-black/10 space-y-3">
+          <!-- 하단 금액 및 버튼 (휴대폰에서는 아래에 붙어 늘 보임) -->
+          <div id="pdp-bottom-bar" class="pt-4 border-t border-ink-black/10 space-y-3 sticky bottom-0 z-10 bg-hanji pb-3 shadow-[0_-8px_16px_-12px_rgba(0,0,0,0.25)] md:static md:pb-0 md:shadow-none md:bg-transparent">
             <div id="pdp-normal-total-row" class="flex justify-between items-baseline">
               <span data-i18n="pdp_total_label" class="text-xs font-semibold text-ink-light">총 주문금액</span>
               <span id="pdp-total" class="text-2xl font-bold text-seal-red">0원</span>
@@ -1192,6 +1205,22 @@
                 바로 구매하기
               </button>
             </div>
+
+            <!-- 품절 상품: 재입고 알림 신청 -->
+            <form id="pdp-restock-box" onsubmit="submitRestockRequest(event)" class="hidden space-y-2 bg-[#FAF7F2] border border-seal-red/30 rounded-xs p-3 text-xs">
+              <p class="font-bold text-ink-black" data-i18n="restock_title">🔔 다시 들어오면 알려 드릴게요</p>
+              <p class="text-ink-gray" data-i18n="restock_desc">연락처를 남겨 주시면 입고되는 대로 문자로 안내드려요.</p>
+              <div class="grid grid-cols-[1fr_1.4fr] gap-2">
+                <input type="text" id="restock-name" maxlength="20" data-i18n-placeholder="restock_name_ph" placeholder="이름 (선택)" class="min-w-0 bg-white border border-ink-black/20 p-2 rounded-xs">
+                <input type="tel" id="restock-phone" required maxlength="20" placeholder="010-0000-0000" class="min-w-0 bg-white border border-ink-black/20 p-2 rounded-xs">
+              </div>
+              <label class="flex items-start gap-2 cursor-pointer text-ink-black">
+                <input type="checkbox" id="restock-consent" required class="mt-0.5 w-4 h-4 shrink-0">
+                <span data-i18n="restock_consent">[필수] 재입고 안내를 위한 연락처 수집·이용에 동의합니다 (안내 후 파기).</span>
+              </label>
+              <button type="submit" data-i18n="restock_btn" class="w-full py-2.5 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">재입고 알림 신청</button>
+              <p id="restock-message" class="hidden font-bold text-emerald-700"></p>
+            </form>
 
             <!-- 웨딩·공간 연출 등 견적 문의 전용 안내 및 버튼 -->
             <div id="pdp-inquiry-container" class="space-y-3 hidden">
@@ -1460,6 +1489,7 @@
   <script src="assets/js/popups.js"></script>
   <script src="assets/js/integrations.js"></script>
   <script src="assets/js/site-pages.js"></script>
+  <script src="assets/js/restock.js"></script>
 
   <!-- JavaScript: 쇼핑몰 동작 & 인터랙션 로직 -->
   <script>
@@ -1590,7 +1620,7 @@
           <div class="hanok-card p-3 transition-all duration-300">
             <div class="corner-tl"></div><div class="corner-tr"></div><div class="corner-bl"></div><div class="corner-br"></div>
             <div class="relative aspect-[3/4] overflow-hidden bg-[#ECE8E1]">
-              <img src="${p.image}" alt="${tp.name}" class="${imgClass}" loading="lazy">
+              <img loading="lazy" decoding="async" src="${p.image}" alt="${tp.name}" class="${imgClass}" loading="lazy">
               ${badgeHtml}
               <!-- 호버 시 시적 글귀 노출 -->
               <div class="card-hover-overlay absolute inset-0 bg-gradient-to-t from-ink-black/85 via-ink-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5 text-white">
@@ -1858,6 +1888,7 @@
 
       buildDeliveryDateOptions(document.getElementById('pdp-delivery-date'));
       updatePDPPrice();
+      try { updateRestockBox(prod, typeof isPreviewMode !== 'undefined' && isPreviewMode); } catch (e) { console.error('restock box error:', e); }
       document.getElementById('pdp-modal').classList.remove('hidden');
       if (typeof updatePopupVisibility === 'function') updatePopupVisibility();
     }
@@ -1866,6 +1897,42 @@
       const modal = document.getElementById('pdp-modal');
       if (modal) modal.classList.add('hidden');
       if (typeof updatePopupVisibility === 'function') updatePopupVisibility();
+    }
+
+    // 재입고 알림 신청 (품절 상품, 상담 상품 제외)
+    function updateRestockBox(prod, preview) {
+      const box = document.getElementById('pdp-restock-box');
+      if (!box) return;
+      const soldOut = prod && !prod.inquiryOnly && typeof prod.stockQuantity === 'number' && prod.stockQuantity <= 0;
+      box.classList.toggle('hidden', !soldOut || !!preview);
+      box.reset();
+      document.getElementById('restock-message').classList.add('hidden');
+      box.querySelector('button[type="submit"]').disabled = false;
+    }
+
+    function submitRestockRequest(e) {
+      e.preventDefault();
+      if (!currentSelectedProduct || typeof addRestockRequest !== 'function') return;
+      const phone = document.getElementById('restock-phone').value.trim();
+      if (normalizePhone(phone).length < 9) {
+        alert(typeof t === 'function' ? t('co_phone_invalid', '연락처를 숫자 9자리 이상으로 적어 주세요.') : '연락처를 숫자 9자리 이상으로 적어 주세요.');
+        return;
+      }
+      const result = addRestockRequest({
+        productId: currentSelectedProduct.id,
+        productName: currentSelectedProduct.name, // 관리자 호환: 한국어 원본
+        phone,
+        name: document.getElementById('restock-name').value
+      });
+      if (!result.duplicate) {
+        try { if (typeof notifyRestockToDiscord === 'function') notifyRestockToDiscord(result.request, restockWaitingCount(currentSelectedProduct.id)); } catch (err) { console.error(err); }
+      }
+      const msg = document.getElementById('restock-message');
+      msg.textContent = result.duplicate
+        ? (typeof t === 'function' ? t('restock_dup', '이미 신청해 주셨어요. 입고되면 바로 알려 드릴게요.') : '이미 신청해 주셨어요. 입고되면 바로 알려 드릴게요.')
+        : (typeof t === 'function' ? t('restock_done', '신청됐어요. 다시 들어오면 문자로 알려 드릴게요.') : '신청됐어요. 다시 들어오면 문자로 알려 드릴게요.');
+      msg.classList.remove('hidden');
+      e.target.querySelector('button[type="submit"]').disabled = true;
     }
 
     function resetPDPButtons() {
@@ -3450,7 +3517,7 @@
         card.innerHTML = `
           <div class="space-y-3">
             <div class="relative aspect-[4/3] rounded-xs overflow-hidden bg-[#ECE8E1]">
-              <img src="${p.image}" alt="${tp.name}" class="w-full h-full object-cover">
+              <img loading="lazy" decoding="async" src="${p.image}" alt="${tp.name}" class="w-full h-full object-cover">
               ${isBest ? `
                 <span class="absolute top-2.5 left-2.5 bg-seal-red text-white text-[11px] font-bold px-2.5 py-1 rounded-xs shadow">
                   ${bestBadgeText}
@@ -3730,7 +3797,7 @@
 
         item.innerHTML = `
           <div class="flex items-center gap-3">
-            <img src="${p.image}" class="w-10 h-10 object-cover rounded-xs border border-ink-black/10">
+            <img loading="lazy" decoding="async" src="${p.image}" class="w-10 h-10 object-cover rounded-xs border border-ink-black/10">
             <div>
               <p class="font-bold text-ink-black">${tp.name}</p>
               <p class="font-serif text-seal-red text-[11px] italic">"${tp.poeticLine}"</p>
