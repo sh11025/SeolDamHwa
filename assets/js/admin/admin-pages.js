@@ -44,8 +44,72 @@ function fillPageEditor(id) {
   badge.innerText = pg.edited ? '직접 고친 문구' : '처음 문구 (초안)';
   badge.className = `text-xs px-2 py-0.5 rounded font-bold ${pg.edited ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-700'}`;
   document.getElementById('page-legal-note').classList.toggle('hidden', pg.group !== 'legal');
+  editPageMedia = pg.group === 'guide' ? { ...pg.media, images: pg.media.images.slice() } : null;
+  document.getElementById('page-media-editor').classList.toggle('hidden', !editPageMedia);
+  if (editPageMedia) {
+    document.querySelectorAll('input[name="page-media-ratio"]').forEach(r => { r.checked = r.value === editPageMedia.ratio; });
+    document.getElementById('page-media-video').value = editPageMedia.video;
+  }
+  renderPageMediaEditor();
   document.getElementById('page-message').innerText = '';
   updatePagePreview();
+}
+
+/* ---------- 정성 안내 사진·영상 ---------- */
+let editPageMedia = null;
+
+function renderPageMediaEditor() {
+  const list = document.getElementById('page-media-list');
+  const preview = document.getElementById('page-media-preview');
+  if (!list || !preview) return;
+  list.innerHTML = '';
+  if (!editPageMedia) { renderPageMediaInto(preview, null); preview.classList.add('hidden'); return; }
+  const aspect = editPageMedia.ratio === '1:1' ? 'aspect-square' : 'aspect-[4/3]';
+  editPageMedia.images.forEach((src, i) => {
+    const tile = document.createElement('div');
+    tile.className = 'w-28 shrink-0 space-y-1';
+    tile.innerHTML = `<div class="${aspect} w-full overflow-hidden rounded-xs bg-[#ECE8E1] border border-ink-black/10"><img src="${escapeHtml(src)}" alt="사진 ${i + 1}" class="w-full h-full object-cover"></div>`;
+    const tools = document.createElement('div');
+    tools.className = 'flex justify-between';
+    [['◀', '앞으로', -1, i === 0], ['▶', '뒤로', 1, i === editPageMedia.images.length - 1]].forEach(([txt, label, d, dis]) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = txt;
+      b.disabled = dis;
+      b.setAttribute('aria-label', `${i + 1}번 사진 ${label}`);
+      b.className = 'w-7 py-0.5 border border-ink-black/15 bg-white rounded-xs font-bold disabled:opacity-30 cursor-pointer';
+      b.onclick = () => { const [x] = editPageMedia.images.splice(i, 1); editPageMedia.images.splice(i + d, 0, x); renderPageMediaEditor(); };
+      tools.appendChild(b);
+    });
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.textContent = '✕';
+    del.setAttribute('aria-label', `${i + 1}번 사진 빼기`);
+    del.className = 'w-7 py-0.5 border border-ink-black/15 bg-white rounded-xs font-bold hover:text-red-700 cursor-pointer';
+    del.onclick = () => { editPageMedia.images.splice(i, 1); renderPageMediaEditor(); };
+    tools.appendChild(del);
+    tile.appendChild(tools);
+    list.appendChild(tile);
+  });
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = `w-28 ${aspect} shrink-0 border-2 border-dashed border-ink-black/20 rounded-xs text-ink-gray font-bold hover:border-seal-red hover:text-seal-red cursor-pointer`;
+  add.textContent = '+ 사진 추가';
+  add.onclick = () => openImagePicker(src => { editPageMedia.images.push(src); renderPageMediaEditor(); });
+  list.appendChild(add);
+  renderPageMediaInto(preview, editPageMedia);
+}
+
+function setPageMediaRatio(v) {
+  if (!editPageMedia) return;
+  editPageMedia.ratio = v === '1:1' ? '1:1' : '4:3';
+  renderPageMediaEditor();
+}
+
+function setPageMediaVideo(v) {
+  if (!editPageMedia) return;
+  editPageMedia.video = v.trim();
+  renderPageMediaEditor();
 }
 
 function selectPageForEdit(id) {
@@ -60,7 +124,7 @@ function updatePagePreview() {
 function savePageEditor(e) {
   e.preventDefault();
   const id = document.getElementById('page-edit-id').value;
-  savePage(id, document.getElementById('page-edit-title').value.trim(), document.getElementById('page-edit-body').value);
+  savePage(id, document.getElementById('page-edit-title').value.trim(), document.getElementById('page-edit-body').value, editPageMedia || undefined);
   renderPagesAdmin();
   setIntegrationMessage('page-message', '저장했어요. 쇼핑몰에 바로 반영돼요.', true);
 }

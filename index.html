@@ -938,11 +938,13 @@
         <button type="button" role="tab" data-guide="care" onclick="showGuideTab('care')" data-i18n="footer_link_care" class="guide-tab px-4 py-2 rounded-full border text-sm font-bold cursor-pointer">생화 관리 팁</button>
         <button type="button" role="tab" data-guide="delivery" onclick="showGuideTab('delivery')" data-i18n="footer_link_delivery" class="guide-tab px-4 py-2 rounded-full border text-sm font-bold cursor-pointer">배송 안내</button>
         <button type="button" role="tab" data-guide="refund" onclick="showGuideTab('refund')" data-i18n="footer_link_refund" class="guide-tab px-4 py-2 rounded-full border text-sm font-bold cursor-pointer">교환·환불 안내</button>
+        <button type="button" role="tab" data-guide="location" id="guide-tab-location" onclick="showGuideTab('location')" data-i18n="guide_location" class="guide-tab hidden px-4 py-2 rounded-full border text-sm font-bold cursor-pointer">오시는 길</button>
       </div>
       <article class="relative bg-white/70 border border-ink-black/10 rounded-sm p-6 md:p-10 shadow-xs">
         <div class="corner-tl"></div><div class="corner-tr"></div><div class="corner-bl"></div><div class="corner-br"></div>
         <h2 id="guide-title" class="text-xl font-extrabold text-ink-black mb-1"></h2>
         <p id="guide-lang-note" class="hidden mb-3 text-xs text-ink-gray"></p>
+        <div id="guide-media" class="hidden"></div>
         <div id="guide-body" class="info-page-body text-sm md:text-base text-ink-charcoal leading-relaxed mt-4" role="tabpanel"></div>
       </article>
       <div class="text-center">
@@ -1259,36 +1261,30 @@
 
   </main>
 
-    <!-- 3. 아틀리에 오시는 길 (Location Section: 오프라인 매장 미공개 시 섹션 전체 숨김) -->
-  <section id="cs-section" class="border-t border-ink-black/10 bg-[#FAF7F2]/60 py-16 md:py-20 hidden">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-      <div class="text-center space-y-2">
+  <!-- 아틀리에 오시는 길: 홈 맨 아래와 정성 안내 '오시는 길' 탭에서만 보임 (shop-settings.js updateLocationSection) -->
+  <section id="cs-section" class="hidden border-t border-ink-black/10 bg-[#FAF7F2]/60 py-14 md:py-16">
+    <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <div class="space-y-4">
         <span class="inline-block text-xs font-bold text-seal-red tracking-wider uppercase">Location & Atelier</span>
         <h3 data-i18n="cs_location_title" class="text-2xl sm:text-3xl font-extrabold text-ink-black tracking-tight">설담화 아틀리에 오시는 길</h3>
-        <div class="text-xs sm:text-sm text-ink-gray pt-1 space-y-0.5">
-          <p class="font-bold text-ink-black text-sm sm:text-base">
-            <span id="cs-address">서울시 종로구 북촌로 42</span>
-            <span id="cs-address-detail" class="text-xs font-normal text-ink-light ml-1">(임시 주소)</span>
-          </p>
-          <p id="cs-directions" class="text-xs text-seal-red font-medium"></p>
-        </div>
-      </div>
-
-      <!-- 지도 Iframe -->
-      <div class="aspect-[16/9] max-h-[420px] w-full bg-[#ECE8E1] rounded-xs overflow-hidden border border-ink-black/10 shadow-xs relative">
-        <iframe id="cs-map-iframe" src="about:blank" title="설담화 위치 지도" loading="lazy" class="w-full h-full border-0"></iframe>
-      </div>
-
-      <!-- 외부 지도 바로가기 버튼 2개 -->
-      <div class="flex flex-wrap justify-center gap-3 pt-1">
-        <a id="cs-btn-kakao-map" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xs border border-ink-black/20 bg-white hover:border-[#FEE500] hover:bg-[#FEE500]/10 text-xs font-bold text-ink-black transition-colors shadow-xs">
+        <p class="font-bold text-ink-black text-sm sm:text-base">
+          <span id="cs-address">서울시 종로구 북촌로 42</span>
+          <span id="cs-address-detail" class="text-xs font-normal text-ink-light ml-1">(임시 주소)</span>
+        </p>
+        <p id="cs-directions" class="text-sm text-seal-red font-medium leading-relaxed"></p>
+        <div class="flex flex-wrap gap-3 pt-1">
+          <a id="cs-btn-kakao-map" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xs border border-ink-black/20 bg-white hover:border-[#FEE500] hover:bg-[#FEE500]/10 text-xs font-bold text-ink-black transition-colors shadow-xs">
           <span class="w-2 h-2 rounded-full bg-[#FEE500]"></span>
           <span data-i18n="cs_btn_kakaomap">카카오맵에서 보기</span>
         </a>
-        <a id="cs-btn-naver-map" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xs border border-ink-black/20 bg-white hover:border-[#03C75A] hover:bg-[#03C75A]/10 text-xs font-bold text-ink-black transition-colors shadow-xs">
+          <a id="cs-btn-naver-map" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xs border border-ink-black/20 bg-white hover:border-[#03C75A] hover:bg-[#03C75A]/10 text-xs font-bold text-ink-black transition-colors shadow-xs">
           <span class="w-2 h-2 rounded-full bg-[#03C75A]"></span>
           <span data-i18n="cs_btn_navermap">네이버 지도에서 보기</span>
         </a>
+        </div>
+      </div>
+      <div class="aspect-[4/3] w-full bg-[#ECE8E1] rounded-xs overflow-hidden border border-ink-black/10 shadow-xs">
+        <iframe id="cs-map-iframe" src="about:blank" title="설담화 위치 지도" loading="lazy" class="w-full h-full border-0"></iframe>
       </div>
     </div>
   </section>
@@ -1400,6 +1396,7 @@
               <li><button type="button" onclick="openGuide('care')" data-i18n="footer_link_care" class="hover:text-seal-red cursor-pointer text-left">생화 관리 팁</button></li>
               <li><button type="button" onclick="openGuide('delivery')" data-i18n="footer_link_delivery" class="hover:text-seal-red cursor-pointer text-left">배송 안내</button></li>
               <li><button type="button" onclick="openGuide('refund')" data-i18n="footer_link_refund" class="hover:text-seal-red cursor-pointer text-left">교환·환불 안내</button></li>
+              <li id="footer-location-link" class="hidden"><button type="button" onclick="openGuide('location')" data-i18n="guide_location" class="hover:text-seal-red cursor-pointer text-left">오시는 길</button></li>
             </ul>
           </div>
         </nav>
@@ -1463,6 +1460,24 @@
         </a>
       </form>
     </div>
+
+    <!-- ♡ 찜한 꽃·최근 본 꽃 작은 창 -->
+    <div id="wish-panel" class="hidden absolute right-0 bottom-[calc(100%+12px)] w-[min(340px,calc(100vw-2rem))] bg-hanji border border-ink-black/15 rounded-sm shadow-2xl overflow-hidden" role="dialog" aria-modal="false" aria-labelledby="wish-panel-title">
+      <div class="bg-ink-black text-hanji px-4 py-3 flex items-center justify-between gap-2">
+        <p id="wish-panel-title" data-i18n="wish_panel_title" class="font-bold text-sm">♡ 찜한 꽃 · 최근 본 꽃</p>
+        <button type="button" onclick="toggleWishPanel(false)" class="text-xl leading-none text-hanji/80 hover:text-white cursor-pointer" aria-label="닫기">×</button>
+      </div>
+      <div id="wish-panel-body" class="p-4 space-y-4 text-xs max-h-[60vh] overflow-y-auto"></div>
+      <div class="px-4 pb-4">
+        <button type="button" onclick="toggleWishPanel(false); openWishlist();" data-i18n="wish_panel_all" class="w-full py-2.5 bg-seal-red text-white font-bold rounded-xs cursor-pointer hover:opacity-90">전체 보기</button>
+      </div>
+    </div>
+
+    <!-- ♡ 버튼 -->
+    <button id="wish-toggle-btn" type="button" onclick="toggleWishPanel()" aria-expanded="false" aria-controls="wish-panel" aria-label="찜한 꽃 · 최근 본 꽃" title="찜한 꽃 · 최근 본 꽃" class="relative w-12 h-12 rounded-full bg-white border border-ink-black/15 hover:border-seal-red text-seal-red shadow-lg flex items-center justify-center text-xl transition-transform hover:scale-105 cursor-pointer">
+      ♡
+      <span id="wish-float-badge" class="hidden absolute -top-1 -right-1 bg-ink-black text-white text-[10px] min-w-4 h-4 px-1 rounded-full flex items-center justify-center font-bold">0</span>
+    </button>
 
     <!-- 💬 말풍선 버튼 -->
     <button id="chat-toggle-btn" type="button" onclick="toggleChatPanel()" aria-expanded="false" aria-controls="chat-panel" aria-label="1:1 상담 열기" title="1:1 상담" class="w-12 h-12 rounded-full bg-seal-red hover:opacity-90 text-white shadow-lg flex items-center justify-center transition-transform hover:scale-105 cursor-pointer">

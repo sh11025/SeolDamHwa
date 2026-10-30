@@ -152,6 +152,21 @@ const DEFAULT_PAGES = {
   }
 };
 
+// 정성 안내 페이지의 사진·영상 (비율은 1:1 또는 4:3, 휴대폰에서도 같은 비율)
+const DEFAULT_PAGE_MEDIA = {
+  bojagi: { ratio: '4:3', images: [], video: 'assets/videos/bokjumeoni_packaging.mp4' }
+};
+
+function normalizePageMedia(m, id) {
+  const base = DEFAULT_PAGE_MEDIA[id] || { ratio: '4:3', images: [], video: '' };
+  const src = m && typeof m === 'object' ? m : base;
+  return {
+    ratio: src.ratio === '1:1' ? '1:1' : '4:3',
+    images: Array.isArray(src.images) ? src.images.filter(x => typeof x === 'string' && x.trim()) : [],
+    video: typeof src.video === 'string' ? src.video.trim() : ''
+  };
+}
+
 function loadPages() {
   let stored = {};
   try { stored = JSON.parse(localStorage.getItem(PAGES_STORAGE_KEY) || '{}') || {}; } catch (e) { stored = {}; }
@@ -163,16 +178,18 @@ function loadPages() {
       title: typeof s.title === 'string' && s.title.trim() ? s.title : DEFAULT_PAGES[id].title,
       body: typeof s.body === 'string' && s.body.trim() ? s.body : DEFAULT_PAGES[id].body,
       edited: !!(s.title || s.body),
-      updatedAt: s.updatedAt || ''
+      updatedAt: s.updatedAt || '',
+      media: normalizePageMedia(s.media, id)
     };
   });
   return pages;
 }
 
-function savePage(id, title, body) {
+function savePage(id, title, body, media) {
   let stored = {};
   try { stored = JSON.parse(localStorage.getItem(PAGES_STORAGE_KEY) || '{}') || {}; } catch (e) { stored = {}; }
-  stored[id] = { title, body, updatedAt: new Date().toISOString() };
+  const keepMedia = media || (stored[id] && stored[id].media);
+  stored[id] = { title, body, updatedAt: new Date().toISOString(), ...(keepMedia ? { media: normalizePageMedia(keepMedia, id) } : {}) };
   localStorage.setItem(PAGES_STORAGE_KEY, JSON.stringify(stored));
 }
 
@@ -226,4 +243,56 @@ function renderPageBody(body, settings) {
   });
   closeList();
   return html;
+}
+
+// 유튜브 주소면 퍼가기 주소로 (아니면 null)
+function youtubeEmbedUrl(url) {
+  const m = String(url || '').match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{11})/);
+  return m ? `https://www.youtube-nocookie.com/embed/${m[1]}` : null;
+}
+
+// 사진·영상 칸 그리기 (쇼핑몰 정성 안내와 관리자 미리보기에서 같이 사용)
+function renderPageMediaInto(box, media) {
+  if (!box) return;
+  box.innerHTML = '';
+  const m = normalizePageMedia(media);
+  const items = [...(m.video ? [{ video: m.video }] : []), ...m.images.map(src => ({ src }))];
+  box.classList.toggle('hidden', !items.length);
+  if (!items.length) return;
+  box.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3';
+  const aspect = m.ratio === '1:1' ? 'aspect-square' : 'aspect-[4/3]';
+  items.forEach((it, i) => {
+    const cell = document.createElement('div');
+    cell.className = `${aspect} w-full overflow-hidden rounded-xs bg-[#ECE8E1] border border-ink-black/10`;
+    if (it.video) {
+      const yt = youtubeEmbedUrl(it.video);
+      if (yt) {
+        const f = document.createElement('iframe');
+        f.src = yt;
+        f.title = '안내 영상';
+        f.loading = 'lazy';
+        f.allow = 'encrypted-media; picture-in-picture';
+        f.allowFullscreen = true;
+        f.className = 'w-full h-full border-0';
+        cell.appendChild(f);
+      } else {
+        const v = document.createElement('video');
+        v.src = it.video;
+        v.controls = true;
+        v.muted = true;
+        v.playsInline = true;
+        v.preload = 'metadata';
+        v.className = 'w-full h-full object-cover';
+        cell.appendChild(v);
+      }
+    } else {
+      const img = document.createElement('img');
+      img.src = it.src;
+      img.alt = `안내 사진 ${i + 1}`;
+      img.loading = 'lazy';
+      img.className = 'w-full h-full object-cover object-center';
+      cell.appendChild(img);
+    }
+    box.appendChild(cell);
+  });
 }

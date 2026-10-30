@@ -253,8 +253,13 @@ function renderSiteSettings() {
   // 6) 오시는 길 섹션 토글
   const csSection = document.getElementById('cs-section');
   if (csSection) {
+    csSection.dataset.enabled = s.showLocation ? '1' : '';
+    const locTab = document.getElementById('guide-tab-location');
+    if (locTab) locTab.classList.toggle('hidden', !s.showLocation);
+    const locLink = document.getElementById('footer-location-link');
+    if (locLink) locLink.classList.toggle('hidden', !s.showLocation);
+    updateLocationSection();
     if (s.showLocation) {
-      csSection.classList.remove('hidden');
       const addrEl = document.getElementById('cs-address');
       if (addrEl) addrEl.innerText = s.address || '서울시 종로구 북촌로 42';
       const addrDetailEl = document.getElementById('cs-address-detail');
@@ -280,8 +285,6 @@ function renderSiteSettings() {
       if (naverMapBtn && typeof naverMapUrl === 'function' && s.address) {
         naverMapBtn.href = naverMapUrl(s.address);
       }
-    } else {
-      csSection.classList.add('hidden');
     }
   }
 
@@ -330,3 +333,31 @@ function checkScheduledProductsVisibility() {
 setInterval(checkScheduledProductsVisibility, 60000);
 
   
+
+// 오시는 길은 홈 맨 아래와 정성 안내 '오시는 길' 탭에서만 (매장 공개를 켰을 때)
+function updateLocationSection() {
+  const sec = document.getElementById('cs-section');
+  if (!sec) return;
+  const visible = id => { const el = document.getElementById(id); return el && !el.classList.contains('hidden'); };
+  const onHome = visible('view-shop');
+  const onGuide = visible('view-guide') && typeof currentGuideTab !== 'undefined' && currentGuideTab === 'location';
+  sec.classList.toggle('hidden', !(sec.dataset.enabled && (onHome || onGuide)));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  window.addEventListener('hashchange', () => setTimeout(updateLocationSection, 0));
+  const originalHide = typeof hideMainViews === 'function' ? hideMainViews : null;
+  if (originalHide) {
+    hideMainViews = function (...args) {
+      const r = originalHide.apply(this, args);
+      updateLocationSection();
+      return r;
+    };
+  }
+  const originalShowView = showView;
+  showView = function (...args) {
+    const r = originalShowView.apply(this, args);
+    updateLocationSection();
+    return r;
+  };
+});

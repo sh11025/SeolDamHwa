@@ -78,7 +78,7 @@ function handleSearch(val) {
 
 // 정성 안내 화면 탭
 let currentGuideTab = 'bojagi';
-const GUIDE_TITLE_KEYS = { bojagi: 'footer_link_bojagi', care: 'footer_link_care', delivery: 'footer_link_delivery', refund: 'footer_link_refund' };
+const GUIDE_TITLE_KEYS = { bojagi: 'footer_link_bojagi', care: 'footer_link_care', delivery: 'footer_link_delivery', refund: 'footer_link_refund', location: 'guide_location' };
 
 function showGuideTab(id) {
   if (typeof loadPages !== 'function' || !GUIDE_TITLE_KEYS[id]) return;
@@ -86,18 +86,27 @@ function showGuideTab(id) {
   // 탭을 바꾸면 주소도 #/guide/<탭>으로 (공유 가능, 뒤로 가기 기록은 늘리지 않음)
   const guideView = document.getElementById('view-guide');
   if (guideView && !guideView.classList.contains('hidden') && typeof setRouteHash === 'function' && location.hash.startsWith('#/guide')) setRouteHash(`#/guide/${id}`, true);
-  const page = loadPages()[id];
   const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'ko';
+  // 오시는 길: 글 대신 아래 지도 칸(#cs-section)을 보여 줌
+  const page = id === 'location'
+    ? { title: typeof t === 'function' ? t('cs_location_title', '설담화 아틀리에 오시는 길') : '설담화 아틀리에 오시는 길', body: '' }
+    : loadPages()[id];
   document.querySelectorAll('.guide-tab').forEach(b => {
     const on = b.dataset.guide === id;
     b.setAttribute('aria-selected', on ? 'true' : 'false');
     b.className = `guide-tab px-4 py-2 rounded-full border text-sm font-bold cursor-pointer transition-colors ${on ? 'bg-ink-black text-hanji border-ink-black' : 'bg-white text-ink-black border-ink-black/20 hover:border-seal-red hover:text-seal-red'}`;
+    // 오시는 길 탭은 매장 공개를 켰을 때만
+    if (b.dataset.guide === 'location' && !(document.getElementById('cs-section') || {dataset: {}}).dataset.enabled) b.classList.add('hidden');
   });
   document.getElementById('guide-title').textContent = lang !== 'ko' && typeof t === 'function' ? t(GUIDE_TITLE_KEYS[id], page.title) : page.title;
   const note = document.getElementById('guide-lang-note');
   note.textContent = typeof t === 'function' ? t('page_korean_only', '') : '';
   note.classList.toggle('hidden', lang === 'ko' || !note.textContent);
-  document.getElementById('guide-body').innerHTML = renderPageBody(page.body);
+  document.getElementById('guide-body').innerHTML = id === 'location'
+    ? `<p>${typeof t === 'function' ? t('guide_location_desc', '아래 지도와 지도 앱 버튼으로 찾아오실 수 있어요. 방문 전 운영시간을 꼭 확인해 주세요.') : ''}</p>`
+    : renderPageBody(page.body);
+  if (typeof renderGuideMedia === 'function') renderGuideMedia(id);
+  if (typeof updateLocationSection === 'function') updateLocationSection();
 }
 
 // 맨 아래 정성 안내 링크 → 정성 안내 화면의 해당 탭
@@ -189,3 +198,12 @@ function toggleWeeklyHoursDetail() {
 }
 
 // 매장 설정 및 고객센터/지도 렌더링
+
+// 정성 안내 탭의 사진·영상 (관리자 '사업자·안내 페이지'에서 붙임)
+function renderGuideMedia(id) {
+  const box = document.getElementById('guide-media');
+  if (!box) return;
+  const page = id !== 'location' && typeof loadPages === 'function' ? loadPages()[id] : null;
+  renderPageMediaInto(box, page ? page.media : { images: [], video: '' });
+  if (!box.classList.contains('hidden')) box.classList.add('mt-4');
+}

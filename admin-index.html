@@ -832,6 +832,23 @@
               <textarea id="page-edit-body" required rows="18" oninput="updatePagePreview()" class="w-full bg-white border border-ink-black/20 p-2.5 rounded-xs font-mono text-xs leading-relaxed"></textarea>
               <span class="block text-xs text-ink-gray">쓰는 법: <code>## 소제목</code> · <code>- 목록</code> · 빈 줄로 문단 나누기 · <code>{상호}</code> <code>{대표자}</code> <code>{전화}</code> <code>{이메일}</code> 등은 사업자 정보로 자동으로 바뀌어요.</span>
             </label>
+            <!-- 사진·영상 (정성 안내 페이지만) -->
+            <div id="page-media-editor" class="hidden p-3 bg-[#FAF7F2] border border-ink-black/15 rounded-xs space-y-3 text-xs">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <p class="font-bold text-sm text-ink-black">사진·영상</p>
+                <div class="flex items-center gap-3" role="radiogroup" aria-label="사진 비율">
+                  <span class="text-ink-gray">비율</span>
+                  <label class="inline-flex items-center gap-1 cursor-pointer font-bold"><input type="radio" name="page-media-ratio" value="1:1" onchange="setPageMediaRatio(this.value)"> 1:1 (정사각형)</label>
+                  <label class="inline-flex items-center gap-1 cursor-pointer font-bold"><input type="radio" name="page-media-ratio" value="4:3" onchange="setPageMediaRatio(this.value)"> 4:3</label>
+                </div>
+              </div>
+              <div id="page-media-list" class="flex gap-2 overflow-x-auto pb-1"></div>
+              <label class="block space-y-1">
+                <span class="font-bold text-ink-black">영상 주소 <span class="font-normal text-ink-gray">(유튜브 링크 또는 assets/videos/파일이름.mp4 · 비우면 영상 없음)</span></span>
+                <input type="text" id="page-media-video" oninput="setPageMediaVideo(this.value)" placeholder="예: assets/videos/bokjumeoni_packaging.mp4" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs">
+              </label>
+              <p class="text-[11px] text-ink-gray">사진은 정한 비율로 가운데를 기준으로 잘려 보여요. 휴대폰은 한 줄에 1장, PC는 2~3장씩 보여요. 영상 파일은 브라우저 저장 공간이 작아서 직접 올리지 말고 폴더에 넣은 뒤 주소를 적어 주세요.</p>
+            </div>
             <div class="flex flex-wrap items-center gap-2">
               <button type="submit" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">저장</button>
               <button type="button" onclick="resetPageEditor()" class="px-4 py-2 border border-ink-black/20 bg-white font-bold rounded-xs cursor-pointer hover:border-ink-black">처음 문구로 되돌리기</button>
@@ -839,7 +856,10 @@
             </div>
             <div class="pt-3 border-t border-ink-black/10">
               <p class="text-xs font-bold text-ink-gray mb-2">미리보기 (손님에게 보이는 모습)</p>
-              <div id="page-preview" class="info-page-body bg-[#FBF9F5] border border-ink-black/10 rounded-xs p-4 max-h-80 overflow-y-auto text-sm leading-relaxed"></div>
+              <div class="bg-[#FBF9F5] border border-ink-black/10 rounded-xs p-4 max-h-[32rem] overflow-y-auto space-y-4">
+                <div id="page-media-preview" class="hidden"></div>
+                <div id="page-preview" class="info-page-body text-sm leading-relaxed"></div>
+              </div>
             </div>
           </form>
         </div>
@@ -897,10 +917,13 @@
           <a href="#set-delivery" class="px-3 py-1.5 rounded-full bg-white border border-ink-black/15 font-bold hover:border-seal-red hover:text-seal-red">배송비</a>
         </nav>
 
-        <div class="max-w-5xl space-y-6">
+        <div class="space-y-6">
           <div class="admin-card p-6 rounded-sm space-y-5">
             <form id="admin-settings-form" onsubmit="saveStoreSettings(event)" class="space-y-4 text-xs">
               
+              <!-- PC 넓은 화면: 왼쪽 연락처·운영시간 / 오른쪽 휴무·오시는 길 -->
+              <div class="grid grid-cols-1 xl:grid-cols-2 gap-x-8 gap-y-4 items-start">
+              <div class="space-y-4">
               <!-- 1) 기본 연락처 -->
               <span id="set-contact" class="block scroll-mt-32"></span>
               <div class="space-y-3 pb-3 border-b border-ink-black/10">
@@ -952,6 +975,8 @@
                 <p id="settings-hours-error" class="hidden text-xs text-seal-red font-bold"></p>
               </div>
 
+              </div>
+              <div class="space-y-4">
               <!-- 2-1) 공휴일 휴무 설정 (Holiday Management) -->
               <span id="set-holidays" class="block scroll-mt-32"></span>
               <div class="space-y-3 pb-3 border-b border-ink-black/10">
@@ -1066,6 +1091,9 @@
                     <p class="text-[11px] text-ink-gray leading-relaxed">주소 칸에서 다른 곳을 누르면 지도가 바뀌어요. 도로명 주소(예: 서울시 종로구 북촌로 42)로 적으면 쇼핑몰의 카카오맵·네이버 지도 링크도 정확하게 열려요.</p>
                   </div>
                 </details>
+              </div>
+
+              </div>
               </div>
 
               <div class="sticky bottom-0 -mx-6 -mb-6 px-6 py-3 bg-[#FAF7F2]/95 backdrop-blur-sm border-t border-ink-black/10 flex items-center justify-between gap-3 rounded-b-sm">

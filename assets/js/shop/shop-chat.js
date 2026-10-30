@@ -27,6 +27,7 @@ function toggleChatPanel(open) {
   const btn = document.getElementById('chat-toggle-btn');
   if (!panel) return;
   const show = typeof open === 'boolean' ? open : panel.classList.contains('hidden');
+  if (show && typeof toggleWishPanel === 'function') toggleWishPanel(false);
   panel.classList.toggle('hidden', !show);
   if (btn) btn.setAttribute('aria-expanded', show ? 'true' : 'false');
   if (!show) return;

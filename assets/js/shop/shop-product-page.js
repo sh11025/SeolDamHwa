@@ -62,6 +62,13 @@ function updateWishBadge() {
   const n = readIdList(WISHLIST_KEY).filter(id => products.some(p => p.id === id)).length;
   badge.textContent = n;
   badge.classList.toggle('hidden', n === 0);
+  const floatBadge = document.getElementById('wish-float-badge');
+  if (floatBadge) {
+    floatBadge.textContent = n;
+    floatBadge.classList.toggle('hidden', n === 0);
+  }
+  const panel = document.getElementById('wish-panel');
+  if (panel && !panel.classList.contains('hidden')) renderWishPanel();
 }
 
 // 화면에 보이는 상품만
@@ -370,4 +377,68 @@ document.addEventListener('DOMContentLoaded', () => {
     SHOP_ROUTES.checkout = () => { if (cart.length) openCheckoutModal(); else showView('shop'); };
   }
   updateWishBadge();
+});
+
+/* ---------- 오른쪽 아래 ♡ 작은 창 (찜한 꽃·최근 본 꽃 사진 줄) ---------- */
+function renderWishPanel() {
+  const body = document.getElementById('wish-panel-body');
+  if (!body) return;
+  const products = visibleProducts();
+  body.innerHTML = '';
+  [
+    [ppT('wish_title', '찜한 꽃'), readIdList(WISHLIST_KEY), ppT('wish_empty_short', '상품의 ♡를 누르면 여기에 모여요.')],
+    [ppT('pdp_recent', '최근 본 꽃'), readIdList(RECENT_KEY), ppT('recent_empty', '아직 본 꽃이 없어요.')]
+  ].forEach(([title, ids, empty]) => {
+    const items = ids.map(id => products.find(p => p.id === id)).filter(Boolean);
+    const sec = document.createElement('section');
+    sec.className = 'space-y-2';
+    const h = document.createElement('p');
+    h.className = 'font-bold text-ink-black';
+    h.textContent = `${title} ${items.length ? `(${items.length})` : ''}`;
+    sec.appendChild(h);
+    if (!items.length) {
+      const e = document.createElement('p');
+      e.className = 'text-ink-gray';
+      e.textContent = empty;
+      sec.appendChild(e);
+    } else {
+      const row = document.createElement('div');
+      row.className = 'flex gap-2 overflow-x-auto pb-1';
+      items.slice(0, 10).forEach(p => {
+        const tp = typeof tProduct === 'function' ? tProduct(p) : p;
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'w-20 shrink-0 text-left cursor-pointer group';
+        b.title = tp.name;
+        b.onclick = () => { toggleWishPanel(false); openProductDetail(p.id); };
+        const img = document.createElement('img');
+        img.src = (Array.isArray(p.images) && p.images[0]) || p.image;
+        img.alt = tp.name;
+        img.loading = 'lazy';
+        img.className = 'w-20 h-24 object-cover rounded-xs border border-ink-black/10 bg-[#ECE8E1] group-hover:border-seal-red';
+        const n = document.createElement('span');
+        n.className = 'block mt-1 text-[11px] font-bold text-ink-black line-clamp-1 group-hover:text-seal-red';
+        n.textContent = tp.name;
+        b.append(img, n);
+        row.appendChild(b);
+      });
+      sec.appendChild(row);
+    }
+    body.appendChild(sec);
+  });
+}
+
+function toggleWishPanel(open) {
+  const panel = document.getElementById('wish-panel');
+  const btn = document.getElementById('wish-toggle-btn');
+  if (!panel) return;
+  const show = typeof open === 'boolean' ? open : panel.classList.contains('hidden');
+  if (show && typeof toggleChatPanel === 'function') toggleChatPanel(false);
+  panel.classList.toggle('hidden', !show);
+  if (btn) btn.setAttribute('aria-expanded', show ? 'true' : 'false');
+  if (show) renderWishPanel();
+}
+
+window.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape') toggleWishPanel(false);
 });

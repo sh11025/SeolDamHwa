@@ -62,7 +62,8 @@ const CSV_TABLES = {
   },
   pages: {
     file: 'pages.csv',
-    columns: ['id', 'title', 'body', 'updatedAt'],
+    columns: ['id', 'title', 'body', 'updatedAt', 'media'],
+    json: ['media'],
     read: () => {
       let stored = {};
       try { stored = JSON.parse(localStorage.getItem('seoldamhwa_pages') || '{}') || {}; } catch (e) { stored = {}; }
@@ -70,7 +71,7 @@ const CSV_TABLES = {
     },
     write: rows => {
       const obj = {};
-      rows.forEach(r => { if (r.id) obj[r.id] = { title: r.title, body: r.body, updatedAt: r.updatedAt }; });
+      rows.forEach(r => { if (r.id) obj[r.id] = { title: r.title, body: r.body, updatedAt: r.updatedAt, ...(r.media ? { media: r.media } : {}) }; });
       localStorage.setItem('seoldamhwa_pages', JSON.stringify(obj));
     }
   },
