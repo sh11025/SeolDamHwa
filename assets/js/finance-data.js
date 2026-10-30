@@ -177,6 +177,15 @@ function deliverySchedule(days = 7, today = financeToday()) {
   return rows;
 }
 
+// 받는 분 / 주문하신 분 (예전 주문은 customerName·phone 하나만 있음)
+function orderRecipient(o) {
+  return { name: o.recipientName || o.customerName || '', phone: o.recipientPhone || o.phone || '' };
+}
+
+function orderOrderer(o) {
+  return { name: o.ordererName || o.customerName || '', phone: o.ordererPhone || o.phone || '' };
+}
+
 function formatWon(n) {
   return `${(Number(n) || 0).toLocaleString('ko-KR')}원`;
 }

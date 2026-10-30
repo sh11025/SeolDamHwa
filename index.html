@@ -997,6 +997,9 @@
             <button type="button" onclick="goToCustomInquiry('')" data-i18n="cs_band_btn_consult" class="jakae-btn py-3 px-5 text-xs font-bold rounded-xs cursor-pointer shadow-xs text-center w-full sm:w-auto">
               1:1 상담 신청
             </button>
+            <button type="button" onclick="openOrderLookup()" data-i18n="lookup_title" class="py-3 px-5 text-xs font-bold rounded-xs cursor-pointer border border-ink-black/25 bg-white hover:border-ink-black text-center w-full sm:w-auto">
+              주문 조회
+            </button>
             <a id="footer-band-kakao" href="#" target="_blank" rel="noopener noreferrer" class="hidden inline-flex items-center justify-center gap-1.5 py-3 px-5 rounded-xs bg-[#FEE500] hover:bg-[#FDD835] text-ink-black font-bold text-xs transition-colors shadow-xs w-full sm:w-auto text-center">
               <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24"><path d="M12 3c-5.52 0-10 3.58-10 8 0 2.82 1.83 5.3 4.63 6.69-.18.66-.67 2.45-.77 2.83-.12.47.17.46.36.33.25-.17 2.84-1.93 3.99-2.72.58.08 1.18.13 1.79.13 5.52 0 10-3.58 10-8s-4.48-8-10-8z"/></svg>
               <span data-i18n="cs_band_kakao_label">카카오톡 채널</span>
@@ -1028,6 +1031,7 @@
             <li><button type="button" onclick="openGuide('bojagi')" data-i18n="footer_link_bojagi" class="hover:text-seal-red cursor-pointer">전통 보자기 패키징 안내</button></li>
             <li><button type="button" onclick="openGuide('care')" data-i18n="footer_link_care" class="hover:text-seal-red cursor-pointer">생화 관리 팁</button></li>
             <li><button type="button" onclick="openGuide('delivery')" data-i18n="footer_link_delivery" class="hover:text-seal-red cursor-pointer">배송 안내</button></li>
+            <li><button type="button" onclick="openOrderLookup()" data-i18n="lookup_title" class="hover:text-seal-red cursor-pointer">주문 조회</button></li>
             <li><button type="button" onclick="openGuide('refund')" data-i18n="footer_link_refund" class="hover:text-seal-red cursor-pointer">교환·환불 안내</button></li>
             <li><a href="admin-index.html" data-i18n="footer_link_admin" class="text-seal-red font-bold hover:underline">관리자 센터 로그인</a></li>
           </ul>
@@ -1281,41 +1285,76 @@
     <div class="relative bg-hanji w-full max-w-xl rounded-xs shadow-2xl border border-ink-black/20 z-10 p-6 sm:p-8 my-8">
       <button onclick="toggleCheckoutModal(false)" class="absolute top-4 right-4 p-1.5 text-ink-gray hover:text-ink-black cursor-pointer">✕</button>
 
-      <form onsubmit="submitCustomerOrder(event)" class="space-y-4">
+      <form id="checkout-form" onsubmit="submitCustomerOrder(event)" class="space-y-5">
         <div class="text-center border-b border-ink-black/10 pb-3">
           <span data-i18n="checkout_sub" class="font-brush text-2xl text-seal-red">단정한 마음을 묶어 보내며</span>
           <h2 data-i18n="checkout_title" class="text-2xl font-bold text-ink-black">주문 및 결제</h2>
         </div>
 
-        <div class="space-y-3 text-xs">
-          <div>
-            <label data-i18n="checkout_name_label" class="block font-bold text-ink-black mb-1">받으시는 분 성함</label>
-            <input type="text" id="order-name" required value="김단아" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+        <!-- 주문하시는 분 -->
+        <fieldset class="space-y-2 text-xs">
+          <legend data-i18n="co_orderer_title" class="text-sm font-extrabold text-ink-black mb-1">주문하시는 분</legend>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <label class="block"><span data-i18n="co_name" class="block font-bold text-ink-black mb-1">이름</span>
+              <input type="text" id="order-orderer-name" required maxlength="20" autocomplete="name" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red"></label>
+            <label class="block"><span data-i18n="co_phone" class="block font-bold text-ink-black mb-1">연락처</span>
+              <input type="tel" id="order-orderer-phone" required maxlength="20" autocomplete="tel" placeholder="010-0000-0000" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red"></label>
           </div>
-          <div>
-            <label data-i18n="checkout_phone_label" class="block font-bold text-ink-black mb-1">연락처</label>
-            <input type="tel" id="order-phone" required value="010-3849-5921" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+        </fieldset>
+
+        <!-- 받으시는 분 -->
+        <fieldset class="space-y-2 text-xs">
+          <div class="flex items-center justify-between">
+            <legend data-i18n="co_recipient_title" class="text-sm font-extrabold text-ink-black">받으시는 분</legend>
+            <label class="flex items-center gap-1.5 cursor-pointer text-ink-gray"><input type="checkbox" id="order-same-recipient" onchange="toggleSameRecipient()" class="w-4 h-4"> <span data-i18n="co_same_as_orderer">주문하시는 분과 같아요</span></label>
           </div>
-          <div>
-            <label data-i18n="checkout_delivery_label" class="block font-bold text-seal-red mb-1">생화 희망 배송일 및 시간 (필수)</label>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <select id="order-delivery-date" class="w-full bg-white border border-seal-red/40 p-2 font-bold text-seal-red rounded-xs">
-              </select>
-              <select id="order-delivery-time" class="w-full bg-white border border-seal-red/40 p-2 font-bold text-seal-red rounded-xs">
-                <option value="오전 10:00~13:00">오전 10:00~13:00</option>
-                <option value="오후 14:00~18:00">오후 14:00~18:00</option>
-                <option value="저녁 18:00~21:00">저녁 18:00~21:00</option>
-              </select>
-            </div>
+          <div id="recipient-fields" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <label class="block"><span data-i18n="co_name" class="block font-bold text-ink-black mb-1">이름</span>
+              <input type="text" id="order-name" required maxlength="20" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red"></label>
+            <label class="block"><span data-i18n="co_phone" class="block font-bold text-ink-black mb-1">연락처</span>
+              <input type="tel" id="order-phone" required maxlength="20" placeholder="010-0000-0000" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red"></label>
           </div>
-          <div>
-            <label data-i18n="checkout_address_label" class="block font-bold text-ink-black mb-1">배송 주소</label>
-            <input type="text" id="order-address" required value="서울특별시 성동구 성수이로 20길 12, 401호" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+        </fieldset>
+
+        <!-- 배송 방법 -->
+        <fieldset class="space-y-2 text-xs">
+          <legend data-i18n="co_method_title" class="text-sm font-extrabold text-ink-black mb-1">배송 방법</legend>
+          <div id="delivery-method-options" class="grid grid-cols-1 gap-2"></div>
+          <p id="delivery-note" class="hidden text-[11px] text-ink-gray"></p>
+        </fieldset>
+
+        <!-- 배송 주소 -->
+        <fieldset id="address-fields" class="space-y-2 text-xs">
+          <legend data-i18n="checkout_address_label" class="text-sm font-extrabold text-ink-black mb-1">배송 주소</legend>
+          <div class="flex gap-2">
+            <input type="text" id="order-zipcode" readonly placeholder="우편번호" data-i18n-placeholder="co_zip" class="w-28 bg-[#F4F1EA] border border-ink-black/20 p-2 rounded-xs">
+            <button type="button" onclick="openAddressSearch()" data-i18n="co_find_address" class="px-3 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red whitespace-nowrap">주소 찾기</button>
           </div>
-          <div>
-            <label data-i18n="checkout_message_label" class="block font-bold text-ink-black mb-1">보자기 동봉 전통 한지 메시지</label>
-            <textarea id="order-message" rows="2" data-i18n-placeholder="checkout_message_placeholder" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs" placeholder="동봉할 메시지를 적어주세요."></textarea>
+          <input type="text" id="order-address" required placeholder="기본 주소 (주소 찾기를 누르거나 직접 적어 주세요)" data-i18n-placeholder="co_address_ph" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+          <input type="text" id="order-address-detail" maxlength="60" placeholder="상세 주소 (동·호수, 층)" data-i18n-placeholder="co_address_detail_ph" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+          <p id="address-area-warning" class="hidden text-[11px] font-bold text-seal-red"></p>
+        </fieldset>
+
+        <!-- 희망일 -->
+        <div class="text-xs">
+          <label id="co-date-label" data-i18n="checkout_delivery_label" class="block font-bold text-seal-red mb-1">생화 희망 배송일 및 시간 (필수)</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <select id="order-delivery-date" class="w-full bg-white border border-seal-red/40 p-2 font-bold text-seal-red rounded-xs"></select>
+            <select id="order-delivery-time" class="w-full bg-white border border-seal-red/40 p-2 font-bold text-seal-red rounded-xs">
+              <option value="오전 10:00~13:00">오전 10:00~13:00</option>
+              <option value="오후 14:00~18:00">오후 14:00~18:00</option>
+              <option value="저녁 18:00~21:00">저녁 18:00~21:00</option>
+            </select>
           </div>
+        </div>
+
+        <!-- 카드 메시지 · 요청 -->
+        <div class="space-y-2 text-xs">
+          <label class="block"><span data-i18n="checkout_message_label" class="block font-bold text-ink-black mb-1">보자기 동봉 전통 한지 메시지</span>
+            <textarea id="order-message" rows="2" maxlength="200" data-i18n-placeholder="checkout_message_placeholder" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs" placeholder="동봉할 메시지를 적어주세요."></textarea></label>
+          <label class="flex items-center gap-2 cursor-pointer text-ink-black"><input type="checkbox" id="order-hide-sender" class="w-4 h-4"> <span data-i18n="co_hide_sender">카드에 보내는 분 이름을 적지 않을게요 (익명 선물)</span></label>
+          <label class="block"><span data-i18n="co_request" class="block font-bold text-ink-black mb-1">배송 요청 (선택)</span>
+            <input type="text" id="order-request" maxlength="80" data-i18n-placeholder="co_request_ph" placeholder="예: 부재 시 경비실에 맡겨 주세요" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
         </div>
 
         <div class="space-y-2 text-xs">
@@ -1333,15 +1372,54 @@
 
         <div class="pt-3 border-t border-ink-black/10">
           <div id="checkout-items-summary" class="mb-3 space-y-1 max-h-40 overflow-y-auto"></div>
+          <div class="space-y-1 text-xs mb-2">
+            <div class="flex justify-between text-ink-gray"><span data-i18n="co_items_total">상품 금액</span><span id="checkout-items-total">0원</span></div>
+            <div class="flex justify-between text-ink-gray"><span data-i18n="co_delivery_fee">배송비</span><span id="checkout-delivery-fee">0원</span></div>
+            <p id="checkout-free-hint" class="hidden text-[11px] text-seal-red text-right"></p>
+          </div>
           <div class="flex justify-between items-baseline mb-3">
             <span data-i18n="checkout_total_label" class="text-xs text-ink-gray">최종 결제 금액</span>
-            <span id="checkout-final-price" class="text-2xl font-bold text-seal-red">68,000원</span>
+            <span id="checkout-final-price" class="text-2xl font-bold text-seal-red">0원</span>
           </div>
-          <button type="submit" data-i18n="checkout_btn_submit" class="jakae-btn w-full py-4 text-sm font-bold tracking-wider rounded-xs cursor-pointer shadow-lg">
-            안전 결제 완료하기
-          </button>
+          <button type="submit" data-i18n="co_submit" class="jakae-btn w-full py-4 text-sm font-bold tracking-wider rounded-xs cursor-pointer shadow-lg">주문하기</button>
+          <p data-i18n="co_payment_note" class="mt-2 text-[11px] text-ink-gray text-center">온라인 결제는 준비 중이에요. 주문을 확인한 뒤 결제 방법을 연락처로 안내드려요.</p>
         </div>
       </form>
+
+      <!-- 주문 완료 화면 -->
+      <div id="order-complete" class="hidden text-center space-y-4 py-2">
+        <img src="assets/images/seal.svg" alt="" class="w-14 h-14 mx-auto">
+        <h2 data-i18n="co_done_title" class="text-2xl font-extrabold text-ink-black">주문이 접수됐어요</h2>
+        <p data-i18n="co_done_desc" class="text-sm text-ink-gray">정성껏 지어 보내 드릴게요. 아래 주문번호로 언제든 주문 상태를 확인할 수 있어요.</p>
+        <div class="bg-white border border-ink-black/10 rounded-xs p-4 space-y-1">
+          <p data-i18n="co_order_number" class="text-xs text-ink-gray">주문번호</p>
+          <p id="done-order-number" class="text-2xl font-mono font-extrabold text-seal-red tracking-wider"></p>
+          <button type="button" onclick="copyDoneOrderNumber(this)" data-i18n="co_copy" class="text-xs underline text-ink-gray hover:text-seal-red cursor-pointer">복사하기</button>
+        </div>
+        <dl id="done-summary" class="text-left text-sm bg-[#FAF7F2] border border-ink-black/10 rounded-xs p-4 space-y-1.5"></dl>
+        <p data-i18n="co_payment_note" class="text-xs text-ink-gray">온라인 결제는 준비 중이에요. 주문을 확인한 뒤 결제 방법을 연락처로 안내드려요.</p>
+        <div class="flex flex-col sm:flex-row gap-2 justify-center">
+          <button type="button" onclick="openOrderLookup(document.getElementById('done-order-number').innerText)" data-i18n="co_lookup_btn" class="px-5 py-2.5 border border-ink-black/20 bg-white text-sm font-bold rounded-xs cursor-pointer hover:border-ink-black">주문 조회하기</button>
+          <button type="button" onclick="toggleCheckoutModal(false)" data-i18n="co_continue" class="jakae-btn px-5 py-2.5 text-sm font-bold rounded-xs cursor-pointer">쇼핑 계속하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 주문 조회 창 -->
+  <div id="order-lookup-modal" class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="order-lookup-title">
+    <div class="fixed inset-0" onclick="closeOrderLookup()"></div>
+    <div class="relative bg-hanji w-full max-w-lg max-h-[88vh] overflow-y-auto rounded-sm shadow-2xl border border-ink-black/10 p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 id="order-lookup-title" data-i18n="lookup_title" class="text-lg font-extrabold text-ink-black">주문 조회</h2>
+        <button type="button" onclick="closeOrderLookup()" class="text-2xl leading-none text-ink-gray hover:text-seal-red cursor-pointer" aria-label="닫기">×</button>
+      </div>
+      <form onsubmit="runOrderLookup(event)" class="space-y-2 text-sm">
+        <input type="text" id="lookup-order-number" required placeholder="주문번호 (예: SDH-12345678)" data-i18n-placeholder="lookup_number_ph" class="w-full bg-white border border-ink-black/20 p-2.5 rounded-xs font-mono uppercase">
+        <input type="tel" id="lookup-phone" required placeholder="주문하신 분 연락처" data-i18n-placeholder="lookup_phone_ph" class="w-full bg-white border border-ink-black/20 p-2.5 rounded-xs">
+        <button type="submit" data-i18n="lookup_btn" class="w-full py-2.5 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">조회하기</button>
+      </form>
+      <div id="lookup-result" class="hidden"></div>
     </div>
   </div>
 
@@ -2018,6 +2096,233 @@
       openCheckoutModal();
     }
 
+    // ---- 주문서: 받는 분·배송 방법·배송비·주소 찾기 ----
+    let checkoutItemsTotal = 0;
+    let addressSearchSido = '';
+
+    function coT(key, fallback) {
+      return typeof t === 'function' ? t(key, fallback) : fallback;
+    }
+
+    function selectedDeliveryMethod() {
+      const r = document.querySelector('input[name="delivery-method"]:checked');
+      return r ? r.value : '';
+    }
+
+    function renderDeliveryMethodOptions() {
+      const wrap = document.getElementById('delivery-method-options');
+      if (!wrap || typeof getDeliveryMethods !== 'function') return;
+      const s = loadSettings();
+      const methods = getDeliveryMethods(s);
+      const prev = selectedDeliveryMethod();
+      const names = { quick: coT('co_method_quick', '퀵 당일 배송'), parcel: coT('co_method_parcel', '택배'), pickup: coT('co_method_pickup', '매장 픽업') };
+      wrap.innerHTML = '';
+      methods.forEach((m, i) => {
+        const fee = calcDeliveryFee(m.id, checkoutItemsTotal, s);
+        const label = document.createElement('label');
+        label.className = 'flex items-center gap-3 p-2.5 bg-white border border-ink-black/15 rounded-xs cursor-pointer has-[:checked]:border-seal-red has-[:checked]:bg-[#FAF7F2]';
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = 'delivery-method';
+        input.value = m.id;
+        input.className = 'w-4 h-4';
+        input.checked = prev ? prev === m.id : i === 0;
+        input.onchange = recalcCheckout;
+        const text = document.createElement('span');
+        text.className = 'flex-1';
+        const title = document.createElement('span');
+        title.className = 'block font-bold text-ink-black';
+        title.textContent = names[m.id];
+        const area = document.createElement('span');
+        area.className = 'block text-[11px] text-ink-gray';
+        area.textContent = m.area || '';
+        text.append(title, area);
+        const price = document.createElement('span');
+        price.className = 'font-bold text-ink-black whitespace-nowrap';
+        price.textContent = fee === 0 ? coT('co_free', '무료') : formatPrice(fee);
+        label.append(input, text, price);
+        wrap.appendChild(label);
+      });
+      const note = document.getElementById('delivery-note');
+      note.textContent = (s.delivery && s.delivery.note) || '';
+      note.classList.toggle('hidden', !note.textContent);
+    }
+
+    function recalcCheckout() {
+      const s = loadSettings();
+      const method = selectedDeliveryMethod();
+      const fee = method ? calcDeliveryFee(method, checkoutItemsTotal, s) : 0;
+      document.getElementById('checkout-items-total').innerText = formatPrice(checkoutItemsTotal);
+      document.getElementById('checkout-delivery-fee').innerText = fee === 0 ? coT('co_free', '무료') : formatPrice(fee);
+      document.getElementById('checkout-final-price').innerText = formatPrice(checkoutItemsTotal + fee);
+      const hint = document.getElementById('checkout-free-hint');
+      const freeOver = s.delivery ? s.delivery.freeOver : 0;
+      if (method && method !== 'pickup' && fee > 0 && freeOver > checkoutItemsTotal) {
+        hint.textContent = coT('co_free_hint', '{amount} 더 담으면 배송비가 무료예요.').replace('{amount}', formatPrice(freeOver - checkoutItemsTotal));
+        hint.classList.remove('hidden');
+      } else {
+        hint.classList.add('hidden');
+      }
+      // 픽업이면 주소 칸 숨기기
+      const isPickup = method === 'pickup';
+      document.getElementById('address-fields').classList.toggle('hidden', isPickup);
+      document.getElementById('order-address').required = !isPickup;
+      document.getElementById('co-date-label').textContent = isPickup ? coT('co_pickup_date_label', '픽업 날짜 및 시간 (필수)') : coT('checkout_delivery_label', '생화 희망 배송일 및 시간 (필수)');
+      checkAddressArea();
+    }
+
+    function toggleSameRecipient() {
+      const same = document.getElementById('order-same-recipient').checked;
+      const nameEl = document.getElementById('order-name');
+      const phoneEl = document.getElementById('order-phone');
+      if (same) {
+        nameEl.value = document.getElementById('order-orderer-name').value;
+        phoneEl.value = document.getElementById('order-orderer-phone').value;
+      }
+      nameEl.readOnly = phoneEl.readOnly = same;
+      document.getElementById('recipient-fields').classList.toggle('opacity-60', same);
+    }
+
+    // 퀵은 서울만 (주소 찾기로 고른 경우에만 확인)
+    function checkAddressArea() {
+      const warn = document.getElementById('address-area-warning');
+      if (!warn) return true;
+      const bad = selectedDeliveryMethod() === 'quick' && addressSearchSido && !/^서울/.test(addressSearchSido);
+      warn.textContent = bad ? coT('co_quick_area_warn', '퀵 당일 배송은 서울 지역만 가능해요. 다른 배송 방법을 고르거나 1:1 상담으로 문의해 주세요.') : '';
+      warn.classList.toggle('hidden', !bad);
+      return !bad;
+    }
+
+    function openAddressSearch() {
+      const run = () => {
+        new daum.Postcode({
+          oncomplete: data => {
+            document.getElementById('order-zipcode').value = data.zonecode || '';
+            document.getElementById('order-address').value = data.roadAddress || data.jibunAddress || data.address || '';
+            addressSearchSido = data.sido || '';
+            checkAddressArea();
+            document.getElementById('order-address-detail').focus();
+          }
+        }).open();
+      };
+      if (window.daum && window.daum.Postcode) return run();
+      const s = document.createElement('script');
+      s.src = 'https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
+      s.onload = run;
+      s.onerror = () => alert(coT('co_address_search_fail', '주소 찾기를 불러오지 못했어요. 주소를 직접 적어 주세요.'));
+      document.head.appendChild(s);
+    }
+
+    // 주문 완료 화면
+    function showOrderComplete(order) {
+      document.getElementById('checkout-form').classList.add('hidden');
+      const done = document.getElementById('order-complete');
+      done.classList.remove('hidden');
+      document.getElementById('done-order-number').innerText = order.orderNumber;
+      const rows = [
+        [coT('co_recipient_title', '받으시는 분'), order.recipientName],
+        [order.deliveryMethod === 'pickup' ? coT('co_pickup_date_short', '픽업일') : coT('co_delivery_date_short', '배송일'), order.deliveryDate],
+        [coT('co_method_title', '배송 방법'), order.deliveryMethodLabel],
+        [coT('checkout_total_label', '최종 결제 금액'), formatPrice(order.totalAmount)]
+      ];
+      const dl = document.getElementById('done-summary');
+      dl.innerHTML = '';
+      rows.forEach(([k, v]) => {
+        const row = document.createElement('div');
+        row.className = 'flex justify-between gap-3';
+        const dt = document.createElement('dt');
+        dt.className = 'text-ink-gray';
+        dt.textContent = k;
+        const dd = document.createElement('dd');
+        dd.className = 'font-bold text-ink-black text-right';
+        dd.textContent = v;
+        row.append(dt, dd);
+        dl.appendChild(row);
+      });
+      document.querySelector('#checkout-modal > div.relative').scrollTop = 0;
+    }
+
+    function copyDoneOrderNumber(btn) {
+      const num = document.getElementById('done-order-number').innerText;
+      navigator.clipboard.writeText(num).then(() => {
+        btn.innerText = coT('co_copied', '복사했어요');
+        setTimeout(() => { btn.innerText = coT('co_copy', '복사하기'); }, 1500);
+      }).catch(() => {});
+    }
+
+    // ---- 주문 조회 ----
+    function openOrderLookup(prefillNumber) {
+      document.getElementById('checkout-modal').classList.add('hidden');
+      document.getElementById('order-lookup-modal').classList.remove('hidden');
+      document.getElementById('lookup-result').classList.add('hidden');
+      if (typeof prefillNumber === 'string' && prefillNumber) document.getElementById('lookup-order-number').value = prefillNumber;
+      if (typeof updatePopupVisibility === 'function') updatePopupVisibility();
+    }
+
+    function closeOrderLookup() {
+      document.getElementById('order-lookup-modal').classList.add('hidden');
+    }
+
+    function runOrderLookup(e) {
+      e.preventDefault();
+      const num = document.getElementById('lookup-order-number').value.trim().toUpperCase();
+      const phone = document.getElementById('lookup-phone').value.replace(/\D/g, '');
+      const orders = JSON.parse(localStorage.getItem('seoldamhwa_orders') || '[]');
+      const o = orders.find(x => String(x.orderNumber).toUpperCase() === num && String(x.ordererPhone || x.phone || '').replace(/\D/g, '') === phone);
+      const box = document.getElementById('lookup-result');
+      box.classList.remove('hidden');
+      box.innerHTML = '';
+      if (!o) {
+        const p = document.createElement('p');
+        p.className = 'text-sm text-seal-red font-bold text-center py-3';
+        p.textContent = coT('lookup_not_found', '주문을 찾지 못했어요. 주문번호와 주문하신 분 연락처를 다시 확인해 주세요.');
+        box.appendChild(p);
+        return;
+      }
+      const steps = ['preparing', 'packaged', 'delivering', 'completed'];
+      const stepNames = { preparing: coT('st_preparing', '제작 중'), packaged: coT('st_packaged', '포장 완료'), delivering: coT('st_delivering', '배송 중'), completed: coT('st_completed', '배송 완료') };
+      const card = document.createElement('div');
+      card.className = 'bg-white border border-ink-black/10 rounded-xs p-4 space-y-3 text-sm';
+      if (o.status === 'cancelled') {
+        const c = document.createElement('p');
+        c.className = 'font-bold text-ink-gray text-center';
+        c.textContent = coT('st_cancelled', '주문이 취소되었어요.');
+        card.appendChild(c);
+      } else {
+        const idx = steps.indexOf(o.status);
+        const bar = document.createElement('ol');
+        bar.className = 'grid grid-cols-4 gap-1 text-center text-[11px]';
+        steps.forEach((st, i) => {
+          const li = document.createElement('li');
+          li.className = `py-2 rounded-xs font-bold ${i <= idx ? 'bg-seal-red text-white' : 'bg-[#F4F1EA] text-ink-gray'}`;
+          li.textContent = stepNames[st];
+          bar.appendChild(li);
+        });
+        card.appendChild(bar);
+      }
+      const info = [
+        [coT('co_order_number', '주문번호'), o.orderNumber],
+        [coT('co_recipient_title', '받으시는 분'), o.recipientName || o.customerName],
+        [o.deliveryMethod === 'pickup' ? coT('co_pickup_date_short', '픽업일') : coT('co_delivery_date_short', '배송일'), o.deliveryDate],
+        [coT('lookup_items', '상품'), (o.items || []).map(i => `${(typeof tProduct === 'function' ? tProduct(i.product) : i.product).name}${i.sizeLabel ? ` (${i.sizeLabel})` : ''} × ${i.quantity}`).join(', ')],
+        [coT('checkout_total_label', '최종 결제 금액'), formatPrice(o.totalAmount)]
+      ];
+      if (o.trackingNumber || o.courier) info.push([coT('lookup_tracking', '운송장'), `${o.courier || ''} ${o.trackingNumber || ''}`.trim()]);
+      info.forEach(([k, v]) => {
+        const row = document.createElement('div');
+        row.className = 'flex justify-between gap-3';
+        const a = document.createElement('span');
+        a.className = 'text-ink-gray whitespace-nowrap';
+        a.textContent = k;
+        const b = document.createElement('span');
+        b.className = 'font-bold text-ink-black text-right';
+        b.textContent = v;
+        row.append(a, b);
+        card.appendChild(row);
+      });
+      box.appendChild(card);
+    }
+
     function openCheckoutModal() {
       const allProds = loadProducts();
       const hiddenItems = [];
@@ -2064,6 +2369,10 @@
         orderTime.options[2].text = typeof t === 'function' ? t('pdp_delivery_time_evening', '저녁 18:00~21:00') : '저녁 18:00~21:00';
       }
 
+      // 주문 완료 화면에서 다시 열면 주문서로 되돌리기
+      document.getElementById('checkout-form').classList.remove('hidden');
+      document.getElementById('order-complete').classList.add('hidden');
+
       itemsSummary.innerHTML = '';
       let subtotal = 0;
 
@@ -2089,7 +2398,9 @@
         itemsSummary.appendChild(row);
       });
 
-      document.getElementById('checkout-final-price').innerText = formatPrice(subtotal);
+      checkoutItemsTotal = subtotal;
+      renderDeliveryMethodOptions();
+      recalcCheckout();
       toggleCheckoutModal(true);
     }
 
@@ -2107,54 +2418,76 @@
       e.preventDefault();
       const dateVal = document.getElementById('order-delivery-date').value;
       if (!dateVal) {
-        alert(typeof t === 'function' ? t('pdp_delivery_label', '희망 배송일을 선택해 주세요.') : '희망 배송일을 선택해 주세요.');
+        alert(coT('pdp_delivery_label', '희망 배송일을 선택해 주세요.'));
         return;
       }
+      const method = selectedDeliveryMethod();
+      if (!method) {
+        alert(coT('co_method_required', '배송 방법을 골라 주세요.'));
+        return;
+      }
+      if (!checkAddressArea()) {
+        document.getElementById('address-area-warning').scrollIntoView({ block: 'center' });
+        return;
+      }
+      const val = id => document.getElementById(id).value.trim();
+      const phoneOk = v => v.replace(/\D/g, '').length >= 9;
+      if (!phoneOk(val('order-orderer-phone')) || !phoneOk(val('order-phone'))) {
+        alert(coT('co_phone_invalid', '연락처를 숫자 9자리 이상으로 적어 주세요.'));
+        return;
+      }
+      if (document.getElementById('order-same-recipient').checked) toggleSameRecipient();
+
+      const settings = loadSettings();
       const timeVal = document.getElementById('order-delivery-time').value;
       const deliveryDate = `${dateVal} ${timeVal}`;
       const orderNumber = `SDH-${Date.now().toString().slice(-8)}`;
-      const name = document.getElementById('order-name').value;
-      const phone = document.getElementById('order-phone').value;
-      const address = document.getElementById('order-address').value;
-      const message = document.getElementById('order-message').value;
-      const subtotal = cart.reduce((sum, i) => sum + (i.price + i.optionPrice) * i.quantity, 0);
+      const itemsTotal = cart.reduce((sum, i) => sum + (i.price + i.optionPrice) * i.quantity, 0);
+      const deliveryFee = calcDeliveryFee(method, itemsTotal, settings);
+      const methodLabels = { quick: '퀵 당일 배송', parcel: '택배', pickup: '매장 픽업' };
+      const isPickup = method === 'pickup';
+      const address = isPickup ? '매장 픽업' : [val('order-address'), val('order-address-detail')].filter(Boolean).join(', ');
 
       const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const createdDate = `${year}-${month}-${day}`;
+      const createdDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       const createdAt = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
 
-      // 핵심 규칙: 주문 저장 데이터(items)는 UI 언어와 상관없이 항상 한국어 상품명(원본 name)으로 저장!
+      // 저장 데이터는 UI 언어와 상관없이 한국어 원본으로 (관리자 화면 호환)
       const newOrder = {
         id: `ord-${Date.now()}`,
-        orderNumber: orderNumber,
-        customerName: name,
-        phone: phone,
-        deliveryDate: deliveryDate,
-        address: address,
-        message: message,
-        items: cart.map(i => ({
-          ...i,
-          product: {
-            ...i.product,
-            name: i.product.name // 원본 한국어 보존
-          }
-        })),
-        totalAmount: subtotal,
-        status: 'preparing', // 제작 중
-        createdAt: createdAt,
-        createdDate: createdDate
+        orderNumber,
+        // 주문하신 분
+        ordererName: val('order-orderer-name'),
+        ordererPhone: val('order-orderer-phone'),
+        // 받으시는 분
+        recipientName: val('order-name'),
+        recipientPhone: val('order-phone'),
+        // 예전 화면 호환: customerName/phone은 주문하신 분
+        customerName: val('order-orderer-name'),
+        phone: val('order-orderer-phone'),
+        zipcode: isPickup ? '' : val('order-zipcode'),
+        address,
+        deliveryMethod: method,
+        deliveryMethodLabel: methodLabels[method],
+        deliveryFee,
+        itemsTotal,
+        deliveryDate,
+        message: val('order-message'),
+        hideSender: document.getElementById('order-hide-sender').checked,
+        request: val('order-request'),
+        items: cart.map(i => ({ ...i, product: { ...i.product, name: i.product.name } })),
+        totalAmount: itemsTotal + deliveryFee,
+        status: 'preparing',
+        createdAt,
+        createdDate
       };
 
-      // 1) 기존 주문 불러와서 추가
       const existingOrders = JSON.parse(localStorage.getItem('seoldamhwa_orders') || '[]');
       existingOrders.unshift(newOrder);
       localStorage.setItem('seoldamhwa_orders', JSON.stringify(existingOrders));
-      try { if (typeof notifyOrderToDiscord === 'function') notifyOrderToDiscord(newOrder); } catch (e) { console.error('discord notify error:', e); }
+      try { if (typeof notifyOrderToDiscord === 'function') notifyOrderToDiscord(newOrder); } catch (err) { console.error('discord notify error:', err); }
 
-      // 2) 상품 재고 수량 실시간 차감
+      // 재고 줄이기
       const currentProducts = loadProducts();
       cart.forEach(item => {
         const prod = currentProducts.find(p => p.id === item.product.id);
@@ -2165,15 +2498,11 @@
       saveProducts(currentProducts);
       renderProducts(currentCategory);
 
-      const alertFmt = typeof t === 'function'
-        ? t('order_alert_complete', '[주문 완료] {name} 님의 주문이 성공적으로 접수되었습니다.\n희망 배송일: {date}')
-        : '[주문 완료] {name} 님의 주문이 성공적으로 접수되었습니다.\n희망 배송일: {date}';
-      alert(alertFmt.replace('{name}', name).replace('{date}', deliveryDate));
-
       cart = [];
       updateCartUI();
-      toggleCheckoutModal(false);
+      showOrderComplete({ ...newOrder, deliveryMethodLabel: coT(`co_method_${method}`, methodLabels[method]) });
     }
+
 
     // 1:1 상담 문의 핸들러는 하단 단일 정의로 통합 관리
 
@@ -3462,6 +3791,8 @@
 
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
+        const lk = document.getElementById('order-lookup-modal');
+        if (lk && !lk.classList.contains('hidden')) closeOrderLookup();
         const m = document.getElementById('info-page-modal');
         if (m && !m.classList.contains('hidden')) closeInfoPage();
       }

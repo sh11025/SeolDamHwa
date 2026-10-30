@@ -108,8 +108,10 @@ function notifyOrderToDiscord(order) {
       color: DISCORD_COLORS.order,
       description: [
         `📅 **배송** ${discordDeliveryText(order.deliveryDate)}`,
-        `👤 **주문자** ${discordSafe(order.customerName, 40) || '-'}`,
-        `💳 **금액** ${discordWon(order.totalAmount)}`
+        `👤 **주문자** ${discordSafe(order.ordererName || order.customerName, 40) || '-'}${order.recipientName && order.recipientName !== order.ordererName ? ` → 🎁 **받는 분** ${discordSafe(order.recipientName, 40)}` : ''}`,
+        ...(order.deliveryMethodLabel ? [`🚚 **배송** ${discordSafe(order.deliveryMethodLabel, 30)}${order.deliveryFee ? ` (${discordWon(order.deliveryFee)})` : ''}`] : []),
+        `💳 **금액** ${discordWon(order.totalAmount)}`,
+        ...(order.hideSender ? ['🤫 익명 선물 (카드에 보내는 분 이름 생략)'] : [])
       ].join('\n'),
       fields: [
         { name: '주문 상품', value: discordItemLines(order.items) },
@@ -172,7 +174,8 @@ function buildProductionMessage(orders, dateStr) {
     color: DISCORD_COLORS.slot,
     description: os.map((o, idx) => {
       const items = (o.items || []).map(i => `${discordSafe(i.product && i.product.name, 40)}${i.sizeLabel ? `(${discordSafe(i.sizeLabel, 10)})` : ''} × ${Number(i.quantity) || 1} — ${discordSafe(i.optionName || '기본 포장', 30)}`).join('\n　');
-      return `**${idx + 1}. ${discordSafe(o.orderNumber, 30)}**\n　${items}${o.message ? `\n　✉️ _${discordSafe(o.message, 150)}_` : ''}`;
+      const tags = [o.deliveryMethod === 'pickup' ? '🏪 픽업' : '', o.hideSender ? '🤫 이름 생략' : ''].filter(Boolean).join(' · ');
+      return `**${idx + 1}. ${discordSafe(o.orderNumber, 30)}**${tags ? ` ${tags}` : ''}\n　${items}${o.message ? `\n　✉️ _${discordSafe(o.message, 150)}_` : ''}${o.request ? `\n　📝 ${discordSafe(o.request, 80)}` : ''}`;
     }).join('\n\n').slice(0, 4000)
   }));
 

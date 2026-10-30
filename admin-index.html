@@ -965,6 +965,32 @@
           </div>
 
         </div>
+
+        <!-- 배송 방법·배송비 -->
+        <form id="delivery-form" onsubmit="saveDeliverySettings(event)" class="admin-card p-5 rounded-sm space-y-4 text-sm">
+          <div>
+            <h2 class="text-base font-bold text-ink-black">배송 방법·배송비</h2>
+            <p class="text-xs text-ink-gray mt-1">손님 주문서에 켜 둔 방법만 나와요. 주문 금액이 무료 기준 이상이면 배송비가 0원이 돼요.</p>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead><tr class="text-xs text-ink-gray border-b border-ink-black/10"><th class="py-2 pr-2">사용</th><th class="py-2 pr-2">방법</th><th class="py-2 pr-2">배송비(원)</th><th class="py-2">가능 지역·안내</th></tr></thead>
+              <tbody>
+                <tr class="border-b border-ink-black/5"><td class="py-2 pr-2"><input type="checkbox" id="dlv-quick-on" class="w-4 h-4"></td><td class="py-2 pr-2 font-bold whitespace-nowrap">퀵 당일 배송</td><td class="py-2 pr-2"><input type="number" id="dlv-quick-fee" min="0" step="500" class="w-28 bg-white border border-ink-black/20 p-1.5 rounded-xs"></td><td class="py-2"><input type="text" id="dlv-quick-area" maxlength="60" class="w-full bg-white border border-ink-black/20 p-1.5 rounded-xs"></td></tr>
+                <tr class="border-b border-ink-black/5"><td class="py-2 pr-2"><input type="checkbox" id="dlv-parcel-on" class="w-4 h-4"></td><td class="py-2 pr-2 font-bold whitespace-nowrap">택배</td><td class="py-2 pr-2"><input type="number" id="dlv-parcel-fee" min="0" step="500" class="w-28 bg-white border border-ink-black/20 p-1.5 rounded-xs"></td><td class="py-2"><input type="text" id="dlv-parcel-area" maxlength="60" class="w-full bg-white border border-ink-black/20 p-1.5 rounded-xs"></td></tr>
+                <tr><td class="py-2 pr-2"><input type="checkbox" id="dlv-pickup-on" class="w-4 h-4"></td><td class="py-2 pr-2 font-bold whitespace-nowrap">매장 픽업</td><td class="py-2 pr-2 text-ink-gray">무료</td><td class="py-2"><input type="text" id="dlv-pickup-area" maxlength="60" placeholder="예: 북촌 아틀리에에서 직접 받아 가기" class="w-full bg-white border border-ink-black/20 p-1.5 rounded-xs"></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-3">
+            <label class="block space-y-1"><span class="font-bold">무료 배송 기준 (원)</span><input type="number" id="dlv-free-over" min="0" step="1000" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"><span class="block text-[11px] text-ink-gray">0이면 무료 조건 없음</span></label>
+            <label class="block space-y-1"><span class="font-bold">주문서 배송 안내 한 줄 (선택)</span><input type="text" id="dlv-note" maxlength="80" placeholder="예: 경기 지역은 상담 후 퀵으로 보내 드려요." class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+          </div>
+          <div class="flex items-center gap-3">
+            <button type="submit" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">배송 설정 저장</button>
+            <span id="delivery-message" class="text-xs font-bold"></span>
+          </div>
+        </form>
       </section>
 
       <!-- 6. 팝업 관리 패널 -->
@@ -1175,6 +1201,7 @@
       try { initPopupsAdmin(); } catch (e) { console.error('initPopupsAdmin error:', e); }
       try { initFinanceForm(); renderFinance(); } catch (e) { console.error('renderFinance error:', e); }
       try { renderSampleBanner(); renderIntegrations(); } catch (e) { console.error('renderIntegrations error:', e); }
+      try { renderDeliverySettings(); } catch (e) { console.error('renderDeliverySettings error:', e); }
     });
 
     // 1. 대시보드 요약 렌더링
@@ -1626,7 +1653,7 @@
         if (dateFilter === 'next7' && !(d >= today && d <= in7)) return false;
         if (dateFilter === 'past' && !(d && d < today)) return false;
         if (q) {
-          const hay = [o.orderNumber, o.customerName, o.phone, o.trackingNumber].join(' ').toLowerCase().replace(/-/g, '');
+          const hay = [o.orderNumber, o.customerName, o.phone, o.recipientName, o.recipientPhone, o.trackingNumber].join(' ').toLowerCase().replace(/-/g, '');
           if (!hay.includes(q)) return false;
         }
         return true;
@@ -1691,7 +1718,7 @@
               <span class="block text-[11px] text-ink-gray">${escapeHtml(time)}</span>
             </td>
             <td class="py-2 px-2 cursor-pointer" onclick="toggleOrderExpand('${o.id}')"><span class="font-mono text-xs ${isCancelled ? 'line-through' : ''}">${escapeHtml(o.orderNumber)}</span><span class="block text-[11px] text-ink-gray">${escapeHtml(getOrderDate(o))} 접수</span></td>
-            <td class="py-2 px-2 font-bold text-ink-black cursor-pointer" onclick="toggleOrderExpand('${o.id}')">${escapeHtml(o.customerName)}</td>
+            <td class="py-2 px-2 font-bold text-ink-black cursor-pointer" onclick="toggleOrderExpand('${o.id}')">${escapeHtml(orderRecipient(o).name)}${o.deliveryMethod === 'pickup' ? ' <span class="text-[10px] font-bold px-1 rounded bg-blue-100 text-blue-800">픽업</span>' : ''}</td>
             <td class="py-2 px-2 text-ink-black cursor-pointer max-w-[220px] truncate" onclick="toggleOrderExpand('${o.id}')" title="${escapeHtml(items.map(i => i.product && i.product.name).join(', '))}">${escapeHtml(first)}${items.length > 1 ? ` <span class="text-ink-gray">외 ${items.length - 1}</span>` : ''}</td>
             <td class="py-2 px-2 text-right font-bold whitespace-nowrap">${isCancelled ? `<s>${formatWon(o.totalAmount)}</s>` : formatWon(o.totalAmount)}</td>
             <td class="py-2 px-2">${statusSelect}</td>
@@ -1706,8 +1733,12 @@
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
                 <div class="space-y-1">
                   <p class="font-bold text-ink-gray">받는 분</p>
-                  <p class="text-sm font-bold text-ink-black">${escapeHtml(o.customerName)} · <a href="tel:${escapeHtml(o.phone)}" class="underline">${escapeHtml(o.phone)}</a></p>
-                  <p class="text-ink-black">${escapeHtml(o.address)}</p>
+                  <p class="text-sm font-bold text-ink-black">${escapeHtml(orderRecipient(o).name)} · <a href="tel:${escapeHtml(orderRecipient(o).phone)}" class="underline">${escapeHtml(orderRecipient(o).phone)}</a></p>
+                  <p class="text-ink-black">${o.zipcode ? `(${escapeHtml(o.zipcode)}) ` : ''}${escapeHtml(o.address)}</p>
+                  ${o.ordererName && (o.ordererName !== o.recipientName || o.ordererPhone !== o.recipientPhone) ? `<p class="pt-1 text-ink-gray">주문하신 분: <span class="text-ink-black font-bold">${escapeHtml(o.ordererName)}</span> · <a href="tel:${escapeHtml(o.ordererPhone)}" class="underline">${escapeHtml(o.ordererPhone)}</a></p>` : ''}
+                  ${o.deliveryMethodLabel ? `<p class="text-ink-gray">배송: <span class="text-ink-black font-bold">${escapeHtml(o.deliveryMethodLabel)}</span>${typeof o.deliveryFee === 'number' ? ` · 배송비 ${formatWon(o.deliveryFee)}` : ''}</p>` : ''}
+                  ${o.request ? `<p class="text-ink-gray">요청: <span class="text-ink-black">${escapeHtml(o.request)}</span></p>` : ''}
+                  ${o.hideSender ? '<p class="font-bold text-amber-800">🤫 익명 선물 (카드에 보내는 분 이름 생략)</p>' : ''}
                   ${o.message ? `<p class="mt-2 text-seal-red font-serif italic bg-[#F3EDE3] p-2 rounded-xs border-l-2 border-seal-red">✉️ "${escapeHtml(o.message)}"</p>` : '<p class="text-ink-light mt-2">카드 메시지 없음</p>'}
                 </div>
                 <div class="space-y-1">
@@ -1776,16 +1807,16 @@
           <div class="sl-date">${escapeHtml(d ? `${Number(d.slice(5, 7))}월 ${Number(d.slice(8, 10))}일 (${weekdayLabel(d)})` : o.deliveryDate)} <span>${escapeHtml(time)}</span></div>
           <div class="sl-block sl-to">
             <div class="sl-label">받는 분</div>
-            <div class="sl-name">${escapeHtml(o.customerName)}</div>
-            <div class="sl-phone">${escapeHtml(o.phone)}</div>
-            <div class="sl-addr">${escapeHtml(o.address)}</div>
+            <div class="sl-name">${escapeHtml(orderRecipient(o).name)}</div>
+            <div class="sl-phone">${escapeHtml(orderRecipient(o).phone)}</div>
+            <div class="sl-addr">${o.zipcode ? `(${escapeHtml(o.zipcode)}) ` : ''}${escapeHtml(o.address)}</div>
           </div>
           <div class="sl-block sl-from">
             <div class="sl-label">보내는 분</div>
             <div>${escapeHtml(senderName)} · ${escapeHtml(s.phone || '')}</div>
             <div>${escapeHtml(senderAddr)}</div>
           </div>
-          <div class="sl-items"><b>상품</b> ${items}${o.message ? '<br><b>✉ 카드 메시지 동봉</b>' : ''}</div>
+          <div class="sl-items"><b>상품</b> ${items}${o.message ? '<br><b>✉ 카드 메시지 동봉</b>' : ''}${o.hideSender ? ' · <b>보내는 분 이름 생략</b>' : ''}${o.request ? `<br><b>요청</b> ${escapeHtml(o.request)}` : ''}</div>
           <div class="sl-bottom">
             <svg class="sl-barcode" data-code="${escapeHtml(o.orderNumber)}"></svg>
             <div class="sl-track">${o.courier ? escapeHtml(o.courier) : ''}${o.trackingNumber ? `<br><b>${escapeHtml(o.trackingNumber)}</b>` : ''}</div>
@@ -3644,6 +3675,44 @@
       if (img) img.src = v && !v.endsWith('/') ? v : '';
     }
 
+    // 배송 방법·배송비
+    function renderDeliverySettings() {
+      const d = loadSettings().delivery;
+      if (!d || !document.getElementById('dlv-quick-on')) return;
+      ['quick', 'parcel', 'pickup'].forEach(k => {
+        document.getElementById(`dlv-${k}-on`).checked = !!d[k].enabled;
+        const fee = document.getElementById(`dlv-${k}-fee`);
+        if (fee) fee.value = d[k].fee;
+        document.getElementById(`dlv-${k}-area`).value = d[k].area || '';
+      });
+      document.getElementById('dlv-free-over').value = d.freeOver;
+      document.getElementById('dlv-note').value = d.note || '';
+    }
+
+    function saveDeliverySettings(e) {
+      e.preventDefault();
+      const on = k => document.getElementById(`dlv-${k}-on`).checked;
+      if (!on('quick') && !on('parcel') && !on('pickup')) {
+        setIntegrationMessage('delivery-message', '배송 방법을 하나 이상 켜 주세요.', false);
+        return;
+      }
+      const s = loadSettings();
+      if (on('pickup') && !s.showLocation && !confirm('매장 위치(오시는 길)가 아직 비공개예요. 그래도 매장 픽업을 켤까요?')) return;
+      const num = id => Math.max(0, Math.round(Number(document.getElementById(id).value) || 0));
+      const val = id => document.getElementById(id).value.trim();
+      saveSettings({
+        ...s,
+        delivery: {
+          quick: { enabled: on('quick'), fee: num('dlv-quick-fee'), area: val('dlv-quick-area') },
+          parcel: { enabled: on('parcel'), fee: num('dlv-parcel-fee'), area: val('dlv-parcel-area') },
+          pickup: { enabled: on('pickup'), fee: 0, area: val('dlv-pickup-area') },
+          freeOver: num('dlv-free-over'),
+          note: val('dlv-note')
+        }
+      });
+      setIntegrationMessage('delivery-message', '저장했어요. 쇼핑몰 주문서에 바로 반영돼요.', true);
+    }
+
     function switchAdminTab(tabName) {
       ['dashboard', 'products', 'orders', 'finance', 'reviews', 'settings', 'popups', 'integrations', 'pages'].forEach(t => {
         document.getElementById(`panel-${t}`).classList.add('hidden');
@@ -3655,6 +3724,7 @@
       if (tabName === 'popups') { try { initPopupsAdmin(); } catch (e) { console.error('initPopupsAdmin error:', e); } }
       if (tabName === 'dashboard') { try { renderDashboard(); } catch (e) { console.error('renderDashboard error:', e); } }
       if (tabName === 'finance') { try { renderFinance(); } catch (e) { console.error('renderFinance error:', e); } }
+      if (tabName === 'settings') { try { renderDeliverySettings(); } catch (e) { console.error('renderDeliverySettings error:', e); } }
       if (tabName === 'pages') { try { renderPagesAdmin(); } catch (e) { console.error('renderPagesAdmin error:', e); } }
       if (tabName === 'integrations') { try { renderIntegrations(); } catch (e) { console.error('renderIntegrations error:', e); } }
     }

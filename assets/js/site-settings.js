@@ -51,6 +51,14 @@ const DEFAULT_SETTINGS = {
   kakaoChannelUrl: '',     // 예: "https://pf.kakao.com/_xxxx"
   showLocation: false,     // 오프라인 아틀리에 오시는 길 공개 여부 (기본 false: 비공개)
   business: { companyName: '설담화', ceo: '', bizNumber: '', mailOrderNumber: '', bizAddress: '', privacyOfficer: '' }, // 사업자 정보 (맨 아래·약관에 표시)
+  // 배송 방법·배송비 (관리자 > 매장 정보 설정에서 수정)
+  delivery: {
+    quick: { enabled: true, fee: 15000, area: '서울 전 지역' },      // 퀵 당일 배송
+    parcel: { enabled: false, fee: 4000, area: '전국 (생화 특성상 제주·도서 지역 제외)' }, // 택배
+    pickup: { enabled: false, fee: 0, area: '' },                    // 매장 픽업 (매장 공개 후 켜기)
+    freeOver: 100000,   // 이 금액 이상 주문하면 배송비 무료 (0이면 무료 조건 없음)
+    note: ''            // 주문서에 함께 보여 줄 배송 안내 한 줄
+  },
   weeklyHours: DEFAULT_WEEKLY_HOURS,
   closures: [],            // [ { date: "YYYY-MM-DD", reason: "" }, ... ]
   holidayClosed: true,     // 공휴일 휴무 여부 (기본: true)
@@ -109,6 +117,16 @@ function loadSettings() {
     if (!merged.weeklyHours || !Array.isArray(merged.weeklyHours) || merged.weeklyHours.length !== 7) {
       merged.weeklyHours = JSON.parse(JSON.stringify(DEFAULT_WEEKLY_HOURS));
     }
+    // 마이그레이션: 배송 설정은 항목별로 기본값과 합치기
+    const dd = DEFAULT_SETTINGS.delivery;
+    const sd = parsed.delivery || {};
+    merged.delivery = {
+      quick: { ...dd.quick, ...(sd.quick || {}) },
+      parcel: { ...dd.parcel, ...(sd.parcel || {}) },
+      pickup: { ...dd.pickup, ...(sd.pickup || {}) },
+      freeOver: typeof sd.freeOver === 'number' ? sd.freeOver : dd.freeOver,
+      note: typeof sd.note === 'string' ? sd.note : dd.note
+    };
     // 마이그레이션: closures가 없으면 빈 배열
     if (!merged.closures || !Array.isArray(merged.closures)) {
       merged.closures = [];
@@ -360,4 +378,22 @@ function kakaoMapUrl(address) {
  */
 function naverMapUrl(address) {
   return 'https://map.naver.com/p/search/' + encodeURIComponent(address || '');
+}
+
+
+// 배송 방법 목록 (켜진 것만)
+const DELIVERY_METHOD_ORDER = ['quick', 'parcel', 'pickup'];
+
+function getDeliveryMethods(settings = loadSettings()) {
+  const d = settings.delivery || DEFAULT_SETTINGS.delivery;
+  return DELIVERY_METHOD_ORDER.filter(k => d[k] && d[k].enabled).map(k => ({ id: k, ...d[k] }));
+}
+
+// 배송비 계산: 무료 조건(freeOver) 이상이면 0원, 픽업은 0원
+function calcDeliveryFee(methodId, itemsTotal, settings = loadSettings()) {
+  const d = settings.delivery || DEFAULT_SETTINGS.delivery;
+  const m = d[methodId];
+  if (!m || methodId === 'pickup') return 0;
+  if (d.freeOver > 0 && itemsTotal >= d.freeOver) return 0;
+  return Number(m.fee) || 0;
 }
