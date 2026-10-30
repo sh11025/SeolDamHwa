@@ -360,6 +360,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (wish) wish.classList.add('hidden');
     const checkout = document.getElementById('checkout-modal');
     if (checkout) checkout.classList.add('hidden');
+    const flowers = document.getElementById('view-flowers');
+    if (flowers) flowers.classList.add('hidden');
     document.title = '설담화 (說談花) | 힙 트래디셔널 플로럴 아틀리에';
     originalShowView(view);
   };

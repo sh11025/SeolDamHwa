@@ -14,6 +14,7 @@ function toggleMobileMenu(forceClose) {
 
 function handleMobileNav(view) {
   toggleMobileMenu(false);
+  if (view === 'flowers') { openFlowersPage(); return; }
   switchView(view);
 }
 
@@ -325,7 +326,6 @@ function showView(view) {
 
   if (view === 'shop') {
     document.getElementById('view-shop').classList.remove('hidden');
-    document.getElementById('nav-shop').className = 'nav-btn py-1 text-seal-red font-bold border-b-2 border-seal-red transition-colors';
   } else if (view === 'story') {
     document.getElementById('view-story').classList.remove('hidden');
     document.getElementById('nav-story').className = 'nav-btn py-1 text-seal-red font-bold border-b-2 border-seal-red transition-colors';

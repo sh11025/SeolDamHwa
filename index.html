@@ -312,6 +312,8 @@
     @media (max-width: 767px) {
       body.on-product-page aside[aria-label="빠른 바로가기"] { bottom: 150px; }
     }
+    .home-slider { scrollbar-width: none; }
+    .home-slider::-webkit-scrollbar { display: none; }
     .info-page-body .page-h { font-weight: 800; font-size: 15px; color: #1A1A1A; margin: 18px 0 6px; }
     .info-page-body .page-h:first-child { margin-top: 0; }
     .info-page-body .page-p { margin: 6px 0; }
@@ -346,7 +348,7 @@
           <button onclick="switchView('story')" id="nav-story" data-i18n="nav_story" class="nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors">
             설담화 이야기
           </button>
-          <button onclick="switchView('shop')" id="nav-shop" data-i18n="nav_shop" class="nav-btn py-1 text-seal-red font-bold border-b-2 border-seal-red transition-colors">
+          <button onclick="openFlowersPage()" id="nav-shop" data-i18n="nav_shop" class="nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors">
             꽃 둘러보기 (Shop)
           </button>
           <button onclick="switchView('custom')" id="nav-custom" data-i18n="nav_custom" class="nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors">
@@ -380,7 +382,7 @@
           </div>
 
           <div class="pt-2 flex items-center gap-2">
-            <span class="font-brush text-3xl sm:text-4xl text-ink-black tracking-wider group-hover:text-seal-red transition-colors">
+            <span class="font-brush text-[26px] sm:text-4xl text-ink-black tracking-wider whitespace-nowrap group-hover:text-seal-red transition-colors">
               설담화
             </span>
             <!-- 전통 백문 낙관 인장 -->
@@ -390,7 +392,7 @@
       </div>
 
       <!-- 우측 아이콘: 검색, 장바구니 (우측 정렬) -->
-      <div class="flex items-center justify-end space-x-3">
+      <div class="flex items-center justify-end space-x-0.5 sm:space-x-3">
         <!-- 언어 선택 드롭다운 (KO / EN / JA) -->
         <div class="relative">
           <button id="lang-switch-btn" type="button" onclick="toggleLangDropdown(event)" class="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold text-ink-charcoal hover:text-seal-red hover:bg-[#FAF7F2] border border-ink-black/15 transition-all cursor-pointer shadow-2xs" aria-label="Language / 언어 선택">
@@ -438,7 +440,7 @@
       <button onclick="handleMobileNav('story')" data-i18n="nav_story" class="block w-full text-left py-2 text-sm font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-b border-ink-black/5">
         설담화 이야기
       </button>
-      <button onclick="handleMobileNav('shop')" data-i18n="nav_shop" class="block w-full text-left py-2 text-sm font-bold text-seal-red border-b border-ink-black/5">
+      <button onclick="handleMobileNav('flowers')" data-i18n="nav_shop" class="block w-full text-left py-2 text-sm font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-b border-ink-black/5">
         꽃 둘러보기 (Shop)
       </button>
       <button onclick="handleMobileNav('custom')" data-i18n="nav_custom" class="block w-full text-left py-2 text-sm font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-b border-ink-black/5">
@@ -551,11 +553,33 @@
             웨딩·공간
           </button>
         </div>
-<!-- 상품 그리드: 넉넉한 여백 + 한옥 창살 프레임 + 썸네일 아래 최소 텍스트(상품명, 가격) -->
-        <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16 pt-12">
-          <!-- 자바스크립트로 동적 렌더링 -->
+        <!-- 상품 슬라이더: 4개씩 보이고 옆으로 넘김 (관리자 '홈에 보이기'·'홈 순서') -->
+        <div class="relative pt-12">
+          <div id="product-grid" class="home-slider flex gap-6 lg:gap-8 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2">
+            <!-- 자바스크립트로 동적 렌더링 -->
+          </div>
+          <button type="button" id="home-slider-prev" onclick="scrollHomeSlider(-1)" aria-label="이전 꽃" class="hidden md:flex absolute -left-3 lg:-left-5 top-[42%] w-11 h-11 rounded-full bg-white border border-ink-black/15 shadow-md items-center justify-center text-2xl text-ink-black hover:border-seal-red hover:text-seal-red disabled:opacity-0 disabled:pointer-events-none transition-opacity cursor-pointer">‹</button>
+          <button type="button" id="home-slider-next" onclick="scrollHomeSlider(1)" aria-label="다음 꽃" class="hidden md:flex absolute -right-3 lg:-right-5 top-[42%] w-11 h-11 rounded-full bg-white border border-ink-black/15 shadow-md items-center justify-center text-2xl text-ink-black hover:border-seal-red hover:text-seal-red disabled:opacity-0 disabled:pointer-events-none transition-opacity cursor-pointer">›</button>
+        </div>
+        <div class="text-center pt-10">
+          <button type="button" onclick="openFlowersPage(currentCategory)" data-i18n="home_view_all" class="jakae-btn px-8 py-3 text-sm font-bold tracking-wider rounded-xs cursor-pointer">꽃 전체 둘러보기 →</button>
         </div>
 
+      </section>
+
+      <!-- 맞춤 담화 안내 띠 -->
+      <section id="custom-cta" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <div class="relative overflow-hidden rounded-sm bg-ink-black text-hanji px-6 py-10 sm:px-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div class="space-y-2 max-w-xl">
+            <p data-i18n="cta_badge" class="font-brush text-2xl text-[#F1DDB3]">맞춤 담화</p>
+            <h2 data-i18n="cta_title" class="text-xl sm:text-2xl font-extrabold tracking-tight">어떤 꽃이 좋을지 모르겠다면</h2>
+            <p data-i18n="cta_desc" class="text-sm text-hanji/80 leading-relaxed">누구에게, 어떤 날, 어떤 마음인지 몇 가지만 고르면 어울리는 꽃을 골라 드려요.</p>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-2 shrink-0">
+            <button type="button" onclick="switchView('custom')" data-i18n="cta_btn" class="px-6 py-3 bg-seal-red text-white text-sm font-bold rounded-xs hover:opacity-90 cursor-pointer">맞춤 추천 받기 →</button>
+            <button type="button" onclick="toggleChatPanel(true)" data-i18n="cta_btn_chat" class="px-6 py-3 border border-hanji/40 text-hanji text-sm font-bold rounded-xs hover:border-hanji cursor-pointer">💬 바로 물어보기</button>
+          </div>
+        </div>
       </section>
 
       <!-- Packaging Section: 꽃을 복주머니에 담다 (ReBloom Packaging) -->
@@ -1581,6 +1605,7 @@
   <script src="assets/js/shop/shop-inquiry.js"></script>
   <script src="assets/js/shop/shop-guide.js"></script>
   <script src="assets/js/shop/shop-settings.js"></script>
+  <script src="assets/js/shop/shop-browse.js"></script>
   <script src="assets/js/shop/shop-router.js"></script>
   <script src="assets/js/shop/shop-chat.js"></script>
 </body>

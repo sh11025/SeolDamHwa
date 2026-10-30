@@ -114,7 +114,7 @@ function renderProductsTable() {
           <span class="px-2 font-bold min-w-[2.5em] text-center">${p.stockQuantity ?? 0}</span>
           <button type="button" onclick="adjustStock('${p.id}', 1)" class="px-2 py-0.5 font-bold hover:bg-[#EFECE6] cursor-pointer" aria-label="재고 하나 더하기">+</button>
         </div>`}${typeof restockWaitingCount === 'function' && restockWaitingCount(p.id) ? `<span class="block mt-1 text-[11px] font-bold text-amber-700">🔔 재입고 알림 ${restockWaitingCount(p.id)}명</span>` : ''}</td>
-      <td class="py-3 px-4">${visBadge}</td>
+      <td class="py-3 px-4">${visBadge}<span class="block mt-1 text-[11px] ${p.hideOnHome ? 'text-ink-light' : 'text-ink-gray'}">${p.hideOnHome ? '홈에 숨김' : (typeof p.homeOrder === 'number' ? `홈 ${p.homeOrder}번째` : '홈에 보임')}</span></td>
       <td class="py-3 px-4 text-center whitespace-nowrap space-x-1">
         <button onclick="previewProduct('${p.id}')" class="px-2.5 py-1 border border-ink-black/20 bg-white hover:border-seal-red hover:text-seal-red rounded-xs font-bold cursor-pointer">미리보기</button>
         <button onclick="editProduct('${p.id}')" class="px-2.5 py-1 border border-ink-black/20 bg-white hover:border-seal-red hover:text-seal-red rounded-xs font-bold cursor-pointer">수정</button>

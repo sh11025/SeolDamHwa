@@ -6,8 +6,8 @@
 const CSV_TABLES = {
   products: {
     file: 'products.csv',
-    columns: ['id', 'name', 'englishName', 'category', 'price', 'sizes', 'inquiryOnly', 'poeticLine', 'flowerMeaning', 'description', 'stockQuantity', 'image', 'visibility', 'publishAt', 'curationTags'],
-    json: ['sizes', 'curationTags'], bool: ['inquiryOnly'], num: ['price', 'stockQuantity'],
+    columns: ['id', 'name', 'englishName', 'category', 'price', 'sizes', 'inquiryOnly', 'poeticLine', 'flowerMeaning', 'description', 'stockQuantity', 'image', 'visibility', 'publishAt', 'curationTags', 'hideOnHome', 'homeOrder'],
+    json: ['sizes', 'curationTags'], bool: ['inquiryOnly', 'hideOnHome'], num: ['price', 'stockQuantity', 'homeOrder'],
     read: () => loadProducts(),
     write: rows => saveProducts(rows)
   },

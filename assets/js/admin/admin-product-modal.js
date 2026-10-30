@@ -57,6 +57,8 @@ function openProductModal() {
   document.getElementById('edit-prod-desc').value = '';
   document.getElementById('edit-prod-image').value = '';
   updateProductImagePreview();
+  document.getElementById('edit-prod-show-home').checked = true;
+  document.getElementById('edit-prod-home-order').value = '';
 
   // 신규 상품은 기본 비공개 (B2: NEW products default to 비공개, so the owner can check them first)
   const radios = document.getElementsByName('edit-prod-visibility');
@@ -89,6 +91,8 @@ function editProduct(prodId) {
   document.getElementById('edit-prod-desc').value = prod.description || '';
   document.getElementById('edit-prod-image').value = prod.image || '';
   updateProductImagePreview();
+  document.getElementById('edit-prod-show-home').checked = !prod.hideOnHome;
+  document.getElementById('edit-prod-home-order').value = typeof prod.homeOrder === 'number' ? prod.homeOrder : '';
 
   const vis = prod.visibility || 'public';
   const radios = document.getElementsByName('edit-prod-visibility');
@@ -132,6 +136,11 @@ function doSaveProduct() {
     return null;
   }
 
+  // 홈 슬라이더: 숨김 여부와 순서 (비우면 자동)
+  const hideOnHome = !document.getElementById('edit-prod-show-home').checked;
+  const homeOrderRaw = document.getElementById('edit-prod-home-order').value.trim();
+  const homeOrder = homeOrderRaw === '' ? null : Math.max(1, Math.round(Number(homeOrderRaw)) || 1);
+
   // 공개 설정 수집 및 검증
   const radios = document.getElementsByName('edit-prod-visibility');
   let visibility = 'public';
@@ -170,6 +179,8 @@ function doSaveProduct() {
       inquiryOnly,
       visibility,
       publishAt: visibility === 'scheduled' ? publishAt : null,
+      hideOnHome,
+      homeOrder,
       flowerMeaning: meaning, 
       description: desc,
       image
@@ -188,6 +199,8 @@ function doSaveProduct() {
       inquiryOnly,
       visibility,
       publishAt: visibility === 'scheduled' ? publishAt : null,
+      hideOnHome,
+      homeOrder,
       flowerMeaning: meaning, 
       description: desc,
       image

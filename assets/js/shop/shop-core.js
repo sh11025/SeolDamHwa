@@ -71,86 +71,153 @@ document.addEventListener('DOMContentLoaded', () => {
   } catch (e) {}
 });
 
-// 1. 상품 갤러리 렌더링 (재고 상태, 견적 문의 및 공개 여부 반영)
-function renderProducts(category) {
-  if (!category) category = currentCategory || 'all';
-  currentCategory = category;
-  const allProducts = loadProducts();
-  const visibleProducts = allProducts.filter(p => typeof isProductVisible === 'function' ? isProductVisible(p) : true);
-  const filtered = category === 'all' ? visibleProducts : visibleProducts.filter(p => p.category === category);
-  const grid = document.getElementById('product-grid');
-  if (!grid) return;
-  grid.innerHTML = '';
+// 상품 카드 하나 (홈 슬라이더·꽃 둘러보기에서 함께 사용, 재고 상태·견적 문의·찜 하트 반영)
+function buildProductCard(p) {
+  const tp = typeof tProduct === 'function' ? tProduct(p) : p;
+  const card = document.createElement('div');
+  card.className = 'group cursor-pointer flex flex-col';
+  card.dataset.productId = p.id;
+  card.onclick = () => openProductDetail(p.id);
 
-  filtered.forEach(p => {
-    const tp = typeof tProduct === 'function' ? tProduct(p) : p;
-    const card = document.createElement('div');
-    card.className = 'group cursor-pointer flex flex-col';
-    card.onclick = () => openProductDetail(p.id);
+  let priceDisplay = '';
+  if (p.inquiryOnly) {
+    priceDisplay = typeof t === 'function' ? t('inquiry_price_label', '상담 후 견적') : '상담 후 견적';
+  } else if (p.sizes && p.sizes.length > 0) {
+    const minPrice = Math.min(...p.sizes.map(s => s.price));
+    const hasMultipleSizes = p.sizes.length >= 2;
+    priceDisplay = `${formatPrice(minPrice)}${hasMultipleSizes ? '~' : ''}`;
+  } else {
+    priceDisplay = formatPrice(p.price || 0);
+  }
 
-    let priceDisplay = '';
-    if (p.inquiryOnly) {
-      priceDisplay = typeof t === 'function' ? t('inquiry_price_label', '상담 후 견적') : '상담 후 견적';
-    } else if (p.sizes && p.sizes.length > 0) {
-      const minPrice = Math.min(...p.sizes.map(s => s.price));
-      const hasMultipleSizes = p.sizes.length >= 2;
-      priceDisplay = `${formatPrice(minPrice)}${hasMultipleSizes ? '~' : ''}`;
-    } else {
-      priceDisplay = formatPrice(p.price || 0);
+  let badgeHtml = '';
+  let imgClass = 'w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-106';
+
+  let stockStatus = 'ample';
+  if (!p.inquiryOnly) {
+    stockStatus = getStockStatus(p.stockQuantity);
+    if (stockStatus === 'out_of_stock') {
+      imgClass += ' grayscale opacity-60';
+      const soldoutText = typeof t === 'function' ? t('stock_soldout', '일시 품절') : '일시 품절';
+      badgeHtml = `
+        <div class="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
+          <span class="bg-ink-black/90 text-white text-xs font-bold px-3 py-1.5 rounded-xs tracking-wider shadow">${soldoutText}</span>
+        </div>
+      `;
+    } else if (stockStatus === 'low_stock') {
+      const lowText = typeof t === 'function' ? t('stock_low_fmt', '품절 임박 · {qty}개 남음').replace('{qty}', p.stockQuantity) : `품절 임박 · ${p.stockQuantity}개 남음`;
+      badgeHtml = `
+        <span class="absolute top-2.5 left-2.5 max-w-[calc(100%-3.75rem)] bg-seal-red text-white text-[11px] leading-tight font-bold px-2 py-1 rounded-xs shadow">
+          ${lowText}
+        </span>
+      `;
     }
+  }
 
-    let badgeHtml = '';
-    let imgClass = 'w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-106';
+  const meaningPrefix = typeof t === 'function' ? t('pdp_meaning_prefix', '꽃말: ') : '꽃말: ';
+  const cover = (Array.isArray(p.images) && p.images[0]) || p.image;
 
-    let stockStatus = 'ample';
-    if (!p.inquiryOnly) {
-      stockStatus = getStockStatus(p.stockQuantity);
-      if (stockStatus === 'out_of_stock') {
-        imgClass += ' grayscale opacity-60';
-        const soldoutText = typeof t === 'function' ? t('stock_soldout', '일시 품절') : '일시 품절';
-        badgeHtml = `
-          <div class="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
-            <span class="bg-ink-black/90 text-white text-xs font-bold px-3 py-1.5 rounded-xs tracking-wider shadow">${soldoutText}</span>
-          </div>
-        `;
-      } else if (stockStatus === 'low_stock') {
-        const lowText = typeof t === 'function' ? t('stock_low_fmt', '품절 임박 · {qty}개 남음').replace('{qty}', p.stockQuantity) : `품절 임박 · ${p.stockQuantity}개 남음`;
-        badgeHtml = `
-          <span class="absolute top-2.5 left-2.5 bg-seal-red text-white text-[11px] font-bold px-2.5 py-1 rounded-xs shadow">
-            ${lowText}
-          </span>
-        `;
-      }
-    }
-
-    const meaningPrefix = typeof t === 'function' ? t('pdp_meaning_prefix', '꽃말: ') : '꽃말: ';
-
-    card.innerHTML = `
-      <div class="hanok-card p-3 transition-all duration-300">
-        <div class="corner-tl"></div><div class="corner-tr"></div><div class="corner-bl"></div><div class="corner-br"></div>
-        <div class="relative aspect-[3/4] overflow-hidden bg-[#ECE8E1]">
-          <img loading="lazy" decoding="async" src="${p.image}" alt="${tp.name}" class="${imgClass}" loading="lazy">
-          ${badgeHtml}
-          <!-- 호버 시 시적 글귀 노출 -->
-          <div class="card-hover-overlay absolute inset-0 bg-gradient-to-t from-ink-black/85 via-ink-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5 text-white">
-            <p class="font-serif text-base sm:text-lg text-white/95 mb-1.5 leading-snug font-semibold italic line-clamp-2">"${tp.poeticLine}"</p>
-            <div class="flex items-center gap-1.5 text-sm text-white/90">
-              <span class="w-1 h-3 bg-seal-red rounded-xs"></span>
-              <span>${meaningPrefix}${tp.flowerMeaning}</span>
-            </div>
+  card.innerHTML = `
+    <div class="hanok-card p-3 transition-all duration-300">
+      <div class="corner-tl"></div><div class="corner-tr"></div><div class="corner-bl"></div><div class="corner-br"></div>
+      <div class="card-media relative aspect-[3/4] overflow-hidden bg-[#ECE8E1]">
+        <img loading="lazy" decoding="async" src="${cover}" alt="${tp.name}" class="${imgClass}">
+        ${badgeHtml}
+        <!-- 호버 시 시적 글귀 노출 -->
+        <div class="card-hover-overlay absolute inset-0 bg-gradient-to-t from-ink-black/85 via-ink-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5 text-white">
+          <p class="font-serif text-base sm:text-lg text-white/95 mb-1.5 leading-snug font-semibold italic line-clamp-2">"${tp.poeticLine}"</p>
+          <div class="flex items-center gap-1.5 text-sm text-white/90">
+            <span class="w-1 h-3 bg-seal-red rounded-xs"></span>
+            <span>${meaningPrefix}${tp.flowerMeaning}</span>
           </div>
         </div>
       </div>
-      <!-- 카드 하단 정보 -->
-      <div class="mt-3 text-center space-y-1">
-        <h3 class="text-base font-bold text-ink-black tracking-tight group-hover:text-seal-red transition-colors">${tp.name}</h3>
-        <!-- 터치 화면용 시적 글귀 -->
-        <p class="touch-poetic-line hidden font-serif text-xs sm:text-sm text-seal-red italic line-clamp-1 px-1">"${tp.poeticLine}"</p>
-        <p class="text-sm font-semibold ${stockStatus === 'out_of_stock' ? 'text-ink-light' : 'text-ink-gray'}">${priceDisplay}</p>
-      </div>
-    `;
-    grid.appendChild(card);
-  });
+    </div>
+    <!-- 카드 하단 정보 -->
+    <div class="mt-3 text-center space-y-1">
+      <h3 class="text-sm sm:text-base font-bold text-ink-black tracking-tight group-hover:text-seal-red transition-colors">${tp.name}</h3>
+      <!-- 터치 화면용 시적 글귀 -->
+      <p class="touch-poetic-line hidden font-serif text-xs sm:text-sm text-seal-red italic line-clamp-1 px-1">"${tp.poeticLine}"</p>
+      <p class="text-sm font-semibold ${stockStatus === 'out_of_stock' ? 'text-ink-light' : 'text-ink-gray'}">${priceDisplay}</p>
+    </div>
+  `;
+
+  // 찜 하트 (카드를 누르면 상품 페이지, 하트만 누르면 찜)
+  if (typeof isWished === 'function') {
+    const heart = document.createElement('button');
+    heart.type = 'button';
+    heart.className = 'card-wish-btn absolute top-2 right-2 z-10 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 hover:bg-white shadow flex items-center justify-center text-lg leading-none cursor-pointer';
+    const paint = () => {
+      const on = isWished(p.id);
+      heart.textContent = on ? '♥' : '♡';
+      heart.classList.toggle('text-seal-red', on);
+      heart.classList.toggle('text-ink-black', !on);
+      heart.setAttribute('aria-pressed', on ? 'true' : 'false');
+      heart.setAttribute('aria-label', `${tp.name} ${on ? (typeof t === 'function' ? t('wish_remove', '찜 해제') : '찜 해제') : (typeof t === 'function' ? t('wish_add', '찜하기') : '찜하기')}`);
+    };
+    heart.onclick = ev => { ev.stopPropagation(); toggleWish(p.id); paint(); };
+    paint();
+    card.querySelector('.card-media').appendChild(heart);
+  }
+  return card;
+}
+
+// 홈 '제철 꽃 컬렉션'에 보일 상품: 관리자에서 '홈에 숨기기'가 아닌 것, '홈 순서'가 작은 것부터
+function homeOrderOf(p) {
+  return typeof p.homeOrder === 'number' && Number.isFinite(p.homeOrder) ? p.homeOrder : 999;
+}
+
+function homeProducts(category) {
+  const list = loadProducts()
+    .filter(p => typeof isProductVisible === 'function' ? isProductVisible(p) : true)
+    .filter(p => !p.hideOnHome)
+    .filter(p => category === 'all' || p.category === category);
+  return list.map((p, i) => ({ p, i }))
+    .sort((a, b) => (homeOrderOf(a.p) - homeOrderOf(b.p)) || (a.i - b.i))
+    .map(x => x.p);
+}
+
+// 1. 홈 상품 슬라이더 (4개씩 보이고 옆으로 넘김)
+function renderProducts(category) {
+  if (!category) category = currentCategory || 'all';
+  currentCategory = category;
+  const grid = document.getElementById('product-grid');
+  if (grid) {
+    grid.innerHTML = '';
+    const items = homeProducts(category);
+    items.forEach(p => {
+      const slide = document.createElement('div');
+      slide.className = 'home-slide shrink-0 snap-start w-[78%] sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-6rem)/4)]';
+      slide.appendChild(buildProductCard(p));
+      grid.appendChild(slide);
+    });
+    if (!items.length) {
+      const empty = document.createElement('p');
+      empty.className = 'w-full text-center text-sm text-ink-gray py-16';
+      empty.textContent = typeof t === 'function' ? t('browse_empty', '조건에 맞는 꽃이 없어요.') : '조건에 맞는 꽃이 없어요.';
+      grid.appendChild(empty);
+    }
+    grid.scrollLeft = 0;
+    updateHomeSliderArrows();
+    requestAnimationFrame(updateHomeSliderArrows);
+  }
+  if (typeof refreshFlowersPage === 'function') refreshFlowersPage();
+}
+
+function scrollHomeSlider(dir) {
+  const grid = document.getElementById('product-grid');
+  if (!grid) return;
+  grid.scrollBy({ left: dir * grid.clientWidth, behavior: 'smooth' });
+}
+
+function updateHomeSliderArrows() {
+  const grid = document.getElementById('product-grid');
+  if (!grid) return;
+  const prev = document.getElementById('home-slider-prev');
+  const next = document.getElementById('home-slider-next');
+  const max = grid.scrollWidth - grid.clientWidth - 4;
+  if (prev) prev.disabled = grid.scrollLeft <= 4;
+  if (next) next.disabled = grid.scrollLeft >= max;
 }
 
 // 카테고리 필터
