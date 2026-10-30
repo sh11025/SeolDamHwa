@@ -22,7 +22,7 @@ const BROWSE_SORTS = [
   { id: 'price_desc', key: 'sort_price_desc', label: '높은 가격순' }
 ];
 
-let browseState = { category: 'all', price: 'all', color: '', occasion: '', sort: 'recommend', shown: BROWSE_PAGE_SIZE };
+let browseState = { category: 'all', price: 'all', color: '', occasion: '', season: false, sort: 'recommend', shown: BROWSE_PAGE_SIZE };
 
 function brT(key, fallback) {
   return typeof t === 'function' ? t(key, fallback) : fallback;
@@ -54,7 +54,8 @@ function browseResults() {
     .filter(({ p }) => s.category === 'all' || p.category === s.category)
     .filter(({ p }) => !priceRule || !priceRule.test || priceRule.test(p))
     .filter(({ p }) => !s.color || (productTagsOf(p).colors || []).includes(s.color))
-    .filter(({ p }) => !s.occasion || (productTagsOf(p).occasions || []).includes(s.occasion));
+    .filter(({ p }) => !s.occasion || (productTagsOf(p).occasions || []).includes(s.occasion))
+    .filter(({ p }) => !s.season || (typeof isProductInSeason === 'function' && isProductInSeason(p)));
   const priceKey = x => (x.p.inquiryOnly ? Infinity : productMinPriceOf(x.p));
   if (s.sort === 'price_asc') list.sort((a, b) => (priceKey(a) - priceKey(b)) || (a.i - b.i));
   else if (s.sort === 'price_desc') list.sort((a, b) => ((a.p.inquiryOnly ? 1 : 0) - (b.p.inquiryOnly ? 1 : 0)) || (productMinPriceOf(b.p) - productMinPriceOf(a.p)) || (a.i - b.i));
@@ -139,8 +140,19 @@ function renderFlowersPage() {
   );
   view.appendChild(bar);
 
+  const seasonWrap = document.createElement('label');
+  seasonWrap.className = 'inline-flex items-center gap-2 pt-4 text-sm font-bold text-emerald-800 cursor-pointer';
+  const seasonBox = document.createElement('input');
+  seasonBox.type = 'checkbox';
+  seasonBox.id = 'browse-season';
+  seasonBox.className = 'w-4 h-4 cursor-pointer';
+  seasonBox.checked = !!s.season;
+  seasonBox.onchange = () => { browseState.season = seasonBox.checked; browseState.shown = BROWSE_PAGE_SIZE; renderFlowersPage(); };
+  seasonWrap.append(seasonBox, document.createTextNode(brT('browse_season_only', '🌿 지금 제철인 꽃만')));
+  view.appendChild(seasonWrap);
+
   const results = browseResults();
-  const filtered = s.price !== 'all' || s.color || s.occasion;
+  const filtered = s.price !== 'all' || s.color || s.occasion || s.season;
 
   const info = document.createElement('div');
   info.className = 'flex items-center justify-between gap-3 py-4 text-sm';
@@ -194,7 +206,7 @@ function renderFlowersPage() {
 }
 
 function resetBrowseFilters() {
-  browseState = { ...browseState, price: 'all', color: '', occasion: '', shown: BROWSE_PAGE_SIZE };
+  browseState = { ...browseState, price: 'all', color: '', occasion: '', season: false, shown: BROWSE_PAGE_SIZE };
   renderFlowersPage();
 }
 

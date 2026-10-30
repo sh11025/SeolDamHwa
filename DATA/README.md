@@ -12,7 +12,7 @@
 
 | 파일 | 한 줄 = | 주요 칸 | DB로 옮길 때 |
 |---|---|---|---|
-| `products.csv` | 상품 1개 | id, name, category(bouquet/basket/space), price, sizes(JSON), inquiryOnly, stockQuantity, image, visibility(public/private/scheduled), publishAt, curationTags(JSON) | 기본 키 `id` |
+| `products.csv` | 상품 1개 | id, name, category(bouquet/basket/space), price, sizes(JSON), inquiryOnly, stockQuantity, image, visibility(public/private/scheduled), publishAt, curationTags(JSON), hideOnHome(홈에 숨김), homeOrder(홈 순서), images(사진 주소 JSON, 첫 장=대표), flowers(사용한 꽃 id JSON → flowers.id) | 기본 키 `id` |
 | `orders.csv` | 주문 1건 | id, orderNumber, createdDate, status(preparing/packaged/delivering/completed/cancelled), ordererName/Phone, recipientName/Phone, zipcode, address, deliveryMethod(quick/parcel/pickup), deliveryFee, itemsTotal, totalAmount(배송비 포함), deliveryDate, message, hideSender, request, courier, trackingNumber | 기본 키 `id` |
 | `order_items.csv` | 주문 속 상품 1줄 | orderId, lineNo, productId, productName, sizeLabel, price, optionName, optionPrice, quantity | `orderId` → orders.id, (orderId, lineNo) 기본 키 |
 | `expenses.csv` | 지출 1건 | id, date, category, amount, method, memo | 기본 키 `id` |
@@ -21,6 +21,7 @@
 | `popups.csv` | 팝업 슬라이드 1장 | id, active, order, image, title, text, titleEn/Ja, textEn/Ja, buttonLabel, linkType, url, internalTarget, startDate, endDate | 기본 키 `id` |
 | `pages.csv` | 직접 고친 안내 페이지 1개 | id(bojagi/care/delivery/refund/terms/privacy), title, body, updatedAt | 기본 키 `id` |
 | `settings.csv` | 매장 설정 항목 1개 | key, value(JSON) — 예: phone, weeklyHours, closures, business, delivery, `__popupsEnabled` | 키-값 표 |
+| `flowers.csv` | 꽃 사전 1종 | id, name, nameEn, nameJa, meaning(꽃말), meaningEn, meaningJa, months(제철 달 JSON, 예: [3,4,5], 비면 사계절), colors, care(관리 팁) | 기본 키 `id`, products.flowers가 이 id를 가리킴 |
 | `images.csv` | 관리자에서 올린 사진 1장 | id, name, src(사진 데이터), width, height, createdAt | 서버에서는 파일 저장소로 옮기고 주소만 저장 |
 
 - 참/거짓 칸은 `true` / `false`, 빈 칸은 값 없음이에요.

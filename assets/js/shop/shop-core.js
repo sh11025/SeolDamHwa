@@ -115,6 +115,8 @@ function buildProductCard(p) {
   }
 
   const meaningPrefix = typeof t === 'function' ? t('pdp_meaning_prefix', '꽃말: ') : '꽃말: ';
+  const inSeason = typeof isProductInSeason === 'function' && isProductInSeason(p);
+  const seasonText = typeof t === 'function' ? t('season_now', '🌿 지금이 제철') : '🌿 지금이 제철';
   const cover = (Array.isArray(p.images) && p.images[0]) || p.image;
 
   card.innerHTML = `
@@ -136,6 +138,7 @@ function buildProductCard(p) {
     <!-- 카드 하단 정보 -->
     <div class="mt-3 text-center space-y-1">
       <h3 class="text-sm sm:text-base font-bold text-ink-black tracking-tight group-hover:text-seal-red transition-colors">${tp.name}</h3>
+      ${inSeason ? `<span class="season-badge inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-xs">${seasonText}</span>` : ''}
       <!-- 터치 화면용 시적 글귀 -->
       <p class="touch-poetic-line hidden font-serif text-xs sm:text-sm text-seal-red italic line-clamp-1 px-1">"${tp.poeticLine}"</p>
       <p class="text-sm font-semibold ${stockStatus === 'out_of_stock' ? 'text-ink-light' : 'text-ink-gray'}">${priceDisplay}</p>
@@ -162,7 +165,8 @@ function buildProductCard(p) {
   return card;
 }
 
-// 홈 '제철 꽃 컬렉션'에 보일 상품: 관리자에서 '홈에 숨기기'가 아닌 것, '홈 순서'가 작은 것부터
+// 홈 '제철 꽃 컬렉션'에 보일 상품: 관리자에서 '홈에 숨기기'가 아닌 것, '홈 순서'가 작은 것부터,
+// 순서를 안 정한 상품끼리는 지금 제철인 꽃이 든 상품이 먼저 (꽃 사전 flowers-data.js)
 function homeOrderOf(p) {
   return typeof p.homeOrder === 'number' && Number.isFinite(p.homeOrder) ? p.homeOrder : 999;
 }
@@ -172,8 +176,10 @@ function homeProducts(category) {
     .filter(p => typeof isProductVisible === 'function' ? isProductVisible(p) : true)
     .filter(p => !p.hideOnHome)
     .filter(p => category === 'all' || p.category === category);
-  return list.map((p, i) => ({ p, i }))
-    .sort((a, b) => (homeOrderOf(a.p) - homeOrderOf(b.p)) || (a.i - b.i))
+  const flowers = typeof loadFlowers === 'function' ? loadFlowers() : [];
+  const seasonRank = p => (typeof isProductInSeason === 'function' && isProductInSeason(p, flowers) ? 0 : 1);
+  return list.map((p, i) => ({ p, i, s: seasonRank(p) }))
+    .sort((a, b) => (homeOrderOf(a.p) - homeOrderOf(b.p)) || (a.s - b.s) || (a.i - b.i))
     .map(x => x.p);
 }
 

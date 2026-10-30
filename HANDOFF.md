@@ -1,12 +1,13 @@
 # 설담화 작업 이어받기 안내 (HANDOFF)
 
-> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-10-30 [39]
+> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-10-30 [40]
 
 ## 1. 프로젝트 한눈에
 - `index.html`: 손님 쇼핑몰 / `admin-index.html`: 관리자 센터. 둘 다 Tailwind CDN + 순수 JS, 데이터는 브라우저 `localStorage`(키 `seoldamhwa_*`).
-- [37]부터 화면 코드가 파일로 나뉨: 쇼핑몰 `assets/js/shop/*.js`(core→product→product-page→checkout→nav→curation→inquiry→guide→settings→browse→router→chat 순서로 불러옴), 관리자 `assets/js/admin/*.js`(dashboard→…→tools-ui). 일반 script라 함수는 전역 공유, **불러오는 순서를 바꾸지 말 것**.
+- [37]부터 화면 코드가 파일로 나뉨: 쇼핑몰 `assets/js/shop/*.js`(core→product→product-page→checkout→nav→curation→inquiry→guide→settings→browse→flowers→router→chat 순서로 불러옴), 관리자 `assets/js/admin/*.js`(dashboard→…→tools-ui). 일반 script라 함수는 전역 공유, **불러오는 순서를 바꾸지 말 것**.
 - 쇼핑몰 주소: `shop-router.js` — `switchView(view)`는 화면+주소를 함께 바꾸고, 실제 화면 그리기는 `showView(view)`. 새 페이지는 `SHOP_ROUTES['이름'] = params => {...}` 로 등록. 지금 주소: `#/`, `#/story`, `#/custom`, `#/guide/<탭>`, `#/flowers/<종류>`, `#/flower/<id>`, `#/wishlist`, `#/checkout`.
 - 공용 JS (`assets/js/`)
+  - `flowers-data.js` 꽃 사전(`seoldamhwa_flowers`, 기본 `DEFAULT_FLOWERS` 26종)·제철 계산(`isProductInSeason`, 한국 시간 달 기준). 상품의 사용한 꽃은 `p.flowers`(없으면 `DEFAULT_PRODUCT_FLOWERS` — 기본 상품의 '꽃말 및 상징' 칸에 적힌 꽃)
   - `products-data.js` 상품·맞춤 담화 태그 (`DATA_VERSION`은 올리지 말 것: 올리면 저장된 상품·재고가 초기화됨)
   - `site-settings.js` 매장 설정·운영시간·공휴일·사업자·배송비(`delivery`) + `calcDeliveryFee()`
   - `i18n.js` KO/EN/JA 번역 (`t()`, `applyLanguage()`), 저장 데이터는 항상 한국어
@@ -18,7 +19,7 @@
 
 ## 2. 작업 방식 (꼭 지키기)
 1. 바꾸기 전 `git status` 확인, 끝나면 커밋 (커밋 메시지 끝에 공동 작성자 줄).
-2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[40]**.
+2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[41]**.
 3. 검증: `python -m http.server 5500`로 띄우고 브라우저에서 직접 클릭. 매번 확인할 것
    - 인라인 스크립트 문법(`node --check`), 모든 `getElementById` id 존재
    - 버튼이 부르는 함수가 모두 있는지: 콘솔에서 `[...new Set([...document.documentElement.outerHTML.matchAll(/on\w+="([A-Za-z_]\w*)\(/g)].map(m=>m[1]))].filter(n=>typeof window[n]!=='function')` → `[]` (예외: `if`)
@@ -43,11 +44,12 @@
      - 결제: ① 장바구니 확인 → ② 받는 분·배송 → ③ 확인·결제 → 완료 (③에 나중 PG 연결).
      - 오른쪽 아래: 맨 위로 버튼 + 💬 말풍선 → 작은 상담 창(이름·연락처·내용·동의, 상세 페이지에서는 보던 상품 자동 입력, 영업 상태 표시, 카카오톡 채널 버튼은 이 안으로 합침). 기존 상담 문의·디스코드 상담 채널과 같은 곳에 저장. 실시간 채팅은 서버 연결 후.
      - 최근 본 꽃·찜하기: 로그인 없이 이 기기에 저장.
-   - ~~[39] 홈 정리 + 꽃 둘러보기 페이지~~ 완료: 홈 슬라이더(`renderProducts()`→`#product-grid`, `homeProducts()`, 상품 `hideOnHome`·`homeOrder`), 상품 카드 `buildProductCard()`(shop-core.js, ♡ 포함), 맞춤 담화 띠(`#custom-cta`), 꽃 둘러보기 `shop-browse.js`(`#/flowers/<종류>`, 색·상황은 `CURATION_TAGS`/`p.curationTags` 사용). [40]의 '지금이 제철' 우선순위는 `homeProducts()` 정렬에 더하면 됨.
-   - **[40] 꽃 사전 + 제철 자동 표시 + 상품 사진 여러 장 관리**: 꽃 이름·꽃말·제철 달·색·관리법을 한 번 등록(`flowers.csv` 추가), 상품에는 '사용한 꽃' 체크 → 상세 페이지에 자동 설명, 지금 제철인 꽃이 든 상품에 '지금이 제철' 표시·홈 슬라이더 자동. 관리자 '상품 및 한 줄 글귀 관리'에서 사진 여러 장 추가·순서 바꾸기·대표 사진 고르기를 쉽게.
+   - ~~[39] 홈 정리 + 꽃 둘러보기 페이지~~ 완료: 홈 슬라이더(`renderProducts()`→`#product-grid`, `homeProducts()`, 상품 `hideOnHome`·`homeOrder`), 상품 카드 `buildProductCard()`(shop-core.js, ♡ 포함), 맞춤 담화 띠(`#custom-cta`), 꽃 둘러보기 `shop-browse.js`(`#/flowers/<종류>`, 색·상황은 `CURATION_TAGS`/`p.curationTags` 사용). 순서: 홈 순서 → 지금 제철 → 목록 순서.
+   - ~~[40] 꽃 사전 + 제철 자동 표시 + 상품 사진 여러 장 관리~~ 완료: 관리자 `admin-flowers.js`(꽃 사전 목록·추가/수정 창, 상품 창의 '사용한 꽃'·사진 갤러리 `p.images` 첫 장=대표=`p.image`), 쇼핑몰 `shop-flowers.js`(`renderProductFlowers`), CSV `flowers.csv` 추가.
 4. **그다음 관리자 편의**: 단골·기념일 목록, 할인 쿠폰, 관리자 폰·태블릿 화면.
 5. **오픈 준비(나중)**: 서버·DB 연결(현재 load/save 함수만 교체하도록 분리돼 있음), 결제 연결, 관리자 로그인, 실제 후기 기능, 약관 전문가 검토.
 
 ## 5. 아직 사용자 확인이 필요한 것
+- 꽃 사전 기본 26종의 꽃말·제철 달·관리 팁은 일반적인 정보로 채웠어요. 매장에서 실제로 들어오는 시기에 맞게 관리자 '꽃 사전'에서 고쳐 주세요. 기본 상품 4개의 '사용한 꽃'은 각 상품 '꽃말 및 상징' 칸에 적힌 꽃으로 넣었어요.
 - 실제 디스코드 메시지 모양, AI 3종 실제 초안, 문자 앱 열기, PDF·운송장 실제 인쇄, 카카오 우편번호 창.
 - GPT·Gemini 기본 모델명(`gpt-5`, `gemini-2.5-flash`)은 관리자에서 최신 이름으로 바꿀 수 있음.

@@ -135,6 +135,10 @@ function doSaveProduct() {
     alert('대표 이미지 경로를 입력해주세요.');
     return null;
   }
+  // 사진 여러 장(첫 장 = 대표)과 사용한 꽃 (admin-flowers.js)
+  const images = typeof collectProductImages === 'function' ? collectProductImages(image) : [image];
+  const flowers = typeof collectProductFlowers === 'function' ? collectProductFlowers() : undefined;
+  const extra = { images, ...(flowers ? { flowers } : {}) };
 
   // 홈 슬라이더: 숨김 여부와 순서 (비우면 자동)
   const hideOnHome = !document.getElementById('edit-prod-show-home').checked;
@@ -183,7 +187,8 @@ function doSaveProduct() {
       homeOrder,
       flowerMeaning: meaning, 
       description: desc,
-      image
+      image,
+      ...extra
     } : p);
   } else {
     // 신규 상품 등록
@@ -203,7 +208,8 @@ function doSaveProduct() {
       homeOrder,
       flowerMeaning: meaning, 
       description: desc,
-      image
+      image,
+      ...extra
     };
     products.unshift(newP);
   }

@@ -6,8 +6,8 @@
 const CSV_TABLES = {
   products: {
     file: 'products.csv',
-    columns: ['id', 'name', 'englishName', 'category', 'price', 'sizes', 'inquiryOnly', 'poeticLine', 'flowerMeaning', 'description', 'stockQuantity', 'image', 'visibility', 'publishAt', 'curationTags', 'hideOnHome', 'homeOrder'],
-    json: ['sizes', 'curationTags'], bool: ['inquiryOnly', 'hideOnHome'], num: ['price', 'stockQuantity', 'homeOrder'],
+    columns: ['id', 'name', 'englishName', 'category', 'price', 'sizes', 'inquiryOnly', 'poeticLine', 'flowerMeaning', 'description', 'stockQuantity', 'image', 'visibility', 'publishAt', 'curationTags', 'hideOnHome', 'homeOrder', 'images', 'flowers'],
+    json: ['sizes', 'curationTags', 'images', 'flowers'], bool: ['inquiryOnly', 'hideOnHome'], num: ['price', 'stockQuantity', 'homeOrder'],
     read: () => loadProducts(),
     write: rows => saveProducts(rows)
   },
@@ -85,6 +85,13 @@ const CSV_TABLES = {
       return rows;
     },
     write: null
+  },
+  flowers: {
+    file: 'flowers.csv',
+    columns: ['id', 'name', 'nameEn', 'nameJa', 'meaning', 'meaningEn', 'meaningJa', 'months', 'colors', 'care'],
+    json: ['months'],
+    read: () => (typeof loadFlowers === 'function' ? loadFlowers() : []),
+    write: rows => localStorage.setItem('seoldamhwa_flowers', JSON.stringify(rows.map(r => ({ ...r, months: Array.isArray(r.months) ? r.months : [] }))))
   },
   images: {
     file: 'images.csv',
@@ -171,7 +178,7 @@ function buildAllCsv() {
 function importCsvTables(files) {
   const has = f => typeof files[f] === 'string';
   const result = [];
-  ['products', 'expenses', 'inquiries', 'restock', 'pages', 'images'].forEach(name => {
+  ['products', 'expenses', 'inquiries', 'restock', 'pages', 'flowers', 'images'].forEach(name => {
     const f = CSV_TABLES[name].file;
     if (!has(f)) return;
     const rows = csvToTable(name, files[f]);
