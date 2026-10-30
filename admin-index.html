@@ -1204,149 +1204,167 @@
     </form>
   </div>
 
-  <div id="admin-product-modal" class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+  <!-- 상품 등록·수정: 쇼핑몰 상품 페이지와 같은 배치로 보면서 고치기 -->
+  <div id="admin-product-modal" class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs hidden" role="dialog" aria-modal="true" aria-labelledby="modal-product-title">
     <div class="fixed inset-0" onclick="closeProductModal()"></div>
 
-    <div class="relative bg-hanji w-full max-w-2xl rounded-sm shadow-2xl border border-ink-black/20 z-10 p-6 sm:p-8 my-8">
-      <button onclick="closeProductModal()" class="absolute top-4 right-4 p-1.5 text-ink-gray hover:text-ink-black cursor-pointer">✕</button>
-
-      <form onsubmit="saveProduct(event)" class="space-y-4 text-xs">
-        <div class="border-b border-ink-black/10 pb-3">
+    <form onsubmit="saveProduct(event)" class="relative bg-[#FBF9F5] w-full max-w-6xl mx-auto sm:my-6 sm:rounded-sm shadow-2xl border border-ink-black/20 z-10 text-xs">
+      <!-- 위: 제목 -->
+      <div class="sticky top-0 z-20 bg-[#FBF9F5]/95 backdrop-blur border-b border-ink-black/10 px-5 sm:px-8 py-3 flex items-center justify-between gap-3">
+        <div>
           <h3 id="modal-product-title" class="text-lg font-bold text-ink-black">신규 전통 꽃 상품 등록</h3>
-          <p class="text-ink-gray mt-0.5">저장 즉시 사용자 쇼핑몰(index.html)에 실시간으로 반영됩니다.</p>
+          <p class="text-ink-gray">쇼핑몰 상품 페이지와 같은 자리에서 고쳐요. 저장하면 쇼핑몰에 바로 반영돼요.</p>
         </div>
+        <button type="button" onclick="closeProductModal()" class="p-2 text-lg text-ink-gray hover:text-ink-black cursor-pointer" aria-label="닫기">✕</button>
+      </div>
 
-        <input type="hidden" id="edit-prod-id" value="">
+      <input type="hidden" id="edit-prod-id" value="">
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block font-bold text-ink-black mb-1">상품명 (한글)</label>
-            <input type="text" id="edit-prod-name" required placeholder="예: 부귀모란 다발, 백자 연화 바구니" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
-          </div>
-          <div>
-            <label class="block font-bold text-ink-black mb-1">영문 서브명</label>
-            <input type="text" id="edit-prod-eng" placeholder="예: Rich Red Peony Bouquet" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
-          </div>
-        </div>
-
-        <!-- 핵심: 브랜드 특화 한 줄 글귀 -->
-        <div class="bg-[#FAF7F2] p-3 rounded-xs border border-seal-red/40 space-y-1">
-          <label class="block font-bold text-seal-red flex items-center justify-between gap-1">
-            <span>★ 한 줄 글귀 (상품명 아래에 보이는 문장)</span>
-            <span class="flex items-center gap-1">
-              <select id="ai-provider-product" class="ai-provider-select text-[11px] border border-ink-black/20 rounded-xs bg-white py-1 px-1 font-normal text-ink-black" aria-label="초안을 쓸 AI"></select>
-              <button type="button" onclick="aiDraftProductCopy(this)" class="px-2 py-1 text-[11px] font-bold rounded-xs border border-seal-red/40 bg-white text-seal-red hover:bg-seal-red/10 cursor-pointer">✨ AI로 문구 초안</button>
-            </span>
-          </label>
-          <input type="text" id="edit-prod-poetic" required placeholder="예: 풍요와 부귀를 기원하는 붉은 모란의 깊은 숨결" class="w-full bg-white border border-seal-red/40 p-2 font-serif rounded-xs focus:border-seal-red">
-          <p class="text-[11px] text-ink-gray">
-            * 쇼핑몰 상품 상세 페이지(PDP)의 상품명 바로 밑에 우아한 명조 스타일로 노출됩니다.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block font-bold text-ink-black mb-1">카테고리</label>
-            <select id="edit-prod-cat" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
-              <option value="bouquet">꽃다발</option>
-              <option value="basket">꽃바구니</option>
-              <option value="space">웨딩·공간</option>
-            </select>
-          </div>
-          <div id="edit-prod-price-wrap">
-            <label class="block font-bold text-ink-black mb-1">판매 가격 (원)</label>
-            <input type="number" id="edit-prod-price" required value="68000" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
-          </div>
-          <div id="edit-prod-stock-wrap">
-            <label class="block font-bold text-ink-black mb-1">재고 수량 (개)</label>
-            <input type="number" id="edit-prod-stock-qty" min="0" required value="10" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
-          </div>
-          <div class="flex items-center gap-2 pt-5 sm:col-span-2">
-            <input type="checkbox" id="edit-prod-inquiry" onchange="toggleInquiryOnlyFields()" class="w-4 h-4 text-seal-red rounded focus:ring-seal-red cursor-pointer">
-            <label for="edit-prod-inquiry" class="text-xs text-ink-black cursor-pointer font-medium">견적 문의 전용 (상담 후 견적 - 가격 및 재고 비활성화)</label>
-          </div>
-        </div>
-
-        <!-- 공개 설정 (공개 / 비공개 / 예약 공개) -->
-        <div class="bg-[#FAF7F2] p-3 rounded-xs border border-ink-black/15 space-y-2">
-          <label class="block font-bold text-ink-black">공개 설정</label>
-          <div class="flex flex-wrap items-center gap-4">
-            <label class="inline-flex items-center gap-1.5 cursor-pointer">
-              <input type="radio" name="edit-prod-visibility" value="public" onchange="togglePublishAtInput()" class="text-seal-red focus:ring-seal-red cursor-pointer">
-              <span class="font-bold text-ink-black">공개</span>
-            </label>
-            <label class="inline-flex items-center gap-1.5 cursor-pointer">
-              <input type="radio" name="edit-prod-visibility" value="private" onchange="togglePublishAtInput()" class="text-seal-red focus:ring-seal-red cursor-pointer">
-              <span class="font-bold text-ink-black">비공개</span>
-            </label>
-            <label class="inline-flex items-center gap-1.5 cursor-pointer">
-              <input type="radio" name="edit-prod-visibility" value="scheduled" onchange="togglePublishAtInput()" class="text-seal-red focus:ring-seal-red cursor-pointer">
-              <span class="font-bold text-ink-black">예약 공개</span>
-            </label>
-          </div>
-          <div id="edit-prod-publish-wrap" class="hidden pt-1">
-            <label class="block font-medium text-ink-gray mb-1">공개 예정 일시 (현재 시각 이후 필수)</label>
-            <input type="datetime-local" id="edit-prod-publish-at" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
-          </div>
-        </div>
-
-        <!-- 홈 '제철 꽃 컬렉션' 슬라이더 -->
-        <div class="bg-[#FAF7F2] p-3 rounded-xs border border-ink-black/15 flex flex-wrap items-center gap-x-5 gap-y-2">
-          <label class="inline-flex items-center gap-2 cursor-pointer font-bold text-ink-black">
-            <input type="checkbox" id="edit-prod-show-home" class="w-4 h-4 cursor-pointer" checked>
-            홈 '제철 꽃 컬렉션'에 보이기
-          </label>
-          <label class="inline-flex items-center gap-2 text-ink-gray">
-            홈 순서
-            <input type="number" id="edit-prod-home-order" min="1" max="999" placeholder="자동" class="w-20 bg-white border border-ink-black/20 p-1.5 rounded-xs focus:border-seal-red">
-          </label>
-          <p class="w-full text-[11px] text-ink-gray">순서는 작은 숫자가 앞이에요. 비워 두면 숫자를 넣은 상품 뒤에 목록 순서대로 나와요. 숨겨도 '꽃 둘러보기'에는 보여요.</p>
-        </div>
-
-        <div>
-          <label class="block font-bold text-ink-black mb-1">꽃말 및 상징</label>
-          <input type="text" id="edit-prod-meaning" placeholder="예: 부귀영화, 품격, 행복한 결혼" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
-        </div>
-
-        <div>
-          <div class="flex items-center justify-between mb-1">
-            <label class="block font-bold text-ink-black">사용한 꽃 <span class="font-normal text-ink-gray">(🌿 = 지금 제철)</span></label>
-            <button type="button" onclick="openFlowerModal()" class="text-[11px] font-bold text-seal-red underline cursor-pointer">꽃 사전에 없는 꽃 추가</button>
-          </div>
-          <div id="edit-prod-flowers" class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-2 bg-[#FAF7F2] border border-ink-black/15 rounded-xs text-[11px]"></div>
-          <p id="edit-prod-flowers-summary" class="text-[11px] text-ink-gray mt-1"></p>
-        </div>
-
-        <div>
-          <label class="block font-bold text-ink-black mb-1">상세 설명</label>
-          <textarea id="edit-prod-desc" rows="2" placeholder="상품에 대한 상세 설명 문구" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red"></textarea>
-        </div>
-
-        <div>
-          <label class="block font-bold text-ink-black mb-1">대표 이미지</label>
-          <div class="flex gap-3 items-center">
-            <div class="w-16 h-20 rounded-xs bg-[#ECE8E1] border border-ink-black/10 overflow-hidden shrink-0">
-              <img id="edit-prod-image-preview" src="" alt="" class="w-full h-full object-cover">
+      <div class="px-5 sm:px-8 py-6 space-y-8">
+        <!-- 상품 페이지 윗부분: 왼쪽 사진 / 오른쪽 이름·글귀·가격 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- 사진 -->
+          <div class="space-y-3">
+            <div class="relative aspect-[4/5] max-h-[520px] mx-auto bg-[#ECE8E1] border border-ink-black/10 rounded-xs overflow-hidden">
+              <img id="edit-prod-image-preview" src="" alt="대표 사진 미리보기" class="w-full h-full object-cover">
+              <span class="absolute top-2 left-2 bg-ink-black/70 text-white text-[10px] font-bold px-2 py-0.5 rounded-xs">대표 사진</span>
             </div>
-            <div class="flex-1 space-y-1.5">
-              <button type="button" onclick="openImagePicker(src => { document.getElementById('edit-prod-image').value = src; updateProductImagePreview(); })" class="w-full py-2.5 bg-ink-black text-white text-xs font-bold rounded-xs cursor-pointer hover:bg-seal-red">사진 고르기 · 올리기</button>
-              <input type="text" id="edit-prod-image" required oninput="updateProductImagePreview()" placeholder="또는 이미지 주소(https://...)를 붙여 넣기" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red text-[11px] text-ink-gray">
+            <div>
+              <p class="font-bold text-ink-black mb-1">상품 페이지 사진 <span id="edit-prod-gallery-count" class="font-normal text-ink-gray"></span></p>
+              <div id="edit-prod-gallery" class="flex gap-2 overflow-x-auto pb-1"></div>
+              <p class="text-[11px] text-ink-gray mt-1">첫 장(빨간 테두리)이 대표 사진이에요. ◀ ▶로 순서를 바꾸고, ★를 누르면 그 사진이 대표가 돼요.</p>
+            </div>
+            <div class="space-y-1.5">
+              <button type="button" onclick="openImagePicker(src => { document.getElementById('edit-prod-image').value = src; updateProductImagePreview(); })" class="w-full py-2.5 bg-ink-black text-white text-xs font-bold rounded-xs cursor-pointer hover:bg-seal-red">대표 사진 바꾸기 (고르기 · 올리기)</button>
+              <input type="text" id="edit-prod-image" required oninput="updateProductImagePreview()" placeholder="또는 대표 사진 주소(https://...)를 붙여 넣기" aria-label="대표 사진 주소" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red text-[11px] text-ink-gray">
             </div>
           </div>
-          <div class="mt-3">
-            <p class="font-bold text-ink-black mb-1">상품 페이지 사진 <span id="edit-prod-gallery-count" class="font-normal text-ink-gray"></span></p>
-            <div id="edit-prod-gallery" class="flex gap-2 overflow-x-auto pb-1"></div>
-            <p class="text-[11px] text-ink-gray mt-1">첫 장(빨간 테두리)이 대표 사진이에요. ◀ ▶로 순서를 바꾸고, ★를 누르면 그 사진이 대표가 돼요.</p>
+
+          <!-- 이름·글귀·가격 (상품 페이지 오른쪽 칸과 같은 순서) -->
+          <div class="space-y-5">
+            <div class="flex items-center gap-2 text-ink-gray">
+              <span>홈 ›</span>
+              <select id="edit-prod-cat" aria-label="종류" class="bg-white border border-ink-black/20 py-1 px-2 rounded-xs font-bold text-ink-black">
+                <option value="bouquet">꽃다발</option>
+                <option value="basket">꽃바구니</option>
+                <option value="space">웨딩·공간</option>
+              </select>
+            </div>
+
+            <div class="space-y-1">
+              <input type="text" id="edit-prod-name" required placeholder="상품명 (예: 부귀모란 다발)" aria-label="상품명" class="w-full bg-transparent border-0 border-b-2 border-dashed border-ink-black/20 focus:border-seal-red focus:outline-none px-0 py-1 text-2xl sm:text-3xl font-extrabold text-ink-black tracking-tight">
+              <input type="text" id="edit-prod-eng" placeholder="영문 이름 (예: Rich Red Peony Bouquet)" aria-label="영문 이름" class="w-full bg-transparent border-0 border-b border-dashed border-ink-black/15 focus:border-seal-red focus:outline-none px-0 py-1 text-sm text-ink-gray">
+            </div>
+
+            <!-- 한 줄 글귀 -->
+            <div class="space-y-1">
+              <div class="flex items-center justify-between gap-2">
+                <label for="edit-prod-poetic" class="font-bold text-seal-red">★ 한 줄 글귀</label>
+                <span class="flex items-center gap-1">
+                  <select id="ai-provider-product" class="ai-provider-select text-[11px] border border-ink-black/20 rounded-xs bg-white py-1 px-1 font-normal text-ink-black" aria-label="초안을 쓸 AI"></select>
+                  <button type="button" onclick="aiDraftProductCopy(this)" class="px-2 py-1 text-[11px] font-bold rounded-xs border border-seal-red/40 bg-white text-seal-red hover:bg-seal-red/10 cursor-pointer">✨ AI로 문구 초안</button>
+                </span>
+              </div>
+              <input type="text" id="edit-prod-poetic" required placeholder="예: 풍요와 부귀를 기원하는 붉은 모란의 깊은 숨결" class="w-full bg-white/70 border border-seal-red/30 p-2.5 font-serif text-base italic text-seal-red rounded-xs focus:border-seal-red">
+            </div>
+
+            <!-- 가격·사이즈 -->
+            <div class="p-4 bg-white border border-ink-black/10 rounded-xs space-y-3">
+              <label class="flex items-center gap-2 cursor-pointer text-ink-black font-bold">
+                <input type="checkbox" id="edit-prod-inquiry" onchange="toggleInquiryOnlyFields()" class="w-4 h-4 cursor-pointer">
+                상담 후 견적 상품 (가격·재고 없이 문의 버튼만 보여요)
+              </label>
+              <div id="edit-prod-price-wrap">
+                <label for="edit-prod-price" class="block font-bold text-ink-black mb-1">판매 가격 (원)</label>
+                <input type="number" id="edit-prod-price" required value="68000" min="0" step="1000" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs text-lg font-bold focus:border-seal-red">
+              </div>
+              <div id="edit-prod-sizes-wrap" class="space-y-2">
+                <p class="font-bold text-ink-black">사이즈 <span class="font-normal text-ink-gray">(손님이 상품 페이지에서 고르는 크기. 없으면 위 판매 가격 하나로 팔아요)</span></p>
+                <div id="edit-prod-sizes" class="space-y-1.5"></div>
+                <button type="button" onclick="addProductSize()" class="px-3 py-1.5 border border-dashed border-ink-black/30 rounded-xs font-bold text-ink-gray hover:border-seal-red hover:text-seal-red cursor-pointer">+ 사이즈 추가</button>
+              </div>
+              <div id="edit-prod-stock-wrap">
+                <label for="edit-prod-stock-qty" class="block font-bold text-ink-black mb-1">재고 수량 (개)</label>
+                <input type="number" id="edit-prod-stock-qty" min="0" required value="10" class="w-32 bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+              </div>
+            </div>
+
+            <div>
+              <label for="edit-prod-meaning" class="block font-bold text-ink-black mb-1">꽃말 및 상징 <span class="font-normal text-ink-gray">(카드에 마우스를 올리면 보이는 한 줄)</span></label>
+              <input type="text" id="edit-prod-meaning" placeholder="예: 부귀영화, 품격, 행복한 결혼" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+            </div>
           </div>
         </div>
 
-        <div class="pt-3 border-t border-ink-black/10 flex justify-end gap-2">
+        <!-- 상품 페이지 아래: 이 꽃에 담긴 이야기 -->
+        <section class="space-y-3">
+          <h4 class="text-lg font-extrabold text-ink-black border-b border-ink-black/10 pb-2">이 꽃에 담긴 이야기</h4>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <label for="edit-prod-desc" class="block font-bold text-ink-black mb-1">상품 설명</label>
+              <textarea id="edit-prod-desc" rows="6" placeholder="상품에 대한 자세한 설명" class="w-full bg-white border border-ink-black/20 p-2.5 rounded-xs text-sm leading-relaxed focus:border-seal-red"></textarea>
+            </div>
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <p class="font-bold text-ink-black">이 상품에 쓰인 꽃 <span class="font-normal text-ink-gray">(🌿 = 지금 제철)</span></p>
+                <button type="button" onclick="openFlowerModal()" class="text-[11px] font-bold text-seal-red underline cursor-pointer">꽃 사전에 없는 꽃 추가</button>
+              </div>
+              <div id="edit-prod-flowers" class="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto p-2 bg-white border border-ink-black/15 rounded-xs text-[11px]"></div>
+              <p id="edit-prod-flowers-summary" class="text-[11px] text-ink-gray mt-1"></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 쇼핑몰에 보이는 방법 -->
+        <section class="space-y-3">
+          <h4 class="text-lg font-extrabold text-ink-black border-b border-ink-black/10 pb-2">보이는 방법</h4>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="bg-white p-3 rounded-xs border border-ink-black/15 space-y-2">
+              <p class="font-bold text-ink-black">공개 설정</p>
+              <div class="flex flex-wrap items-center gap-4">
+                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                  <input type="radio" name="edit-prod-visibility" value="public" onchange="togglePublishAtInput()" class="cursor-pointer">
+                  <span class="font-bold text-ink-black">공개</span>
+                </label>
+                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                  <input type="radio" name="edit-prod-visibility" value="private" onchange="togglePublishAtInput()" class="cursor-pointer">
+                  <span class="font-bold text-ink-black">비공개</span>
+                </label>
+                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                  <input type="radio" name="edit-prod-visibility" value="scheduled" onchange="togglePublishAtInput()" class="cursor-pointer">
+                  <span class="font-bold text-ink-black">예약 공개</span>
+                </label>
+              </div>
+              <div id="edit-prod-publish-wrap" class="hidden pt-1">
+                <label for="edit-prod-publish-at" class="block font-medium text-ink-gray mb-1">공개 예정 일시 (현재 시각 이후 필수)</label>
+                <input type="datetime-local" id="edit-prod-publish-at" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+              </div>
+            </div>
+            <div class="bg-white p-3 rounded-xs border border-ink-black/15 flex flex-wrap items-center gap-x-5 gap-y-2">
+              <label class="inline-flex items-center gap-2 cursor-pointer font-bold text-ink-black">
+                <input type="checkbox" id="edit-prod-show-home" class="w-4 h-4 cursor-pointer" checked>
+                홈 '제철 꽃 컬렉션'에 보이기
+              </label>
+              <label class="inline-flex items-center gap-2 text-ink-gray">
+                홈 순서
+                <input type="number" id="edit-prod-home-order" min="1" max="999" placeholder="자동" class="w-20 bg-white border border-ink-black/20 p-1.5 rounded-xs focus:border-seal-red">
+              </label>
+              <p class="w-full text-[11px] text-ink-gray">순서는 작은 숫자가 앞이에요. 비워 두면 지금 제철인 상품 → 목록 순서로 나와요. 숨겨도 '꽃 둘러보기'에는 보여요.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- 아래: 삭제 / 저장 -->
+      <div class="sticky bottom-0 z-20 bg-[#FBF9F5]/95 backdrop-blur border-t border-ink-black/10 px-5 sm:px-8 py-3 flex flex-wrap items-center justify-between gap-2">
+        <button type="button" id="edit-prod-delete-btn" onclick="deleteProductFromModal()" class="hidden px-4 py-2 border border-red-300 text-red-700 rounded-xs font-bold hover:bg-red-50 cursor-pointer">상품 삭제</button>
+        <div class="flex flex-wrap gap-2 ml-auto">
           <button type="button" onclick="closeProductModal()" class="px-4 py-2 border border-ink-black/20 rounded-xs font-bold hover:bg-gray-100 cursor-pointer">취소</button>
           <button type="button" onclick="saveAndPreviewProduct(event)" class="jakae-light-btn px-4 py-2 rounded-sm font-bold cursor-pointer border border-seal-red text-seal-red hover:bg-seal-red/5">저장 후 미리보기</button>
           <button type="submit" class="jakae-btn px-6 py-2 rounded-sm font-bold cursor-pointer">저장 및 쇼핑몰 동기화</button>
         </div>
-      </form>
-    </div>
+      </div>
+    </form>
   </div>
 
   <!-- JavaScript: Admin 로직 & 쇼핑몰 데이터 양방향 실시간 동기화 -->

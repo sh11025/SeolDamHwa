@@ -11,17 +11,91 @@ function toggleInquiryOnlyFields() {
   const priceInput = document.getElementById('edit-prod-price');
   const stockInput = document.getElementById('edit-prod-stock-qty');
 
-  if (inquiry) {
-    if (priceWrap) priceWrap.classList.add('hidden');
-    if (stockWrap) stockWrap.classList.add('hidden');
-    if (priceInput) priceInput.removeAttribute('required');
-    if (stockInput) stockInput.removeAttribute('required');
-  } else {
-    if (priceWrap) priceWrap.classList.remove('hidden');
-    if (stockWrap) stockWrap.classList.remove('hidden');
-    if (priceInput) priceInput.setAttribute('required', 'required');
-    if (stockInput) stockInput.setAttribute('required', 'required');
-  }
+  // 사이즈가 있으면 가격은 사이즈별로 (판매 가격 칸 숨김)
+  const hasSizes = editProdSizes.length > 0;
+  const sizesWrap = document.getElementById('edit-prod-sizes-wrap');
+  if (sizesWrap) sizesWrap.classList.toggle('hidden', inquiry);
+  if (priceWrap) priceWrap.classList.toggle('hidden', inquiry || hasSizes);
+  if (stockWrap) stockWrap.classList.toggle('hidden', inquiry);
+  if (priceInput) priceInput.required = !inquiry && !hasSizes;
+  if (stockInput) stockInput.required = !inquiry;
+}
+
+/* ---------- 사이즈 (S·M·L 등, 상품 페이지에서 손님이 고름) ---------- */
+let editProdSizes = [];
+
+function renderProductSizes() {
+  const box = document.getElementById('edit-prod-sizes');
+  if (!box) return;
+  box.innerHTML = '';
+  editProdSizes.forEach((sz, i) => {
+    const row = document.createElement('div');
+    row.className = 'flex flex-wrap items-center gap-2';
+    const label = document.createElement('input');
+    label.type = 'text';
+    label.value = sz.label || '';
+    label.placeholder = '이름 (예: M)';
+    label.maxLength = 20;
+    label.setAttribute('aria-label', `${i + 1}번 사이즈 이름`);
+    label.className = 'w-24 bg-white border border-ink-black/20 p-1.5 rounded-xs font-bold';
+    label.oninput = () => { editProdSizes[i].label = label.value; };
+    const price = document.createElement('input');
+    price.type = 'number';
+    price.min = '0';
+    price.step = '1000';
+    price.value = sz.price || '';
+    price.placeholder = '가격';
+    price.setAttribute('aria-label', `${i + 1}번 사이즈 가격`);
+    price.className = 'w-32 bg-white border border-ink-black/20 p-1.5 rounded-xs';
+    price.oninput = () => { editProdSizes[i].price = Number(price.value) || 0; };
+    const rec = document.createElement('label');
+    rec.className = 'inline-flex items-center gap-1 text-ink-gray cursor-pointer';
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    radio.name = 'edit-prod-size-rec';
+    radio.checked = !!sz.recommended;
+    radio.onchange = () => { editProdSizes.forEach((x, j) => { x.recommended = j === i; }); };
+    rec.append(radio, document.createTextNode('추천'));
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.textContent = '✕';
+    del.setAttribute('aria-label', `${i + 1}번 사이즈 빼기`);
+    del.className = 'w-7 h-7 border border-ink-black/15 bg-white rounded-xs font-bold hover:border-red-400 hover:text-red-700 cursor-pointer';
+    del.onclick = () => { editProdSizes.splice(i, 1); renderProductSizes(); };
+    row.append(label, price, rec, del);
+    box.appendChild(row);
+  });
+  toggleInquiryOnlyFields();
+}
+
+function addProductSize() {
+  const base = Number(document.getElementById('edit-prod-price').value) || 0;
+  editProdSizes.push({ label: '', price: base, recommended: editProdSizes.length === 0 });
+  renderProductSizes();
+  const inputs = document.querySelectorAll('#edit-prod-sizes input[type=text]');
+  if (inputs.length) inputs[inputs.length - 1].focus();
+}
+
+// 이름과 가격이 있는 사이즈만 저장
+function collectProductSizes() {
+  const list = editProdSizes
+    .map(x => ({ label: String(x.label || '').trim(), price: Number(x.price) || 0, ...(x.recommended ? { recommended: true } : {}) }))
+    .filter(x => x.label && x.price > 0);
+  if (list.length && !list.some(x => x.recommended)) list[0].recommended = true;
+  return list;
+}
+
+// 상품 지우기 (수정 창에서만)
+function deleteProductFromModal() {
+  const prodId = document.getElementById('edit-prod-id').value;
+  if (!prodId) return;
+  const prod = loadProducts().find(p => p.id === prodId);
+  if (!prod) return;
+  if (!confirm(`'${prod.name}' 상품을 지울까요?\n쇼핑몰에서 바로 사라지고 되돌릴 수 없어요.\n잠깐 숨기기만 하려면 '비공개'로 바꿔 주세요.`)) return;
+  saveProducts(loadProducts().filter(p => p.id !== prodId));
+  closeProductModal();
+  renderProductsTable();
+  renderDashboard();
 }
 
 function togglePublishAtInput() {
@@ -43,7 +117,12 @@ function togglePublishAtInput() {
   }
 }
 
+function sizesForEditor(prod) {
+  return prod && Array.isArray(prod.sizes) ? prod.sizes.map(x => ({ ...x })) : [];
+}
+
 function openProductModal() {
+  const prodForEditor = null;
   document.getElementById('modal-product-title').innerText = '신규 전통 꽃 상품 등록';
   document.getElementById('edit-prod-id').value = '';
   document.getElementById('edit-prod-name').value = '';
@@ -69,14 +148,19 @@ function openProductModal() {
   if (pubInput) pubInput.value = '';
   togglePublishAtInput();
 
-  toggleInquiryOnlyFields();
+  editProdSizes = sizesForEditor(prodForEditor);
+  renderProductSizes();
+  const delBtn = document.getElementById('edit-prod-delete-btn');
+  if (delBtn) delBtn.classList.toggle('hidden', !prodForEditor);
   document.getElementById('admin-product-modal').classList.remove('hidden');
+  document.getElementById('admin-product-modal').scrollTop = 0;
 }
 
 function editProduct(prodId) {
   const products = loadProducts();
   const prod = products.find(p => p.id === prodId);
   if (!prod) return;
+  const prodForEditor = prod;
 
   document.getElementById('modal-product-title').innerText = '꽃 상품 및 한 줄 글귀 수정';
   document.getElementById('edit-prod-id').value = prod.id;
@@ -103,8 +187,12 @@ function editProduct(prodId) {
   if (pubInput) pubInput.value = prod.publishAt || '';
   togglePublishAtInput();
 
-  toggleInquiryOnlyFields();
+  editProdSizes = sizesForEditor(prodForEditor);
+  renderProductSizes();
+  const delBtn = document.getElementById('edit-prod-delete-btn');
+  if (delBtn) delBtn.classList.toggle('hidden', !prodForEditor);
   document.getElementById('admin-product-modal').classList.remove('hidden');
+  document.getElementById('admin-product-modal').scrollTop = 0;
 }
 
 function closeProductModal() {
@@ -126,7 +214,8 @@ function doSaveProduct() {
   }
   const cat = document.getElementById('edit-prod-cat').value;
   const inquiryOnly = document.getElementById('edit-prod-inquiry').checked;
-  const price = inquiryOnly ? 0 : Number(document.getElementById('edit-prod-price').value || 0);
+  const sizes = inquiryOnly ? [] : collectProductSizes();
+  const price = inquiryOnly ? 0 : (sizes.length ? Math.min(...sizes.map(x => x.price)) : Number(document.getElementById('edit-prod-price').value || 0));
   const stockQuantity = inquiryOnly ? null : Number(document.getElementById('edit-prod-stock-qty').value || 0);
   const meaning = document.getElementById('edit-prod-meaning').value.trim();
   const desc = document.getElementById('edit-prod-desc').value.trim();
@@ -138,7 +227,7 @@ function doSaveProduct() {
   // 사진 여러 장(첫 장 = 대표)과 사용한 꽃 (admin-flowers.js)
   const images = typeof collectProductImages === 'function' ? collectProductImages(image) : [image];
   const flowers = typeof collectProductFlowers === 'function' ? collectProductFlowers() : undefined;
-  const extra = { images, ...(flowers ? { flowers } : {}) };
+  const extra = { images, sizes, ...(flowers ? { flowers } : {}) };
 
   // 홈 슬라이더: 숨김 여부와 순서 (비우면 자동)
   const hideOnHome = !document.getElementById('edit-prod-show-home').checked;
@@ -171,7 +260,7 @@ function doSaveProduct() {
   let savedId = prodId;
 
   if (prodId) {
-    // 기존 상품 수정 (sizes 등 기존 속성 보존)
+    // 기존 상품 수정 (그 밖의 기존 속성은 보존)
     products = products.map(p => p.id === prodId ? {
       ...p,
       name, 
