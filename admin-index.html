@@ -19,6 +19,7 @@
   <script src="assets/js/finance-data.js"></script>
   <script src="assets/js/integrations.js"></script>
   <script src="assets/js/admin-tools.js"></script>
+  <script src="assets/js/site-pages.js"></script>
   <!-- 차트: Chart.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script>
@@ -102,6 +103,12 @@
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     }
 
+    /* 안내 페이지 미리보기 (쇼핑몰과 같은 모양) */
+    .info-page-body .page-h { font-weight: 800; font-size: 15px; color: #1A1A1A; margin: 16px 0 6px; }
+    .info-page-body .page-h:first-child { margin-top: 0; }
+    .info-page-body .page-p { margin: 6px 0; }
+    .info-page-body .page-ul { list-style: disc; padding-left: 20px; margin: 6px 0; }
+
     /* 대시보드 기간 탭 */
     .period-btn { padding: 6px 12px; font-size: 13px; font-weight: 700; border-radius: 2px; border: 1px solid rgba(26,26,26,0.2); background: #fff; color: #1A1A1A; cursor: pointer; }
     .period-btn.active { background: #1A1A1A; color: #FBF9F5; border-color: #1A1A1A; }
@@ -156,7 +163,7 @@
         <!-- 사이드바 상단 붉은 직인 배너 -->
         <div class="p-3 bg-white border border-ink-black/10 rounded-sm flex items-center gap-3">
           <div class="w-9 h-9 bg-seal-red text-white flex flex-col items-center justify-center font-serif text-[10px] font-bold leading-3 rounded-[2px] shadow-xs">
-            <span>說談</span><span>管理</span>
+            <span>설담</span><span>관리</span>
           </div>
           <div>
             <h2 class="text-xs font-bold text-ink-black">설담화 총괄 운영</h2>
@@ -209,6 +216,14 @@
             <div class="flex items-center gap-2.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
               <span>매장 정보 설정</span>
+            </div>
+            <span>›</span>
+          </button>
+
+          <button onclick="switchAdminTab('pages')" id="tab-btn-pages" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
+            <div class="flex items-center gap-2.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <span>사업자·안내 페이지</span>
             </div>
             <span>›</span>
           </button>
@@ -578,6 +593,62 @@
             </div>
             <p class="text-xs text-ink-gray leading-relaxed">• 사용하는 곳: 상품 등록 창의 <strong>[✨ AI로 문구 초안]</strong>, 상담 문의의 <strong>[✨ AI 답변 초안]</strong><br>• 키는 관리자 화면에서만 쓰고, 손님 화면이나 백업 파일에는 들어가지 않아요.</p>
             <p id="ai-message" class="text-xs text-ink-gray"></p>
+          </form>
+        </div>
+      </section>
+
+      <!-- TAB: 사업자·안내 페이지 -->
+      <section id="panel-pages" class="space-y-6 hidden">
+        <div>
+          <h1 class="text-2xl font-extrabold text-ink-black tracking-tight">사업자 정보·안내 페이지</h1>
+          <p class="text-sm text-ink-gray mt-1">쇼핑몰 맨 아래 사업자 정보와 '정성 안내'·약관 페이지를 고쳐요. 저장하면 쇼핑몰에 바로 반영돼요.</p>
+        </div>
+
+        <form id="business-form" onsubmit="saveBusinessInfo(event)" class="admin-card p-5 rounded-sm space-y-3 text-sm">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h2 class="text-base font-bold text-ink-black">사업자 정보</h2>
+            <span class="text-xs text-ink-gray">사업자 등록 전이면 비워 두세요. 쇼핑몰에 '등록 준비 중'으로 나와요.</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <label class="block space-y-1"><span class="font-bold">상호</span><input type="text" id="biz-company" maxlength="40" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+            <label class="block space-y-1"><span class="font-bold">대표자</span><input type="text" id="biz-ceo" maxlength="20" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+            <label class="block space-y-1"><span class="font-bold">개인정보보호책임자</span><input type="text" id="biz-privacy-officer" maxlength="20" placeholder="비우면 대표자" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+            <label class="block space-y-1"><span class="font-bold">사업자등록번호</span><input type="text" id="biz-number" maxlength="12" placeholder="000-00-00000" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+            <label class="block space-y-1"><span class="font-bold">통신판매업 신고번호</span><input type="text" id="biz-mailorder" maxlength="30" placeholder="제2026-서울종로-0000호" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+            <label class="block space-y-1"><span class="font-bold">사업장 주소</span><input type="text" id="biz-address" maxlength="80" placeholder="비우면 매장 주소" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+          </div>
+          <div class="flex items-center gap-3">
+            <button type="submit" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">사업자 정보 저장</button>
+            <span id="business-message" class="text-xs font-bold"></span>
+          </div>
+        </form>
+
+        <div class="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-4 text-sm">
+          <div class="admin-card p-3 rounded-sm space-y-1 h-fit" id="page-list"></div>
+          <form id="page-editor" onsubmit="savePageEditor(event)" class="admin-card p-5 rounded-sm space-y-3">
+            <input type="hidden" id="page-edit-id">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h2 class="text-base font-bold text-ink-black">안내 페이지 고치기</h2>
+              <span id="page-edit-badge" class="text-xs px-2 py-0.5 rounded font-bold"></span>
+            </div>
+            <p id="page-legal-note" class="hidden text-xs bg-amber-50 border border-amber-300 text-amber-900 p-2.5 rounded-xs leading-relaxed">
+              ⚖ 약관·개인정보처리방침·환불 안내는 <strong>초안</strong>이에요. 실제 판매 전에 공정거래위원회 표준약관이나 전문가와 한 번 대조해 주세요.
+            </p>
+            <label class="block space-y-1"><span class="font-bold">제목</span><input type="text" id="page-edit-title" required maxlength="40" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+            <label class="block space-y-1">
+              <span class="font-bold">본문</span>
+              <textarea id="page-edit-body" required rows="18" oninput="updatePagePreview()" class="w-full bg-white border border-ink-black/20 p-2.5 rounded-xs font-mono text-xs leading-relaxed"></textarea>
+              <span class="block text-xs text-ink-gray">쓰는 법: <code>## 소제목</code> · <code>- 목록</code> · 빈 줄로 문단 나누기 · <code>{상호}</code> <code>{대표자}</code> <code>{전화}</code> <code>{이메일}</code> 등은 사업자 정보로 자동으로 바뀌어요.</span>
+            </label>
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="submit" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">저장</button>
+              <button type="button" onclick="resetPageEditor()" class="px-4 py-2 border border-ink-black/20 bg-white font-bold rounded-xs cursor-pointer hover:border-ink-black">처음 문구로 되돌리기</button>
+              <span id="page-message" class="text-xs font-bold"></span>
+            </div>
+            <div class="pt-3 border-t border-ink-black/10">
+              <p class="text-xs font-bold text-ink-gray mb-2">미리보기 (손님에게 보이는 모습)</p>
+              <div id="page-preview" class="info-page-body bg-[#FBF9F5] border border-ink-black/10 rounded-xs p-4 max-h-80 overflow-y-auto text-sm leading-relaxed"></div>
+            </div>
           </form>
         </div>
       </section>
@@ -3049,8 +3120,104 @@
       }).catch(() => { ta.select(); });
     }
 
+    // 10. 사업자 정보·안내 페이지
+    let currentEditPageId = 'bojagi';
+
+    function renderPagesAdmin() {
+      const s = loadSettings();
+      const b = s.business || {};
+      const setVal = (id, v) => { const el = document.getElementById(id); if (el && document.activeElement !== el) el.value = v || ''; };
+      setVal('biz-company', b.companyName);
+      setVal('biz-ceo', b.ceo);
+      setVal('biz-privacy-officer', b.privacyOfficer);
+      setVal('biz-number', b.bizNumber);
+      setVal('biz-mailorder', b.mailOrderNumber);
+      setVal('biz-address', b.bizAddress);
+
+      const pages = loadPages();
+      const groupLabel = { guide: '정성 안내', legal: '약관·법적 안내' };
+      let html = '';
+      let lastGroup = '';
+      PAGE_ORDER.forEach(id => {
+        const pg = pages[id];
+        if (pg.group !== lastGroup) {
+          html += `<p class="px-2 pt-2 pb-1 text-[11px] font-bold text-ink-gray">${groupLabel[pg.group]}</p>`;
+          lastGroup = pg.group;
+        }
+        const active = id === currentEditPageId;
+        html += `<button type="button" onclick="selectPageForEdit('${id}')" class="w-full text-left px-3 py-2 rounded-xs text-sm font-bold flex items-center justify-between ${active ? 'bg-ink-black text-hanji' : 'hover:bg-[#EFECE6] text-ink-black'}">
+          <span>${escapeHtml(pg.title)}</span>${pg.edited ? `<span class="text-[10px] ${active ? 'text-amber-300' : 'text-emerald-700'}">수정됨</span>` : ''}
+        </button>`;
+      });
+      document.getElementById('page-list').innerHTML = html;
+      fillPageEditor(currentEditPageId);
+    }
+
+    function fillPageEditor(id) {
+      const pg = loadPages()[id];
+      document.getElementById('page-edit-id').value = id;
+      document.getElementById('page-edit-title').value = pg.title;
+      document.getElementById('page-edit-body').value = pg.body;
+      const badge = document.getElementById('page-edit-badge');
+      badge.innerText = pg.edited ? '직접 고친 문구' : '처음 문구 (초안)';
+      badge.className = `text-xs px-2 py-0.5 rounded font-bold ${pg.edited ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-700'}`;
+      document.getElementById('page-legal-note').classList.toggle('hidden', pg.group !== 'legal');
+      document.getElementById('page-message').innerText = '';
+      updatePagePreview();
+    }
+
+    function selectPageForEdit(id) {
+      currentEditPageId = id;
+      renderPagesAdmin();
+    }
+
+    function updatePagePreview() {
+      document.getElementById('page-preview').innerHTML = renderPageBody(document.getElementById('page-edit-body').value);
+    }
+
+    function savePageEditor(e) {
+      e.preventDefault();
+      const id = document.getElementById('page-edit-id').value;
+      savePage(id, document.getElementById('page-edit-title').value.trim(), document.getElementById('page-edit-body').value);
+      renderPagesAdmin();
+      setIntegrationMessage('page-message', '저장했어요. 쇼핑몰에 바로 반영돼요.', true);
+    }
+
+    function resetPageEditor() {
+      const id = document.getElementById('page-edit-id').value;
+      if (!confirm('이 페이지를 처음 문구로 되돌릴까요? 직접 고친 내용은 사라져요.')) return;
+      resetPage(id);
+      renderPagesAdmin();
+      setIntegrationMessage('page-message', '처음 문구로 되돌렸어요.', true);
+    }
+
+    function saveBusinessInfo(e) {
+      e.preventDefault();
+      const val = id => document.getElementById(id).value.trim();
+      const bizNumber = val('biz-number');
+      if (bizNumber && !/^\d{3}-?\d{2}-?\d{5}$/.test(bizNumber)) {
+        setIntegrationMessage('business-message', '사업자등록번호는 숫자 10자리예요 (예: 123-45-67890).', false);
+        return;
+      }
+      const s = loadSettings();
+      const digits = bizNumber.replace(/-/g, '');
+      saveSettings({
+        ...s,
+        business: {
+          companyName: val('biz-company') || '설담화',
+          ceo: val('biz-ceo'),
+          privacyOfficer: val('biz-privacy-officer'),
+          bizNumber: digits ? `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}` : '',
+          mailOrderNumber: val('biz-mailorder'),
+          bizAddress: val('biz-address')
+        }
+      });
+      renderPagesAdmin();
+      setIntegrationMessage('business-message', '저장했어요.', true);
+    }
+
     function switchAdminTab(tabName) {
-      ['dashboard', 'products', 'orders', 'finance', 'reviews', 'settings', 'popups', 'integrations'].forEach(t => {
+      ['dashboard', 'products', 'orders', 'finance', 'reviews', 'settings', 'popups', 'integrations', 'pages'].forEach(t => {
         document.getElementById(`panel-${t}`).classList.add('hidden');
         document.getElementById(`tab-btn-${t}`).className = 'sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors';
       });
@@ -3060,6 +3227,7 @@
       if (tabName === 'popups') { try { initPopupsAdmin(); } catch (e) { console.error('initPopupsAdmin error:', e); } }
       if (tabName === 'dashboard') { try { renderDashboard(); } catch (e) { console.error('renderDashboard error:', e); } }
       if (tabName === 'finance') { try { renderFinance(); } catch (e) { console.error('renderFinance error:', e); } }
+      if (tabName === 'pages') { try { renderPagesAdmin(); } catch (e) { console.error('renderPagesAdmin error:', e); } }
       if (tabName === 'integrations') { try { renderIntegrations(); } catch (e) { console.error('renderIntegrations error:', e); } }
     }
 

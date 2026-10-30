@@ -255,6 +255,14 @@ const I18N = {
     footer_link_admin: "관리자 센터 로그인",
     footer_terms: "이용약관",
     footer_privacy: "개인정보처리방침",
+    footer_link_delivery: "배송 안내",
+    footer_link_refund: "교환·환불 안내",
+    footer_biz_pending: "사업자 정보는 등록 준비 중입니다.",
+    consent_privacy_inquiry: "[필수] 상담을 위한 개인정보(이름·연락처·문의 내용) 수집·이용에 동의합니다.",
+    consent_privacy_order: "[필수] 주문·배송을 위한 개인정보(이름·연락처·주소) 수집·이용 및 배송 업체 제공에 동의합니다.",
+    consent_refund: "[필수] 생화 특성상 받는 날 1일 전부터는 취소·환불이 어렵다는 안내를 확인했습니다.",
+    consent_view: "자세히",
+    page_korean_only: "",
 
     // 검색 모달
     search_placeholder: "꽃 이름, 꽃말, 이야기 키워드를 검색하세요.",
@@ -514,6 +522,14 @@ const I18N = {
     footer_link_admin: "Admin Center Login",
     footer_terms: "Terms of Service",
     footer_privacy: "Privacy Policy",
+    footer_link_delivery: "Delivery Guide",
+    footer_link_refund: "Exchange & Refund Policy",
+    footer_biz_pending: "Business registration details will be added soon.",
+    consent_privacy_inquiry: "[Required] I agree to the collection and use of my personal information (name, phone, inquiry) for this consultation.",
+    consent_privacy_order: "[Required] I agree to the collection and use of my personal information (name, phone, address) for ordering and delivery, including sharing with the courier.",
+    consent_refund: "[Required] I understand that fresh flowers cannot be cancelled or refunded from 1 day before the delivery date.",
+    consent_view: "View",
+    page_korean_only: "This page is currently available in Korean only.",
 
     // Search
     search_placeholder: "Search by flower name, meaning, or story keyword...",
@@ -773,6 +789,14 @@ const I18N = {
     footer_link_admin: "管理者センター ログイン",
     footer_terms: "利用規約",
     footer_privacy: "個人情報処理方針",
+    footer_link_delivery: "配送のご案内",
+    footer_link_refund: "交換・返品のご案内",
+    footer_biz_pending: "事業者情報は現在登録準備中です。",
+    consent_privacy_inquiry: "【必須】ご相談のための個人情報（お名前・連絡先・お問い合わせ内容）の収集・利用に同意します。",
+    consent_privacy_order: "【必須】ご注文・配送のための個人情報（お名前・連絡先・住所）の収集・利用および配送業者への提供に同意します。",
+    consent_refund: "【必須】生花の特性上、お届け日の1日前からはキャンセル・返金ができないことを確認しました。",
+    consent_view: "詳しく",
+    page_korean_only: "このページは現在韓国語のみでご案内しています。",
 
     // 検索
     search_placeholder: "花の名前、花言葉、物語のキーワードで検索...",
@@ -1074,6 +1098,9 @@ function applyLanguage(lang = getCurrentLang()) {
   }
   if (typeof renderSiteSettings === 'function') {
     renderSiteSettings();
+  }
+  if (typeof renderBusinessInfo === 'function') {
+    renderBusinessInfo();
   }
   if (typeof updatePDPPrice === 'function' && currentSelectedProduct) {
     updatePDPPrice();

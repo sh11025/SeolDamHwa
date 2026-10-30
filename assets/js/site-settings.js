@@ -50,6 +50,7 @@ const DEFAULT_SETTINGS = {
   directions: '',          // 예: "안국역 2번 출구 도보 7분"
   kakaoChannelUrl: '',     // 예: "https://pf.kakao.com/_xxxx"
   showLocation: false,     // 오프라인 아틀리에 오시는 길 공개 여부 (기본 false: 비공개)
+  business: { companyName: '설담화', ceo: '', bizNumber: '', mailOrderNumber: '', bizAddress: '', privacyOfficer: '' }, // 사업자 정보 (맨 아래·약관에 표시)
   weeklyHours: DEFAULT_WEEKLY_HOURS,
   closures: [],            // [ { date: "YYYY-MM-DD", reason: "" }, ... ]
   holidayClosed: true,     // 공휴일 휴무 여부 (기본: true)
