@@ -15,6 +15,7 @@ function toggleMobileMenu(forceClose) {
 function handleMobileNav(view) {
   toggleMobileMenu(false);
   if (view === 'flowers') { openFlowersPage(); return; }
+  if (view === 'dictionary') { openDictionaryPage(); return; }
   switchView(view);
 }
 

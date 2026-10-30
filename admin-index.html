@@ -220,6 +220,14 @@
             <span id="badge-prod-count" class="text-xs bg-seal-red/15 text-seal-red px-1.5 py-0.5 rounded font-bold">8</span>
           </button>
 
+          <button onclick="switchAdminTab('flowers')" id="tab-btn-flowers" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
+            <div class="flex items-center gap-2.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21V11m0 0c0-3 2-6 6-7 0 4-2 7-6 7zm0 0c0-3-2-6-6-7 0 4 2 7 6 7z"/></svg>
+              <span>꽃 사전</span>
+            </div>
+            <span id="badge-flower-count" class="text-xs bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold"></span>
+          </button>
+
           <button onclick="switchAdminTab('orders')" id="tab-btn-orders" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
             <div class="flex items-center gap-2.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
@@ -491,11 +499,19 @@
           </div>
         </div>
 
+      </section>
+
+      <!-- TAB: 꽃 사전 (꽃 이름·꽃말·제철 달 → 상품 '사용한 꽃', 쇼핑몰 '꽃 사전' 페이지) -->
+      <section id="panel-flowers" class="space-y-6 hidden">
+        <div>
+          <h1 class="text-2xl font-extrabold text-ink-black tracking-tight">🌿 꽃 사전</h1>
+          <p class="text-sm text-ink-gray mt-1">여기 적은 꽃은 쇼핑몰 위쪽 메뉴 '꽃 사전' 페이지에 그대로 보여요. 상품 수정 창의 '사용한 꽃'에서 고르면 상품 페이지에도 나와요.</p>
+        </div>
         <!-- 꽃 사전: 꽃 이름·꽃말·제철 달을 한 번 등록 → 상품의 '사용한 꽃'에서 골라 씀 -->
         <div id="flower-dictionary" class="admin-card rounded-sm overflow-hidden">
           <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-ink-black/10">
             <div>
-              <h2 class="text-lg font-extrabold text-ink-black">🌿 꽃 사전</h2>
+              <h2 class="text-lg font-extrabold text-ink-black">꽃 목록</h2>
               <p class="text-xs text-ink-gray mt-0.5">여기 적은 꽃말·제철 달이 상품 페이지 '이 상품에 쓰인 꽃'에 나오고, 제철인 꽃이 든 상품은 쇼핑몰에 '지금이 제철'로 표시돼 홈 슬라이더 앞쪽에 와요. <span id="flower-count" class="font-bold text-ink-black"></span></p>
             </div>
             <div class="flex flex-wrap gap-2 shrink-0">
@@ -504,7 +520,7 @@
               <button type="button" onclick="resetFlowerDictionary()" class="px-3 py-1.5 border border-ink-black/20 bg-white rounded-xs text-xs font-bold hover:border-ink-black cursor-pointer">처음 목록으로</button>
             </div>
           </div>
-          <div class="overflow-x-auto max-h-[480px] overflow-y-auto">
+          <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
               <thead class="sticky top-0">
                 <tr class="bg-[#EFECE6] border-b border-ink-black/10 text-ink-gray font-bold">

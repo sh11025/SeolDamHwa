@@ -208,6 +208,7 @@ function renderProducts(category) {
     requestAnimationFrame(updateHomeSliderArrows);
   }
   if (typeof refreshFlowersPage === 'function') refreshFlowersPage();
+  if (typeof refreshDictionaryPage === 'function') refreshDictionaryPage();
 }
 
 function scrollHomeSlider(dir) {

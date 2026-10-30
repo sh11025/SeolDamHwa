@@ -12,6 +12,8 @@ function renderFlowerDictionary() {
   const q = (document.getElementById('flower-search') || {}).value || '';
   const count = document.getElementById('flower-count');
   if (count) count.textContent = `${flowers.length}종 · 지금(${month}월) 제철 ${flowers.filter(f => isFlowerInSeason(f, month)).length}종`;
+  const badge = document.getElementById('badge-flower-count');
+  if (badge) badge.textContent = flowers.length;
   tbody.innerHTML = '';
   flowers
     .filter(f => !q.trim() || [f.name, f.nameEn, f.meaning, f.colors].join(' ').toLowerCase().includes(q.trim().toLowerCase()))

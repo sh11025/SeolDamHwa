@@ -337,19 +337,22 @@
       <!-- 좌측: 데스크톱 메뉴 + 모바일 햄버거 버튼 -->
       <div class="flex items-center justify-start">
         <!-- 모바일 햄버거 메뉴 버튼 (md 미만 표시) -->
-        <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="lg:hidden p-2 -ml-2 text-ink-black hover:text-seal-red cursor-pointer" aria-label="메뉴 열기">
+        <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="xl:hidden p-2 -ml-2 text-ink-black hover:text-seal-red cursor-pointer" aria-label="메뉴 열기">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
           </svg>
         </button>
 
         <!-- 데스크톱 내비게이션 (순서: 설담화 이야기 -> 꽃 둘러보기 (Shop) -> 맞춤 담화) -->
-        <nav class="hidden lg:flex items-center space-x-6 xl:space-x-8 text-sm font-semibold tracking-tight">
+        <nav class="hidden xl:flex items-center space-x-6 text-sm font-semibold tracking-tight">
           <button onclick="switchView('story')" id="nav-story" data-i18n="nav_story" class="nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors">
             설담화 이야기
           </button>
           <button onclick="openFlowersPage()" id="nav-shop" data-i18n="nav_shop" class="nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors">
             꽃 둘러보기 (Shop)
+          </button>
+          <button onclick="openDictionaryPage()" id="nav-dictionary" data-i18n="nav_dictionary" class="nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors">
+            꽃 사전
           </button>
           <button onclick="switchView('custom')" id="nav-custom" data-i18n="nav_custom" class="nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors">
             맞춤 담화
@@ -436,12 +439,15 @@
     </div>
 
     <!-- 모바일 전체 너비 드롭다운 메뉴 패널 (md 미만 전용) -->
-    <div id="mobile-menu-dropdown" class="hidden lg:hidden bg-hanji/98 backdrop-blur-md border-t border-ink-black/10 shadow-lg px-6 py-4 space-y-2">
+    <div id="mobile-menu-dropdown" class="hidden xl:hidden bg-hanji/98 backdrop-blur-md border-t border-ink-black/10 shadow-lg px-6 py-4 space-y-2">
       <button onclick="handleMobileNav('story')" data-i18n="nav_story" class="block w-full text-left py-2 text-sm font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-b border-ink-black/5">
         설담화 이야기
       </button>
       <button onclick="handleMobileNav('flowers')" data-i18n="nav_shop" class="block w-full text-left py-2 text-sm font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-b border-ink-black/5">
         꽃 둘러보기 (Shop)
+      </button>
+      <button onclick="handleMobileNav('dictionary')" data-i18n="nav_dictionary" class="block w-full text-left py-2 text-sm font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-b border-ink-black/5">
+        꽃 사전
       </button>
       <button onclick="handleMobileNav('custom')" data-i18n="nav_custom" class="block w-full text-left py-2 text-sm font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-b border-ink-black/5">
         맞춤 담화
@@ -1608,6 +1614,7 @@
   <script src="assets/js/shop/shop-settings.js"></script>
   <script src="assets/js/shop/shop-browse.js"></script>
   <script src="assets/js/shop/shop-flowers.js"></script>
+  <script src="assets/js/shop/shop-dictionary.js"></script>
   <script src="assets/js/shop/shop-router.js"></script>
   <script src="assets/js/shop/shop-chat.js"></script>
 </body>

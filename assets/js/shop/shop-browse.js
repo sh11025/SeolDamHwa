@@ -1,6 +1,8 @@
 // assets/js/shop/shop-browse.js
 // 설담화 쇼핑몰: 꽃 둘러보기 페이지 (#/flowers, #/flowers/<종류>)
-// 종류·가격대·색·상황으로 거르고, 정렬하고, 12개씩 더 보기. 상품 카드는 shop-core.js의 buildProductCard()를 씁니다.
+// 맞춤 담화와 같은 5가지(누구에게·어떤 날·마음·색·예산)로 거르고, 정렬하고, 12개씩 더 보기.
+// 선택지와 상품 태그는 맞춤 담화(shop-curation.js CURATION_QUESTIONS, products-data.js CURATION_TAGS)와 같은 것을 씁니다.
+// 상품 카드는 shop-core.js의 buildProductCard()를 씁니다.
 
 const BROWSE_PAGE_SIZE = 12;
 const BROWSE_CATEGORIES = [
@@ -9,20 +11,23 @@ const BROWSE_CATEGORIES = [
   { id: 'basket', key: 'cat_basket', label: '꽃바구니' },
   { id: 'space', key: 'cat_space', label: '웨딩·공간' }
 ];
-const BROWSE_PRICES = [
-  { id: 'all', key: 'price_all', label: '모든 가격' },
-  { id: 'under5', key: 'price_under5', label: '5만 원 미만', test: p => !p.inquiryOnly && productMinPriceOf(p) < 50000 },
-  { id: '5to10', key: 'price_5to10', label: '5만~10만 원', test: p => !p.inquiryOnly && productMinPriceOf(p) >= 50000 && productMinPriceOf(p) < 100000 },
-  { id: 'over10', key: 'price_over10', label: '10만 원 이상', test: p => !p.inquiryOnly && productMinPriceOf(p) >= 100000 },
-  { id: 'inquiry', key: 'price_inquiry', label: '상담 후 견적', test: p => !!p.inquiryOnly }
+// 거르기 칸 = 맞춤 담화 질문 (field → 상품 태그 이름)
+const BROWSE_FILTERS = [
+  { field: 'recipient', tag: 'recipients', key: 'browse_recipient', label: '누구에게' },
+  { field: 'occasion', tag: 'occasions', key: 'browse_occasion', label: '어떤 날' },
+  { field: 'feeling', tag: 'feelings', key: 'browse_feeling', label: '마음' },
+  { field: 'color', tag: 'colors', key: 'browse_color', label: '색' },
+  { field: 'budget', key: 'browse_budget', label: '예산' }
 ];
+// 추천순 기준은 browseResults() 참고
 const BROWSE_SORTS = [
   { id: 'recommend', key: 'sort_recommend', label: '추천순' },
   { id: 'price_asc', key: 'sort_price_asc', label: '낮은 가격순' },
   { id: 'price_desc', key: 'sort_price_desc', label: '높은 가격순' }
 ];
 
-let browseState = { category: 'all', price: 'all', color: '', occasion: '', season: false, sort: 'recommend', shown: BROWSE_PAGE_SIZE };
+const BROWSE_EMPTY_FILTERS = { recipient: '', occasion: '', feeling: '', color: '', budget: '' };
+let browseState = { category: 'all', ...BROWSE_EMPTY_FILTERS, season: false, sort: 'recommend', shown: BROWSE_PAGE_SIZE };
 
 function brT(key, fallback) {
   return typeof t === 'function' ? t(key, fallback) : fallback;
@@ -45,21 +50,30 @@ function curationOptions(field) {
   return q ? q.options.filter(o => !o.isNeutral) : [];
 }
 
+// 상품이 거르기 한 칸의 선택과 맞는지 (맞춤 담화 점수 계산과 같은 태그·예산 기준)
+function productMatchesFilter(p, f, value) {
+  if (!value) return true;
+  if (f.field === 'budget') return typeof getProductBudgetTiers === 'function' && getProductBudgetTiers(p).includes(value);
+  const tags = productTagsOf(p)[f.tag] || [];
+  if (tags.includes(value)) return true;
+  return f.field === 'recipient' && value === '동료·상사' && tags.includes('직장 동료·상사');
+}
+
 function browseResults() {
   const s = browseState;
-  const priceRule = BROWSE_PRICES.find(x => x.id === s.price);
+  const flowers = typeof loadFlowers === 'function' ? loadFlowers() : [];
+  const inSeason = p => typeof isProductInSeason === 'function' && isProductInSeason(p, flowers);
   let list = loadProducts()
     .filter(p => typeof isProductVisible === 'function' ? isProductVisible(p) : true)
-    .map((p, i) => ({ p, i }))
+    .map((p, i) => ({ p, i, season: inSeason(p) ? 0 : 1 }))
     .filter(({ p }) => s.category === 'all' || p.category === s.category)
-    .filter(({ p }) => !priceRule || !priceRule.test || priceRule.test(p))
-    .filter(({ p }) => !s.color || (productTagsOf(p).colors || []).includes(s.color))
-    .filter(({ p }) => !s.occasion || (productTagsOf(p).occasions || []).includes(s.occasion))
-    .filter(({ p }) => !s.season || (typeof isProductInSeason === 'function' && isProductInSeason(p)));
+    .filter(({ p }) => BROWSE_FILTERS.every(f => productMatchesFilter(p, f, s[f.field])))
+    .filter(({ season }) => !s.season || season === 0);
   const priceKey = x => (x.p.inquiryOnly ? Infinity : productMinPriceOf(x.p));
   if (s.sort === 'price_asc') list.sort((a, b) => (priceKey(a) - priceKey(b)) || (a.i - b.i));
   else if (s.sort === 'price_desc') list.sort((a, b) => ((a.p.inquiryOnly ? 1 : 0) - (b.p.inquiryOnly ? 1 : 0)) || (productMinPriceOf(b.p) - productMinPriceOf(a.p)) || (a.i - b.i));
-  else list.sort((a, b) => (homeOrderOf(a.p) - homeOrderOf(b.p)) || (a.i - b.i));
+  // 추천순 = 관리자 '홈 순서' → 지금 제철인 꽃이 든 상품 → 관리자 상품 목록 순서 (홈 슬라이더와 같음)
+  else list.sort((a, b) => (homeOrderOf(a.p) - homeOrderOf(b.p)) || (a.season - b.season) || (a.i - b.i));
   return list.map(x => x.p);
 }
 
@@ -131,13 +145,13 @@ function renderFlowersPage() {
   // 가격대 · 색 · 상황 · 정렬
   const set = (key) => (v) => { browseState[key] = v; browseState.shown = BROWSE_PAGE_SIZE; renderFlowersPage(); };
   const bar = document.createElement('div');
-  bar.className = 'grid grid-cols-2 md:grid-cols-4 gap-3 pb-6 border-b border-ink-black/10';
-  bar.append(
-    browseSelect('browse-price', brT('browse_price', '가격대'), BROWSE_PRICES.map(x => [x.id, brT(x.key, x.label)]), s.price, set('price')),
-    browseSelect('browse-color', brT('browse_color', '색'), [['', brT('any_color', '모든 색')], ...curationOptions('color').map(o => [o.label, brT(o.i18nKey, o.label)])], s.color, set('color')),
-    browseSelect('browse-occasion', brT('browse_occasion', '상황'), [['', brT('any_occasion', '모든 상황')], ...curationOptions('occasion').map(o => [o.label, brT(o.i18nKey, o.label)])], s.occasion, set('occasion')),
-    browseSelect('browse-sort', brT('browse_sort', '정렬'), BROWSE_SORTS.map(x => [x.id, brT(x.key, x.label)]), s.sort, v => { browseState.sort = v; renderFlowersPage(); })
-  );
+  bar.className = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pb-6 border-b border-ink-black/10';
+  BROWSE_FILTERS.forEach(f => {
+    bar.appendChild(browseSelect(`browse-${f.field}`, brT(f.key, f.label),
+      [['', brT('browse_any', '전체')], ...curationOptions(f.field).map(o => [o.label, brT(o.i18nKey, o.label)])],
+      s[f.field], set(f.field)));
+  });
+  bar.appendChild(browseSelect('browse-sort', brT('browse_sort', '정렬'), BROWSE_SORTS.map(x => [x.id, brT(x.key, x.label)]), s.sort, v => { browseState.sort = v; renderFlowersPage(); }));
   view.appendChild(bar);
 
   const seasonWrap = document.createElement('label');
@@ -152,7 +166,7 @@ function renderFlowersPage() {
   view.appendChild(seasonWrap);
 
   const results = browseResults();
-  const filtered = s.price !== 'all' || s.color || s.occasion || s.season;
+  const filtered = BROWSE_FILTERS.some(f => s[f.field]) || s.season;
 
   const info = document.createElement('div');
   info.className = 'flex items-center justify-between gap-3 py-4 text-sm';
@@ -206,7 +220,7 @@ function renderFlowersPage() {
 }
 
 function resetBrowseFilters() {
-  browseState = { ...browseState, price: 'all', color: '', occasion: '', season: false, shown: BROWSE_PAGE_SIZE };
+  browseState = { ...browseState, ...BROWSE_EMPTY_FILTERS, season: false, shown: BROWSE_PAGE_SIZE };
   renderFlowersPage();
 }
 
