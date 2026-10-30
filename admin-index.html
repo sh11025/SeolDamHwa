@@ -1,0 +1,2367 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>설담화 관리자 센터 (Seoldamhwa Admin)</title>
+  
+  <!-- 웹폰트: 최고 가독성의 Pretendard + 붓글씨 Nanum Brush Script + Noto Serif KR -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="assets/js/products-data.js"></script>
+  <script src="assets/js/site-settings.js"></script>
+  <script src="assets/js/popups.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            hanji: '#FBF9F5',
+            ink: {
+              black: '#1A1A1A',
+              charcoal: '#2E2E2E',
+              gray: '#666666',
+              light: '#999999',
+            },
+            seal: {
+              red: '#8B2500',
+              crimson: '#A3330D'
+            }
+          },
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+            serif: ['"Noto Serif KR"', 'serif'],
+            brush: ['"Nanum Brush Script"', 'cursive']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #F4F1EA;
+      color: #1A1A1A;
+      font-family: 'Pretendard', sans-serif;
+      letter-spacing: -0.02em;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* 자개(Mother-of-pearl) 무지갯빛 펄 버튼 */
+    .jakae-btn {
+      position: relative;
+      overflow: hidden;
+      background: #1A1A1A;
+      color: #FBF9F5;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .jakae-btn::before {
+      content: '';
+      position: absolute;
+      top: -60%;
+      left: -60%;
+      width: 220%;
+      height: 220%;
+      background: linear-gradient(
+        115deg,
+        transparent 20%,
+        rgba(255, 255, 255, 0.2) 30%,
+        rgba(168, 230, 207, 0.45) 42%,
+        rgba(255, 211, 181, 0.45) 50%,
+        rgba(218, 174, 230, 0.45) 58%,
+        rgba(168, 216, 234, 0.4) 66%,
+        transparent 80%
+      );
+      transform: rotate(-30deg) translateY(-100%);
+      transition: transform 0.65s ease;
+      pointer-events: none;
+    }
+    .jakae-btn:hover::before {
+      transform: rotate(-30deg) translateY(55%);
+    }
+    .jakae-btn:hover {
+      box-shadow: 0 6px 20px -3px rgba(26, 26, 26, 0.3);
+      transform: translateY(-1px);
+    }
+
+    /* 한옥 창살 세련된 카드 */
+    .admin-card {
+      background-color: #FAF7F2;
+      border: 1px solid rgba(26, 26, 26, 0.1);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-seal-red/15 selection:text-seal-red">
+  <!-- 1. 관리자 상단 헤더 (Admin Top Bar) -->
+  <header class="bg-ink-black text-hanji px-6 py-3.5 flex items-center justify-between border-b border-black/20 sticky top-0 z-30 shadow-sm">
+    <div class="flex items-center gap-4">
+      <!-- 붉은 낙관 브랜딩 ("설담화 관리자") -->
+      <div class="flex items-center gap-2">
+        <span class="font-brush text-2xl text-white tracking-wider">설담화</span>
+        <img src="assets/images/seal.svg" alt="설담화 낙관" class="w-7 h-7 shrink-0 drop-shadow-xs select-none">
+      </div>
+      <span class="text-xs bg-seal-red text-white px-2 py-0.5 rounded font-bold tracking-wider">
+        전용 관리자 센터
+      </span>
+      <span class="text-xs text-ink-light hidden sm:inline">
+        | Modern Oriental Floral Atelier Operations
+      </span>
+    </div>
+
+    <!-- 고객 쇼핑몰 바로가기 링크 -->
+    <a href="index.html" class="flex items-center gap-2 bg-[#FAF7F2] text-ink-black hover:bg-seal-red hover:text-white px-3.5 py-1.5 rounded-sm text-xs font-bold transition-all shadow-xs">
+      <span>고객 쇼핑몰 바로가기 (index.html)</span>
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </a>
+  </header>
+
+  <div class="flex-1 flex flex-col md:flex-row">
+    
+    <!-- 2. 좌측 사이드바 내비게이션 (Sidebar Navigation) -->
+    <aside class="w-full md:w-64 bg-[#FAF7F2] border-r border-ink-black/10 p-5 shrink-0 flex flex-col justify-between">
+      <div class="space-y-6">
+        
+        <!-- 사이드바 상단 붉은 직인 배너 -->
+        <div class="p-3 bg-white border border-ink-black/10 rounded-sm flex items-center gap-3">
+          <div class="w-9 h-9 bg-seal-red text-white flex flex-col items-center justify-center font-serif text-[10px] font-bold leading-3 rounded-[2px] shadow-xs">
+            <span>說談</span><span>管理</span>
+          </div>
+          <div>
+            <h2 class="text-xs font-bold text-ink-black">설담화 총괄 운영</h2>
+            <p class="text-[11px] text-ink-gray">실시간 상점 연동 활성화</p>
+          </div>
+        </div>
+
+        <!-- 4대 사이드바 메뉴 -->
+        <nav class="space-y-1 text-sm font-semibold">
+          <button onclick="switchAdminTab('dashboard')" id="tab-btn-dashboard" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm bg-ink-black text-hanji font-bold cursor-pointer transition-colors">
+            <div class="flex items-center gap-2.5">
+              <svg class="w-4 h-4 text-seal-red" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+              <span>대시보드 요약</span>
+            </div>
+            <span>›</span>
+          </button>
+
+          <button onclick="switchAdminTab('products')" id="tab-btn-products" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
+            <div class="flex items-center gap-2.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+              <span>상품 및 이야기 관리</span>
+            </div>
+            <span id="badge-prod-count" class="text-xs bg-seal-red/15 text-seal-red px-1.5 py-0.5 rounded font-bold">8</span>
+          </button>
+
+          <button onclick="switchAdminTab('orders')" id="tab-btn-orders" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
+            <div class="flex items-center gap-2.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+              <span>주문 및 신선 배송 관리</span>
+            </div>
+            <span id="badge-order-count" class="text-xs bg-seal-red text-white px-1.5 py-0.5 rounded font-bold">4</span>
+          </button>
+
+          <button onclick="switchAdminTab('reviews')" id="tab-btn-reviews" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
+            <div class="flex items-center gap-2.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+              <span>고객 및 리뷰 관리</span>
+            </div>
+            <span class="text-xs bg-black/10 text-ink-gray px-1.5 py-0.5 rounded">3</span>
+          </button>
+          <button onclick="switchAdminTab('settings')" id="tab-btn-settings" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
+            <div class="flex items-center gap-2.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+              <span>매장 정보 설정</span>
+            </div>
+            <span>›</span>
+          </button>
+          <button onclick="switchAdminTab('popups')" id="tab-btn-popups" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
+            <div class="flex items-center gap-2.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+              <span>팝업 관리</span>
+            </div>
+            <span id="popups-active-badge" class="text-xs bg-black/10 text-ink-gray px-1.5 py-0.5 rounded">0</span>
+          </button>
+
+        </nav>
+      </div>
+
+      <!-- 사이드바 하단 정보 -->
+      <div class="pt-6 border-t border-ink-black/10 text-xs text-ink-gray space-y-2">
+        <p class="font-bold text-ink-black flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          쇼핑몰 실시간 동기화 중
+        </p>
+        <p class="text-[11px] leading-relaxed">
+          여기서 추가/수정한 상품과 '한 줄 글귀'는 고객 쇼핑몰(index.html)에 즉시 반영됩니다.
+        </p>
+      </div>
+    </aside>
+
+    <!-- 3. 메인 콘텐츠 영역 (Main Content Area) -->
+    <main class="flex-1 p-6 md:p-10 overflow-y-auto">
+      
+      <!-- TAB 1: 대시보드 요약 (Dashboard Summary) -->
+      <section id="panel-dashboard" class="space-y-8">
+        <div>
+          <h1 class="text-2xl font-extrabold text-ink-black tracking-tight">대시보드 운영 현황</h1>
+          <p class="text-xs text-ink-gray mt-1">생화 신선 출고 현황 및 일일 주문/매출 데이터를 실시간으로 모니터링합니다.</p>
+        </div>
+
+        <!-- 3대 핵심 메트릭스 카드 (Metrics Cards) -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          
+          <div class="admin-card p-5 rounded-sm space-y-2">
+            <div class="flex justify-between items-center text-xs font-bold text-ink-gray">
+              <span>일일 총 결제액 (Daily Sales)</span>
+              <span class="text-seal-red">₩</span>
+            </div>
+            <p id="metric-revenue" class="text-3xl font-extrabold text-ink-black">-</p>
+            <p id="metric-revenue-sub" class="text-[11px] text-seal-red font-semibold">오늘 주문 0건</p>
+          </div>
+
+          <div class="admin-card p-5 rounded-sm space-y-2">
+            <div class="flex justify-between items-center text-xs font-bold text-ink-gray">
+              <span>활성 신규 주문 (Active Orders)</span>
+              <svg class="w-4 h-4 text-ink-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+            </div>
+            <p id="metric-orders" class="text-3xl font-extrabold text-ink-black">-</p>
+            <p id="metric-orders-sub" class="text-[11px] text-ink-gray">제작 중: 0건 · 배송 중: 0건</p>
+          </div>
+
+          <div class="admin-card p-5 rounded-sm space-y-2">
+            <div class="flex justify-between items-center text-xs font-bold text-ink-gray">
+              <span>맞춤 담화 문의 (Inquiries)</span>
+              <svg class="w-4 h-4 text-ink-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            </div>
+            <p id="metric-inquiries" class="text-3xl font-extrabold text-ink-black">-</p>
+            <p id="metric-inquiries-sub" class="text-[11px] text-seal-red font-semibold">답변 대기 0건</p>
+          </div>
+
+        </div>
+
+        <!-- 최근 주문 현황 테이블 (미리보기) -->
+        <div class="admin-card p-6 rounded-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-bold text-ink-black">최근 접수된 주문 & 생화 희망 배송일</h2>
+              <p class="text-xs text-ink-gray">생화는 지정된 희망 배송일 아침에 수작업으로 준비됩니다.</p>
+            </div>
+            <button onclick="switchAdminTab('orders')" class="text-xs font-bold text-seal-red hover:underline cursor-pointer">
+              전체 주문 관리 &gt;
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead>
+                <tr class="border-b border-ink-black/10 text-ink-gray font-bold">
+                  <th class="py-2.5 px-3">주문번호</th>
+                  <th class="py-2.5 px-3">주문자 / 수령인</th>
+                  <th class="py-2.5 px-3">주문 꽃 상품</th>
+                  <th class="py-2.5 px-3 text-seal-red">★ 생화 희망 배송일</th>
+                  <th class="py-2.5 px-3">결제금액</th>
+                  <th class="py-2.5 px-3">상태</th>
+                </tr>
+              </thead>
+              <tbody id="dashboard-recent-orders" class="divide-y divide-ink-black/5">
+                <!-- 동적 렌더링 -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: 상품 및 이야기 관리 (Products & Storytelling Copy) -->
+      <section id="panel-products" class="space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-extrabold text-ink-black tracking-tight">상품 및 브랜드 '한 줄 글귀' 관리</h1>
+            <p class="text-xs text-ink-gray mt-1">
+              설담화의 정체성인 상품명, 판매가, 재고 및 <strong>시적인 스토리텔링 글귀(한 줄 글귀)</strong>를 관리합니다.
+            </p>
+          </div>
+
+          <button onclick="openProductModal()" class="jakae-btn px-4 py-2.5 rounded-sm text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-sm">
+            <span>+ 신규 꽃 상품 등록</span>
+          </button>
+        </div>
+
+        <!-- 공개 상태 필터 (전체 / 공개 / 비공개 / 예약) -->
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="setProductFilter('all')" id="prod-filter-all" class="prod-filter-btn px-3 py-1.5 text-xs font-bold rounded-xs bg-ink-black text-white cursor-pointer shadow-xs">전체</button>
+          <button type="button" onclick="setProductFilter('public')" id="prod-filter-public" class="prod-filter-btn px-3 py-1.5 text-xs font-bold rounded-xs bg-white text-ink-black border border-ink-black/20 hover:border-ink-black cursor-pointer">공개</button>
+          <button type="button" onclick="setProductFilter('private')" id="prod-filter-private" class="prod-filter-btn px-3 py-1.5 text-xs font-bold rounded-xs bg-white text-ink-black border border-ink-black/20 hover:border-ink-black cursor-pointer">비공개</button>
+          <button type="button" onclick="setProductFilter('scheduled')" id="prod-filter-scheduled" class="prod-filter-btn px-3 py-1.5 text-xs font-bold rounded-xs bg-white text-ink-black border border-ink-black/20 hover:border-ink-black cursor-pointer">예약</button>
+        </div>
+
+        <!-- 상품 목록 테이블 -->
+        <div class="admin-card rounded-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead>
+                <tr class="bg-[#EFECE6] border-b border-ink-black/10 text-ink-gray font-bold">
+                  <th class="py-3 px-4">꽃 이미지</th>
+                  <th class="py-3 px-4">상품명 / 카테고리</th>
+                  <th class="py-3 px-4 max-w-xs text-seal-red">한 줄 글귀 (Storytelling Copy)</th>
+                  <th class="py-3 px-4">판매가</th>
+                  <th class="py-3 px-4">재고 상태</th>
+                  <th class="py-3 px-4">공개 상태</th>
+                  <th class="py-3 px-4 text-center">관리</th>
+                </tr>
+              </thead>
+              <tbody id="admin-products-table" class="divide-y divide-ink-black/5">
+                <!-- 동적 렌더링 -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: 주문 및 신선 배송 관리 (Orders & Fresh Flower Delivery Dates) -->
+      <section id="panel-orders" class="space-y-6 hidden">
+        <div>
+          <h1 class="text-2xl font-extrabold text-ink-black tracking-tight">주문 및 생화 희망 배송일 관리</h1>
+          <p class="text-xs text-ink-gray mt-1">
+            생화의 시들지 않는 신선함을 위해 <strong>'희망 배송일'</strong>을 중심으로 제작 및 특송 상태를 추적합니다.
+          </p>
+        </div>
+
+        <div id="admin-orders-list" class="grid grid-cols-1 gap-4">
+          <!-- 동적 렌더링 -->
+        </div>
+      </section>
+
+      <!-- TAB 4: 고객 및 리뷰 관리 (Customers & Reviews) -->
+      <section id="panel-reviews" class="space-y-8 hidden">
+        <!-- 맞춤 담화 1:1 상담 문의 관리 -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between border-b border-ink-black/10 pb-3">
+            <div>
+              <h2 class="text-xl font-extrabold text-ink-black flex items-center gap-2">
+                <span>맞춤 담화 1:1 상담 문의</span>
+                <span id="inquiry-counter-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-seal-red text-white">0건 대기</span>
+              </h2>
+              <p class="text-xs text-ink-gray mt-1">고객이 맞춤 담화 탭에서 신청한 1:1 플로럴 스타일링 및 공간 연출 문의 내역입니다.</p>
+            </div>
+          </div>
+
+          <div id="admin-inquiries-list" class="space-y-3">
+            <!-- 동적 렌더링 -->
+          </div>
+        </div>
+
+        <!-- 2030 감성 포토 리뷰 관리 -->
+        <div class="space-y-4 pt-4 border-t border-ink-black/10">
+          <div>
+            <h2 class="text-xl font-extrabold text-ink-black tracking-tight">2030 감성 포토 리뷰 관리</h2>
+            <p class="text-xs text-ink-gray mt-1">
+              고객들이 업로드한 감성 후기를 검수하고 쇼핑몰 노출 여부를 토글합니다.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="admin-reviews-list">
+            <!-- 동적 렌더링 -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 매장 정보 설정 패널 -->
+      <section id="panel-settings" class="space-y-6 hidden">
+        <div>
+          <h1 class="text-2xl font-extrabold text-ink-black tracking-tight">매장 정보 및 고객센터 설정</h1>
+          <p class="text-xs text-ink-gray mt-1">
+            쇼핑몰 하단 고객센터 안내, 오시는 길 지도 및 카카오톡 상담 채널 정보를 관리합니다.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          <!-- 좌측: 설정 입력 폼 (7칸) -->
+          <div class="lg:col-span-7 admin-card p-6 rounded-sm space-y-5">
+            <form id="admin-settings-form" onsubmit="saveStoreSettings(event)" class="space-y-4 text-xs">
+              
+              <!-- 1) 기본 연락처 -->
+              <div class="space-y-3 pb-3 border-b border-ink-black/10">
+                <h3 class="font-bold text-sm text-ink-black">기본 연락처 & 온라인 상담</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block font-bold text-ink-black mb-1">대표 전화번호 <span class="text-seal-red">*</span></label>
+                    <input type="text" id="settings-phone" required placeholder="예: 02-764-1920" class="w-full bg-white border border-ink-black/20 p-2.5 rounded-xs focus:border-seal-red font-mono">
+                  </div>
+                  <div>
+                    <label class="block font-bold text-ink-black mb-1">대표 이메일</label>
+                    <input type="email" id="settings-email" placeholder="예: contact@seoldamhwa.kr" class="w-full bg-white border border-ink-black/20 p-2.5 rounded-xs focus:border-seal-red">
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block font-bold text-ink-black mb-1">카카오톡 채널 주소</label>
+                  <input type="url" id="settings-kakao" placeholder="https://pf.kakao.com/_xxxx" class="w-full bg-white border border-ink-black/20 p-2.5 rounded-xs focus:border-seal-red">
+                  <p class="text-[11px] text-ink-gray mt-1">* 입력 시 쇼핑몰 고객센터 및 우측 하단 플로팅 카카오톡 상담 버튼이 활성화됩니다.</p>
+                </div>
+              </div>
+
+              <!-- 2) 주간 정기 운영시간 (7행 테이블) -->
+              <div class="space-y-3 pb-3 border-b border-ink-black/10">
+                <div class="flex items-center justify-between">
+                  <h3 class="font-bold text-sm text-ink-black">주간 요일별 운영시간</h3>
+                  <span class="text-[11px] text-ink-gray">월요일부터 일요일까지 요일별로 설정합니다.</span>
+                </div>
+
+                <div class="overflow-x-auto border border-ink-black/15 rounded-xs bg-[#FAF7F2]">
+                  <table class="w-full text-left text-xs border-collapse">
+                    <thead class="bg-white/80 border-b border-ink-black/10 text-ink-charcoal font-bold">
+                      <tr>
+                        <th class="p-2.5 text-center w-12">요일</th>
+                        <th class="p-2.5 text-center w-20">영업 여부</th>
+                        <th class="p-2.5">운영 시간</th>
+                        <th class="p-2.5 text-center w-20">점심시간</th>
+                        <th class="p-2.5">점심 시간대</th>
+                      </tr>
+                    </thead>
+                    <tbody id="admin-weekly-hours-tbody" class="divide-y divide-ink-black/10 bg-white">
+                      <!-- 자바스크립트로 월(1)~일(0) 7행 동적 렌더링 -->
+                    </tbody>
+                  </table>
+                </div>
+                <!-- 유효성 검사 에러 메시지 -->
+                <p id="settings-hours-error" class="hidden text-xs text-seal-red font-bold"></p>
+              </div>
+
+              <!-- 2-1) 공휴일 휴무 설정 (Holiday Management) -->
+              <div class="space-y-3 pb-3 border-b border-ink-black/10">
+                <div class="flex items-center justify-between p-3.5 bg-[#FAF7F2] border border-ink-black/15 rounded-xs">
+                  <div class="pr-3">
+                    <span class="font-bold text-ink-black block text-xs">공휴일 휴무</span>
+                    <span class="text-[11px] text-ink-gray">켜두면 법정 공휴일에 자동으로 '휴무' 처리됩니다. 개별 공휴일별로 영업 여부를 변경할 수 있습니다.</span>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                    <input type="checkbox" id="settings-holiday-closed" onchange="toggleHolidayClosedSwitch()" class="sr-only peer">
+                    <div class="w-10 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-seal-red"></div>
+                  </label>
+                </div>
+
+                <div id="admin-holidays-wrapper" class="space-y-3 hidden">
+                  <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+                    <span class="text-[11px] text-ink-gray">내장 공휴일은 2027년 말까지 들어 있어요. 이후 날짜는 [공휴일 추가]로 넣어 주세요.</span>
+                  </div>
+
+                  <!-- 신규 공휴일 추가 폼 -->
+                  <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2.5 bg-[#FAF7F2] border border-ink-black/15 rounded-xs">
+                    <input type="date" id="new-holiday-date" class="bg-white border border-ink-black/20 p-2 rounded-xs text-xs font-bold text-ink-black focus:border-seal-red">
+                    <input type="text" id="new-holiday-name" placeholder="공휴일 이름 (예: 임시공휴일, 선거일)" class="flex-1 bg-white border border-ink-black/20 p-2 rounded-xs text-xs focus:border-seal-red">
+                    <button type="button" onclick="addCustomHoliday()" class="jakae-btn py-2 px-4 rounded-xs text-xs font-bold shrink-0 cursor-pointer shadow-xs">
+                      공휴일 추가
+                    </button>
+                  </div>
+
+                  <!-- 다가오는 공휴일 목록 -->
+                  <div class="max-h-56 overflow-y-auto border border-ink-black/15 rounded-xs bg-white">
+                    <div id="admin-holidays-list" class="divide-y divide-ink-black/10 text-xs">
+                      <!-- 동적 렌더링 -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2-2) 임시 휴무일 관리 -->
+              <div class="space-y-3 pb-3 border-b border-ink-black/10">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="font-bold text-sm text-ink-black">임시 휴무일 관리</h3>
+                    <p class="text-[11px] text-ink-gray">명절, 공휴일, 개인 사정 등 정기 휴무 외의 휴무일을 등록합니다.</p>
+                  </div>
+                  <button type="button" onclick="cleanPastClosures()" class="px-2.5 py-1 text-[11px] font-bold text-ink-charcoal hover:text-seal-red border border-ink-black/20 rounded-xs bg-white cursor-pointer hover:bg-black/5 transition-colors">
+                    지난 날짜 정리
+                  </button>
+                </div>
+
+                <!-- 신규 임시 휴무 추가 폼 -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2.5 bg-[#FAF7F2] border border-ink-black/15 rounded-xs">
+                  <input type="date" id="new-closure-date" class="bg-white border border-ink-black/20 p-2 rounded-xs text-xs font-bold text-ink-black focus:border-seal-red">
+                  <input type="text" id="new-closure-reason" placeholder="사유 (예: 추석 연휴, 개인 사정)" class="flex-1 bg-white border border-ink-black/20 p-2 rounded-xs text-xs focus:border-seal-red">
+                  <button type="button" onclick="addClosureDate()" class="jakae-btn py-2 px-4 rounded-xs text-xs font-bold shrink-0 cursor-pointer shadow-xs">
+                    추가
+                  </button>
+                </div>
+
+                <!-- 등록된 임시 휴무일 목록 -->
+                <div id="admin-closures-container" class="max-h-48 overflow-y-auto border border-ink-black/15 rounded-xs bg-white">
+                  <div id="admin-closures-list" class="divide-y divide-ink-black/10 text-xs">
+                    <!-- 자바스크립트로 동적 렌더링 -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3) 오시는 길 및 주소 -->
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <h3 class="font-bold text-sm text-ink-black">오시는 길 & 매장 주소</h3>
+                </div>
+
+                <!-- 오프라인 매장 공개 여부 토글 스위치 -->
+                <div class="flex items-center justify-between p-3.5 bg-[#FAF7F2] border border-ink-black/15 rounded-xs">
+                  <div class="pr-3">
+                    <span class="font-bold text-ink-black block text-xs">오프라인 매장 '오시는 길' 공개</span>
+                    <span class="text-[11px] text-ink-gray">꺼두면 쇼핑몰에서 지도·주소·오시는 길이 숨겨집니다. 매장을 열 때 켜 주세요.</span>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                    <input type="checkbox" id="settings-show-location" class="sr-only peer">
+                    <div class="w-10 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-seal-red"></div>
+                  </label>
+                </div>
+                
+                <div>
+                  <label class="block font-bold text-ink-black mb-1">기본 도로명 주소 <span class="text-seal-red" id="settings-address-required">*</span></label>
+                  <input type="text" id="settings-address" required placeholder="예: 서울시 종로구 북촌로 42" class="w-full bg-white border border-ink-black/20 p-2.5 rounded-xs focus:border-seal-red" onblur="updateAdminMapPreview()">
+                  <p class="text-[11px] text-ink-gray mt-0.5">* 주소 입력 후 포커스를 벗어나면 우측 지도 미리보기가 실시간으로 갱신됩니다.</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block font-bold text-ink-black mb-1">상세 주소 / 메모</label>
+                    <input type="text" id="settings-address-detail" placeholder="예: (임시 주소), 2층 설담화" class="w-full bg-white border border-ink-black/20 p-2.5 rounded-xs focus:border-seal-red">
+                  </div>
+                  <div>
+                    <label class="block font-bold text-ink-black mb-1">대중교통 / 오시는 길 안내</label>
+                    <input type="text" id="settings-directions" placeholder="예: 안국역 2번 출구 도보 7분" class="w-full bg-white border border-ink-black/20 p-2.5 rounded-xs focus:border-seal-red">
+                  </div>
+                </div>
+              </div>
+
+              <div class="pt-3 border-t border-ink-black/10 flex justify-end">
+                <button type="submit" class="jakae-btn px-6 py-2.5 rounded-sm font-bold text-xs cursor-pointer shadow-md">
+                  매장 정보 저장 및 쇼핑몰 동기화
+                </button>
+              </div>
+
+            </form>
+          </div>
+
+          <!-- 우측: 지도 실시간 미리보기 (5칸) -->
+          <div class="lg:col-span-5 admin-card p-6 rounded-sm space-y-4">
+            <div>
+              <h3 class="font-bold text-sm text-ink-black">실시간 지도 위치 미리보기</h3>
+              <p class="text-[11px] text-ink-gray mt-0.5">
+                입력하신 주소로 고객 화면에 표시될 구글 지도 임베드 화면입니다.
+              </p>
+            </div>
+
+            <div class="aspect-[4/3] w-full bg-[#ECE8E1] rounded-xs overflow-hidden border border-ink-black/10 shadow-xs relative">
+              <iframe id="admin-map-preview" src="about:blank" title="설담화 위치 지도 미리보기" class="w-full h-full border-0"></iframe>
+            </div>
+
+            <div class="p-3 bg-[#FAF7F2] rounded-xs border border-ink-black/10 text-[11px] text-ink-gray space-y-1">
+              <p class="font-bold text-ink-black">💡 지도 표시 팁</p>
+              <p>주소를 정확한 도로명 주소(예: '서울시 종로구 북촌로 42')로 입력하시면 고객 화면의 카카오맵, 네이버 지도 검색 연동 링크도 정확하게 이동합니다.</p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 6. 팝업 관리 패널 -->
+      <section id="panel-popups" class="space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-extrabold text-ink-black tracking-tight">팝업 및 이벤트 슬라이드 관리</h1>
+            <p class="text-xs text-ink-gray mt-1">
+              쇼핑몰 좌측 하단에 노출되는 공지/이벤트 팝업 슬라이더를 관리합니다. (활성 팝업 최대 5개)
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="previewPopupInShop()" class="px-3.5 py-2 text-xs font-bold text-ink-black bg-white border border-ink-black/20 hover:bg-[#FAF7F2] rounded-xs flex items-center gap-1.5 shadow-xs transition-colors">
+              <svg class="w-3.5 h-3.5 text-seal-red" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              <span>쇼핑몰에서 미리보기</span>
+            </button>
+            <button onclick="openSlideModal()" class="px-3.5 py-2 text-xs font-bold text-white bg-seal-red hover:bg-[#6e1c00] rounded-xs flex items-center gap-1.5 shadow-xs transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>+ 새 슬라이드</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 마스터 스위치 카드 -->
+        <div class="bg-white border border-ink-black/10 rounded-sm p-4 sm:p-5 shadow-xs flex items-center justify-between">
+          <div class="space-y-0.5">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-extrabold text-ink-black">쇼핑몰에 팝업 보이기</span>
+              <span id="popup-master-status-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">OFF</span>
+            </div>
+            <p class="text-xs text-ink-gray">스위치를 켜면 사용 중인 팝업 슬라이드가 쇼핑몰 화면 좌측 하단에 나타납니다.</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="popup-master-toggle" onchange="togglePopupMaster(this.checked)" class="sr-only peer">
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-seal-red"></div>
+          </label>
+        </div>
+
+        <!-- 슬라이드 목록 테이블 카드 -->
+        <div class="bg-white border border-ink-black/10 rounded-sm shadow-xs overflow-hidden">
+          <div class="px-4 py-3 border-b border-ink-black/10 flex items-center justify-between bg-[#FAF7F2]">
+            <h2 class="text-xs font-bold text-ink-black uppercase tracking-wider">슬라이드 목록 (<span id="popups-total-count">0</span>)</h2>
+            <span class="text-[11px] text-ink-gray">활성 슬라이드: <strong id="popups-active-count" class="text-seal-red">0</strong>/5</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-ink-black/10 text-ink-gray bg-white font-medium">
+                  <th class="py-2.5 px-4 w-12 text-center">순서</th>
+                  <th class="py-2.5 px-4 w-16">이미지</th>
+                  <th class="py-2.5 px-4">제목 및 문구</th>
+                  <th class="py-2.5 px-4 w-32">노출 기간</th>
+                  <th class="py-2.5 px-4 w-28 text-center">상태</th>
+                  <th class="py-2.5 px-4 w-20 text-center">순서 변경</th>
+                  <th class="py-2.5 px-4 w-24 text-right">관리</th>
+                </tr>
+              </thead>
+              <tbody id="popups-table-body" class="divide-y divide-ink-black/5">
+                <!-- 동적 렌더링 -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- 4. 상품 추가/수정 모달 -->
+  <div id="admin-product-modal" class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="fixed inset-0" onclick="closeProductModal()"></div>
+
+    <div class="relative bg-hanji w-full max-w-2xl rounded-sm shadow-2xl border border-ink-black/20 z-10 p-6 sm:p-8 my-8">
+      <button onclick="closeProductModal()" class="absolute top-4 right-4 p-1.5 text-ink-gray hover:text-ink-black cursor-pointer">✕</button>
+
+      <form onsubmit="saveProduct(event)" class="space-y-4 text-xs">
+        <div class="border-b border-ink-black/10 pb-3">
+          <h3 id="modal-product-title" class="text-lg font-bold text-ink-black">신규 전통 꽃 상품 등록</h3>
+          <p class="text-ink-gray mt-0.5">저장 즉시 사용자 쇼핑몰(index.html)에 실시간으로 반영됩니다.</p>
+        </div>
+
+        <input type="hidden" id="edit-prod-id" value="">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-bold text-ink-black mb-1">상품명 (한글)</label>
+            <input type="text" id="edit-prod-name" required placeholder="예: 부귀모란 다발, 백자 연화 바구니" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+          </div>
+          <div>
+            <label class="block font-bold text-ink-black mb-1">영문 서브명</label>
+            <input type="text" id="edit-prod-eng" placeholder="예: Rich Red Peony Bouquet" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+          </div>
+        </div>
+
+        <!-- 핵심: 브랜드 특화 한 줄 글귀 -->
+        <div class="bg-[#FAF7F2] p-3 rounded-xs border border-seal-red/40 space-y-1">
+          <label class="block font-bold text-seal-red flex items-center gap-1">
+            <span>★ 브랜드 특화 한 줄 글귀 (Storytelling Copy)</span>
+          </label>
+          <input type="text" id="edit-prod-poetic" required placeholder="예: 풍요와 부귀를 기원하는 붉은 모란의 깊은 숨결" class="w-full bg-white border border-seal-red/40 p-2 font-serif rounded-xs focus:border-seal-red">
+          <p class="text-[11px] text-ink-gray">
+            * 쇼핑몰 상품 상세 페이지(PDP)의 상품명 바로 밑에 우아한 명조 스타일로 노출됩니다.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-ink-black mb-1">카테고리</label>
+            <select id="edit-prod-cat" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+              <option value="bouquet">꽃다발</option>
+              <option value="basket">꽃바구니</option>
+              <option value="space">웨딩·공간</option>
+            </select>
+          </div>
+          <div id="edit-prod-price-wrap">
+            <label class="block font-bold text-ink-black mb-1">판매 가격 (원)</label>
+            <input type="number" id="edit-prod-price" required value="68000" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+          </div>
+          <div id="edit-prod-stock-wrap">
+            <label class="block font-bold text-ink-black mb-1">재고 수량 (개)</label>
+            <input type="number" id="edit-prod-stock-qty" min="0" required value="10" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+          </div>
+          <div class="flex items-center gap-2 pt-5 sm:col-span-2">
+            <input type="checkbox" id="edit-prod-inquiry" onchange="toggleInquiryOnlyFields()" class="w-4 h-4 text-seal-red rounded focus:ring-seal-red cursor-pointer">
+            <label for="edit-prod-inquiry" class="text-xs text-ink-black cursor-pointer font-medium">견적 문의 전용 (상담 후 견적 - 가격 및 재고 비활성화)</label>
+          </div>
+        </div>
+
+        <!-- 공개 설정 (공개 / 비공개 / 예약 공개) -->
+        <div class="bg-[#FAF7F2] p-3 rounded-xs border border-ink-black/15 space-y-2">
+          <label class="block font-bold text-ink-black">공개 설정</label>
+          <div class="flex flex-wrap items-center gap-4">
+            <label class="inline-flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" name="edit-prod-visibility" value="public" onchange="togglePublishAtInput()" class="text-seal-red focus:ring-seal-red cursor-pointer">
+              <span class="font-bold text-ink-black">공개</span>
+            </label>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" name="edit-prod-visibility" value="private" onchange="togglePublishAtInput()" class="text-seal-red focus:ring-seal-red cursor-pointer">
+              <span class="font-bold text-ink-black">비공개</span>
+            </label>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" name="edit-prod-visibility" value="scheduled" onchange="togglePublishAtInput()" class="text-seal-red focus:ring-seal-red cursor-pointer">
+              <span class="font-bold text-ink-black">예약 공개</span>
+            </label>
+          </div>
+          <div id="edit-prod-publish-wrap" class="hidden pt-1">
+            <label class="block font-medium text-ink-gray mb-1">공개 예정 일시 (현재 시각 이후 필수)</label>
+            <input type="datetime-local" id="edit-prod-publish-at" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-ink-black mb-1">꽃말 및 상징</label>
+          <input type="text" id="edit-prod-meaning" placeholder="예: 부귀영화, 품격, 행복한 결혼" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+        </div>
+
+        <div>
+          <label class="block font-bold text-ink-black mb-1">상세 설명</label>
+          <textarea id="edit-prod-desc" rows="2" placeholder="상품에 대한 상세 설명 문구" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red"></textarea>
+        </div>
+
+        <div>
+          <label class="block font-bold text-ink-black mb-1">대표 이미지 경로 (상대 경로 또는 URL)</label>
+          <input type="text" id="edit-prod-image" required placeholder="예: assets/images/products/signature-bouquet.jpg" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+        </div>
+
+        <div class="pt-3 border-t border-ink-black/10 flex justify-end gap-2">
+          <button type="button" onclick="closeProductModal()" class="px-4 py-2 border border-ink-black/20 rounded-xs font-bold hover:bg-gray-100 cursor-pointer">취소</button>
+          <button type="button" onclick="saveAndPreviewProduct(event)" class="jakae-light-btn px-4 py-2 rounded-sm font-bold cursor-pointer border border-seal-red text-seal-red hover:bg-seal-red/5">저장 후 미리보기</button>
+          <button type="submit" class="jakae-btn px-6 py-2 rounded-sm font-bold cursor-pointer">저장 및 쇼핑몰 동기화</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript: Admin 로직 & 쇼핑몰 데이터 양방향 실시간 동기화 -->
+  <script>
+    // 기본 리뷰 데이터
+    const DEFAULT_REVIEWS = [
+      {
+        id: 'rev-01',
+        productName: '부귀모란 다발',
+        author: '이지민 (20대, 한남동)',
+        comment: '성수동 친구 팝업 선물로 보냈는데 전통 보자기 포장이 너무 힙해서 반응 폭발이었어요!',
+        photoUrl: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=600&q=80',
+        createdAt: '2026-10-28',
+        isApproved: true
+      },
+      {
+        id: 'rev-02',
+        productName: '달항아리 난초 오브제',
+        author: '박준혁 (30대, 삼청동)',
+        comment: '조선 백자의 둥근 곡선과 한국 춘란의 선이 거실을 단아한 갤러리로 만들어주네요.',
+        photoUrl: 'https://images.unsplash.com/photo-1599733589046-10c005739ef9?auto=format&fit=crop&w=600&q=80',
+        createdAt: '2026-10-27',
+        isApproved: true
+      },
+      {
+        id: 'rev-03',
+        productName: '자개함 프리저브드 플라워',
+        author: '최서연 (20대, 판교)',
+        comment: '어머니 환갑 선물로 최고였습니다. 자개의 영롱한 빛깔과 압화 편지가 감동적이었어요.',
+        photoUrl: 'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=600&q=80',
+        createdAt: '2026-10-26',
+        isApproved: true
+      }
+    ];
+
+    // 기본 초기 주문 (쇼핑몰에서 주문 시 여기에 누적됨)
+    const DEFAULT_ORDERS = [
+      {
+        id: 'ord-01',
+        orderNumber: 'SDH-261029-01',
+        customerName: '김단아',
+        phone: '010-3849-5921',
+        deliveryDate: '2026-10-30 (내일 오전 신선특송)',
+        address: '서울특별시 성동구 성수이로 20길 12, 401호',
+        message: '소중한 인연에 깊은 감사와 행복을 담아 보냅니다.',
+        items: [{ product: { name: '부귀모란 다발', price: 68000 }, optionName: '옥빛 보자기 포장', quantity: 1 }],
+        totalAmount: 83000,
+        status: 'preparing',
+        createdAt: '10:24'
+      },
+      {
+        id: 'ord-02',
+        orderNumber: 'SDH-261028-09',
+        customerName: '이현우',
+        phone: '010-8812-3921',
+        deliveryDate: '2026-10-29 (오후 배송)',
+        address: '서울특별시 종로구 삼청로 102 화동빌딩 4층',
+        message: '선생님의 따뜻한 은혜에 깊이 감사드립니다.',
+        items: [{ product: { name: '달항아리 난초 오브제', price: 145000 }, optionName: '기본 포장', quantity: 1 }],
+        totalAmount: 145000,
+        status: 'delivering',
+        createdAt: '16:45'
+      },
+      {
+        id: 'ord-03',
+        orderNumber: 'SDH-261028-04',
+        customerName: '최서연',
+        phone: '010-2938-5819',
+        deliveryDate: '2026-10-29 (새벽 배송)',
+        address: '경기도 성남시 분당구 판교역로 166',
+        message: '결혼 1주년을 기념하며, 언제나 그대 곁에서.',
+        items: [{ product: { name: '노을빛 작약 한아름', price: 74000 }, optionName: '실크 보자기', quantity: 1 }],
+        totalAmount: 89000,
+        status: 'packaged',
+        createdAt: '11:10'
+      },
+      {
+        id: 'ord-04',
+        orderNumber: 'SDH-261027-12',
+        customerName: '한도윤',
+        phone: '010-6712-4491',
+        deliveryDate: '2026-10-28 (배송완료)',
+        address: '서울특별시 용산구 한남대로 20길 9',
+        message: '새 보금자리 입주를 축하합니다.',
+        items: [{ product: { name: '자개함 프리저브드', price: 110000 }, optionName: '기본 포장', quantity: 1 }],
+        totalAmount: 110000,
+        status: 'completed',
+        createdAt: '15:30'
+      }
+    ];
+
+    // 데이터 가져오기 및 초기화
+    function loadAdminProducts() {
+      return loadProducts();
+    }
+
+    function loadAdminOrders() {
+      const stored = localStorage.getItem('seoldamhwa_orders');
+      if (!stored) {
+        localStorage.setItem('seoldamhwa_orders', JSON.stringify(DEFAULT_ORDERS));
+        return DEFAULT_ORDERS;
+      }
+      return JSON.parse(stored);
+    }
+
+    // 초기 실행
+    document.addEventListener('DOMContentLoaded', () => {
+      try { renderDashboard(); } catch (e) { console.error('renderDashboard error:', e); }
+      try { renderProductsTable(); } catch (e) { console.error('renderProductsTable error:', e); }
+      try { renderOrdersList(); } catch (e) { console.error('renderOrdersList error:', e); }
+      try { renderReviewsList(); } catch (e) { console.error('renderReviewsList error:', e); }
+      try { renderInquiriesList(); } catch (e) { console.error('renderInquiriesList error:', e); }
+      try { renderAdminSettings(); } catch (e) { console.error('renderAdminSettings error:', e); }
+      try { initPopupsAdmin(); } catch (e) { console.error('initPopupsAdmin error:', e); }
+    });
+
+    // 1. 대시보드 요약 렌더링
+    function loadAdminInquiries() {
+      const stored = localStorage.getItem('seoldamhwa_inquiries');
+      if (!stored) return [];
+      return JSON.parse(stored);
+    }
+
+    function renderDashboard() {
+      const orders = loadAdminOrders();
+      const products = loadAdminProducts();
+      const inquiries = loadAdminInquiries();
+
+      // 오늘 날짜 계산 (YYYY-MM-DD)
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      const today = `${y}-${m}-${d}`;
+
+      // 1) 일일 총 결제액: 오늘(today) 주문만 합산 (createdDate 없는 샘플은 제외)
+      const todayOrders = orders.filter(o => o.createdDate === today);
+      const todayRev = todayOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+      document.getElementById('metric-revenue').innerText = `${todayRev.toLocaleString()}원`;
+      const revSub = document.getElementById('metric-revenue-sub');
+      if (revSub) revSub.innerText = `오늘 주문 ${todayOrders.length}건`;
+
+      // 2) 활성 신규 주문: 완료되지 않은 주문 카운트
+      const activeOrders = orders.filter(o => o.status !== 'completed');
+      document.getElementById('metric-orders').innerText = `${activeOrders.length}건`;
+      const prepCount = orders.filter(o => o.status === 'preparing').length;
+      const delivCount = orders.filter(o => o.status === 'delivering' || o.status === 'packaged').length;
+      const ordSub = document.getElementById('metric-orders-sub');
+      if (ordSub) ordSub.innerHTML = `제작 중: <strong class="text-seal-red font-bold">${prepCount}건</strong> · 배송 중: ${delivCount}건`;
+
+      // 3) 맞춤 담화 문의: 'new' 상태 카운트
+      const newInquiries = inquiries.filter(i => i.status === 'new');
+      const inqMetric = document.getElementById('metric-inquiries');
+      if (inqMetric) inqMetric.innerText = `${newInquiries.length}건`;
+      const inqSub = document.getElementById('metric-inquiries-sub');
+      if (inqSub) inqSub.innerText = `답변 대기 ${newInquiries.length}건 (전체 ${inquiries.length}건)`;
+
+      document.getElementById('badge-order-count').innerText = orders.length;
+      document.getElementById('badge-prod-count').innerText = products.length;
+
+      const recentContainer = document.getElementById('dashboard-recent-orders');
+      recentContainer.innerHTML = '';
+
+      orders.slice(0, 4).forEach(ord => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-[#F3EDE3]/40';
+        const stLabel = ord.status === 'preparing' ? '제작 중' : ord.status === 'packaged' ? '포장 완료' : ord.status === 'delivering' ? '배송 중' : '배송 완료';
+        const stColor = ord.status === 'preparing' ? 'bg-seal-red/15 text-seal-red' : ord.status === 'packaged' ? 'bg-amber-100 text-amber-800' : ord.status === 'delivering' ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800';
+
+        tr.innerHTML = `
+          <td class="py-3 px-3 font-mono font-bold text-ink-black">${ord.orderNumber}</td>
+          <td class="py-3 px-3 font-bold text-ink-black">${ord.customerName}</td>
+          <td class="py-3 px-3 text-ink-black">${ord.items[0]?.product?.name || '꽃 상품'}${ord.items.length > 1 ? ` 외 ${ord.items.length - 1}건` : ''}</td>
+          <td class="py-3 px-3 font-bold text-seal-red">${ord.deliveryDate}</td>
+          <td class="py-3 px-3 font-bold text-ink-black">${ord.totalAmount.toLocaleString()}원</td>
+          <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${stColor}">${stLabel}</span></td>
+        `;
+        recentContainer.appendChild(tr);
+      });
+    }
+
+    // 2. 상품 및 한 줄 글귀 테이블 렌더링 & 필터
+    let currentProductFilter = 'all';
+
+    function setProductFilter(filter) {
+      currentProductFilter = filter;
+      document.querySelectorAll('.prod-filter-btn').forEach(btn => {
+        btn.className = 'prod-filter-btn px-3 py-1.5 text-xs font-bold rounded-xs bg-white text-ink-black border border-ink-black/20 hover:border-ink-black cursor-pointer';
+      });
+      const activeBtn = document.getElementById('prod-filter-' + filter);
+      if (activeBtn) {
+        activeBtn.className = 'prod-filter-btn px-3 py-1.5 text-xs font-bold rounded-xs bg-ink-black text-white cursor-pointer shadow-xs';
+      }
+      renderProductsTable();
+    }
+
+    function previewProduct(prodId) {
+      window.open('index.html?preview=' + encodeURIComponent(prodId), '_blank');
+    }
+
+    function renderProductsTable() {
+      const allProducts = loadAdminProducts();
+      const tbody = document.getElementById('admin-products-table');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const catNames = {
+        bouquet: '꽃다발',
+        basket: '꽃바구니',
+        space: '웨딩·공간'
+      };
+
+      const filtered = allProducts.filter(p => {
+        const isVis = typeof isProductVisible === 'function' ? isProductVisible(p) : true;
+        if (currentProductFilter === 'all') return true;
+        if (currentProductFilter === 'public') return isVis;
+        if (currentProductFilter === 'private') return p.visibility === 'private';
+        if (currentProductFilter === 'scheduled') return (p.visibility === 'scheduled' && !isVis);
+        return true;
+      });
+
+      filtered.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-[#F3EDE3]/40 transition-colors';
+        
+        let stBadge = '';
+        if (p.inquiryOnly) {
+          stBadge = '<span class="bg-[#FAF7F2] text-ink-black/80 border border-ink-black/10 px-2.5 py-0.5 rounded font-bold text-xs">상담 상품</span>';
+        } else {
+          const stStatus = getStockStatus(p.stockQuantity);
+          const qty = p.stockQuantity ?? 0;
+          if (stStatus === 'in_stock') {
+            stBadge = `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">판매 중 (${qty}개)</span>`;
+          } else if (stStatus === 'low_stock') {
+            stBadge = `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">품절 임박 (${qty}개)</span>`;
+          } else {
+            stBadge = `<span class="bg-red-100 text-red-800 px-2 py-0.5 rounded font-bold">일시 품절 (0개)</span>`;
+          }
+        }
+
+        // 공개 상태 배지: 공개 (green), 비공개 (grey), 예약 · M/D HH:mm (amber; 시간 경과 시 자동으로 공개)
+        let visBadge = '';
+        const isVis = typeof isProductVisible === 'function' ? isProductVisible(p) : true;
+        if (isVis) {
+          visBadge = '<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">공개</span>';
+        } else if (p.visibility === 'private') {
+          visBadge = '<span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-bold">비공개</span>';
+        } else if (p.visibility === 'scheduled') {
+          let timeFmt = '';
+          if (p.publishAt) {
+            const parts = p.publishAt.split('T');
+            const dParts = (parts[0] || '').split('-');
+            const m = parseInt(dParts[1] || '0', 10);
+            const d = parseInt(dParts[2] || '0', 10);
+            timeFmt = `${m}/${d} ${parts[1] || ''}`;
+          }
+          visBadge = `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">예약 · ${timeFmt}</span>`;
+        } else {
+          visBadge = '<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">공개</span>';
+        }
+
+        let priceText = '';
+        if (p.inquiryOnly) {
+          priceText = '상담 후 견적';
+        } else if (p.sizes && p.sizes.length > 0) {
+          const minP = Math.min(...p.sizes.map(s => s.price));
+          priceText = `${minP.toLocaleString()}원~`;
+        } else {
+          priceText = `${(p.price || 0).toLocaleString()}원`;
+        }
+
+        const catLabel = catNames[p.category] || p.category;
+
+        tr.innerHTML = `
+          <td class="py-3 px-4"><img src="${p.image}" class="w-12 h-14 object-cover border border-ink-black/10 rounded-xs"></td>
+          <td class="py-3 px-4 font-bold text-ink-black text-sm">${p.name}<p class="text-[11px] text-ink-gray font-normal">${catLabel}</p></td>
+          <td class="py-3 px-4 max-w-xs font-serif text-seal-red font-semibold leading-relaxed line-clamp-2">"${p.poeticLine}"</td>
+          <td class="py-3 px-4 font-bold text-ink-black">${priceText}</td>
+          <td class="py-3 px-4">${stBadge}</td>
+          <td class="py-3 px-4">${visBadge}</td>
+          <td class="py-3 px-4 text-center whitespace-nowrap space-x-1">
+            <button onclick="previewProduct('${p.id}')" class="px-2.5 py-1 border border-ink-black/20 bg-white hover:border-seal-red hover:text-seal-red rounded-xs font-bold cursor-pointer">미리보기</button>
+            <button onclick="editProduct('${p.id}')" class="px-2.5 py-1 border border-ink-black/20 bg-white hover:border-seal-red hover:text-seal-red rounded-xs font-bold cursor-pointer">수정</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // 3. 주문 및 희망 배송일 관리 리스트 렌더링
+    function renderOrdersList() {
+      const orders = loadAdminOrders();
+      const container = document.getElementById('admin-orders-list');
+      container.innerHTML = '';
+
+      orders.forEach(ord => {
+        const card = document.createElement('div');
+        card.className = 'admin-card p-5 rounded-sm flex flex-col lg:flex-row lg:items-center justify-between gap-5';
+
+        card.innerHTML = `
+          <div class="space-y-1.5 flex-1 text-xs">
+            <div class="flex items-center gap-3">
+              <span class="font-mono font-bold text-sm text-ink-black">${ord.orderNumber}</span>
+              <span class="text-ink-gray">접수: ${ord.createdAt}</span>
+            </div>
+            <p class="text-sm font-bold text-ink-black">수령인: ${ord.customerName} 님 (${ord.phone})</p>
+            <p class="text-ink-gray">배송지: ${ord.address}</p>
+            ${ord.message ? `<p class="text-seal-red font-serif italic bg-[#F3EDE3] p-2 rounded-xs border-l-2 border-seal-red">보자기 한지 메시지: "${ord.message}"</p>` : ''}
+            <div class="pt-1 flex flex-wrap gap-2">
+              ${ord.items.map(i => `<span class="bg-white px-2 py-0.5 border border-ink-black/10 font-medium">${i.product.name} (${i.quantity}개)</span>`).join('')}
+            </div>
+          </div>
+
+          <div class="bg-[#EFECE6]/60 p-4 rounded-xs border border-ink-black/10 min-w-[260px] space-y-2">
+            <div>
+              <span class="text-[11px] font-bold text-seal-red uppercase">★ 생화 희망 배송일</span>
+              <p class="text-sm font-bold text-ink-black break-keep">${ord.deliveryDate}</p>
+              <p class="text-xs font-bold text-ink-black mt-0.5">결제금액: ${ord.totalAmount.toLocaleString()}원</p>
+            </div>
+            <div class="pt-2 border-t border-ink-black/10">
+              <span class="text-[11px] text-ink-gray font-bold block mb-1">배송 상태 즉시 변경:</span>
+              <div class="grid grid-cols-2 gap-1 text-[11px] font-bold">
+                <button onclick="updateOrderStatus('${ord.id}', 'preparing')" class="py-1 px-2 rounded-xs ${ord.status === 'preparing' ? 'bg-seal-red text-white' : 'bg-white text-ink-gray hover:bg-gray-100 border border-ink-black/10'}">제작 중</button>
+                <button onclick="updateOrderStatus('${ord.id}', 'packaged')" class="py-1 px-2 rounded-xs ${ord.status === 'packaged' ? 'bg-seal-red text-white' : 'bg-white text-ink-gray hover:bg-gray-100 border border-ink-black/10'}">포장 완료</button>
+                <button onclick="updateOrderStatus('${ord.id}', 'delivering')" class="py-1 px-2 rounded-xs ${ord.status === 'delivering' ? 'bg-seal-red text-white' : 'bg-white text-ink-gray hover:bg-gray-100 border border-ink-black/10'}">배송 중</button>
+                <button onclick="updateOrderStatus('${ord.id}', 'completed')" class="py-1 px-2 rounded-xs ${ord.status === 'completed' ? 'bg-seal-red text-white' : 'bg-white text-ink-gray hover:bg-gray-100 border border-ink-black/10'}">배송 완료</button>
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function updateOrderStatus(ordId, newStatus) {
+      const orders = loadAdminOrders();
+      const updated = orders.map(o => o.id === ordId ? { ...o, status: newStatus } : o);
+      localStorage.setItem('seoldamhwa_orders', JSON.stringify(updated));
+      renderOrdersList();
+      renderDashboard();
+    }
+
+    // 4. 맞춤 담화 1:1 상담 문의 관리
+    function loadAdminInquiries() {
+      const stored = localStorage.getItem('seoldamhwa_inquiries');
+      if (!stored) return [];
+      try {
+        return JSON.parse(stored);
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function renderInquiriesList() {
+      const inquiries = loadAdminInquiries();
+      const container = document.getElementById('admin-inquiries-list');
+      const badge = document.getElementById('inquiry-counter-badge');
+      if (!container) return;
+
+      const newCount = inquiries.filter(i => i.status === 'new').length;
+      if (badge) badge.innerText = `${newCount}건 대기`;
+
+      container.innerHTML = '';
+
+      if (inquiries.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center text-xs text-ink-gray bg-[#FAF7F2] border border-ink-black/10 rounded-sm">
+            접수된 문의가 없습니다.
+          </div>
+        `;
+        return;
+      }
+
+      inquiries.forEach(inq => {
+        const isNew = inq.status === 'new';
+        const card = document.createElement('div');
+        card.className = `p-4 sm:p-5 rounded-sm border transition-all ${isNew ? 'bg-white border-seal-red/40 shadow-xs' : 'bg-[#FAF7F2]/80 border-ink-black/10 opacity-80'}`;
+
+        const statusBadge = isNew
+          ? '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-seal-red text-white">신규</span>'
+          : '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-gray-200 text-gray-700">답변 완료</span>';
+
+        card.innerHTML = `
+          <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 text-xs">
+            <div class="space-y-1.5 flex-1">
+              <div class="flex items-center gap-2">
+                ${statusBadge}
+                <span class="font-bold text-sm text-ink-black">${inq.name} 님</span>
+                <span class="text-ink-gray">(${inq.phone})</span>
+                <span class="text-ink-light text-[11px] ml-auto sm:ml-2">접수일: ${inq.createdDate || '-'}</span>
+              </div>
+              <div class="flex flex-wrap gap-x-4 gap-y-1 text-ink-gray pt-0.5">
+                <span>상담 유형: <strong class="text-ink-black">${inq.type || inq.productName || '일반 상담'}</strong></span>
+                ${inq.productName && inq.productName !== inq.type ? `<span>문의 상품: <strong class="text-seal-red">${inq.productName}</strong></span>` : ''}
+                <span>받고 싶은 날짜: <strong class="text-seal-red">${inq.date}</strong></span>
+              </div>
+              <div class="mt-2 bg-[#FAF7F2] p-3 rounded-xs border border-ink-black/10 text-ink-black leading-relaxed font-sans">
+                <span class="font-bold block text-ink-gray text-[11px] mb-0.5">문의 내용:</span>
+                ${(inq.message || '').replace(/\n/g, '<br>')}
+              </div>
+            </div>
+
+            <div class="sm:self-center pt-2 sm:pt-0">
+              ${isNew ? `
+                <button onclick="markInquiryDone('${inq.id}')" class="jakae-btn px-4 py-2 text-xs font-bold rounded-xs cursor-pointer shadow-xs whitespace-nowrap">
+                  답변 완료 처리
+                </button>
+              ` : `
+                <span class="text-[11px] text-ink-gray font-medium px-3 py-1.5 bg-gray-100 rounded-xs block text-center">
+                  답변 완료
+                </span>
+              `}
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function markInquiryDone(inquiryId) {
+      let inquiries = loadAdminInquiries();
+      inquiries = inquiries.map(inq => inq.id === inquiryId ? { ...inq, status: 'done' } : inq);
+      localStorage.setItem('seoldamhwa_inquiries', JSON.stringify(inquiries));
+      renderInquiriesList();
+      renderDashboard();
+    }
+
+
+    // 4. 리뷰 관리 리스트 렌더링
+    function renderReviewsList() {
+      const container = document.getElementById('admin-reviews-list');
+      container.innerHTML = '';
+
+      DEFAULT_REVIEWS.forEach(rev => {
+        const div = document.createElement('div');
+        div.className = 'admin-card rounded-sm overflow-hidden flex flex-col justify-between';
+        div.innerHTML = `
+          <div>
+            <img src="${rev.photoUrl}" class="w-full aspect-[4/3] object-cover">
+            <div class="p-4 space-y-2 text-xs">
+              <span class="font-bold text-seal-red block">${rev.productName}</span>
+              <p class="font-medium text-ink-black leading-relaxed">"${rev.comment}"</p>
+              <div class="text-[11px] text-ink-gray pt-2 border-t border-ink-black/10 flex justify-between">
+                <span>작성자: ${rev.author}</span>
+                <span>${rev.createdAt}</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-4 pt-0">
+            <button class="w-full py-2 text-xs font-bold bg-emerald-100 text-emerald-800 rounded-xs">
+              ✓ 쇼핑몰 노출 중
+            </button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // 5. 상품 등록/수정 모달 로직
+    // 견적 문의 전용 여부에 따른 폼 필드 토글
+    function toggleInquiryOnlyFields() {
+      const inquiry = document.getElementById('edit-prod-inquiry').checked;
+      const priceWrap = document.getElementById('edit-prod-price-wrap');
+      const stockWrap = document.getElementById('edit-prod-stock-wrap');
+      const priceInput = document.getElementById('edit-prod-price');
+      const stockInput = document.getElementById('edit-prod-stock-qty');
+
+      if (inquiry) {
+        if (priceWrap) priceWrap.classList.add('hidden');
+        if (stockWrap) stockWrap.classList.add('hidden');
+        if (priceInput) priceInput.removeAttribute('required');
+        if (stockInput) stockInput.removeAttribute('required');
+      } else {
+        if (priceWrap) priceWrap.classList.remove('hidden');
+        if (stockWrap) stockWrap.classList.remove('hidden');
+        if (priceInput) priceInput.setAttribute('required', 'required');
+        if (stockInput) stockInput.setAttribute('required', 'required');
+      }
+    }
+
+    function togglePublishAtInput() {
+      const radios = document.getElementsByName('edit-prod-visibility');
+      let val = 'public';
+      for (const r of radios) {
+        if (r.checked) { val = r.value; break; }
+      }
+      const wrap = document.getElementById('edit-prod-publish-wrap');
+      const input = document.getElementById('edit-prod-publish-at');
+      if (wrap) {
+        if (val === 'scheduled') {
+          wrap.classList.remove('hidden');
+          if (input) input.setAttribute('required', 'required');
+        } else {
+          wrap.classList.add('hidden');
+          if (input) input.removeAttribute('required');
+        }
+      }
+    }
+
+    function openProductModal() {
+      document.getElementById('modal-product-title').innerText = '신규 전통 꽃 상품 등록';
+      document.getElementById('edit-prod-id').value = '';
+      document.getElementById('edit-prod-name').value = '';
+      document.getElementById('edit-prod-eng').value = '';
+      document.getElementById('edit-prod-poetic').value = '';
+      document.getElementById('edit-prod-cat').value = 'bouquet';
+      document.getElementById('edit-prod-price').value = 68000;
+      document.getElementById('edit-prod-stock-qty').value = 10;
+      document.getElementById('edit-prod-inquiry').checked = false;
+      document.getElementById('edit-prod-meaning').value = '';
+      document.getElementById('edit-prod-desc').value = '';
+      document.getElementById('edit-prod-image').value = 'assets/images/products/';
+
+      // 신규 상품은 기본 비공개 (B2: NEW products default to 비공개, so the owner can check them first)
+      const radios = document.getElementsByName('edit-prod-visibility');
+      for (const r of radios) {
+        r.checked = (r.value === 'private');
+      }
+      const pubInput = document.getElementById('edit-prod-publish-at');
+      if (pubInput) pubInput.value = '';
+      togglePublishAtInput();
+
+      toggleInquiryOnlyFields();
+      document.getElementById('admin-product-modal').classList.remove('hidden');
+    }
+
+    function editProduct(prodId) {
+      const products = loadProducts();
+      const prod = products.find(p => p.id === prodId);
+      if (!prod) return;
+
+      document.getElementById('modal-product-title').innerText = '꽃 상품 및 한 줄 글귀 수정';
+      document.getElementById('edit-prod-id').value = prod.id;
+      document.getElementById('edit-prod-name').value = prod.name || '';
+      document.getElementById('edit-prod-eng').value = prod.englishName || '';
+      document.getElementById('edit-prod-poetic').value = prod.poeticLine || '';
+      document.getElementById('edit-prod-cat').value = prod.category || 'bouquet';
+      document.getElementById('edit-prod-price').value = prod.price || (prod.sizes && prod.sizes.length > 0 ? prod.sizes[0].price : 0);
+      document.getElementById('edit-prod-stock-qty').value = prod.stockQuantity ?? 0;
+      document.getElementById('edit-prod-inquiry').checked = !!prod.inquiryOnly;
+      document.getElementById('edit-prod-meaning').value = prod.flowerMeaning || '';
+      document.getElementById('edit-prod-desc').value = prod.description || '';
+      document.getElementById('edit-prod-image').value = prod.image || '';
+
+      const vis = prod.visibility || 'public';
+      const radios = document.getElementsByName('edit-prod-visibility');
+      for (const r of radios) {
+        r.checked = (r.value === vis);
+      }
+      const pubInput = document.getElementById('edit-prod-publish-at');
+      if (pubInput) pubInput.value = prod.publishAt || '';
+      togglePublishAtInput();
+
+      toggleInquiryOnlyFields();
+      document.getElementById('admin-product-modal').classList.remove('hidden');
+    }
+
+    function closeProductModal() {
+      document.getElementById('admin-product-modal').classList.add('hidden');
+    }
+
+    function doSaveProduct() {
+      const prodId = document.getElementById('edit-prod-id').value;
+      const name = document.getElementById('edit-prod-name').value.trim();
+      if (!name) {
+        alert('상품명을 입력해주세요.');
+        return null;
+      }
+      const eng = document.getElementById('edit-prod-eng').value.trim();
+      const poetic = document.getElementById('edit-prod-poetic').value.trim();
+      if (!poetic) {
+        alert('한 줄 글귀를 입력해주세요.');
+        return null;
+      }
+      const cat = document.getElementById('edit-prod-cat').value;
+      const inquiryOnly = document.getElementById('edit-prod-inquiry').checked;
+      const price = inquiryOnly ? 0 : Number(document.getElementById('edit-prod-price').value || 0);
+      const stockQuantity = inquiryOnly ? null : Number(document.getElementById('edit-prod-stock-qty').value || 0);
+      const meaning = document.getElementById('edit-prod-meaning').value.trim();
+      const desc = document.getElementById('edit-prod-desc').value.trim();
+      const image = document.getElementById('edit-prod-image').value.trim();
+      if (!image) {
+        alert('대표 이미지 경로를 입력해주세요.');
+        return null;
+      }
+
+      // 공개 설정 수집 및 검증
+      const radios = document.getElementsByName('edit-prod-visibility');
+      let visibility = 'public';
+      for (const r of radios) {
+        if (r.checked) { visibility = r.value; break; }
+      }
+
+      let publishAt = null;
+      if (visibility === 'scheduled') {
+        const pubInput = document.getElementById('edit-prod-publish-at');
+        publishAt = pubInput ? pubInput.value : '';
+        if (!publishAt) {
+          alert('예약 공개 일시를 입력해주세요.');
+          return null;
+        }
+        const currentKoreaISO = typeof getKoreaISOString === 'function' ? getKoreaISOString(new Date()) : new Date().toISOString().slice(0, 16);
+        if (publishAt <= currentKoreaISO) {
+          alert('예약 공개 일시는 현재 시각 이후(미래)로 설정해야 합니다.');
+          return null;
+        }
+      }
+
+      let products = loadProducts();
+      let savedId = prodId;
+
+      if (prodId) {
+        // 기존 상품 수정 (sizes 등 기존 속성 보존)
+        products = products.map(p => p.id === prodId ? {
+          ...p,
+          name, 
+          englishName: eng, 
+          poeticLine: poetic, 
+          category: cat, 
+          price, 
+          stockQuantity, 
+          inquiryOnly,
+          visibility,
+          publishAt: visibility === 'scheduled' ? publishAt : null,
+          flowerMeaning: meaning, 
+          description: desc,
+          image
+        } : p);
+      } else {
+        // 신규 상품 등록
+        savedId = `prod-${Date.now()}`;
+        const newP = {
+          id: savedId,
+          name, 
+          englishName: eng, 
+          poeticLine: poetic, 
+          category: cat, 
+          price, 
+          stockQuantity, 
+          inquiryOnly,
+          visibility,
+          publishAt: visibility === 'scheduled' ? publishAt : null,
+          flowerMeaning: meaning, 
+          description: desc,
+          image
+        };
+        products.unshift(newP);
+      }
+
+      saveProducts(products);
+      closeProductModal();
+      renderProductsTable();
+      renderDashboard();
+      return savedId;
+    }
+
+    function saveProduct(e) {
+      if (e) e.preventDefault();
+      const prodId = document.getElementById('edit-prod-id').value;
+      const isEdit = !!prodId;
+      const name = document.getElementById('edit-prod-name').value.trim();
+      const savedId = doSaveProduct();
+      if (!savedId) return;
+
+      if (isEdit) {
+        alert(`'${name}' 상품 정보가 수정되었습니다!
+쇼핑몰(index.html)에 즉시 반영됩니다.`);
+      } else {
+        alert(`신규 상품 '${name}' 등록 완료!
+쇼핑몰(index.html)에서 바로 확인하실 수 있습니다.`);
+      }
+    }
+
+    function saveAndPreviewProduct(e) {
+      if (e) e.preventDefault();
+      const savedId = doSaveProduct();
+      if (savedId) {
+        window.open('index.html?preview=' + encodeURIComponent(savedId), '_blank');
+      }
+    }
+
+    
+    // 7. 매장 정보 설정 관리 (주간 스케줄 및 임시 휴무일)
+    let adminWeeklyHours = [];
+    let adminClosures = [];
+    let adminHolidayClosed = true;
+    let adminHolidayOverrides = {};
+    let adminCustomHolidays = [];
+
+    const DISPLAY_DAY_ORDER = [1, 2, 3, 4, 5, 6, 0]; // 월(1), 화(2), 수(3), 목(4), 금(5), 토(6), 일(0)
+    const DAY_NAMES = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+    const DAY_SHORT_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
+
+    function renderAdminSettings() {
+      const s = typeof loadSettings === 'function' ? loadSettings() : {
+        phone: '02-764-1920',
+        email: 'contact@seoldamhwa.kr',
+        address: '서울시 종로구 북촌로 42',
+        addressDetail: '(임시 주소)',
+        directions: '',
+        kakaoChannelUrl: '',
+        showLocation: false,
+        weeklyHours: typeof DEFAULT_WEEKLY_HOURS !== 'undefined' ? DEFAULT_WEEKLY_HOURS : [],
+        closures: []
+      };
+
+      const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val || '';
+      };
+
+      setVal('settings-phone', s.phone);
+      setVal('settings-email', s.email);
+      setVal('settings-kakao', s.kakaoChannelUrl);
+      setVal('settings-address', s.address);
+      setVal('settings-address-detail', s.addressDetail);
+      setVal('settings-directions', s.directions);
+
+      const locCheck = document.getElementById('settings-show-location');
+      if (locCheck) {
+        locCheck.checked = !!s.showLocation;
+      }
+
+      adminWeeklyHours = JSON.parse(JSON.stringify(s.weeklyHours || (typeof DEFAULT_WEEKLY_HOURS !== 'undefined' ? DEFAULT_WEEKLY_HOURS : [])));
+      adminClosures = JSON.parse(JSON.stringify(s.closures || []));
+      adminHolidayClosed = s.holidayClosed !== false;
+      adminHolidayOverrides = JSON.parse(JSON.stringify(s.holidayOverrides || {}));
+      adminCustomHolidays = JSON.parse(JSON.stringify(s.customHolidays || []));
+
+      const holidaySwitch = document.getElementById('settings-holiday-closed');
+      if (holidaySwitch) holidaySwitch.checked = adminHolidayClosed;
+      const holidayWrap = document.getElementById('admin-holidays-wrapper');
+      if (holidayWrap) {
+        if (adminHolidayClosed) {
+          holidayWrap.classList.remove('hidden');
+          renderHolidaysList();
+        } else {
+          holidayWrap.classList.add('hidden');
+        }
+      }
+
+      renderWeeklyHoursTable();
+      renderClosuresList();
+      updateAdminMapPreview();
+    }
+
+    // 주간 운영시간 테이블 렌더링 (월~일 순서)
+    function renderWeeklyHoursTable() {
+      const tbody = document.getElementById('admin-weekly-hours-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      DISPLAY_DAY_ORDER.forEach(dayIdx => {
+        const h = adminWeeklyHours[dayIdx] || { open: false, start: '10:00', end: '18:00', lunch: false, lunchStart: '12:30', lunchEnd: '13:30' };
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-black/[0.02] transition-colors';
+
+        const isWeekend = dayIdx === 0 || dayIdx === 6;
+        const dayColor = dayIdx === 0 ? 'text-seal-red font-bold' : (dayIdx === 6 ? 'text-blue-600 font-bold' : 'text-ink-black font-bold');
+
+        tr.innerHTML = `
+          <td class="p-2.5 text-center ${dayColor}">${DAY_SHORT_NAMES[dayIdx]}</td>
+          <td class="p-2.5 text-center">
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="hours-open-${dayIdx}" ${h.open ? 'checked' : ''} onchange="toggleDayOpen(${dayIdx}, this.checked)" class="sr-only peer">
+              <div class="w-8 h-4 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-seal-red"></div>
+            </label>
+          </td>
+          <td class="p-2.5">
+            <div class="inline-flex items-center gap-1.5">
+              <input type="time" id="hours-start-${dayIdx}" value="${h.start || '10:00'}" ${!h.open ? 'disabled' : ''} onchange="updateDayTime(${dayIdx}, 'start', this.value)" class="bg-white border border-ink-black/20 p-1.5 rounded-xs text-xs font-mono disabled:bg-gray-100 disabled:text-gray-400">
+              <span class="text-ink-light">~</span>
+              <input type="time" id="hours-end-${dayIdx}" value="${h.end || '18:00'}" ${!h.open ? 'disabled' : ''} onchange="updateDayTime(${dayIdx}, 'end', this.value)" class="bg-white border border-ink-black/20 p-1.5 rounded-xs text-xs font-mono disabled:bg-gray-100 disabled:text-gray-400">
+            </div>
+          </td>
+          <td class="p-2.5 text-center">
+            <input type="checkbox" id="hours-lunch-${dayIdx}" ${h.lunch ? 'checked' : ''} ${!h.open ? 'disabled' : ''} onchange="toggleDayLunch(${dayIdx}, this.checked)" class="rounded-xs border-ink-black/20 text-seal-red focus:ring-seal-red disabled:opacity-40">
+          </td>
+          <td class="p-2.5">
+            <div class="inline-flex items-center gap-1.5">
+              <input type="time" id="hours-lunch-start-${dayIdx}" value="${h.lunchStart || '12:30'}" ${(!h.open || !h.lunch) ? 'disabled' : ''} onchange="updateDayTime(${dayIdx}, 'lunchStart', this.value)" class="bg-white border border-ink-black/20 p-1.5 rounded-xs text-xs font-mono disabled:bg-gray-100 disabled:text-gray-400">
+              <span class="text-ink-light">~</span>
+              <input type="time" id="hours-lunch-end-${dayIdx}" value="${h.lunchEnd || '13:30'}" ${(!h.open || !h.lunch) ? 'disabled' : ''} onchange="updateDayTime(${dayIdx}, 'lunchEnd', this.value)" class="bg-white border border-ink-black/20 p-1.5 rounded-xs text-xs font-mono disabled:bg-gray-100 disabled:text-gray-400">
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function toggleDayOpen(dayIdx, isOpen) {
+      if (!adminWeeklyHours[dayIdx]) return;
+      adminWeeklyHours[dayIdx].open = isOpen;
+      renderWeeklyHoursTable();
+      validateWeeklyHours();
+    }
+
+    function toggleDayLunch(dayIdx, hasLunch) {
+      if (!adminWeeklyHours[dayIdx]) return;
+      adminWeeklyHours[dayIdx].lunch = hasLunch;
+      renderWeeklyHoursTable();
+      validateWeeklyHours();
+    }
+
+    function updateDayTime(dayIdx, field, val) {
+      if (!adminWeeklyHours[dayIdx]) return;
+      adminWeeklyHours[dayIdx][field] = val;
+      validateWeeklyHours();
+    }
+
+    // 주간 운영시간 유효성 검사
+    function validateWeeklyHours() {
+      const errEl = document.getElementById('settings-hours-error');
+      let errorMsg = null;
+
+      for (let i = 0; i < adminWeeklyHours.length; i++) {
+        const h = adminWeeklyHours[i];
+        if (!h.open) continue;
+
+        const dayName = DAY_NAMES[i];
+        if (!h.start || !h.end) {
+          errorMsg = `${dayName}의 운영 시작 시간과 종료 시간을 모두 입력해 주세요.`;
+          break;
+        }
+        if (h.start >= h.end) {
+          errorMsg = `${dayName}의 종료 시간(${h.end})은 시작 시간(${h.start})보다 늦어야 합니다.`;
+          break;
+        }
+
+        if (h.lunch) {
+          if (!h.lunchStart || !h.lunchEnd) {
+            errorMsg = `${dayName}의 점심시간 시작 및 종료 시간을 입력해 주세요.`;
+            break;
+          }
+          if (h.lunchStart >= h.lunchEnd) {
+            errorMsg = `${dayName}의 점심 종료 시간(${h.lunchEnd})은 시작 시간(${h.lunchStart})보다 늦어야 합니다.`;
+            break;
+          }
+          if (h.lunchStart < h.start || h.lunchEnd > h.end) {
+            errorMsg = `${dayName}의 점심시간(${h.lunchStart}~${h.lunchEnd})은 운영시간(${h.start}~${h.end}) 안에 포함되어야 합니다.`;
+            break;
+          }
+        }
+      }
+
+      if (errEl) {
+        if (errorMsg) {
+          errEl.innerText = errorMsg;
+          errEl.classList.remove('hidden');
+        } else {
+          errEl.innerText = '';
+          errEl.classList.add('hidden');
+        }
+      }
+
+      return errorMsg;
+    }
+
+    // 임시 휴무일 목록 렌더링
+    function renderClosuresList() {
+      const container = document.getElementById('admin-closures-list');
+      if (!container) return;
+      container.innerHTML = '';
+
+      adminClosures.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+      const todayStr = typeof getKoreaTimeParts === 'function' ? getKoreaTimeParts().dateStr : new Date().toISOString().slice(0, 10);
+
+      if (adminClosures.length === 0) {
+        container.innerHTML = '<div class="p-3 text-center text-ink-light">등록된 임시 휴무일이 없습니다.</div>';
+        return;
+      }
+
+      adminClosures.forEach((c, idx) => {
+        const isPast = c.date < todayStr;
+        const row = document.createElement('div');
+        row.className = `flex items-center justify-between p-2.5 ${isPast ? 'bg-gray-50 text-ink-light' : 'hover:bg-black/[0.02]'}`;
+
+        let weekdayLabel = '';
+        if (c.date && /^d{4}-d{2}-d{2}$/.test(c.date)) {
+          const [y, m, d] = c.date.split('-').map(Number);
+          const fakeUtc = new Date(Date.UTC(y, m - 1, d, 3, 0, 0));
+          const dayIdx = typeof getKoreaTimeParts === 'function' ? getKoreaTimeParts(fakeUtc).day : fakeUtc.getDay();
+          weekdayLabel = `(${DAY_SHORT_NAMES[dayIdx]})`;
+        }
+
+        row.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="font-mono font-bold ${isPast ? 'line-through text-gray-400' : 'text-ink-black'}">${c.date}</span>
+            <span class="text-[11px] ${isPast ? 'text-gray-400' : 'text-ink-gray'}">${weekdayLabel}</span>
+            <span class="text-xs ${isPast ? 'text-gray-400' : 'text-seal-red font-medium'}">${c.reason || '임시 휴무'}</span>
+            ${isPast ? '<span class="text-[10px] px-1.5 py-0.2 rounded-xs bg-gray-200 text-gray-600">지난 날짜</span>' : ''}
+          </div>
+          <button type="button" onclick="removeClosureDate(${idx})" class="text-ink-light hover:text-seal-red text-xs px-2 py-1 rounded-xs hover:bg-black/5 cursor-pointer font-bold">
+            삭제
+          </button>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function addClosureDate() {
+      const dateEl = document.getElementById('new-closure-date');
+      const reasonEl = document.getElementById('new-closure-reason');
+      if (!dateEl || !dateEl.value) {
+        alert('임시 휴무 날짜를 선택해 주세요.');
+        return;
+      }
+
+      const date = dateEl.value;
+      const reason = reasonEl ? reasonEl.value.trim() : '';
+
+      const exists = adminClosures.some(c => c.date === date);
+      if (exists) {
+        alert('이미 등록된 날짜입니다.');
+        return;
+      }
+
+      adminClosures.push({ date, reason: reason || '임시 휴무' });
+      dateEl.value = '';
+      if (reasonEl) reasonEl.value = '';
+
+      renderClosuresList();
+    }
+
+    function removeClosureDate(idx) {
+      if (idx >= 0 && idx < adminClosures.length) {
+        adminClosures.splice(idx, 1);
+        renderClosuresList();
+      }
+    }
+
+    function cleanPastClosures() {
+      const todayStr = typeof getKoreaTimeParts === 'function' ? getKoreaTimeParts().dateStr : new Date().toISOString().slice(0, 10);
+      const beforeCount = adminClosures.length;
+      adminClosures = adminClosures.filter(c => c.date >= todayStr);
+      const removed = beforeCount - adminClosures.length;
+      renderClosuresList();
+      alert(removed > 0 ? `지난 임시 휴무일 ${removed}건을 정리했습니다.` : '정리할 지난 임시 휴무일이 없습니다.');
+    }
+
+    function updateAdminMapPreview() {
+      const addrEl = document.getElementById('settings-address');
+      const mapEl = document.getElementById('admin-map-preview');
+      if (addrEl && mapEl && typeof mapEmbedUrl === 'function') {
+        const addr = addrEl.value.trim();
+        mapEl.src = mapEmbedUrl(addr);
+      }
+    }
+
+    function saveStoreSettings(e) {
+      e.preventDefault();
+      const phone = document.getElementById('settings-phone').value.trim();
+      const address = document.getElementById('settings-address').value.trim();
+      const showLocation = document.getElementById('settings-show-location').checked;
+
+      if (!phone) {
+        alert('대표 전화번호는 필수 입력 항목입니다.');
+        return;
+      }
+
+      if (showLocation && !address) {
+        alert('오프라인 매장 오시는 길을 공개하려면 도로명 주소를 입력해 주세요.');
+        return;
+      }
+
+      const kakaoUrl = document.getElementById('settings-kakao').value.trim();
+      if (kakaoUrl && !kakaoUrl.startsWith('http://') && !kakaoUrl.startsWith('https://')) {
+        alert('카카오톡 채널 주소는 "http://" 또는 "https://"로 시작해야 합니다.');
+        return;
+      }
+
+      // 주간 운영시간 유효성 검사
+      const hoursError = validateWeeklyHours();
+      if (hoursError) {
+        alert('운영시간 설정을 확인해 주세요:\n' + hoursError);
+        return;
+      }
+
+      const existing = typeof loadSettings === 'function' ? loadSettings() : {};
+
+      const newSettings = {
+        ...existing,
+        phone,
+        email: document.getElementById('settings-email').value.trim(),
+        kakaoChannelUrl: kakaoUrl,
+        weeklyHours: adminWeeklyHours,
+        closures: adminClosures,
+        holidayClosed: adminHolidayClosed,
+        holidayOverrides: adminHolidayOverrides,
+        customHolidays: adminCustomHolidays,
+        address,
+        addressDetail: document.getElementById('settings-address-detail').value.trim(),
+        directions: document.getElementById('settings-directions').value.trim(),
+        showLocation: showLocation
+      };
+
+      if (typeof saveSettings === 'function') {
+        saveSettings(newSettings);
+      } else {
+        localStorage.setItem('seoldamhwa_settings', JSON.stringify(newSettings));
+      }
+
+      alert('저장되었습니다. 쇼핑몰에 바로 반영됩니다.');
+      updateAdminMapPreview();
+    }
+
+    // 공휴일 휴무 스위치 토글
+    function toggleHolidayClosedSwitch() {
+      const checkbox = document.getElementById('settings-holiday-closed');
+      adminHolidayClosed = checkbox ? checkbox.checked : true;
+      const wrap = document.getElementById('admin-holidays-wrapper');
+      if (wrap) {
+        if (adminHolidayClosed) {
+          wrap.classList.remove('hidden');
+          renderHolidaysList();
+        } else {
+          wrap.classList.add('hidden');
+        }
+      }
+    }
+
+    // 다가오는 공휴일 목록 렌더링
+    function renderHolidaysList() {
+      const container = document.getElementById('admin-holidays-list');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const kp = typeof getKoreaTimeParts === 'function' ? getKoreaTimeParts() : { dateStr: new Date().toISOString().slice(0, 10) };
+      const todayStr = kp.dateStr;
+
+      const all = [
+        ...(typeof KOREAN_HOLIDAYS !== 'undefined' ? KOREAN_HOLIDAYS : []),
+        ...adminCustomHolidays
+      ];
+
+      // 오늘 이후 다가오는 공휴일만 필터링 및 날짜 오름차순 정렬
+      const upcoming = all.filter(h => h.date >= todayStr);
+      upcoming.sort((a, b) => a.date.localeCompare(b.date));
+
+      if (upcoming.length === 0) {
+        container.innerHTML = '<div class="p-3 text-center text-ink-gray">예정된 공휴일이 없습니다.</div>';
+        return;
+      }
+
+      upcoming.forEach(h => {
+        const [y, m, d] = h.date.split('-').map(Number);
+        const fakeUtc = new Date(Date.UTC(y, m - 1, d, 3, 0, 0));
+        const dayIdx = typeof getKoreaTimeParts === 'function' ? getKoreaTimeParts(fakeUtc).day : fakeUtc.getDay();
+        const weekdayName = DAY_SHORT_NAMES[dayIdx] || '';
+
+        const override = adminHolidayOverrides[h.date];
+        let isClosed = false;
+        if (override === 'open') {
+          isClosed = false;
+        } else if (override === 'closed') {
+          isClosed = true;
+        } else if (h.optional) {
+          isClosed = false;
+        } else {
+          isClosed = adminHolidayClosed !== false;
+        }
+
+        const isCustom = adminCustomHolidays.some(c => c.date === h.date && c.name === h.name);
+
+        const row = document.createElement('div');
+        row.className = 'p-2.5 flex items-center justify-between hover:bg-black/[0.02] transition-colors';
+        row.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="font-mono font-bold text-ink-black">${h.date} (${weekdayName})</span>
+            <span class="font-bold text-ink-charcoal">${h.name}</span>
+            ${isCustom ? '<span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-bold">사용자 추가</span>' : ''}
+            ${h.optional ? '<span class="bg-gray-100 text-gray-700 text-[10px] px-1.5 py-0.5 rounded font-bold">기본 영업</span>' : ''}
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick="toggleHolidayOverride('${h.date}')" class="px-2.5 py-1 text-xs font-bold rounded-xs cursor-pointer transition-colors ${isClosed ? 'bg-red-50 text-seal-red border border-seal-red/30 hover:bg-red-100' : 'bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100'}">
+              ${isClosed ? '쉬기 (휴무)' : '영업 (정상)'}
+            </button>
+            ${isCustom ? `
+              <button type="button" onclick="removeCustomHoliday('${h.date}')" class="text-ink-gray hover:text-seal-red p-1 cursor-pointer" title="삭제">
+                ✕
+              </button>
+            ` : ''}
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function toggleHolidayOverride(dateStr) {
+      const all = [
+        ...(typeof KOREAN_HOLIDAYS !== 'undefined' ? KOREAN_HOLIDAYS : []),
+        ...adminCustomHolidays
+      ];
+      const h = all.find(item => item.date === dateStr);
+      const override = adminHolidayOverrides[dateStr];
+      let isCurrentlyClosed = false;
+      if (override === 'open') {
+        isCurrentlyClosed = false;
+      } else if (override === 'closed') {
+        isCurrentlyClosed = true;
+      } else if (h && h.optional) {
+        isCurrentlyClosed = false;
+      } else {
+        isCurrentlyClosed = adminHolidayClosed !== false;
+      }
+
+      adminHolidayOverrides[dateStr] = isCurrentlyClosed ? 'open' : 'closed';
+      renderHolidaysList();
+    }
+
+    function addCustomHoliday() {
+      const dateEl = document.getElementById('new-holiday-date');
+      const nameEl = document.getElementById('new-holiday-name');
+      const date = dateEl ? dateEl.value : '';
+      const name = nameEl ? nameEl.value.trim() : '';
+
+      if (!date) {
+        alert('공휴일 날짜를 선택해 주세요.');
+        return;
+      }
+      if (!name) {
+        alert('공휴일 이름을 입력해 주세요.');
+        return;
+      }
+
+      if (adminCustomHolidays.some(c => c.date === date)) {
+        alert('이미 등록된 공휴일 날짜입니다.');
+        return;
+      }
+
+      adminCustomHolidays.push({ date, name });
+      if (dateEl) dateEl.value = '';
+      if (nameEl) nameEl.value = '';
+      renderHolidaysList();
+    }
+
+    function removeCustomHoliday(dateStr) {
+      adminCustomHolidays = adminCustomHolidays.filter(c => c.date !== dateStr);
+      delete adminHolidayOverrides[dateStr];
+      renderHolidaysList();
+    }
+
+    // 6. 탭 전환
+    
+    // ----------------------------------------------------
+    // 7. 팝업 슬라이더 관리 기능 (Admin Popups)
+    // ----------------------------------------------------
+    function initPopupsAdmin() {
+      const popups = typeof loadPopups === 'function' ? loadPopups() : { enabled: false, slides: [] };
+      const masterToggle = document.getElementById('popup-master-toggle');
+      const statusBadge = document.getElementById('popup-master-status-badge');
+      if (masterToggle) masterToggle.checked = !!popups.enabled;
+      if (statusBadge) {
+        statusBadge.innerText = popups.enabled ? 'ON' : 'OFF';
+        statusBadge.className = popups.enabled
+          ? 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700'
+          : 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500';
+      }
+
+      renderPopupsTable();
+      updateInternalTargetProductOptions();
+    }
+
+    function togglePopupMaster(checked) {
+      const popups = typeof loadPopups === 'function' ? loadPopups() : { enabled: false, slides: [] };
+      popups.enabled = !!checked;
+      savePopups(popups);
+      initPopupsAdmin();
+    }
+
+    // 관리자 화면 표시용 HTML 이스케이프 (팝업 문구에 태그가 들어가도 그대로 글자로 보이게 함)
+    function escPopup(v) {
+      return String(v == null ? '' : v).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    }
+
+    function renderPopupsTable() {
+      const popups = typeof loadPopups === 'function' ? loadPopups() : { enabled: false, slides: [] };
+      const tbody = document.getElementById('popups-table-body');
+      const totalCountEl = document.getElementById('popups-total-count');
+      const activeCountEl = document.getElementById('popups-active-count');
+      const badgeEl = document.getElementById('popups-active-badge');
+
+      const slides = popups.slides || [];
+      // 순서 기준 정렬
+      slides.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+
+      const activeCount = slides.filter(s => s.active).length;
+      if (totalCountEl) totalCountEl.innerText = slides.length;
+      if (activeCountEl) activeCountEl.innerText = activeCount;
+      if (badgeEl) {
+        badgeEl.innerText = activeCount;
+        badgeEl.className = activeCount > 0
+          ? 'text-[10px] bg-seal-red text-white font-bold px-1.5 py-0.5 rounded'
+          : 'text-[10px] bg-ink-black/10 text-ink-black font-bold px-1.5 py-0.5 rounded';
+      }
+
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (slides.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="py-8 text-center text-ink-light">등록된 팝업 슬라이드가 없습니다. [+ 새 슬라이드]를 눌러 등록해 보세요.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      slides.forEach((s, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-[#FAF7F2] transition-colors';
+
+        let periodText = '상시 노출';
+        if (s.startDate && s.endDate) periodText = `${s.startDate} ~ ${s.endDate}`;
+        else if (s.startDate) periodText = `${s.startDate}부터`;
+        else if (s.endDate) periodText = `${s.endDate}까지`;
+
+        let linkInfo = '링크 없음';
+        if (s.linkType === 'url') linkInfo = '외부 링크';
+        else if (s.linkType === 'internal') linkInfo = '사이트 내 메뉴';
+
+        tr.innerHTML = `
+          <td class="py-3 px-4 text-center font-bold text-ink-charcoal">${idx + 1}</td>
+          <td class="py-3 px-4">
+            <div class="w-12 h-12 rounded-xs bg-[#ECE8E1] border border-ink-black/10 overflow-hidden flex items-center justify-center">
+              <img src="${escPopup(s.image)}" alt="${escPopup(s.title)}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/80x80?text=No+Img';">
+            </div>
+          </td>
+          <td class="py-3 px-4">
+            <div class="font-bold text-ink-black text-xs">${escPopup(s.title)}</div>
+            <div class="text-[11px] text-ink-gray line-clamp-1 mt-0.5">${escPopup(s.text)}</div>
+            <div class="text-[10px] text-ink-light mt-0.5">${linkInfo} · 버튼: "${escPopup(s.buttonLabel || '자세히 보기')}"</div>
+          </td>
+          <td class="py-3 px-4 text-[11px] text-ink-gray">${escPopup(periodText)}</td>
+          <td class="py-3 px-4 text-center">
+            <button onclick="toggleSlideActive('${escPopup(s.id)}')" class="px-2.5 py-1 text-[11px] font-bold rounded-xs transition-colors ${s.active ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}">
+              ${s.active ? '사용 중' : '중지됨'}
+            </button>
+          </td>
+          <td class="py-3 px-4 text-center">
+            <div class="flex items-center justify-center gap-1">
+              <button onclick="moveSlideOrder('${escPopup(s.id)}', -1)" ${idx === 0 ? 'disabled' : ''} class="w-6 h-6 flex items-center justify-center border border-ink-black/10 rounded-xs text-[10px] hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed">▲</button>
+              <button onclick="moveSlideOrder('${escPopup(s.id)}', 1)" ${idx === slides.length - 1 ? 'disabled' : ''} class="w-6 h-6 flex items-center justify-center border border-ink-black/10 rounded-xs text-[10px] hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed">▼</button>
+            </div>
+          </td>
+          <td class="py-3 px-4 text-right">
+            <div class="flex items-center justify-end gap-1.5">
+              <button onclick="openSlideModal('${escPopup(s.id)}')" class="px-2 py-1 text-xs text-ink-black hover:text-seal-red font-bold">수정</button>
+              <button onclick="deleteSlide('${escPopup(s.id)}')" class="px-2 py-1 text-xs text-gray-400 hover:text-rose-600 font-bold">삭제</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function toggleSlideActive(id) {
+      const popups = typeof loadPopups === 'function' ? loadPopups() : { enabled: false, slides: [] };
+      const slide = popups.slides.find(s => s.id === id);
+      if (!slide) return;
+
+      if (!slide.active) {
+        const activeCount = popups.slides.filter(s => s.active).length;
+        if (activeCount >= 5) {
+          alert('활성 팝업 슬라이드는 최대 5개까지만 등록할 수 있습니다. 다른 슬라이드를 중지한 후 다시 시도해 주세요.');
+          return;
+        }
+        slide.active = true;
+      } else {
+        slide.active = false;
+      }
+
+      savePopups(popups);
+      renderPopupsTable();
+    }
+
+    function moveSlideOrder(id, direction) {
+      const popups = typeof loadPopups === 'function' ? loadPopups() : { enabled: false, slides: [] };
+      const slides = popups.slides || [];
+      slides.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+
+      const idx = slides.findIndex(s => s.id === id);
+      if (idx === -1) return;
+      const targetIdx = idx + direction;
+      if (targetIdx < 0 || targetIdx >= slides.length) return;
+
+      const temp = slides[idx];
+      slides[idx] = slides[targetIdx];
+      slides[targetIdx] = temp;
+
+      slides.forEach((s, i) => s.order = i + 1);
+      savePopups(popups);
+      renderPopupsTable();
+    }
+
+    function updateInternalTargetProductOptions() {
+      const select = document.getElementById('slide-internal-target');
+      if (!select) return;
+      const baseOptions = `
+        <option value="story">설담화 이야기 (Story)</option>
+        <option value="shop">꽃 둘러보기 (Shop)</option>
+        <option value="custom">맞춤 담화 (큐레이터 & 상담)</option>
+      `;
+
+      const products = typeof loadAdminProducts === 'function' ? loadAdminProducts() : [];
+      const visibleProducts = products.filter(p => typeof isProductVisible === 'function' ? isProductVisible(p) : true);
+
+      let prodOptions = '';
+      if (visibleProducts.length > 0) {
+        prodOptions = '<optgroup label="상품 바로가기">' + visibleProducts.map(p => `
+          <option value="product:${p.id}">상품: ${p.name}</option>
+        `).join('') + '</optgroup>';
+      }
+
+      select.innerHTML = baseOptions + prodOptions;
+    }
+
+    function updateSlideImagePreview(url) {
+      const preview = document.getElementById('slide-img-preview');
+      if (preview) {
+        preview.src = url || 'assets/images/story_bojagi_gift.jpg';
+      }
+    }
+
+    function handleSlideLinkTypeChange() {
+      const linkType = document.getElementById('slide-link-type')?.value || 'none';
+      const urlWrap = document.getElementById('slide-url-wrap');
+      const internalWrap = document.getElementById('slide-internal-wrap');
+
+      if (urlWrap) {
+        if (linkType === 'url') urlWrap.classList.remove('hidden');
+        else urlWrap.classList.add('hidden');
+      }
+      if (internalWrap) {
+        if (linkType === 'internal') internalWrap.classList.remove('hidden');
+        else internalWrap.classList.add('hidden');
+      }
+    }
+
+    function openSlideModal(id = null) {
+      updateInternalTargetProductOptions();
+      const modal = document.getElementById('slide-edit-modal');
+      const modalTitle = document.getElementById('slide-modal-title');
+      const form = document.getElementById('slide-edit-form');
+      if (!modal || !form) return;
+
+      form.reset();
+      document.getElementById('slide-edit-id').value = id || '';
+
+      if (id) {
+        const popups = typeof loadPopups === 'function' ? loadPopups() : { enabled: false, slides: [] };
+        const slide = popups.slides.find(s => s.id === id);
+        if (slide) {
+          if (modalTitle) modalTitle.innerText = '팝업 슬라이드 수정';
+          document.getElementById('slide-image').value = slide.image || '';
+          updateSlideImagePreview(slide.image);
+          document.getElementById('slide-title').value = slide.title || '';
+          document.getElementById('slide-text').value = slide.text || '';
+          document.getElementById('slide-btn-label').value = slide.buttonLabel || '자세히 보기';
+          document.getElementById('slide-title-en').value = slide.titleEn || '';
+          document.getElementById('slide-text-en').value = slide.textEn || '';
+          document.getElementById('slide-title-ja').value = slide.titleJa || '';
+          document.getElementById('slide-text-ja').value = slide.textJa || '';
+
+          const linkTypeSelect = document.getElementById('slide-link-type');
+          if (linkTypeSelect) linkTypeSelect.value = slide.linkType || 'none';
+          document.getElementById('slide-url').value = slide.url || '';
+          const internalSelect = document.getElementById('slide-internal-target');
+          if (internalSelect && slide.internalTarget) internalSelect.value = slide.internalTarget;
+
+          document.getElementById('slide-start-date').value = slide.startDate || '';
+          document.getElementById('slide-end-date').value = slide.endDate || '';
+          document.getElementById('slide-active').checked = !!slide.active;
+        }
+      } else {
+        if (modalTitle) modalTitle.innerText = '새 팝업 슬라이드 등록';
+        document.getElementById('slide-image').value = 'assets/images/story_bojagi_gift.jpg';
+        updateSlideImagePreview('assets/images/story_bojagi_gift.jpg');
+        document.getElementById('slide-btn-label').value = '자세히 보기';
+        document.getElementById('slide-link-type').value = 'internal';
+        document.getElementById('slide-internal-target').value = 'story';
+        document.getElementById('slide-active').checked = true;
+      }
+
+      handleSlideLinkTypeChange();
+      modal.classList.remove('hidden');
+    }
+
+    function closeSlideModal() {
+      const modal = document.getElementById('slide-edit-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function saveSlideForm(e) {
+      e.preventDefault();
+      const id = document.getElementById('slide-edit-id').value;
+      const image = document.getElementById('slide-image').value.trim();
+      const title = document.getElementById('slide-title').value.trim();
+      const text = document.getElementById('slide-text').value.trim();
+      const buttonLabel = document.getElementById('slide-btn-label').value.trim() || '자세히 보기';
+      const titleEn = document.getElementById('slide-title-en').value.trim();
+      const textEn = document.getElementById('slide-text-en').value.trim();
+      const titleJa = document.getElementById('slide-title-ja').value.trim();
+      const textJa = document.getElementById('slide-text-ja').value.trim();
+      const linkType = document.getElementById('slide-link-type').value;
+      const url = document.getElementById('slide-url').value.trim();
+      const internalTarget = document.getElementById('slide-internal-target').value;
+      const startDate = document.getElementById('slide-start-date').value;
+      const endDate = document.getElementById('slide-end-date').value;
+      const active = document.getElementById('slide-active').checked;
+
+      if (!image || !title || !text) {
+        alert('이미지 경로, 제목, 내용 문구는 필수 입력 항목입니다.');
+        return;
+      }
+
+      if (linkType === 'url') {
+        if (!url || typeof isValidPopupUrl !== 'function' || !isValidPopupUrl(url)) {
+          alert('외부 링크는 반드시 https:// 또는 http:// 로 시작해야 합니다. 올바른 URL을 입력해 주세요.');
+          return;
+        }
+      }
+
+      const popups = typeof loadPopups === 'function' ? loadPopups() : { enabled: false, slides: [] };
+      const slides = popups.slides || [];
+
+      // 활성 슬라이드 최대 5개 검증
+      if (active) {
+        const otherActiveCount = slides.filter(s => s.active && s.id !== id).length;
+        if (otherActiveCount >= 5) {
+          alert('활성 팝업 슬라이드는 최대 5개까지만 등록할 수 있습니다. 다른 슬라이드를 중지한 후 사용 설정해 주세요.');
+          return;
+        }
+      }
+
+      if (id) {
+        const slide = slides.find(s => s.id === id);
+        if (slide) {
+          slide.image = image;
+          slide.title = title;
+          slide.text = text;
+          slide.buttonLabel = buttonLabel;
+          slide.titleEn = titleEn;
+          slide.textEn = textEn;
+          slide.titleJa = titleJa;
+          slide.textJa = textJa;
+          slide.linkType = linkType;
+          slide.url = linkType === 'url' ? url : '';
+          slide.internalTarget = linkType === 'internal' ? internalTarget : '';
+          slide.startDate = startDate;
+          slide.endDate = endDate;
+          slide.active = active;
+        }
+      } else {
+        const newOrder = slides.length > 0 ? Math.max(...slides.map(s => Number(s.order) || 0)) + 1 : 1;
+        slides.push({
+          id: 'slide-' + Date.now(),
+          active,
+          order: newOrder,
+          image,
+          title,
+          text,
+          buttonLabel,
+          titleEn,
+          textEn,
+          titleJa,
+          textJa,
+          linkType,
+          url: linkType === 'url' ? url : '',
+          internalTarget: linkType === 'internal' ? internalTarget : '',
+          startDate,
+          endDate
+        });
+      }
+
+      savePopups(popups);
+      closeSlideModal();
+      renderPopupsTable();
+    }
+
+    function deleteSlide(id) {
+      if (!confirm('이 팝업 슬라이드를 삭제하시겠습니까?')) return;
+      const popups = typeof loadPopups === 'function' ? loadPopups() : { enabled: false, slides: [] };
+      popups.slides = (popups.slides || []).filter(s => s.id !== id);
+      savePopups(popups);
+      renderPopupsTable();
+    }
+
+    function previewPopupInShop() {
+      window.open('index.html?popupPreview=1', '_blank');
+    }
+
+    function switchAdminTab(tabName) {
+      ['dashboard', 'products', 'orders', 'reviews', 'settings', 'popups'].forEach(t => {
+        document.getElementById(`panel-${t}`).classList.add('hidden');
+        document.getElementById(`tab-btn-${t}`).className = 'sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors';
+      });
+
+      document.getElementById(`panel-${tabName}`).classList.remove('hidden');
+      document.getElementById(`tab-btn-${tabName}`).className = 'sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm bg-ink-black text-hanji font-bold cursor-pointer transition-colors';
+      if (tabName === 'popups') { try { initPopupsAdmin(); } catch (e) { console.error('initPopupsAdmin error:', e); } }
+    }
+
+    // 60초마다 상품 목록 자동 새로고침 (예약 공개 전환 반영, 현재 필터 탭 유지)
+    setInterval(() => {
+      try { renderProductsTable(); } catch(e){}
+    }, 60000);
+  </script>
+
+  <!-- 슬라이드 편집 모달 -->
+  <div id="slide-edit-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-black/60 hidden">
+    <div class="bg-white w-full max-w-lg rounded-sm shadow-xl border border-ink-black/10 overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="px-5 py-4 border-b border-ink-black/10 flex items-center justify-between bg-[#FAF7F2]">
+        <h3 id="slide-modal-title" class="font-extrabold text-sm text-ink-black">팝업 슬라이드 편집</h3>
+        <button onclick="closeSlideModal()" class="text-ink-gray hover:text-ink-black text-sm font-bold">✕</button>
+      </div>
+
+      <form id="slide-edit-form" onsubmit="saveSlideForm(event)" class="p-5 overflow-y-auto space-y-4 text-xs">
+        <input type="hidden" id="slide-edit-id">
+
+        <!-- 이미지 경로 및 실시간 미리보기 -->
+        <div class="space-y-1.5">
+          <label class="block font-bold text-ink-black">이미지 경로 또는 HTTPS URL <span class="text-seal-red">*</span></label>
+          <div class="flex gap-3 items-center">
+            <div class="w-16 h-16 rounded-xs bg-[#ECE8E1] border border-ink-black/10 overflow-hidden shrink-0 flex items-center justify-center">
+              <img id="slide-img-preview" src="assets/images/story_bojagi_gift.jpg" alt="미리보기" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x100?text=No+Image';">
+            </div>
+            <input type="text" id="slide-image" required oninput="updateSlideImagePreview(this.value)" placeholder="예: assets/images/story_bojagi_gift.jpg 또는 https://..." class="flex-1 bg-[#FAF7F2] border border-ink-black/20 p-2.5 rounded-xs focus:border-seal-red focus:bg-white text-xs">
+          </div>
+        </div>
+
+        <!-- 제목 (최대 30자) -->
+        <div class="space-y-1">
+          <label class="block font-bold text-ink-black">제목 (한국어, 최대 30자) <span class="text-seal-red">*</span></label>
+          <input type="text" id="slide-title" required maxlength="30" placeholder="예: 복주머니 포장 안내" class="w-full bg-[#FAF7F2] border border-ink-black/20 p-2.5 rounded-xs focus:border-seal-red focus:bg-white text-xs">
+        </div>
+
+        <!-- 내용 (최대 80자) -->
+        <div class="space-y-1">
+          <label class="block font-bold text-ink-black">내용 문구 (한국어, 최대 80자) <span class="text-seal-red">*</span></label>
+          <textarea id="slide-text" required maxlength="80" rows="2" placeholder="예: 버려지는 포장 대신, 오래 간직하는 복주머니 포장으로 마음을 전해 보세요." class="w-full bg-[#FAF7F2] border border-ink-black/20 p-2.5 rounded-xs focus:border-seal-red focus:bg-white text-xs"></textarea>
+        </div>
+
+        <!-- 버튼 문구 -->
+        <div class="space-y-1">
+          <label class="block font-bold text-ink-black">버튼 문구</label>
+          <input type="text" id="slide-btn-label" placeholder="기본값: 자세히 보기" class="w-full bg-[#FAF7F2] border border-ink-black/20 p-2.5 rounded-xs focus:border-seal-red focus:bg-white text-xs">
+        </div>
+
+        <!-- 다른 언어 (선택) 접힘 영역 -->
+        <details class="border border-ink-black/10 rounded-xs p-3 bg-[#FAF7F2]">
+          <summary class="font-bold text-ink-black cursor-pointer select-none">다른 언어 (선택: 영문 / 일문)</summary>
+          <div class="mt-3 space-y-3 pt-2 border-t border-ink-black/10">
+            <div>
+              <label class="block font-medium text-ink-gray mb-1">영문 제목 (English Title)</label>
+              <input type="text" id="slide-title-en" maxlength="60" placeholder="Bojagi Gift Packaging" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs text-xs">
+            </div>
+            <div>
+              <label class="block font-medium text-ink-gray mb-1">영문 내용 (English Text)</label>
+              <textarea id="slide-text-en" maxlength="160" rows="2" placeholder="Send your heart with sustainable gift packaging." class="w-full bg-white border border-ink-black/20 p-2 rounded-xs text-xs"></textarea>
+            </div>
+            <div>
+              <label class="block font-medium text-ink-gray mb-1">일문 제목 (日本語タイトル)</label>
+              <input type="text" id="slide-title-ja" maxlength="60" placeholder="福袋ラッピングのご案内" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs text-xs">
+            </div>
+            <div>
+              <label class="block font-medium text-ink-gray mb-1">일문 내용 (日本語本文)</label>
+              <textarea id="slide-text-ja" maxlength="160" rows="2" placeholder="長く大切にできる風呂敷ラッピングで想いを伝えてみませんか。" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs text-xs"></textarea>
+            </div>
+          </div>
+        </details>
+
+        <!-- 링크 종류 -->
+        <div class="space-y-2">
+          <label class="block font-bold text-ink-black">링크 연결</label>
+          <select id="slide-link-type" onchange="handleSlideLinkTypeChange()" class="w-full bg-[#FAF7F2] border border-ink-black/20 p-2.5 rounded-xs focus:border-seal-red focus:bg-white text-xs font-medium">
+            <option value="none">없음 (버튼 미노출)</option>
+            <option value="internal">사이트 안 메뉴 (스토리, 둘러보기, 상담, 상품)</option>
+            <option value="url">외부 링크 (새 탭)</option>
+          </select>
+        </div>
+
+        <!-- 내부 타겟 선택 -->
+        <div id="slide-internal-wrap" class="space-y-1 hidden">
+          <label class="block font-medium text-ink-black">연결할 메뉴 / 상품</label>
+          <select id="slide-internal-target" class="w-full bg-white border border-ink-black/20 p-2.5 rounded-xs focus:border-seal-red text-xs">
+            <option value="story">설담화 이야기 (Story)</option>
+            <option value="shop">꽃 둘러보기 (Shop)</option>
+            <option value="custom">맞춤 담화 (큐레이터 & 상담)</option>
+            <!-- 상품 목록 옵션 -->
+          </select>
+        </div>
+
+        <!-- 외부 URL 입력 -->
+        <div id="slide-url-wrap" class="space-y-1 hidden">
+          <label class="block font-medium text-ink-black">외부 링크 URL <span class="text-seal-red">* (https:// 또는 http:// 필수)</span></label>
+          <input type="text" id="slide-url" placeholder="https://instagram.com/seoldamhwa" class="w-full bg-white border border-ink-black/20 p-2.5 rounded-xs focus:border-seal-red text-xs">
+        </div>
+
+        <!-- 노출 기간 (선택) -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="block font-bold text-ink-black">시작일 (선택)</label>
+            <input type="date" id="slide-start-date" class="w-full bg-[#FAF7F2] border border-ink-black/20 p-2.5 rounded-xs text-xs">
+          </div>
+          <div class="space-y-1">
+            <label class="block font-bold text-ink-black">종료일 (선택)</label>
+            <input type="date" id="slide-end-date" class="w-full bg-[#FAF7F2] border border-ink-black/20 p-2.5 rounded-xs text-xs">
+          </div>
+        </div>
+
+        <!-- 사용 여부 -->
+        <div class="flex items-center gap-2 pt-2 border-t border-ink-black/10">
+          <input type="checkbox" id="slide-active" class="w-4 h-4 text-seal-red rounded-xs border-ink-black/20 focus:ring-seal-red">
+          <label for="slide-active" class="font-bold text-ink-black cursor-pointer">이 슬라이드 사용하기</label>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-ink-black/10">
+          <button type="button" onclick="closeSlideModal()" class="px-4 py-2 border border-ink-black/20 rounded-xs text-ink-gray hover:text-ink-black font-bold">취소</button>
+          <button type="submit" class="px-5 py-2 bg-seal-red hover:bg-[#6e1c00] text-white rounded-xs font-bold shadow-xs">저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

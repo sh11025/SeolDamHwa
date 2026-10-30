@@ -1,0 +1,3702 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>설담화 (說談花) | 힙 트래디셔널 플로럴 아틀리에</title>
+  
+  <!-- 웹폰트: 2030 가독성을 위한 Pretendard + 붓글씨 Nanum Brush Script + Noto Serif KR -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            hanji: '#FBF9F5',
+            ink: {
+              black: '#1A1A1A',
+              charcoal: '#2A2A2A',
+              gray: '#666666',
+              light: '#999999',
+            },
+            seal: {
+              red: '#8B2500',
+              crimson: '#A3330D'
+            }
+          },
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+            serif: ['"Noto Serif KR"', 'serif'],
+            brush: ['"Nanum Brush Script"', 'cursive']
+          }
+        }
+      }
+    }
+
+    // 8. 동영상 제어 초기화 (항상 음소거, 1.4배속 재생 및 스크롤 시 재생/정지)
+    function initVideoControls() {
+      const heroVideo = document.getElementById('hero-blooming-video');
+      if (heroVideo) {
+        heroVideo.muted = true;
+        heroVideo.playbackRate = 1.4;
+        heroVideo.addEventListener('loadedmetadata', () => {
+          heroVideo.playbackRate = 1.4;
+        });
+      }
+
+      const packagingVideo = document.getElementById('packaging-video');
+      if (packagingVideo) {
+        packagingVideo.muted = true;
+        packagingVideo.playbackRate = 1.4;
+        packagingVideo.addEventListener('loadedmetadata', () => {
+          packagingVideo.playbackRate = 1.4;
+        });
+
+        if ('IntersectionObserver' in window) {
+          const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                packagingVideo.play().catch(() => {});
+              } else {
+                packagingVideo.pause();
+              }
+            });
+          }, { threshold: 0.25 });
+          observer.observe(packagingVideo);
+        }
+      }
+    }
+
+    // 플로팅 맨 위로 가기 버튼 스크롤 제어 (A3: 단일 리스너 등록 보장)
+    let hasFloatingScrollListener = false;
+    function initFloatingControls() {
+      const topBtn = document.getElementById('float-top-btn');
+      if (!topBtn || hasFloatingScrollListener) return;
+      hasFloatingScrollListener = true;
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 400) {
+          topBtn.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+        } else {
+          topBtn.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+        }
+      }, { passive: true });
+    }
+  </script>
+
+  <style>
+    /* 다국어 폰트 설정 (일본어 폰트 & 영/일 태그라인 세리프 전환) */
+    html[lang="ja"] body {
+      font-family: 'Noto Sans JP', 'Pretendard', sans-serif;
+    }
+    html:not([lang="ko"]) #hero-brush-tagline {
+      font-family: 'Noto Serif KR', 'Noto Sans JP', serif !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.02em !important;
+    }
+
+    /* 따뜻하고 은은한 한지 배경 질감 */
+    body {
+      background-color: #FBF9F5;
+      color: #1A1A1A;
+      font-family: 'Pretendard', sans-serif;
+      letter-spacing: -0.02em;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* 먹(Ink) 붓터치 텍스처 & 번짐 효과 */
+    .ink-stroke {
+      position: relative;
+      display: inline-block;
+    }
+    .ink-stroke::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -4px;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, #8B2500 0%, #1A1A1A 60%, transparent 100%);
+      opacity: 0.75;
+      border-radius: 2px;
+    }
+
+    /* 자개(Mother-of-pearl / Nacre) 무지갯빛 홀로그램 펄 효과 */
+    .jakae-btn {
+      position: relative;
+      overflow: hidden;
+      background: #1A1A1A;
+      color: #FBF9F5;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .jakae-btn::before {
+      content: '';
+      position: absolute;
+      top: -60%;
+      left: -60%;
+      width: 220%;
+      height: 220%;
+      background: linear-gradient(
+        115deg,
+        transparent 20%,
+        rgba(255, 255, 255, 0.2) 30%,
+        rgba(168, 230, 207, 0.45) 42%,
+        rgba(255, 211, 181, 0.45) 50%,
+        rgba(218, 174, 230, 0.45) 58%,
+        rgba(168, 216, 234, 0.4) 66%,
+        transparent 80%
+      );
+      transform: rotate(-30deg) translateY(-100%);
+      transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+    .jakae-btn:hover::before {
+      transform: rotate(-30deg) translateY(55%);
+    }
+    .jakae-btn:hover {
+      box-shadow: 0 8px 24px -4px rgba(26, 26, 26, 0.35), 0 0 14px 2px rgba(168, 230, 207, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .jakae-light-btn {
+      position: relative;
+      overflow: hidden;
+      background: #FAF7F2;
+      color: #1A1A1A;
+      border: 1px solid rgba(26, 26, 26, 0.18);
+      transition: all 0.35s ease;
+    }
+    .jakae-light-btn::before {
+      content: '';
+      position: absolute;
+      top: -60%;
+      left: -60%;
+      width: 220%;
+      height: 220%;
+      background: linear-gradient(
+        115deg,
+        transparent 20%,
+        rgba(255, 255, 255, 0.6) 35%,
+        rgba(168, 230, 207, 0.4) 45%,
+        rgba(255, 200, 190, 0.4) 55%,
+        rgba(200, 185, 240, 0.4) 65%,
+        transparent 80%
+      );
+      transform: rotate(-25deg) translateY(-100%);
+      transition: transform 0.6s ease;
+      pointer-events: none;
+    }
+    .jakae-light-btn:hover::before {
+      transform: rotate(-25deg) translateY(55%);
+    }
+    .jakae-light-btn:hover {
+      border-color: #8B2500;
+      color: #8B2500;
+      box-shadow: 0 4px 16px -2px rgba(139, 37, 0, 0.12);
+      transform: translateY(-1px);
+    }
+
+    /* 한옥 창살 세련된 코너 브라켓 */
+    .hanok-card {
+      position: relative;
+      border: 1px solid rgba(26, 26, 26, 0.12);
+      background-color: #FAF7F2;
+      transition: all 0.3s ease;
+    }
+    .hanok-card:hover {
+      border-color: rgba(139, 37, 0, 0.45);
+      box-shadow: 0 10px 25px -5px rgba(26, 26, 26, 0.08);
+    }
+    .corner-tl { position: absolute; top: 6px; left: 6px; width: 10px; height: 10px; border-top: 1.5px solid #8B2500; border-left: 1.5px solid #8B2500; pointer-events: none; }
+    .corner-tr { position: absolute; top: 6px; right: 6px; width: 10px; height: 10px; border-top: 1.5px solid #8B2500; border-right: 1.5px solid #8B2500; pointer-events: none; }
+    .corner-bl { position: absolute; bottom: 6px; left: 6px; width: 10px; height: 10px; border-bottom: 1.5px solid #8B2500; border-left: 1.5px solid #8B2500; pointer-events: none; }
+    .corner-br { position: absolute; bottom: 6px; right: 6px; width: 10px; height: 10px; border-bottom: 1.5px solid #8B2500; border-right: 1.5px solid #8B2500; pointer-events: none; }
+
+    /* 프로토타입 스타일의 유려한 대형 라운드 액자 & 외곽선 */
+    .film-frame {
+      position: relative;
+      border-radius: 50% 50% 46% 46% / 14% 14% 12% 12%;
+      overflow: hidden;
+      box-shadow: 0 35px 70px -25px rgba(26, 26, 26, 0.22);
+    }
+    .film-outline {
+      position: absolute;
+      inset: -10px;
+      pointer-events: none;
+      border: 1px solid rgba(139, 37, 0, 0.3);
+      border-radius: 50% 50% 46% 46% / 14% 14% 12% 12%;
+    }
+    @media (max-width: 768px) {
+      .film-frame, .film-outline {
+        border-radius: 24px;
+      }
+      .film-outline {
+        inset: -6px;
+      }
+    }
+
+    /* 달항아리 실루엣 마스크 & 외곽선 */
+    .jar-wrap {
+      position: relative;
+      max-width: 440px;
+      margin: 0 auto;
+    }
+    .jar-wrap::before {
+      content: '';
+      position: absolute;
+      inset: -16px;
+      border: 1px solid rgba(139, 37, 0, 0.3);
+      border-radius: 46% 46% 44% 44% / 52% 52% 48% 48%;
+      transform: rotate(-3deg);
+      pointer-events: none;
+    }
+    .jar {
+      position: relative;
+      aspect-ratio: 1 / 1.05;
+      border-radius: 46% 46% 44% 44% / 52% 52% 48% 48%;
+      overflow: hidden;
+      box-shadow: 0 30px 60px -20px rgba(26, 26, 26, 0.22);
+    }
+    .jar img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* 커스텀 스크롤바 */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #FBF9F5; }
+    ::-webkit-scrollbar-thumb { background: #D6D0C5; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #8B2500; }
+  
+    /* 터치스크린 호버 대체 스타일 */
+    @media (hover: none) {
+      .card-hover-overlay {
+        display: none !important;
+      }
+      .touch-poetic-line {
+        display: block !important;
+      }
+    }
+    @media (hover: hover) {
+      .touch-poetic-line {
+        display: none !important;
+      }
+    }
+  
+    /* 일본어 선택 시 전용 폰트 */
+    body.font-ja {
+      font-family: 'Noto Sans JP', 'Noto Serif KR', -apple-system, sans-serif !important;
+    }
+  </style>
+</head>
+<body class="selection:bg-seal-red/15 selection:text-seal-red min-h-screen flex flex-col">
+  <!-- 상품 미리보기 모드 상단 고정 배너 -->
+  <div id="preview-mode-banner" class="fixed top-0 left-0 right-0 z-[60] bg-ink-black text-white px-4 py-2.5 shadow-md flex items-center justify-between text-xs sm:text-sm font-medium hidden">
+    <div class="flex items-center gap-2">
+      <span class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+      <span id="preview-mode-text">미리보기 모드 · 손님에게는 아직 보이지 않는 상품이에요</span>
+    </div>
+    <a href="javascript:void(0)" onclick="closePreviewMode()" id="preview-mode-close" class="underline underline-offset-2 ml-4 text-amber-300 hover:text-white font-bold cursor-pointer">닫기</a>
+  </div>
+  <!-- 2. 상단 헤더 (Header) -->
+  <header class="sticky top-0 z-40 bg-hanji/95 backdrop-blur-md border-b border-ink-black/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 grid grid-cols-[1fr_auto_1fr] items-center">
+      
+      <!-- 좌측: 데스크톱 메뉴 + 모바일 햄버거 버튼 -->
+      <div class="flex items-center justify-start">
+        <!-- 모바일 햄버거 메뉴 버튼 (md 미만 표시) -->
+        <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden p-2 -ml-2 text-ink-black hover:text-seal-red cursor-pointer" aria-label="메뉴 열기">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+
+        <!-- 데스크톱 내비게이션 (순서: 설담화 이야기 -> 꽃 둘러보기 (Shop) -> 맞춤 담화) -->
+        <nav class="hidden md:flex items-center space-x-8 text-sm font-semibold tracking-tight">
+          <button onclick="switchView('story')" id="nav-story" data-i18n="nav_story" class="nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors">
+            설담화 이야기
+          </button>
+          <button onclick="switchView('shop')" id="nav-shop" data-i18n="nav_shop" class="nav-btn py-1 text-seal-red font-bold border-b-2 border-seal-red transition-colors">
+            꽃 둘러보기 (Shop)
+          </button>
+          <button onclick="switchView('custom')" id="nav-custom" data-i18n="nav_custom" class="nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors">
+            맞춤 담화
+          </button>
+        </nav>
+      </div>
+
+      <!-- 중앙 캘리그래피 로고 + 붉은 낙관 + 앉은 새 일러스트 (정중앙 고정) -->
+      <div onclick="switchView('shop')" class="cursor-pointer group flex items-center justify-center select-none py-1">
+        <div class="relative flex items-center gap-2">
+          <!-- 화조도 매화 나뭇가지와 작은 새 SVG -->
+          <div class="absolute -top-5 left-1/2 -translate-x-1/2 pointer-events-none opacity-85 group-hover:opacity-100 transition-opacity">
+            <svg class="w-14 h-7" viewBox="0 0 120 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 55 C 30 52, 50 40, 75 42 C 95 44, 110 32, 115 28" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+              <path d="M45 44 C 48 34, 58 26, 68 25" stroke="#1A1A1A" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="68" cy="25" r="3" fill="#8B2500"/>
+              <circle cx="100" cy="36" r="3" fill="#8B2500"/>
+              <circle cx="35" cy="49" r="2.5" fill="#8B2500"/>
+              <g transform="translate(68, 26) scale(0.65)">
+                <path d="M10 22 C 10 14, 18 10, 24 10 C 30 10, 36 14, 38 20 C 35 24, 28 26, 18 25 Z" fill="#1A1A1A"/>
+                <path d="M14 20 C 18 18, 28 17, 32 23 C 26 27, 18 26, 14 20 Z" fill="#4A3B32"/>
+                <circle cx="34" cy="12" r="5" fill="#1A1A1A"/>
+                <path d="M38 12 L 44 14 L 38 15 Z" fill="#8B2500"/>
+                <circle cx="35" cy="11" r="0.8" fill="#FBF9F5"/>
+              </g>
+            </svg>
+          </div>
+
+          <div class="pt-2 flex items-center gap-2">
+            <span class="font-brush text-3xl sm:text-4xl text-ink-black tracking-wider group-hover:text-seal-red transition-colors">
+              설담화
+            </span>
+            <!-- 전통 백문 낙관 인장 -->
+<img src="assets/images/seal.svg" alt="설담화 낙관" class="w-7 h-7 sm:w-[34px] sm:h-[34px] shrink-0 drop-shadow-xs select-none">
+          </div>
+        </div>
+      </div>
+
+      <!-- 우측 아이콘: 검색, 장바구니 (우측 정렬) -->
+      <div class="flex items-center justify-end space-x-3">
+        <!-- 언어 선택 드롭다운 (KO / EN / JA) -->
+        <div class="relative">
+          <button id="lang-switch-btn" type="button" onclick="toggleLangDropdown(event)" class="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold text-ink-charcoal hover:text-seal-red hover:bg-[#FAF7F2] border border-ink-black/15 transition-all cursor-pointer shadow-2xs" aria-label="Language / 언어 선택">
+            <svg class="w-3.5 h-3.5 shrink-0 text-ink-charcoal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+            </svg>
+            <span id="current-lang-code" class="tracking-wider">KO</span>
+            <svg class="w-2.5 h-2.5 shrink-0 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+
+          <div id="lang-dropdown" class="hidden absolute right-0 mt-1.5 w-28 bg-white/95 backdrop-blur-md border border-ink-black/10 rounded-xs shadow-lg py-1 z-50 text-xs">
+            <button type="button" onclick="changeLanguage('ko')" class="lang-select-btn block w-full text-left px-3.5 py-2 hover:bg-[#FAF7F2] transition-colors cursor-pointer font-bold text-seal-red" data-lang="ko">
+              한국어
+            </button>
+            <button type="button" onclick="changeLanguage('en')" class="lang-select-btn block w-full text-left px-3.5 py-2 hover:bg-[#FAF7F2] transition-colors cursor-pointer text-ink-charcoal" data-lang="en">
+              English
+            </button>
+            <button type="button" onclick="changeLanguage('ja')" class="lang-select-btn block w-full text-left px-3.5 py-2 hover:bg-[#FAF7F2] transition-colors cursor-pointer text-ink-charcoal" data-lang="ja">
+              日本語
+            </button>
+          </div>
+        </div>
+
+        <button onclick="toggleSearchModal(true)" class="p-2 text-ink-charcoal hover:text-seal-red hover:bg-[#FAF7F2] rounded-full transition-colors cursor-pointer" title="검색">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </button>
+
+        <button onclick="toggleCartDrawer(true)" class="p-2 text-ink-charcoal hover:text-seal-red hover:bg-[#FAF7F2] rounded-full transition-colors relative cursor-pointer" title="장바구니">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+          <span id="cart-badge" class="absolute top-0 right-0 bg-seal-red text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">1</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- 모바일 전체 너비 드롭다운 메뉴 패널 (md 미만 전용) -->
+    <div id="mobile-menu-dropdown" class="hidden md:hidden bg-hanji/98 backdrop-blur-md border-t border-ink-black/10 shadow-lg px-6 py-4 space-y-2">
+      <button onclick="handleMobileNav('story')" data-i18n="nav_story" class="block w-full text-left py-2 text-sm font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-b border-ink-black/5">
+        설담화 이야기
+      </button>
+      <button onclick="handleMobileNav('shop')" data-i18n="nav_shop" class="block w-full text-left py-2 text-sm font-bold text-seal-red border-b border-ink-black/5">
+        꽃 둘러보기 (Shop)
+      </button>
+      <button onclick="handleMobileNav('custom')" data-i18n="nav_custom" class="block w-full text-left py-2 text-sm font-semibold text-ink-charcoal hover:text-seal-red transition-colors">
+        맞춤 담화
+      </button>
+      <!-- 모바일 언어 선택 -->
+      <div class="pt-3 mt-1 border-t border-ink-black/10 flex items-center justify-between text-xs px-1">
+        <span class="text-ink-gray" data-i18n="lang_label">언어 선택</span>
+        <div class="flex items-center gap-3">
+          <button type="button" onclick="changeLanguage('ko')" class="lang-select-btn font-bold text-seal-red cursor-pointer" data-lang="ko">한국어</button>
+          <span class="text-ink-black/20">|</span>
+          <button type="button" onclick="changeLanguage('en')" class="lang-select-btn text-ink-charcoal cursor-pointer" data-lang="en">English</button>
+          <span class="text-ink-black/20">|</span>
+          <button type="button" onclick="changeLanguage('ja')" class="lang-select-btn text-ink-charcoal cursor-pointer" data-lang="ja">日本語</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3. 메인 콘텐츠 컨테이너 -->
+  <main class="flex-1">
+
+    <!-- VIEW A: 꽃 둘러보기 (Shop & Hero & Gallery) -->
+    <div id="view-shop">
+      
+      <!-- Hero Section: 전체 화면 개화 영상 배경 + 처마 곡선 + 중앙 정렬 텍스트 -->
+      <section class="relative overflow-hidden h-[calc(100vh-5rem)] min-h-[560px] flex items-center justify-center text-center">
+        <!-- 배경 비디오 (Full-bleed Background Video) -->
+        <video id="hero-blooming-video" src="assets/videos/blooming_flower.mp4" autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover filter brightness-[1.04] contrast-[1.02]"></video>
+
+        <!-- 부드러운 중앙 방사형 한지 글로우 (꽃 영상의 생생함을 살리면서 텍스트 가독성 확보) -->
+        <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(ellipse 65% 55% at 50% 48%, rgba(251, 249, 245, 0.42) 0%, rgba(251, 249, 245, 0.22) 50%, rgba(251, 249, 245, 0) 100%);"></div>
+
+        <!-- 중앙 정렬 텍스트 영역 -->
+        <div class="max-w-4xl mx-auto px-6 relative z-10 space-y-6 pt-4 pb-14">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-seal-red/30 bg-white/85 shadow-xs text-xs font-bold text-seal-red backdrop-blur-xs">
+            <span>Contemporary Korean Floral Atelier · 2026 Collection</span>
+          </div>
+
+          <div class="space-y-4">
+            <p id="hero-brush-tagline" data-i18n="hero_tagline" class="font-brush text-3xl sm:text-4xl text-seal-red tracking-wide" style="text-shadow: 0 1px 12px rgba(251, 249, 245, 0.9);">
+              꽃으로 짓는 정갈한 이야기
+            </p>
+            <h1 data-i18n="hero_h1" class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-ink-black leading-[1.25]" style="text-shadow: 0 2px 14px rgba(251, 249, 245, 0.95), 0 0 2px rgba(251, 249, 245, 0.9);">
+              선조의 풍류와 여백,<br>
+              <span class="text-seal-red ink-stroke">2030 감각</span>으로 피어나다
+            </h1>
+            <div>
+              <p class="inline-block text-base sm:text-lg text-ink-black font-semibold leading-relaxed px-5 py-2 rounded-full border max-w-[calc(100vw-32px)] sm:max-w-xl mx-auto" style="background-color: rgba(251, 249, 245, 0.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-color: rgba(139, 37, 0, 0.12);">
+                <span data-i18n="hero_sub">버려지는 포장 대신, 오래 간직하는 아름다움.<br>
+                설담화의 1:1 맞춤 꽃 선물</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- CTA 버튼 영역 (자개 홀로그램 hover) -->
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+            <a href="#gallery-section" class="jakae-btn w-full sm:w-auto px-8 py-3.5 sm:py-4 rounded-sm text-sm tracking-wider font-bold flex items-center justify-center gap-2 cursor-pointer shadow-md">
+              <span data-i18n="hero_btn_shop">꽃 둘러보기 (Shop)</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+            </a>
+            <button id="hero-recommend-btn" onclick="openHeroRecommendProduct()" class="jakae-light-btn w-full sm:w-auto px-6 py-3.5 sm:py-4 rounded-sm text-sm font-bold cursor-pointer bg-white/90">
+                <span data-i18n="hero_btn_recommend">이달의 추천 : 가을 보헤미안 핸드타이드 보기</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 하단 처마 끝선 (Hero Eaves Curve SVG) -->
+        <div class="hero-eaves absolute left-0 right-0 -bottom-[1px] z-20 pointer-events-none leading-none" aria-hidden="true">
+          <svg viewBox="0 0 1440 90" preserveAspectRatio="none" class="w-full h-12 sm:h-16 md:h-20 lg:h-24 block">
+            <path d="M0 0 C 120 70, 420 88, 720 88 C 1020 88, 1320 70, 1440 0 L1440 90 L0 90 Z" fill="#FBF9F5" />
+            <path d="M0 0 C 120 70, 420 88, 720 88 C 1020 88, 1320 70, 1440 0" fill="none" stroke="#8B2500" stroke-width="1.2" opacity="0.3" />
+          </svg>
+        </div>
+      </section>
+
+      <!-- Product Gallery / PLP: 여백의 미와 한옥 창살 프레임 -->
+      <section id="gallery-section" class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- 헤더 -->
+        <div class="text-center max-w-2xl mx-auto mb-12 space-y-3">
+          <div class="flex items-center justify-center gap-2">
+            <span class="w-8 h-[1px] bg-seal-red"></span>
+            <span data-i18n="gallery_badge" class="font-brush text-2xl text-seal-red">갤러리 담화(談花)</span>
+            <span class="w-8 h-[1px] bg-seal-red"></span>
+          </div>
+          <h2 data-i18n="gallery_title" class="text-3xl sm:text-4xl font-extrabold text-ink-black tracking-tight">
+            사계와 절기를 담은 제철 꽃 컬렉션
+          </h2>
+          <p data-i18n="gallery_desc" class="text-sm sm:text-base text-ink-gray font-normal leading-relaxed">
+            한 점의 예술 작품을 감상하듯, 2030 세대의 모던한 취향을 만족시키는 정갈한 라인업입니다.
+          </p>
+        </div>
+
+        <!-- 카테고리 필터 탭 -->
+        <div class="flex flex-wrap items-center justify-center gap-2 pb-10 border-b border-ink-black/10">
+          <button onclick="filterCategory('all')" id="cat-all" data-i18n="cat_all" class="cat-pill px-4 py-2 text-xs sm:text-sm font-semibold rounded-xs bg-ink-black text-white cursor-pointer shadow-xs">
+            전체 둘러보기
+          </button>
+          <button onclick="filterCategory('bouquet')" id="cat-bouquet" data-i18n="cat_bouquet" class="cat-pill px-4 py-2 text-xs sm:text-sm font-semibold rounded-xs bg-[#FAF7F2] text-ink-gray hover:text-ink-black border border-ink-black/10 cursor-pointer">
+            꽃다발
+          </button>
+          <button onclick="filterCategory('basket')" id="cat-basket" data-i18n="cat_basket" class="cat-pill px-4 py-2 text-xs sm:text-sm font-semibold rounded-xs bg-[#FAF7F2] text-ink-gray hover:text-ink-black border border-ink-black/10 cursor-pointer">
+            꽃바구니
+          </button>
+          <button onclick="filterCategory('space')" id="cat-space" data-i18n="cat_space" class="cat-pill px-4 py-2 text-xs sm:text-sm font-semibold rounded-xs bg-[#FAF7F2] text-ink-gray hover:text-ink-black border border-ink-black/10 cursor-pointer">
+            웨딩·공간
+          </button>
+        </div>
+<!-- 상품 그리드: 넉넉한 여백 + 한옥 창살 프레임 + 썸네일 아래 최소 텍스트(상품명, 가격) -->
+        <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16 pt-12">
+          <!-- 자바스크립트로 동적 렌더링 -->
+        </div>
+
+      </section>
+
+      <!-- Packaging Section: 꽃을 복주머니에 담다 (ReBloom Packaging) -->
+      <section id="packaging-section" class="py-20 md:py-28 border-t border-ink-black/10 bg-[#FAF7F2]/60">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+          
+          <!-- 상단 대형 와이드 비디오 (프로토타입 .film-frame 스타일) -->
+          <div class="relative px-2 sm:px-4">
+            <div class="film-outline"></div>
+            <div class="film-frame aspect-[16/10] sm:aspect-[16/9] max-h-[700px] w-full bg-[#ECE8E1]">
+              <video id="packaging-video" src="assets/videos/bokjumeoni_packaging.mp4" muted loop playsinline preload="metadata" class="w-full h-full object-cover"></video>
+              <!-- 좌측 텍스트 가독성을 위한 은은한 다크 그라데이션 -->
+              <div class="absolute inset-0 bg-gradient-to-r from-black/65 via-black/25 to-transparent pointer-events-none"></div>
+              <!-- 비디오 오버레이 캡션 (좌측 중앙) -->
+              <div class="film-caption absolute left-6 sm:left-12 lg:left-16 top-1/2 -translate-y-1/2 text-white z-10 pointer-events-none">
+                <span class="text-xs sm:text-sm font-bold tracking-widest text-[#F1DDB3] uppercase block mb-2 sm:mb-3 drop-shadow">ReBloom Packaging</span>
+                <h3 data-i18n="pack_video_title" class="text-3xl sm:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight font-serif drop-shadow-md">
+                  꽃을<br>복주머니에 담다
+                </h3>
+              </div>
+            </div>
+          </div>
+
+          <!-- 비디오 하단 중앙 정렬 브랜드 카피 (max-w-2xl) -->
+          <div class="text-center max-w-2xl mx-auto space-y-4">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-seal-red/30 bg-white text-xs font-bold text-seal-red shadow-xs">
+              <span>ReBloom Packaging</span>
+            </div>
+            <h2 data-i18n="pack_h2" class="text-2xl sm:text-4xl font-extrabold text-ink-black tracking-tight leading-snug">
+              버려지는 포장 대신,<br>오래 간직하는 복주머니
+            </h2>
+            <p data-i18n="pack_desc" class="text-sm sm:text-base text-ink-gray font-normal leading-relaxed">
+              설담화가 꿈꾸는 선물은 물건을 건네는 것을 넘어, 버리지 않는 한국의 전통과 가치를
+              함께 나누는 일입니다. 꽃이 시든 뒤에도 남는 보자기와 복주머니처럼, 마음을 감싼
+              그릇까지 오래 곁에 머물도록 고민합니다.
+            </p>
+          </div>
+
+          <!-- 하단 3개 가치 카드 (가벼운 스타일: 코너 브라켓 없이 얇은 상단 라인) -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pt-4">
+            <!-- 1. 버리지 않는 포장 -->
+            <div class="pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
+              <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+              </div>
+              <div>
+                <span data-i18n="pack_card1_tag" class="text-[11px] font-bold tracking-wider text-seal-red uppercase">Zero-waste Wrapping</span>
+                <h3 data-i18n="pack_card1_title" class="text-lg font-bold text-ink-black mt-0.5">버리지 않는 포장</h3>
+              </div>
+              <p data-i18n="pack_card1_desc" class="text-xs sm:text-sm text-ink-gray leading-relaxed">
+                한복 원단 보자기와 복주머니로 감싸, 꽃이 진 뒤에도 일상에서 다시 쓰입니다.
+              </p>
+            </div>
+
+            <!-- 2. 1:1 맞춤 꽃 -->
+            <div class="pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
+              <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+              </div>
+              <div>
+                <span data-i18n="pack_card2_tag" class="text-[11px] font-bold tracking-wider text-seal-red uppercase">Made for One</span>
+                <h3 data-i18n="pack_card2_title" class="text-lg font-bold text-ink-black mt-0.5">1:1 맞춤 꽃</h3>
+              </div>
+              <p data-i18n="pack_card2_desc" class="text-xs sm:text-sm text-ink-gray leading-relaxed">
+                받는 분과 날의 의미를 듣고, 꽃과 색, 카드 문구까지 한 사람을 위해 짓습니다.
+              </p>
+            </div>
+
+            <!-- 3. 취향을 읽는 설계 -->
+            <div class="pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
+              <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+              </div>
+              <div>
+                <span data-i18n="pack_card3_tag" class="text-[11px] font-bold tracking-wider text-seal-red uppercase">Taste Analysis</span>
+                <h3 data-i18n="pack_card3_title" class="text-lg font-bold text-ink-black mt-0.5">취향을 읽는 설계</h3>
+              </div>
+              <p data-i18n="pack_card3_desc" class="text-xs sm:text-sm text-ink-gray leading-relaxed">
+                다양한 취향 데이터를 바탕으로, 가장 한국적이면서 마음에 꼭 맞는 구성을 제안합니다.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+
+    <!-- VIEW B: 설담화 이야기 (Brand Story) -->
+    <div id="view-story" class="hidden py-16 md:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20">
+      <div class="text-center space-y-4 max-w-3xl mx-auto">
+        <span data-i18n="story_header_sub" class="font-brush text-3xl text-seal-red">말하지 않아도 꽃이 전하는 정갈한 온기</span>
+        <h1 data-i18n="story_header_title" class="text-3xl sm:text-5xl font-extrabold text-ink-black tracking-tight">설담화(說談花) 이야기</h1>
+        <div class="w-8 h-8 mx-auto bg-seal-red text-white flex items-center justify-center font-serif font-bold text-xs rounded-xs shadow">花</div>
+      </div>
+
+      <div class="hanok-card p-8 sm:p-14 max-w-5xl mx-auto">
+        <div class="corner-tl"></div><div class="corner-tr"></div><div class="corner-bl"></div><div class="corner-br"></div>
+        <div class="max-w-3xl mx-auto space-y-6 text-ink-charcoal leading-loose text-base sm:text-lg">
+          <p data-i18n="story_quote" class="font-bold text-xl text-seal-red font-serif">
+            "꽃 화(花), 말씀 설(說), 이야기 담(談)"
+          </p>
+          <p data-i18n="story_p1">
+            옛 선조들은 처마 밑 한 됫박 흙에도 계절의 숨결을 얹고, 
+            문살 너머 드리우는 꽃 그림자 하나에도 인생의 풍류와 철학을 노래했습니다. 
+            서양식 꽃다발의 화려하고 빽빽한 채움 대신, 
+            우리가 주목한 것은 <strong>'여백과 선의 아름다움'</strong>이었습니다.
+          </p>
+          <p data-i18n="story_p2">
+            설담화는 2030 세대의 현대적 라이프스타일 속에 
+            조선 화조도(花鳥圖)의 생동감과 분청사기·달항아리의 담백한 품격을 불어넣습니다. 
+            소중한 사람에게 마음을 전할 때, 
+            단순한 장식품이 아니라 <strong>시간이 지나도 바래지 않는 하나의 이야기</strong>를 선물하세요.
+          </p>
+        </div>
+      </div>
+
+      <!-- a) 달항아리 실루엣 사진 + 스토리 2열 블록 -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center max-w-5xl mx-auto py-4">
+        <!-- 좌측: 달항아리 마스크 사진 (story_bojagi_bouquet.jpg) -->
+        <div class="lg:col-span-5 flex justify-center">
+          <div class="jar-wrap w-full">
+            <div class="jar">
+              <img src="assets/images/story_bojagi_bouquet.jpg" alt="리블룸 보자기 꽃다발" loading="lazy">
+            </div>
+          </div>
+        </div>
+
+        <!-- 우측: Our Story 카피 -->
+        <div class="lg:col-span-7 space-y-5 text-center lg:text-left">
+          <span data-i18n="story_side_tag" class="text-xs sm:text-sm font-bold tracking-widest text-seal-red uppercase">Our Story</span>
+          <h2 data-i18n="story_side_h2" class="text-2xl sm:text-4xl font-extrabold text-ink-black tracking-tight leading-snug">
+            버려지는 포장 대신,<br>
+            일상에 스며드는 아름다움
+          </h2>
+          <p data-i18n="story_side_p1" class="text-sm sm:text-base text-ink-gray leading-relaxed">
+            설담화가 꿈꾸는 선물은 물건을 건네는 것을 넘어, <strong class="text-ink-black font-semibold">버리지 않는 한국의 전통과 가치</strong>를 함께 나누는 일입니다.
+          </p>
+          <p data-i18n="story_side_p2" class="text-sm sm:text-base text-ink-gray leading-relaxed">
+            꽃이 시든 뒤에도 남는 보자기와 복주머니처럼, 마음을 감싼 그릇까지 오래 곁에 머물도록 고민합니다.
+          </p>
+        </div>
+      </div>
+
+      <!-- b) 대형 와이드 이미지 배너 (story_bojagi_gift.jpg - 포장 비디오와 동일한 프레임 스타일) -->
+      <div class="space-y-8 max-w-7xl mx-auto">
+        <!-- 배너 상단 중앙 정렬 섹션 헤딩 -->
+        <div class="text-center max-w-2xl mx-auto space-y-3">
+          <span data-i18n="story_rebloom_tag" class="text-xs sm:text-sm font-bold tracking-widest text-seal-red uppercase">ReBloom</span>
+          <h2 data-i18n="story_rebloom_h2" class="text-2xl sm:text-4xl font-extrabold text-ink-black tracking-tight leading-snug">
+            꽃에서 시작해, 귀한 마음이 담기는 모든 곳으로
+          </h2>
+        </div>
+
+        <!-- 와이드 이미지 프레임 (캡션 및 오버레이 제거) -->
+        <div class="relative px-2 sm:px-4">
+          <div class="film-outline"></div>
+          <div class="film-frame aspect-[3/2] md:aspect-[21/9] w-full bg-[#ECE8E1]">
+            <img src="assets/images/story_bojagi_gift.jpg" alt="리블룸 공예 선물 패키지" loading="lazy" class="w-full h-full object-cover">
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center pt-4">
+        <button onclick="switchView('shop')" data-i18n="story_btn_shop" class="jakae-btn px-10 py-4 text-sm font-bold tracking-widest cursor-pointer shadow-lg rounded-sm">
+          설담화 꽃 컬렉션 보러가기
+        </button>
+      </div>
+    </div>
+
+    <!-- VIEW C: 맞춤 담화 (Custom Consultation) -->
+    <div id="view-custom" class="hidden py-16 md:py-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      <!-- 단일 헤딩 -->
+      <div class="text-center space-y-2">
+        <span data-i18n="curation_badge" class="text-xs font-bold text-seal-red bg-seal-red/10 px-3 py-1 rounded-full">맞춤 담화</span>
+        <h1 data-i18n="curation_title" class="text-2xl sm:text-3xl font-extrabold text-ink-black tracking-tight">어떤 꽃이 어울릴지 함께 찾아볼게요</h1>
+        <p data-i18n="curation_desc" class="text-xs sm:text-sm text-ink-gray">다섯 가지만 골라 주시면 설담화가 어울리는 꽃을 골라 드려요.</p>
+      </div>
+
+      <!-- 큐레이터 스텝 카드 -->
+      <div id="curation-stepper-card" class="bg-white/95 rounded-sm border border-ink-black/10 shadow-sm p-6 sm:p-10 space-y-6">
+        
+        <!-- 슬림 프로그레스 바 -->
+        <div class="w-full bg-ink-black/10 h-1.5 rounded-full overflow-hidden">
+          <div id="curation-progress-bar" class="h-full bg-seal-red transition-all duration-300" style="width: 20%;"></div>
+        </div>
+
+        <!-- 스텝 네비게이션: [이전] 버튼 + 선택된 답변 태그 목록 + [건너뛰기] -->
+        <div class="flex items-center justify-between gap-3 text-xs border-b border-ink-black/10 pb-3 min-h-[38px]">
+          <div class="flex items-center gap-2">
+            <button id="curation-prev-btn" type="button" onclick="goToPrevStep()" class="hidden text-ink-gray hover:text-ink-black font-bold flex items-center gap-1 cursor-pointer">
+              <span data-i18n="curation_prev">← 이전</span>
+            </button>
+            <div id="curation-tags-bar" class="flex flex-wrap items-center gap-1.5">
+              <!-- 선택된 태그 동적 삽입 -->
+            </div>
+          </div>
+          <button id="curation-skip-btn" type="button" onclick="skipCurrentStep()" data-i18n="curation_skip" class="hidden text-ink-light hover:text-seal-red font-medium cursor-pointer">
+            건너뛰기 →
+          </button>
+        </div>
+
+        <!-- 현재 질문 헤더 -->
+        <div>
+          <span id="curation-step-badge" class="text-[11px] font-bold text-seal-red tracking-wider uppercase">1단계</span>
+          <h2 id="curation-question-title" class="text-xl sm:text-2xl font-extrabold text-ink-black tracking-tight mt-0.5">
+            누구에게 선물하시나요?
+          </h2>
+        </div>
+
+        <!-- 답변 선택지 그리드 (모바일 2열, 데스크톱 3~4열) -->
+        <div id="curation-options-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pt-1">
+          <!-- 동적 렌더링 -->
+        </div>
+
+        <!-- 3단계 이상 답변 완료 시 언제든 결과 보기 버튼 (비활성화 회색 버튼 절대 없음) -->
+        <div id="curation-finish-btn-wrap" class="hidden pt-4 border-t border-ink-black/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p data-i18n="curation_finish_desc" class="text-xs text-ink-gray">3가지 질문이 완료되어 바로 추천 꽃을 보실 수 있어요.</p>
+          <button id="btn-run-curation" type="button" onclick="executeCustomRecommendation()" data-i18n="curation_finish_btn" class="jakae-btn px-8 py-3.5 text-xs font-bold tracking-wider rounded-sm cursor-pointer shadow-md w-full sm:w-auto text-center">
+            내게 어울리는 꽃 보기
+          </button>
+        </div>
+
+        <!-- 추천 결과 카드 영역 (초기 숨김) -->
+        <div id="curation-results-section" class="hidden pt-6 border-t border-ink-black/10 space-y-6 animate-fadeIn">
+          
+          <!-- 예산 준비 중 친근 안내 박스 (3만원 이하, 3~5만원 또는 상품 없음 시 노출) -->
+          <div id="curation-budget-notice-box" class="hidden p-5 sm:p-6 bg-[#FAF7F2] border border-seal-red/30 rounded-xs space-y-3">
+            <div class="flex items-start gap-3">
+              <span class="text-xl shrink-0">🌸</span>
+              <div class="space-y-1 flex-1 text-xs sm:text-sm">
+                <h4 data-i18n="curation_budget_prep_title" class="font-bold text-ink-black text-sm sm:text-base">이 가격대 상품은 지금 준비 중이에요.</h4>
+                <p data-i18n="curation_budget_prep_desc" class="text-ink-gray leading-relaxed">
+                  예산에 맞춰 1:1로 꽃을 지어 드릴 수 있어요. 원하시는 이야기를 남겨주시면 맞춤 제작을 도와드립니다.
+                </p>
+              </div>
+            </div>
+            <div class="pt-1 flex flex-col sm:flex-row gap-2">
+              <button type="button" onclick="applyBudgetInquiry()" data-i18n="curation_budget_prep_btn" class="jakae-btn py-2.5 px-5 text-xs font-bold rounded-xs cursor-pointer shadow-xs w-full sm:w-auto text-center">
+                이 예산으로 상담 신청하기 ↓
+              </button>
+            </div>
+          </div>
+
+          <div class="text-center space-y-1">
+            <span data-i18n="curation_res_badge" class="text-xs font-bold text-seal-red bg-seal-red/10 px-3 py-1 rounded-full">Curated Recommendation</span>
+            <h3 id="curation-result-heading" data-i18n="curation_res_title" class="text-2xl font-extrabold text-ink-black tracking-tight">선택하신 마음에 어울리는 꽃 제안</h3>
+            <p id="curation-result-desc" data-i18n="curation_res_desc" class="text-xs text-ink-gray">설담화 화훼 장인이 선별한 최적의 꽃과 선물 3가지입니다.</p>
+          </div>
+
+          <div id="curation-cards-grid" class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <!-- 동적 렌더링 -->
+          </div>
+          <!-- 품절 상품 안내 라인 -->
+          <p id="curation-soldout-notice" class="hidden text-xs sm:text-sm text-ink-black/70 text-center py-2.5 px-4 rounded-xs bg-[#FAF7F2] border border-ink-black/10"></p>
+
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <button type="button" onclick="applyCurationToInquiry()" data-i18n="curation_fill_inquiry_btn" class="jakae-light-btn px-6 py-3 rounded-xs text-xs font-bold border border-seal-red/40 hover:border-seal-red cursor-pointer shadow-xs">
+              선택한 조건으로 1:1 상담 신청서 채우기 ↓
+            </button>
+            <button type="button" onclick="resetCuration()" data-i18n="curation_reset_btn" class="px-5 py-3 text-xs font-medium text-ink-gray hover:text-seal-red underline underline-offset-4 cursor-pointer">
+              처음부터 다시 고르기
+            </button>
+          </div>
+        </div>
+      </div>
+    
+      <div id="custom-inquiry-section" class="hanok-card p-6 sm:p-10 space-y-6 bg-white/90">
+        <div class="corner-tl"></div><div class="corner-tr"></div><div class="corner-bl"></div><div class="corner-br"></div>
+        <div class="border-b border-ink-black/10 pb-4 text-center sm:text-left">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-seal-red/30 bg-[#FAF7F2] text-xs font-bold text-seal-red mb-2">
+            <span data-i18n="inquiry_badge">1:1 맞춤 상담 문의</span>
+          </div>
+          <h2 data-i18n="inquiry_title" class="text-2xl font-extrabold text-ink-black">설담화 화훼 장인과의 1:1 상담 신청</h2>
+          <p data-i18n="inquiry_desc" class="text-xs sm:text-sm text-ink-gray mt-1">공간 연출, 예식 스타일링, 특별한 맞춤 선물 등 원하시는 이야기를 남겨주시면 정성껏 답변드립니다.</p>
+        </div>
+
+        <form onsubmit="submitCustomInquiry(event)" id="custom-inquiry-form" class="space-y-4 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label data-i18n="inquiry_name_label" class="block font-bold text-ink-black mb-1">신청자 성함 <span class="text-seal-red">*</span></label>
+              <input type="text" id="inquiry-name" required data-i18n-placeholder="inquiry_name_placeholder" placeholder="예: 김설담" class="w-full bg-[#FAF7F2] border border-ink-black/20 p-2.5 rounded-xs focus:border-seal-red focus:bg-white">
+            </div>
+            <div>
+              <label data-i18n="inquiry_phone_label" class="block font-bold text-ink-black mb-1">연락처 <span class="text-seal-red">*</span></label>
+              <input type="tel" id="inquiry-phone" required data-i18n-placeholder="inquiry_phone_placeholder" placeholder="예: 010-1234-5678" class="w-full bg-[#FAF7F2] border border-ink-black/20 p-2.5 rounded-xs focus:border-seal-red focus:bg-white">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label data-i18n="inquiry_date_label" class="block font-bold text-ink-black mb-1">희망 일자 (선택)</label>
+              <input type="text" id="inquiry-date" data-i18n-placeholder="inquiry_date_placeholder" placeholder="날짜 선택 (선택 사항)" onfocus="onInquiryDateFocus(this)" onblur="if(!this.value)this.type='text'" class="w-full bg-[#FAF7F2] border border-ink-black/20 p-2.5 rounded-xs focus:border-seal-red focus:bg-white">
+            </div>
+            <div>
+              <label data-i18n="inquiry_type_label" class="block font-bold text-ink-black mb-1">어떤 상담이 필요하세요? <span class="text-seal-red">*</span></label>
+              <select id="inquiry-type" onchange="handleInquiryTypeChange()" required class="w-full bg-[#FAF7F2] border border-ink-black/20 p-2.5 text-xs font-medium rounded-xs focus:border-seal-red focus:bg-white">
+                <option value="맞춤 꽃다발·꽃바구니 제작" data-i18n="inquiry_type_custom">맞춤 꽃다발·꽃바구니 제작</option>
+                <option value="웨딩·행사·공간 연출" data-i18n="inquiry_type_wedding">웨딩·행사·공간 연출</option>
+                <option value="기업·단체 주문" data-i18n="inquiry_type_corp">기업·단체 주문</option>
+                <option value="특정 상품 문의" data-i18n="inquiry_type_specific">특정 상품 문의</option>
+                <option value="기타" data-i18n="inquiry_type_etc">기타</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 특정 상품 문의 시에만 표시되는 상품 선택 select -->
+          <div id="inquiry-product-wrap" class="hidden">
+            <label data-i18n="inquiry_product_label" class="block font-bold text-ink-black mb-1">상품 선택 <span class="text-seal-red">*</span></label>
+            <select id="inquiry-product" class="w-full bg-[#FAF7F2] border border-ink-black/20 p-2.5 text-xs font-medium rounded-xs focus:border-seal-red focus:bg-white">
+              <!-- 동적 렌더링 (상품명만) -->
+            </select>
+          </div>
+
+          <div>
+            <label data-i18n="inquiry_msg_label" class="block font-bold text-ink-black mb-1">문의 내용 <span class="text-seal-red">*</span></label>
+            <textarea id="inquiry-message" required rows="4" data-i18n-placeholder="inquiry_message_placeholder" placeholder="원하시는 분위기, 행사의 규모, 선호하시는 꽃이나 색감, 예산 등을 자유롭게 적어주세요." class="w-full bg-[#FAF7F2] border border-ink-black/20 p-2.5 rounded-xs focus:border-seal-red focus:bg-white"></textarea>
+          </div>
+
+          <div class="text-center pt-2">
+            <button type="submit" data-i18n="btn_submit_inquiry" class="jakae-btn w-full sm:w-auto px-10 py-3.5 text-xs font-bold tracking-wider rounded-sm cursor-pointer shadow-md">
+              상담 신청 접수하기
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </main>
+
+    <!-- 3. 아틀리에 오시는 길 (Location Section: 오프라인 매장 미공개 시 섹션 전체 숨김) -->
+  <section id="cs-section" class="border-t border-ink-black/10 bg-[#FAF7F2]/60 py-16 md:py-20 hidden">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <div class="text-center space-y-2">
+        <span class="inline-block text-xs font-bold text-seal-red tracking-wider uppercase">Location & Atelier</span>
+        <h3 data-i18n="cs_location_title" class="text-2xl sm:text-3xl font-extrabold text-ink-black tracking-tight">설담화 아틀리에 오시는 길</h3>
+        <div class="text-xs sm:text-sm text-ink-gray pt-1 space-y-0.5">
+          <p class="font-bold text-ink-black text-sm sm:text-base">
+            <span id="cs-address">서울시 종로구 북촌로 42</span>
+            <span id="cs-address-detail" class="text-xs font-normal text-ink-light ml-1">(임시 주소)</span>
+          </p>
+          <p id="cs-directions" class="text-xs text-seal-red font-medium"></p>
+        </div>
+      </div>
+
+      <!-- 지도 Iframe -->
+      <div class="aspect-[16/9] max-h-[420px] w-full bg-[#ECE8E1] rounded-xs overflow-hidden border border-ink-black/10 shadow-xs relative">
+        <iframe id="cs-map-iframe" src="about:blank" title="설담화 위치 지도" loading="lazy" class="w-full h-full border-0"></iframe>
+      </div>
+
+      <!-- 외부 지도 바로가기 버튼 2개 -->
+      <div class="flex flex-wrap justify-center gap-3 pt-1">
+        <a id="cs-btn-kakao-map" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xs border border-ink-black/20 bg-white hover:border-[#FEE500] hover:bg-[#FEE500]/10 text-xs font-bold text-ink-black transition-colors shadow-xs">
+          <span class="w-2 h-2 rounded-full bg-[#FEE500]"></span>
+          <span data-i18n="cs_btn_kakaomap">카카오맵에서 보기</span>
+        </a>
+        <a id="cs-btn-naver-map" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xs border border-ink-black/20 bg-white hover:border-[#03C75A] hover:bg-[#03C75A]/10 text-xs font-bold text-ink-black transition-colors shadow-xs">
+          <span class="w-2 h-2 rounded-full bg-[#03C75A]"></span>
+          <span data-i18n="cs_btn_navermap">네이버 지도에서 보기</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 푸터 (Footer) -->
+  <footer class="bg-[#FAF7F2] border-t border-ink-black/10 relative overflow-hidden text-ink-gray mt-20">
+    <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12 sm:py-16 relative z-10 space-y-12">
+      
+      <!-- 푸터 최상단: 전체 너비 고객센터 밴드 (Full-width CS Band) -->
+      <div id="footer-cs-band" class="pb-10 border-b border-ink-black/10">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 lg:gap-8">
+          
+          <!-- 좌측: '고객센터' 타이틀 + 큰 전화번호 + 시간/점심/휴무 -->
+          <div class="space-y-2">
+            <span class="text-xs font-bold text-seal-red tracking-wider uppercase block">Customer Center</span>
+            <div class="flex flex-wrap items-baseline gap-3">
+              <h3 data-i18n="cs_band_title" class="text-lg font-extrabold text-ink-black">고객센터</h3>
+              <a id="footer-band-phone" href="tel:02-764-1920" class="text-2xl sm:text-3xl font-extrabold text-ink-black hover:text-seal-red transition-colors font-mono">
+                02-764-1920
+              </a>
+            </div>
+            <div class="space-y-1.5 text-xs text-ink-gray">
+              <!-- 오늘의 실시간 영업 상태 한 줄 -->
+              <div id="footer-store-status-wrap" class="flex items-center gap-2 font-medium">
+                <span id="store-status-dot" class="w-2 h-2 rounded-full shrink-0 bg-emerald-600"></span>
+                <span id="store-status-text" class="text-ink-black font-bold">지금 영업 중 · 18:00까지</span>
+              </div>
+
+              <!-- 요일별 운영시간 보기 토글 버튼 -->
+              <div>
+                <button type="button" id="btn-toggle-hours-detail" onclick="toggleWeeklyHoursDetail()" class="text-ink-light hover:text-seal-red transition-colors inline-flex items-center gap-1 cursor-pointer underline underline-offset-2 decoration-ink-black/20 text-[11px]">
+                  <span data-i18n="cs_band_toggle_hours">요일별 운영시간 보기</span>
+                  <span id="hours-detail-arrow" class="text-[9px] transition-transform">▼</span>
+                </button>
+              </div>
+
+              <!-- 토글 패널 (주간 스케줄 및 30일 이내 임시 휴무) -->
+              <div id="footer-hours-detail-panel" class="hidden mt-2 p-3 bg-white/95 border border-ink-black/10 rounded-xs shadow-xs space-y-2 text-[11px] max-w-sm">
+                <div id="footer-weekly-schedule-list" class="space-y-1 text-ink-charcoal font-medium"></div>
+                <div id="footer-upcoming-closures-wrap" class="hidden pt-2 border-t border-ink-black/10 text-seal-red font-medium space-y-0.5">
+                  <div id="footer-upcoming-closures-list"></div>
+                </div>
+              </div>
+
+              <!-- 하위 호환을 위한 숨김 요소 (에러 방지용) -->
+              <div class="hidden">
+                <span id="footer-band-hours"></span>
+                <span id="footer-band-lunch"></span>
+                <span id="footer-band-closed"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 중간: 이메일 문의 -->
+          <div class="text-xs space-y-1">
+            <span data-i18n="cs_band_email_label" class="text-ink-gray font-medium block">이메일 문의</span>
+            <a id="footer-band-email" href="mailto:contact@seoldamhwa.kr" class="text-sm font-bold text-ink-black hover:text-seal-red transition-colors underline underline-offset-4 decoration-ink-black/20 font-mono">
+              contact@seoldamhwa.kr
+            </a>
+          </div>
+
+          <!-- 우측: 1:1 상담 신청 및 카카오톡 채널 버튼 -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
+            <button type="button" onclick="goToCustomInquiry('')" data-i18n="cs_band_btn_consult" class="jakae-btn py-3 px-5 text-xs font-bold rounded-xs cursor-pointer shadow-xs text-center w-full sm:w-auto">
+              1:1 상담 신청
+            </button>
+            <a id="footer-band-kakao" href="#" target="_blank" rel="noopener noreferrer" class="hidden inline-flex items-center justify-center gap-1.5 py-3 px-5 rounded-xs bg-[#FEE500] hover:bg-[#FDD835] text-ink-black font-bold text-xs transition-colors shadow-xs w-full sm:w-auto text-center">
+              <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24"><path d="M12 3c-5.52 0-10 3.58-10 8 0 2.82 1.83 5.3 4.63 6.69-.18.66-.67 2.45-.77 2.83-.12.47.17.46.36.33.25-.17 2.84-1.93 3.99-2.72.58.08 1.18.13 1.79.13 5.52 0 10-3.58 10-8s-4.48-8-10-8z"/></svg>
+              <span data-i18n="cs_band_kakao_label">카카오톡 채널</span>
+            </a>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 푸터 컬럼 그리드 (중복된 담화 소통처 컬럼 제거) -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-10 pb-8 border-b border-ink-black/10">
+        
+        <div class="md:col-span-8 space-y-3">
+          <div class="flex items-center gap-2">
+            <span class="font-brush text-3xl text-ink-black">설담화</span>
+            <img src="assets/images/seal.svg" alt="설담화 낙관" class="w-[26px] h-[26px] shrink-0 drop-shadow-xs select-none">
+          </div>
+          <p data-i18n="footer_tagline" class="font-serif text-sm text-seal-red italic">"이야기를 나누는 꽃, 선조의 풍류와 여백을 담다"</p>
+          <p data-i18n="footer_desc" class="text-xs sm:text-sm text-ink-gray leading-relaxed max-w-lg">
+            설담화는 2030 세대를 위한 모던 오리엔탈 플로럴 셀렉트샵입니다. 
+            조선 궁중 화조도와 달항아리의 여백, 그리고 제철 생화로 공간에 품격을 건넵니다.
+          </p>
+        </div>
+
+        <div class="md:col-span-4 space-y-2 text-xs sm:text-sm">
+          <h4 data-i18n="footer_guide_title" class="font-bold text-ink-black text-sm">정성 안내</h4>
+          <ul class="space-y-1.5 text-ink-gray">
+            <li><a href="#gallery-section" data-i18n="footer_link_season" class="hover:text-seal-red">계절 꽃 둘러보기</a></li>
+            <li><span data-i18n="footer_link_bojagi" class="hover:text-seal-red cursor-pointer">전통 보자기 패키징 안내</span></li>
+            <li><span data-i18n="footer_link_care" class="hover:text-seal-red cursor-pointer">생화 관리 팁</span></li>
+            <li><a href="admin-index.html" data-i18n="footer_link_admin" class="text-seal-red font-bold hover:underline">관리자 센터 로그인</a></li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="pt-2 flex flex-col sm:flex-row items-center justify-between text-xs text-ink-light gap-4">
+        <div class="flex items-center gap-4">
+          <p>© 2026 SEOLDAMHWA (설담화). All rights reserved.</p>
+          <div class="flex gap-4">
+            <span data-i18n="footer_terms" class="hover:text-ink-black cursor-pointer">이용약관</span>
+            <span>·</span>
+            <span data-i18n="footer_privacy" class="hover:text-ink-black cursor-pointer">개인정보처리방침</span>
+          </div>
+        </div>
+
+        <!-- 푸터 우측 하단 작고 심플한 붉은 낙인 포인트 (56px, opacity 0.9) -->
+        <div class="flex items-center">
+          <img src="assets/images/seal.svg" alt="설담화 낙관" class="w-14 h-14 opacity-90 drop-shadow-sm select-none">
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 플로팅 액션 버튼 (우측 하단: 카카오톡 채널 & 맨 위로) -->
+  <aside aria-label="빠른 바로가기" class="fixed right-4 sm:right-5 bottom-5 sm:bottom-6 z-30 flex flex-col gap-2.5 items-center">
+    <!-- 카카오톡 채널 플로팅 버튼 -->
+    <a id="float-kakao-btn" href="#" target="_blank" rel="noopener noreferrer" aria-label="카카오톡 채널 문의" title="카카오톡 채널 문의" class="w-12 h-12 rounded-full bg-[#FEE500] hover:bg-[#FADA0A] text-[#191919] shadow-lg flex items-center justify-center transition-transform hover:scale-105 cursor-pointer">
+      <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+        <path d="M12 3c-5.523 0-10 3.582-10 8 0 2.827 1.83 5.308 4.608 6.697-.202.754-.732 2.73-1.047 3.927-.123.468.172.463.363.336 1.503-.996 3.49-2.348 4.298-2.906.577.098 1.173.15 1.778.15 5.523 0 10-3.582 10-8s-4.477-8-10-8z"/>
+      </svg>
+    </a>
+
+    <!-- 맨 위로 가기 플로팅 버튼 -->
+    <button id="float-top-btn" type="button" aria-label="맨 위로 이동" title="맨 위로 이동" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" class="w-12 h-12 rounded-full bg-ink-black hover:bg-seal-red text-white shadow-lg flex items-center justify-center transition-all duration-300 opacity-0 pointer-events-none translate-y-2 cursor-pointer">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+      </svg>
+    </button>
+  </aside>
+
+  <!-- 5. 상품 상세 뷰 / PDP 모달 (비대칭 레이아웃 + 한 줄 글귀 + 희망 배송일) -->
+  <div id="pdp-modal" class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
+    <div class="fixed inset-0" onclick="closeProductDetail()"></div>
+
+    <div class="relative bg-hanji w-full max-w-5xl rounded-xs shadow-2xl border border-ink-black/20 z-10 overflow-hidden my-auto">
+      <button onclick="closeProductDetail()" class="absolute top-4 right-4 z-20 p-2 text-ink-black hover:text-seal-red hover:bg-[#FAF7F2] rounded-full transition-colors cursor-pointer">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 lg:items-start max-h-[90vh] overflow-y-auto">
+        <!-- 좌측 고해상도 이미지 (7열) -->
+        <div class="lg:col-span-7 p-6 sm:p-10 border-b lg:border-b-0 lg:border-r border-ink-black/10 bg-[#FAF7F2] flex flex-col justify-between">
+          <div>
+            <div class="hanok-card p-3 bg-white">
+              <div class="corner-tl"></div><div class="corner-tr"></div><div class="corner-bl"></div><div class="corner-br"></div>
+              <div class="aspect-[4/5] overflow-hidden bg-[#ECE8E1]">
+                <img id="pdp-image" src="" alt="" class="w-full h-full object-cover">
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 pt-6 border-t border-ink-black/10 grid grid-cols-2 gap-4 text-xs text-ink-gray">
+            <div class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-seal-red shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <div><strong data-i18n="pdp_badge_fresh_title" class="text-ink-black block">신선 직송 안심 보증</strong><span data-i18n="pdp_badge_fresh_desc">전국 지정일 안전 특송 출고</span></div>
+            </div>
+            <div class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-seal-red shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <div><strong data-i18n="pdp_badge_silk_title" class="text-ink-black block">수공예 비단 보자기</strong><span data-i18n="pdp_badge_silk_desc">오방색 양단 실크 & 옥노리개 패키징</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 우측 구매 패널 (5열) - 데스크톱 sticky 고정 -->
+        <div class="lg:col-span-5 p-6 sm:p-10 lg:p-8 flex flex-col justify-between space-y-5 lg:sticky lg:top-0 lg:self-start bg-hanji z-10 lg:max-h-[90vh] lg:overflow-y-auto">
+          <div class="space-y-4">
+            <div class="text-xs font-bold text-seal-red tracking-wider uppercase" id="pdp-category">꽃다발</div>
+            
+            <div class="space-y-1">
+              <h1 id="pdp-title" class="text-2xl sm:text-3xl font-extrabold text-ink-black">상품명</h1>
+              <!-- 브랜드 특화 한 줄 글귀 (Storytelling Copy) -->
+              <p id="pdp-poetic" class="font-serif text-base sm:text-lg text-seal-red font-semibold leading-snug pt-1 italic">
+                ""
+              </p>
+            </div>
+
+            <div class="py-2.5 border-y border-ink-black/10 flex justify-between items-baseline">
+              <span data-i18n="pdp_price_label" class="text-xs font-semibold text-ink-light">판매가</span>
+              <span id="pdp-price" class="text-2xl font-bold text-ink-black">0원</span>
+            </div>
+
+            <div class="bg-[#FAF7F2] p-4 rounded-xs border border-ink-black/10 text-xs text-ink-gray space-y-1.5 leading-relaxed">
+              <p id="pdp-meaning" class="text-ink-black font-bold">꽃말: </p>
+              <p id="pdp-desc" class="font-normal"></p>
+            </div>
+
+            <!-- 크기 선택 (사이즈 옵션이 있는 경우) -->
+            <div id="pdp-size-container" class="space-y-1">
+              <label data-i18n="pdp_size_label" class="block text-xs font-bold text-ink-black">크기 선택</label>
+              <select id="pdp-size-select" onchange="onSizeChanged()" class="w-full bg-white border border-ink-black/20 p-2.5 text-xs font-medium rounded-xs focus:border-seal-red">
+              </select>
+            </div>
+
+            <!-- 생화 희망 배송일 및 시간 선택 -->
+            <div id="pdp-delivery-container" class="space-y-1">
+              <label data-i18n="pdp_delivery_label" class="block text-xs font-bold text-ink-black">생화 희망 배송일 및 시간 (필수)</label>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <select id="pdp-delivery-date" class="w-full bg-white border border-ink-black/20 p-2.5 text-xs font-medium rounded-xs focus:border-seal-red">
+                </select>
+                <select id="pdp-delivery-time" class="w-full bg-white border border-ink-black/20 p-2.5 text-xs font-medium rounded-xs focus:border-seal-red">
+                  <option value="오전 10:00~13:00">오전 10:00~13:00</option>
+                  <option value="오후 14:00~18:00">오후 14:00~18:00</option>
+                  <option value="저녁 18:00~21:00">저녁 18:00~21:00</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 보자기 포장 옵션 선택 -->
+            <div id="pdp-package-container" class="space-y-1">
+              <label data-i18n="pdp_package_label" class="block text-xs font-bold text-ink-black">보자기 포장</label>
+              <select id="pdp-package-opt" onchange="updatePDPPrice()" class="w-full bg-white border border-ink-black/20 p-2.5 text-xs font-medium rounded-xs focus:border-seal-red">
+                <option value="0">기본 단아 한지 포장 (무료)</option>
+                <option value="15000">전통 실크 본견 보자기 & 노리개 포장 (+15,000원)</option>
+              </select>
+            </div>
+
+            <!-- 수량 선택 및 재고 안내 -->
+            <div id="pdp-qty-container" class="flex items-center justify-between py-1">
+              <div class="flex items-center gap-2">
+                <span data-i18n="pdp_qty_label" class="text-xs font-bold text-ink-black">수량</span>
+                <span id="pdp-stock-notice" class="text-xs font-bold text-seal-red"></span>
+              </div>
+              <div class="flex items-center border border-ink-black/20 bg-white rounded-xs">
+                <button type="button" onclick="changeQty(-1)" class="p-1.5 px-3 text-ink-gray hover:text-ink-black font-bold cursor-pointer">-</button>
+                <span id="pdp-qty" class="px-3 text-xs font-bold">1</span>
+                <button type="button" onclick="changeQty(1)" class="p-1.5 px-3 text-ink-gray hover:text-ink-black font-bold cursor-pointer">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 하단 금액 및 버튼 -->
+          <div class="pt-4 border-t border-ink-black/10 space-y-3">
+            <div id="pdp-normal-total-row" class="flex justify-between items-baseline">
+              <span data-i18n="pdp_total_label" class="text-xs font-semibold text-ink-light">총 주문금액</span>
+              <span id="pdp-total" class="text-2xl font-bold text-seal-red">0원</span>
+            </div>
+
+            <div id="pdp-normal-btns" class="grid grid-cols-2 gap-3">
+              <button id="pdp-btn-cart" onclick="addToCartFromPDP()" data-i18n="pdp_btn_cart" class="jakae-light-btn py-3.5 px-4 text-xs sm:text-sm font-bold rounded-xs cursor-pointer">
+                장바구니 담기
+              </button>
+              <button id="pdp-btn-buy" onclick="buyNowFromPDP()" data-i18n="pdp_btn_buy" class="jakae-btn py-3.5 px-4 text-xs sm:text-sm font-bold rounded-xs cursor-pointer shadow-md">
+                바로 구매하기
+              </button>
+            </div>
+
+            <!-- 웨딩·공간 연출 등 견적 문의 전용 안내 및 버튼 -->
+            <div id="pdp-inquiry-container" class="space-y-3 hidden">
+              <p data-i18n="pdp_inquiry_guide" class="text-xs text-ink-gray leading-relaxed bg-[#FAF7F2] p-3 rounded-xs border border-ink-black/10">
+                공간 연출 및 웨딩 스타일링은 공간 규모와 계절에 맞춘 1:1 상담 후 맞춤 견적서가 발행됩니다.
+              </p>
+              <button onclick="goToCustomInquiry(currentSelectedProduct ? currentSelectedProduct.id : '')" data-i18n="pdp_btn_inquiry" class="jakae-btn w-full py-3.5 px-4 text-xs sm:text-sm font-bold rounded-xs cursor-pointer shadow-md">
+                1:1 맞춤 상담 문의하기
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 장바구니 드로어 (Cart Drawer) -->
+  <div id="cart-drawer" class="fixed inset-0 z-50 overflow-hidden hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-xs" onclick="toggleCartDrawer(false)"></div>
+    <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+      <div class="w-screen max-w-md bg-hanji shadow-2xl border-l border-ink-black/15 flex flex-col">
+        <div class="p-6 border-b border-ink-black/10 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <svg class="w-5 h-5 text-seal-red" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+            <h2 data-i18n="cart_drawer_title" class="text-lg font-bold text-ink-black">담화 보따리 (장바구니)</h2>
+          </div>
+          <button onclick="toggleCartDrawer(false)" class="p-1 text-ink-gray hover:text-ink-black cursor-pointer">✕</button>
+        </div>
+
+        <div id="cart-items-container" class="flex-1 overflow-y-auto p-6 space-y-4">
+          <!-- 동적 렌더링 -->
+        </div>
+
+        <div class="p-6 bg-[#FAF7F2] border-t border-ink-black/10 space-y-4">
+          <div class="flex justify-between items-baseline font-bold text-sm">
+            <span data-i18n="cart_total_label">최종 결제 금액</span>
+            <span id="cart-total-amount" class="text-xl text-seal-red">68,000원</span>
+          </div>
+          <button onclick="proceedCheckoutFromCart()" data-i18n="cart_btn_checkout" class="jakae-btn w-full py-3.5 text-sm font-bold rounded-xs cursor-pointer shadow-md">
+            주문 결제 진행하기
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. 공지 및 이벤트 팝업 슬라이더 (Popup Slider) -->
+  <!-- 모바일 백드롭 (<768px) -->
+  <div id="popup-slider-backdrop" onclick="closePopupNow()" class="fixed inset-0 bg-black/40 z-40 transition-opacity hidden md:hidden"></div>
+
+  <!-- 팝업 슬라이더 카드 컨테이너 -->
+  <div id="popup-slider-container" class="fixed z-40 hidden transition-all duration-300 bottom-0 inset-x-0 w-full max-h-[75vh] rounded-t-2xl md:rounded-sm bg-white border border-ink-black/10 shadow-2xl md:bottom-6 md:left-6 md:w-[340px] md:max-h-none overflow-hidden flex flex-col">
+    <!-- 상단 1:1 이미지 영역 및 컨트롤 -->
+    <div class="relative aspect-square w-full bg-[#ECE8E1] overflow-hidden select-none shrink-0">
+      <img id="popup-slide-img" src="" alt="팝업 이미지" class="w-full h-full object-cover">
+
+      <!-- 슬라이드 카운터 및 이전/다음 버튼 (2장 이상일 때 노출) -->
+      <div id="popup-slider-nav" class="absolute bottom-2.5 right-2.5 bg-ink-black/75 backdrop-blur-xs text-white text-[11px] font-bold px-2 py-1 rounded-full flex items-center gap-2 select-none hidden">
+        <button onclick="prevPopupSlide()" aria-label="이전 슬라이드" class="hover:text-seal-red px-1 cursor-pointer">‹</button>
+        <span id="popup-slide-counter">1 / 1</span>
+        <button onclick="nextPopupSlide()" aria-label="다음 슬라이드" class="hover:text-seal-red px-1 cursor-pointer">›</button>
+      </div>
+
+      <!-- 미리보기 전용: 중지됨 배지 -->
+      <span id="popup-slide-stopped-badge" class="absolute top-2.5 left-2.5 bg-ink-black/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-xs shadow hidden">중지됨</span>
+    </div>
+
+    <!-- 텍스트 내용 영역 -->
+    <div class="p-4 flex flex-col justify-between flex-1">
+      <div class="space-y-1">
+        <h3 id="popup-slide-title" class="font-extrabold text-sm sm:text-base text-ink-black leading-snug"></h3>
+        <p id="popup-slide-text" class="text-xs sm:text-sm text-ink-gray line-clamp-2 pt-0.5"></p>
+      </div>
+
+      <!-- 바로가기 링크 버튼 (링크가 설정된 경우 노출) -->
+      <div id="popup-slide-btn-wrap" class="pt-3 hidden">
+        <button id="popup-slide-btn" onclick="handlePopupSlideClick()" class="w-full bg-ink-black hover:bg-seal-red text-white text-xs font-bold py-2.5 rounded-xs transition-colors shadow-xs cursor-pointer"></button>
+      </div>
+    </div>
+
+    <!-- 하단 유틸리티 바: 오늘 그만 보기 / 닫기 -->
+    <div class="flex items-center justify-between px-4 py-2.5 border-t border-ink-black/10 text-xs text-ink-gray bg-[#FAF7F2] select-none shrink-0">
+      <button onclick="closePopupToday()" data-i18n="popup_dont_show_today" class="hover:text-ink-black underline cursor-pointer">오늘 그만 보기</button>
+      <button onclick="closePopupNow()" data-i18n="popup_close" class="hover:text-ink-black font-medium cursor-pointer">닫기</button>
+    </div>
+  </div>
+
+  <!-- 7. 주문 결제 모달 (Checkout Modal) -->
+  <div id="checkout-modal" class="fixed inset-0 z-50 overflow-y-auto bg-black/65 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="fixed inset-0" onclick="toggleCheckoutModal(false)"></div>
+    <div class="relative bg-hanji w-full max-w-xl rounded-xs shadow-2xl border border-ink-black/20 z-10 p-6 sm:p-8 my-8">
+      <button onclick="toggleCheckoutModal(false)" class="absolute top-4 right-4 p-1.5 text-ink-gray hover:text-ink-black cursor-pointer">✕</button>
+
+      <form onsubmit="submitCustomerOrder(event)" class="space-y-4">
+        <div class="text-center border-b border-ink-black/10 pb-3">
+          <span data-i18n="checkout_sub" class="font-brush text-2xl text-seal-red">단정한 마음을 묶어 보내며</span>
+          <h2 data-i18n="checkout_title" class="text-2xl font-bold text-ink-black">주문 및 결제</h2>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div>
+            <label data-i18n="checkout_name_label" class="block font-bold text-ink-black mb-1">받으시는 분 성함</label>
+            <input type="text" id="order-name" required value="김단아" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+          </div>
+          <div>
+            <label data-i18n="checkout_phone_label" class="block font-bold text-ink-black mb-1">연락처</label>
+            <input type="tel" id="order-phone" required value="010-3849-5921" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+          </div>
+          <div>
+            <label data-i18n="checkout_delivery_label" class="block font-bold text-seal-red mb-1">생화 희망 배송일 및 시간 (필수)</label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <select id="order-delivery-date" class="w-full bg-white border border-seal-red/40 p-2 font-bold text-seal-red rounded-xs">
+              </select>
+              <select id="order-delivery-time" class="w-full bg-white border border-seal-red/40 p-2 font-bold text-seal-red rounded-xs">
+                <option value="오전 10:00~13:00">오전 10:00~13:00</option>
+                <option value="오후 14:00~18:00">오후 14:00~18:00</option>
+                <option value="저녁 18:00~21:00">저녁 18:00~21:00</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label data-i18n="checkout_address_label" class="block font-bold text-ink-black mb-1">배송 주소</label>
+            <input type="text" id="order-address" required value="서울특별시 성동구 성수이로 20길 12, 401호" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs focus:border-seal-red">
+          </div>
+          <div>
+            <label data-i18n="checkout_message_label" class="block font-bold text-ink-black mb-1">보자기 동봉 전통 한지 메시지</label>
+            <textarea id="order-message" rows="2" data-i18n-placeholder="checkout_message_placeholder" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs" placeholder="동봉할 메시지를 적어주세요."></textarea>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-ink-black/10">
+          <div id="checkout-items-summary" class="mb-3 space-y-1 max-h-40 overflow-y-auto"></div>
+          <div class="flex justify-between items-baseline mb-3">
+            <span data-i18n="checkout_total_label" class="text-xs text-ink-gray">최종 결제 금액</span>
+            <span id="checkout-final-price" class="text-2xl font-bold text-seal-red">68,000원</span>
+          </div>
+          <button type="submit" data-i18n="checkout_btn_submit" class="jakae-btn w-full py-4 text-sm font-bold tracking-wider rounded-xs cursor-pointer shadow-lg">
+            안전 결제 완료하기
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 8. 검색 모달 (Search Modal) -->
+  <div id="search-modal" class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs hidden flex items-start justify-center pt-20 px-4">
+    <div class="fixed inset-0" onclick="toggleSearchModal(false)"></div>
+    <div class="relative bg-hanji w-full max-w-xl rounded-xs shadow-2xl border border-ink-black/20 z-10 p-6">
+      <div class="flex items-center gap-3 border-b-2 border-ink-black pb-2">
+        <svg class="w-6 h-6 text-seal-red" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" id="search-input" oninput="handleSearch(this.value)" data-i18n-placeholder="search_placeholder" placeholder="꽃 이름, 꽃말, 이야기 키워드를 검색하세요." class="w-full bg-transparent text-base font-semibold text-ink-black focus:outline-none">
+        <button onclick="toggleSearchModal(false)" class="p-1 text-ink-gray hover:text-ink-black">✕</button>
+      </div>
+      <div id="search-results" class="mt-4 max-h-60 overflow-y-auto space-y-2 text-xs">
+        <!-- 실시간 검색 결과 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 상품 데이터 및 공통 스토리지 스크립트 -->
+  <script src="assets/js/products-data.js"></script>
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/js/site-settings.js"></script>
+  <script src="assets/js/popups.js"></script>
+
+  <!-- JavaScript: 쇼핑몰 동작 & 인터랙션 로직 -->
+  <script>
+    // 장바구니 상태 관리
+    let cart = [];
+    let currentSelectedProduct = null;
+    let currentSelectedSize = null;
+    let currentQty = 1;
+    let currentCategory = 'all';
+    let selectedDelivery = { date: '', time: '' };
+
+    // 배송일 드롭다운 생성 (영업일 기준 14일치 옵션, 정기 휴무 및 임시 휴무 제외)
+    function buildDeliveryDateOptions(selectEl) {
+      if (!selectEl) return;
+      const prevVal = selectEl.value;
+      selectEl.innerHTML = '';
+      const currentLang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'ko';
+      const settings = typeof loadSettings === 'function' ? loadSettings() : {};
+
+      const now = new Date();
+      let foundDays = 0;
+      let dayOffset = 1;
+
+      // 최대 60일까지 탐색하며 open인 날 14일 수집
+      while (foundDays < 14 && dayOffset <= 60) {
+        const d = new Date(now.getTime() + dayOffset * 24 * 60 * 60 * 1000);
+        const kp = typeof getKoreaTimeParts === 'function' ? getKoreaTimeParts(d) : { dateStr: d.toISOString().slice(0, 10), day: d.getDay() };
+        const sched = typeof getDaySchedule === 'function' ? getDaySchedule(kp.dateStr, settings) : { open: true };
+
+        if (sched.open) {
+          const val = kp.dateStr;
+          const label = typeof formatDeliveryDateOption === 'function'
+            ? formatDeliveryDateOption(d, currentLang)
+            : `${val} 도착 희망`;
+          const opt = document.createElement('option');
+          opt.value = val;
+          opt.textContent = label;
+          selectEl.appendChild(opt);
+          foundDays++;
+        }
+        dayOffset++;
+      }
+
+      if (prevVal && selectEl.querySelector(`option[value="${prevVal}"]`)) {
+        selectEl.value = prevVal;
+      }
+    }
+
+    // 초기 실행
+    document.addEventListener('DOMContentLoaded', () => {
+      try { if (typeof applyLanguage === 'function') applyLanguage(getCurrentLang()); } catch (e) { console.error('applyLanguage error:', e); }
+      try { renderProducts('all'); } catch (e) { console.error('renderProducts error:', e); }
+      try { updateCartUI(); } catch (e) { console.error('updateCartUI error:', e); }
+      try { initVideoControls(); } catch (e) { console.error('initVideoControls error:', e); }
+      try { initInquiryProductOptions();
+      try { initCurationUI(); } catch (e) { console.error('initCurationUI error:', e); } } catch (e) { console.error('initInquiryProductOptions error:', e); }
+      try { renderSiteSettings(); } catch (e) { console.error('renderSiteSettings error:', e); }
+      try { initFloatingControls(); } catch (e) { console.error('initFloatingControls error:', e); }
+      try { updateHeroRecommendButton(); } catch (e) {}
+      try { initPopupSlider(); } catch (e) { console.error('initPopupSlider error:', e); }
+
+      // URL 미리보기 파라미터 확인 (?preview=<productId>)
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const previewId = urlParams.get('preview');
+        if (previewId) {
+          openProductDetail(previewId, true);
+        }
+      } catch (e) {}
+    });
+
+    // 1. 상품 갤러리 렌더링 (재고 상태, 견적 문의 및 공개 여부 반영)
+    function renderProducts(category) {
+      if (!category) category = currentCategory || 'all';
+      currentCategory = category;
+      const allProducts = loadProducts();
+      const visibleProducts = allProducts.filter(p => typeof isProductVisible === 'function' ? isProductVisible(p) : true);
+      const filtered = category === 'all' ? visibleProducts : visibleProducts.filter(p => p.category === category);
+      const grid = document.getElementById('product-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      filtered.forEach(p => {
+        const tp = typeof tProduct === 'function' ? tProduct(p) : p;
+        const card = document.createElement('div');
+        card.className = 'group cursor-pointer flex flex-col';
+        card.onclick = () => openProductDetail(p.id);
+
+        let priceDisplay = '';
+        if (p.inquiryOnly) {
+          priceDisplay = typeof t === 'function' ? t('inquiry_price_label', '상담 후 견적') : '상담 후 견적';
+        } else if (p.sizes && p.sizes.length > 0) {
+          const minPrice = Math.min(...p.sizes.map(s => s.price));
+          const hasMultipleSizes = p.sizes.length >= 2;
+          priceDisplay = `${formatPrice(minPrice)}${hasMultipleSizes ? '~' : ''}`;
+        } else {
+          priceDisplay = formatPrice(p.price || 0);
+        }
+
+        let badgeHtml = '';
+        let imgClass = 'w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-106';
+
+        let stockStatus = 'ample';
+        if (!p.inquiryOnly) {
+          stockStatus = getStockStatus(p.stockQuantity);
+          if (stockStatus === 'out_of_stock') {
+            imgClass += ' grayscale opacity-60';
+            const soldoutText = typeof t === 'function' ? t('stock_soldout', '일시 품절') : '일시 품절';
+            badgeHtml = `
+              <div class="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
+                <span class="bg-ink-black/90 text-white text-xs font-bold px-3 py-1.5 rounded-xs tracking-wider shadow">${soldoutText}</span>
+              </div>
+            `;
+          } else if (stockStatus === 'low_stock') {
+            const lowText = typeof t === 'function' ? t('stock_low_fmt', '품절 임박 · {qty}개 남음').replace('{qty}', p.stockQuantity) : `품절 임박 · ${p.stockQuantity}개 남음`;
+            badgeHtml = `
+              <span class="absolute top-2.5 left-2.5 bg-seal-red text-white text-[11px] font-bold px-2.5 py-1 rounded-xs shadow">
+                ${lowText}
+              </span>
+            `;
+          }
+        }
+
+        const meaningPrefix = typeof t === 'function' ? t('pdp_meaning_prefix', '꽃말: ') : '꽃말: ';
+
+        card.innerHTML = `
+          <div class="hanok-card p-3 transition-all duration-300">
+            <div class="corner-tl"></div><div class="corner-tr"></div><div class="corner-bl"></div><div class="corner-br"></div>
+            <div class="relative aspect-[3/4] overflow-hidden bg-[#ECE8E1]">
+              <img src="${p.image}" alt="${tp.name}" class="${imgClass}" loading="lazy">
+              ${badgeHtml}
+              <!-- 호버 시 시적 글귀 노출 -->
+              <div class="card-hover-overlay absolute inset-0 bg-gradient-to-t from-ink-black/85 via-ink-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5 text-white">
+                <p class="font-serif text-base sm:text-lg text-white/95 mb-1.5 leading-snug font-semibold italic line-clamp-2">"${tp.poeticLine}"</p>
+                <div class="flex items-center gap-1.5 text-sm text-white/90">
+                  <span class="w-1 h-3 bg-seal-red rounded-xs"></span>
+                  <span>${meaningPrefix}${tp.flowerMeaning}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 카드 하단 정보 -->
+          <div class="mt-3 text-center space-y-1">
+            <h3 class="text-base font-bold text-ink-black tracking-tight group-hover:text-seal-red transition-colors">${tp.name}</h3>
+            <!-- 터치 화면용 시적 글귀 -->
+            <p class="touch-poetic-line hidden font-serif text-xs sm:text-sm text-seal-red italic line-clamp-1 px-1">"${tp.poeticLine}"</p>
+            <p class="text-sm font-semibold ${stockStatus === 'out_of_stock' ? 'text-ink-light' : 'text-ink-gray'}">${priceDisplay}</p>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // 카테고리 필터
+    function filterCategory(cat) {
+      document.querySelectorAll('.cat-pill').forEach(btn => {
+        btn.className = 'cat-pill px-4 py-2 text-xs sm:text-sm font-semibold rounded-xs bg-[#FAF7F2] text-ink-gray hover:text-ink-black border border-ink-black/10 cursor-pointer';
+      });
+      const activeBtn = document.getElementById(`cat-${cat}`);
+      if (activeBtn) {
+        activeBtn.className = 'cat-pill px-4 py-2 text-xs sm:text-sm font-semibold rounded-xs bg-ink-black text-white cursor-pointer shadow-xs';
+      }
+      renderProducts(cat);
+    }
+
+    // 히어로 "이달의 추천" 버튼 핸들러 (B4)
+    function openHeroRecommendProduct() {
+      const products = loadProducts();
+      let target = products.find(p => p.id === 'bohemian-autumn' && (typeof isProductVisible === 'function' ? isProductVisible(p) : true));
+      if (!target) {
+        target = products.find(p => typeof isProductVisible === 'function' ? isProductVisible(p) : true);
+      }
+      if (target) {
+        openProductDetail(target.id);
+      }
+    }
+
+    function updateHeroRecommendButton() {
+      const btn = document.getElementById('hero-recommend-btn');
+      if (!btn) return;
+      const products = loadProducts();
+      let target = products.find(p => p.id === 'bohemian-autumn' && (typeof isProductVisible === 'function' ? isProductVisible(p) : true));
+      if (!target) {
+        target = products.find(p => typeof isProductVisible === 'function' ? isProductVisible(p) : true);
+      }
+      if (target) {
+        btn.classList.remove('hidden');
+      } else {
+        btn.classList.add('hidden');
+      }
+    }
+
+    // 미리보기 모드 상태 및 배너 제어 (B3, B5)
+    let isPreviewMode = false;
+
+    function updatePreviewBannerText(product) {
+      const bannerTextEl = document.getElementById('preview-mode-text');
+      const closeBtn = document.getElementById('preview-mode-close');
+      if (closeBtn) closeBtn.innerText = typeof t === 'function' ? t('preview_close', '닫기') : '닫기';
+      if (!bannerTextEl || !product) return;
+
+      const isVis = typeof isProductVisible === 'function' ? isProductVisible(product) : true;
+      const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'ko';
+
+      if (product.visibility === 'private' || (!isVis && product.visibility !== 'scheduled')) {
+        bannerTextEl.innerText = typeof t === 'function' ? t('preview_banner_private', '미리보기 모드 · 손님에게는 아직 보이지 않는 상품이에요') : '미리보기 모드 · 손님에게는 아직 보이지 않는 상품이에요';
+      } else if (product.visibility === 'scheduled' && !isVis) {
+        let formattedTime = product.publishAt || '';
+        if (product.publishAt) {
+          const parts = product.publishAt.split('T');
+          const dParts = (parts[0] || '').split('-');
+          const m = parseInt(dParts[1] || '0', 10);
+          const d = parseInt(dParts[2] || '0', 10);
+          const timePart = parts[1] || '';
+          if (lang === 'en') {
+            formattedTime = `${m}/${d} ${timePart}`;
+          } else if (lang === 'ja') {
+            formattedTime = `${m}月${d}日 ${timePart}`;
+          } else {
+            formattedTime = `${m}월 ${d}일 ${timePart}`;
+          }
+        }
+        const schedTemplate = typeof t === 'function' ? t('preview_banner_scheduled', '미리보기 모드 · {time}에 공개 예정') : '미리보기 모드 · {time}에 공개 예정';
+        bannerTextEl.innerText = schedTemplate.replace('{time}', formattedTime);
+      } else {
+        bannerTextEl.innerText = typeof t === 'function' ? t('preview_banner_public', '미리보기 모드 · 현재 공개 중인 상품이에요') : '미리보기 모드 · 현재 공개 중인 상품이에요';
+      }
+    }
+
+    function updatePreviewBanner() {
+      if (isPreviewMode && currentSelectedProduct) {
+        updatePreviewBannerText(currentSelectedProduct);
+        const btnCart = document.getElementById('pdp-btn-cart');
+        const btnBuy = document.getElementById('pdp-btn-buy');
+        if (btnCart) btnCart.innerText = typeof t === 'function' ? t('preview_btn_disabled', '미리보기 모드 (주문 불가)') : '미리보기 모드 (주문 불가)';
+        if (btnBuy) btnBuy.innerText = typeof t === 'function' ? t('preview_btn_disabled', '미리보기 모드 (주문 불가)') : '미리보기 모드 (주문 불가)';
+      }
+    }
+
+    function closePreviewMode() {
+      isPreviewMode = false;
+      const banner = document.getElementById('preview-mode-banner');
+      if (banner) banner.classList.add('hidden');
+
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('preview');
+        window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+      } catch(e) {}
+
+      if (currentSelectedProduct && typeof isProductVisible === 'function' && !isProductVisible(currentSelectedProduct)) {
+        closeProductDetail();
+      } else {
+        resetPDPButtons();
+      }
+    }
+
+    // 2. 상품 상세 PDP 모달 열기 (미리보기 모드 isPreview 지원)
+    function openProductDetail(productId, isPreview = false) {
+      const products = loadProducts();
+      const prod = products.find(p => p.id === productId);
+      if (!prod) return;
+
+      const isVis = typeof isProductVisible === 'function' ? isProductVisible(prod) : true;
+      if (!isVis && !isPreview && !isPreviewMode) {
+        return; // 손님 화면에서는 비공개 상품 접근 불가
+      }
+
+      if (isPreview) {
+        isPreviewMode = true;
+      }
+
+      currentSelectedProduct = prod;
+      currentQty = 1;
+      const tp = typeof tProduct === 'function' ? tProduct(prod) : prod;
+
+      document.getElementById('pdp-image').src = prod.image;
+      document.getElementById('pdp-title').innerText = tp.name;
+      
+      const catNames = {
+        bouquet: typeof t === 'function' ? t('cat_bouquet', '꽃다발') : '꽃다발',
+        basket: typeof t === 'function' ? t('cat_basket', '꽃바구니') : '꽃바구니',
+        space: typeof t === 'function' ? t('cat_space', '웨딩·공간') : '웨딩·공간'
+      };
+      document.getElementById('pdp-category').innerText = catNames[prod.category] || '전통 화훼';
+      document.getElementById('pdp-poetic').innerText = `"${tp.poeticLine}"`;
+      const meaningPrefix = typeof t === 'function' ? t('pdp_meaning_prefix', '꽃말: ') : '꽃말: ';
+      document.getElementById('pdp-meaning').innerText = `${meaningPrefix}${tp.flowerMeaning}`;
+      document.getElementById('pdp-desc').innerText = tp.description || '';
+      document.getElementById('pdp-qty').innerText = '1';
+      document.getElementById('pdp-package-opt').value = '0';
+
+      const pkgOpt = document.getElementById('pdp-package-opt');
+      if (pkgOpt && pkgOpt.options && pkgOpt.options.length >= 2) {
+        pkgOpt.options[0].text = typeof t === 'function' ? t('pdp_package_basic', '기본 단아 한지 포장 (무료)') : '기본 단아 한지 포장 (무료)';
+        pkgOpt.options[1].text = typeof t === 'function' ? t('pdp_package_silk', '전통 실크 본견 보자기 & 노리개 포장 (+15,000원)') : '전통 실크 본견 보자기 & 노리개 포장 (+15,000원)';
+      }
+
+      const timeSelect = document.getElementById('pdp-delivery-time');
+      if (timeSelect && timeSelect.options && timeSelect.options.length >= 3) {
+        timeSelect.options[0].text = typeof t === 'function' ? t('pdp_delivery_time_morning', '오전 10:00~13:00') : '오전 10:00~13:00';
+        timeSelect.options[1].text = typeof t === 'function' ? t('pdp_delivery_time_afternoon', '오후 14:00~18:00') : '오후 14:00~18:00';
+        timeSelect.options[2].text = typeof t === 'function' ? t('pdp_delivery_time_evening', '저녁 18:00~21:00') : '저녁 18:00~21:00';
+      }
+
+      const stockNoticeEl = document.getElementById('pdp-stock-notice');
+      const sizeContainer = document.getElementById('pdp-size-container');
+      const sizeSelect = document.getElementById('pdp-size-select');
+      const deliveryContainer = document.getElementById('pdp-delivery-container');
+      const packageContainer = document.getElementById('pdp-package-container');
+      const qtyContainer = document.getElementById('pdp-qty-container');
+      const normalBtns = document.getElementById('pdp-normal-btns');
+      const inquiryContainer = document.getElementById('pdp-inquiry-container');
+      const normalTotalRow = document.getElementById('pdp-normal-total-row');
+      const btnCart = document.getElementById('pdp-btn-cart');
+      const btnBuy = document.getElementById('pdp-btn-buy');
+
+      if (prod.inquiryOnly) {
+        document.getElementById('pdp-price').innerText = typeof t === 'function' ? t('inquiry_price_label', '상담 후 견적') : '상담 후 견적';
+        if (sizeContainer) sizeContainer.classList.add('hidden');
+        if (deliveryContainer) deliveryContainer.classList.add('hidden');
+        if (packageContainer) packageContainer.classList.add('hidden');
+        if (qtyContainer) qtyContainer.classList.add('hidden');
+        if (normalTotalRow) normalTotalRow.classList.add('hidden');
+        if (normalBtns) normalBtns.classList.add('hidden');
+        if (inquiryContainer) inquiryContainer.classList.remove('hidden');
+        if (stockNoticeEl) stockNoticeEl.innerText = '';
+      } else {
+        if (deliveryContainer) deliveryContainer.classList.remove('hidden');
+        if (packageContainer) packageContainer.classList.remove('hidden');
+        if (qtyContainer) qtyContainer.classList.remove('hidden');
+        if (normalTotalRow) normalTotalRow.classList.remove('hidden');
+        if (normalBtns) normalBtns.classList.remove('hidden');
+        if (inquiryContainer) inquiryContainer.classList.add('hidden');
+
+        if (prod.sizes && prod.sizes.length > 0) {
+          if (sizeContainer) sizeContainer.classList.remove('hidden');
+          const recLabel = typeof t === 'function' ? t('size_recommended_label', '추천') : '추천';
+          sizeSelect.innerHTML = prod.sizes.map((s, idx) => {
+            const recBadge = s.recommended ? ` · ${recLabel}` : '';
+            return `<option value="${idx}">${s.label} - ${formatPrice(s.price)}${recBadge}</option>`;
+          }).join('');
+          
+          const recIdx = prod.sizes.findIndex(s => s.recommended);
+          const defaultIdx = recIdx !== -1 ? recIdx : 0;
+          sizeSelect.value = String(defaultIdx);
+          currentSelectedSize = prod.sizes[defaultIdx];
+        } else {
+          if (sizeContainer) sizeContainer.classList.add('hidden');
+          currentSelectedSize = null;
+        }
+
+        const stockStatus = getStockStatus(prod.stockQuantity);
+        const soldoutText = typeof t === 'function' ? t('stock_soldout', '일시 품절') : '일시 품절';
+        if (stockStatus === 'out_of_stock') {
+          if (stockNoticeEl) stockNoticeEl.innerText = soldoutText;
+          if (btnCart) {
+            btnCart.disabled = true;
+            btnCart.innerText = soldoutText;
+            btnCart.className = 'w-full py-3.5 px-4 text-xs sm:text-sm font-bold rounded-xs bg-ink-gray/30 text-ink-light cursor-not-allowed';
+          }
+          if (btnBuy) {
+            btnBuy.disabled = true;
+            btnBuy.innerText = soldoutText;
+            btnBuy.className = 'w-full py-3.5 px-4 text-xs sm:text-sm font-bold rounded-xs bg-ink-gray/30 text-ink-light cursor-not-allowed';
+          }
+        } else if (stockStatus === 'low_stock') {
+          const lowText = typeof t === 'function' ? t('stock_low_fmt', '품절 임박 (남은 수량: {qty}개)').replace('{qty}', prod.stockQuantity) : `품절 임박 (남은 수량: ${prod.stockQuantity}개)`;
+          if (stockNoticeEl) stockNoticeEl.innerText = lowText;
+          resetPDPButtons();
+        } else {
+          if (stockNoticeEl) stockNoticeEl.innerText = '';
+          resetPDPButtons();
+        }
+      }
+
+      // 미리보기 모드인 경우 상단 배너 노출 및 버튼 비활성화 (B3)
+      if (isPreviewMode) {
+        const banner = document.getElementById('preview-mode-banner');
+        if (banner) {
+          banner.classList.remove('hidden');
+          updatePreviewBannerText(prod);
+        }
+        if (btnCart) {
+          btnCart.disabled = true;
+          btnCart.innerText = typeof t === 'function' ? t('preview_btn_disabled', '미리보기 모드 (주문 불가)') : '미리보기 모드 (주문 불가)';
+          btnCart.className = 'w-full py-3.5 px-4 text-xs sm:text-sm font-bold rounded-xs bg-ink-gray/30 text-ink-light cursor-not-allowed';
+        }
+        if (btnBuy) {
+          btnBuy.disabled = true;
+          btnBuy.innerText = typeof t === 'function' ? t('preview_btn_disabled', '미리보기 모드 (주문 불가)') : '미리보기 모드 (주문 불가)';
+          btnBuy.className = 'w-full py-3.5 px-4 text-xs sm:text-sm font-bold rounded-xs bg-ink-gray/30 text-ink-light cursor-not-allowed';
+        }
+      }
+
+      buildDeliveryDateOptions(document.getElementById('pdp-delivery-date'));
+      updatePDPPrice();
+      document.getElementById('pdp-modal').classList.remove('hidden');
+      if (typeof updatePopupVisibility === 'function') updatePopupVisibility();
+    }
+
+    function closeProductDetail() {
+      const modal = document.getElementById('pdp-modal');
+      if (modal) modal.classList.add('hidden');
+      if (typeof updatePopupVisibility === 'function') updatePopupVisibility();
+    }
+
+    function resetPDPButtons() {
+      const btnCart = document.getElementById('pdp-btn-cart');
+      const btnBuy = document.getElementById('pdp-btn-buy');
+      if (isPreviewMode) {
+        if (btnCart) {
+          btnCart.disabled = true;
+          btnCart.innerText = typeof t === 'function' ? t('preview_btn_disabled', '미리보기 모드 (주문 불가)') : '미리보기 모드 (주문 불가)';
+          btnCart.className = 'w-full py-3.5 px-4 text-xs sm:text-sm font-bold rounded-xs bg-ink-gray/30 text-ink-light cursor-not-allowed';
+        }
+        if (btnBuy) {
+          btnBuy.disabled = true;
+          btnBuy.innerText = typeof t === 'function' ? t('preview_btn_disabled', '미리보기 모드 (주문 불가)') : '미리보기 모드 (주문 불가)';
+          btnBuy.className = 'w-full py-3.5 px-4 text-xs sm:text-sm font-bold rounded-xs bg-ink-gray/30 text-ink-light cursor-not-allowed';
+        }
+        return;
+      }
+      if (btnCart) {
+        btnCart.disabled = false;
+        btnCart.innerText = typeof t === 'function' ? t('pdp_btn_cart', '장바구니 담기') : '장바구니 담기';
+        btnCart.className = 'jakae-light-btn py-3.5 px-4 text-xs sm:text-sm font-bold rounded-xs cursor-pointer';
+      }
+      if (btnBuy) {
+        btnBuy.disabled = false;
+        btnBuy.innerText = typeof t === 'function' ? t('pdp_btn_buy', '바로 구매하기') : '바로 구매하기';
+        btnBuy.className = 'jakae-btn py-3.5 px-4 text-xs sm:text-sm font-bold rounded-xs cursor-pointer shadow-md';
+      }
+    }
+
+    function updatePDPPrice() {
+      if (!currentSelectedProduct || currentSelectedProduct.inquiryOnly) return;
+      const basePrice = currentSelectedSize ? currentSelectedSize.price : (currentSelectedProduct.price || 0);
+      const pkgVal = parseInt(document.getElementById('pdp-package-opt')?.value || '0', 10);
+      const unitPrice = basePrice + pkgVal;
+      const totalPrice = unitPrice * currentQty;
+
+      document.getElementById('pdp-price').innerText = formatPrice(unitPrice);
+      document.getElementById('pdp-total').innerText = formatPrice(totalPrice);
+    }
+
+    // A1: 복원된 PDP 옵션 변경 및 수량 조절 함수
+    function onSizeChanged() {
+      if (!currentSelectedProduct || !currentSelectedProduct.sizes) return;
+      const sizeSelect = document.getElementById('pdp-size-select');
+      if (!sizeSelect) return;
+      const idx = parseInt(sizeSelect.value, 10);
+      if (!isNaN(idx) && currentSelectedProduct.sizes[idx]) {
+        currentSelectedSize = currentSelectedProduct.sizes[idx];
+      }
+      updatePDPPrice();
+    }
+
+    function changeQty(delta) {
+      if (!currentSelectedProduct) return;
+      let newQty = currentQty + delta;
+      if (newQty < 1) newQty = 1;
+      if (!currentSelectedProduct.inquiryOnly) {
+        const maxStock = currentSelectedProduct.stockQuantity;
+        if (typeof maxStock === 'number' && maxStock > 0 && newQty > maxStock) {
+          newQty = maxStock;
+        }
+      }
+      currentQty = newQty;
+      const qtyEl = document.getElementById('pdp-qty');
+      if (qtyEl) qtyEl.innerText = String(currentQty);
+      updatePDPPrice();
+    }
+
+    // 장바구니 담기
+    function addToCartFromPDP() {
+      if (isPreviewMode) {
+        alert(typeof t === 'function' ? t('preview_btn_disabled', '미리보기 모드 (주문 불가)') : '미리보기 모드에서는 주문할 수 없습니다.');
+        return;
+      }
+      if (!currentSelectedProduct || currentSelectedProduct.inquiryOnly) return;
+      if (currentSelectedProduct.stockQuantity <= 0) {
+        alert('현재 일시 품절된 상품입니다.');
+        return;
+      }
+
+      const optSelect = document.getElementById('pdp-package-opt');
+      const optPrice = Number(optSelect ? optSelect.value : 0);
+      const optName = (optPrice === 15000)
+        ? '전통 실크 본견 보자기 & 노리개 포장'
+        : '기본 단아 한지 포장';
+
+      const pdpDate = document.getElementById('pdp-delivery-date');
+      const pdpTime = document.getElementById('pdp-delivery-time');
+      if (pdpDate && pdpDate.value) selectedDelivery.date = pdpDate.value;
+      if (pdpTime && pdpTime.value) selectedDelivery.time = pdpTime.value;
+
+      const basePrice = currentSelectedSize ? currentSelectedSize.price : (currentSelectedProduct.price || 0);
+
+      cart.push({
+        product: currentSelectedProduct,
+        sizeLabel: currentSelectedSize ? currentSelectedSize.label : null,
+        price: basePrice,
+        optionName: optName,
+        optionPrice: optPrice,
+        quantity: currentQty
+      });
+
+      updateCartUI();
+      closeProductDetail();
+      toggleCartDrawer(true);
+      if (typeof updatePopupVisibility === 'function') updatePopupVisibility();
+    }
+
+    // 바로 구매하기
+    function buyNowFromPDP() {
+      if (isPreviewMode) {
+        alert(typeof t === 'function' ? t('preview_btn_disabled', '미리보기 모드 (주문 불가)') : '미리보기 모드에서는 주문할 수 없습니다.');
+        return;
+      }
+      if (!currentSelectedProduct || currentSelectedProduct.inquiryOnly) return;
+      if (currentSelectedProduct.stockQuantity <= 0) {
+        alert('현재 일시 품절된 상품입니다.');
+        return;
+      }
+
+      const optSelect = document.getElementById('pdp-package-opt');
+      const optPrice = Number(optSelect ? optSelect.value : 0);
+      const optName = (optPrice === 15000)
+        ? '전통 실크 본견 보자기 & 노리개 포장'
+        : '기본 단아 한지 포장';
+
+      const pdpDate = document.getElementById('pdp-delivery-date');
+      const pdpTime = document.getElementById('pdp-delivery-time');
+      if (pdpDate && pdpDate.value) selectedDelivery.date = pdpDate.value;
+      if (pdpTime && pdpTime.value) selectedDelivery.time = pdpTime.value;
+
+      const basePrice = currentSelectedSize ? currentSelectedSize.price : (currentSelectedProduct.price || 0);
+
+      cart = [{
+        product: currentSelectedProduct,
+        sizeLabel: currentSelectedSize ? currentSelectedSize.label : null,
+        price: basePrice,
+        optionName: optName,
+        optionPrice: optPrice,
+        quantity: currentQty
+      }];
+
+      updateCartUI();
+      closeProductDetail();
+      openCheckoutModal();
+    }
+
+    // 3. 장바구니 UI 업데이트
+    function updateCartUI() {
+      const container = document.getElementById('cart-items-container');
+      const badge = document.getElementById('cart-badge');
+      const totalEl = document.getElementById('cart-total-amount');
+      if (!container) return;
+
+      const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+      if (badge) badge.innerText = String(totalItems);
+
+      if (cart.length === 0) {
+        const emptyText = typeof t === 'function' ? t('cart_empty', '장바구니가 비어 있습니다.') : '장바구니가 비어 있습니다.';
+        container.innerHTML = `
+          <div class="py-16 text-center text-ink-gray text-xs space-y-2">
+            <svg class="w-8 h-8 mx-auto text-ink-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+            <p>${emptyText}</p>
+          </div>
+        `;
+        if (totalEl) totalEl.innerText = formatPrice(0);
+        return;
+      }
+
+      container.innerHTML = '';
+      let subtotal = 0;
+
+      const sizePrefix = typeof t === 'function' ? t('cart_size_prefix', '크기: ') : '크기: ';
+      const qtyLabel = typeof t === 'function' ? t('pdp_qty_label', '수량') : '수량';
+
+      cart.forEach((item, index) => {
+        const itemTotal = (item.price + item.optionPrice) * item.quantity;
+        subtotal += itemTotal;
+        const tp = typeof tProduct === 'function' ? tProduct(item.product) : item.product;
+
+        const optDisplay = item.optionPrice === 0
+          ? (typeof t === 'function' ? t('pdp_package_basic', '기본 단아 한지 포장') : '기본 단아 한지 포장')
+          : (typeof t === 'function' ? t('pdp_package_silk', '전통 실크 본견 보자기 & 노리개 포장') : '전통 실크 본견 보자기 & 노리개 포장');
+
+        const el = document.createElement('div');
+        el.className = 'p-3 bg-[#FAF7F2] border border-ink-black/10 rounded-xs flex gap-3';
+        el.innerHTML = `
+          <img src="${item.product.image}" class="w-16 h-20 object-cover border border-ink-black/10">
+          <div class="flex-1 flex flex-col justify-between py-0.5 text-xs">
+            <div>
+              <div class="flex justify-between font-bold text-ink-black">
+                <span>${tp.name}</span>
+                <button onclick="removeFromCart(${index})" class="text-ink-light hover:text-seal-red cursor-pointer">✕</button>
+              </div>
+              ${item.sizeLabel ? `<p class="text-[11px] text-seal-red font-medium mt-0.5">${sizePrefix}${item.sizeLabel}</p>` : ''}
+              <p class="text-[11px] text-ink-gray mt-0.5">${optDisplay}</p>
+            </div>
+            <div class="flex justify-between items-baseline mt-2">
+              <span class="text-ink-gray">${qtyLabel}: ${item.quantity}</span>
+              <span class="font-bold text-ink-black">${formatPrice(itemTotal)}</span>
+            </div>
+          </div>
+        `;
+        container.appendChild(el);
+      });
+
+      if (totalEl) totalEl.innerText = formatPrice(subtotal);
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      updateCartUI();
+    }
+
+    function toggleCartDrawer(open) {
+      const drawer = document.getElementById('cart-drawer');
+      if (open) {
+        drawer.classList.remove('hidden');
+        updateCartUI();
+      } else {
+        drawer.classList.add('hidden');
+      }
+    }
+
+    // 4. 결제 모달 제어
+    function proceedCheckoutFromCart() {
+      openCheckoutModal();
+    }
+
+    function openCheckoutModal() {
+      const allProds = loadProducts();
+      const hiddenItems = [];
+      cart = cart.filter(item => {
+        const fresh = allProds.find(p => p.id === item.product.id);
+        const vis = fresh && (typeof isProductVisible === 'function' ? isProductVisible(fresh) : true);
+        if (!vis) {
+          hiddenItems.push(item.product.name);
+          return false;
+        }
+        return true;
+      });
+      if (hiddenItems.length > 0) {
+        updateCartUI();
+        const msg = typeof t === 'function'
+          ? t('checkout_hidden_removed', '현재 판매가 중단(비공개)된 상품이 장바구니에서 제외되었습니다: {items}').replace('{items}', hiddenItems.join(', '))
+          : `현재 판매가 중단(비공개)된 상품이 장바구니에서 제외되었습니다: ${hiddenItems.join(', ')}`;
+        alert(msg);
+      }
+
+      if (cart.length === 0) {
+        alert(typeof t === 'function' ? t('order_alert_empty_cart', '장바구니가 비어 있습니다.') : '장바구니가 비어 있습니다.');
+        return;
+      }
+      toggleCartDrawer(false);
+      if (typeof updatePopupVisibility === 'function') updatePopupVisibility();
+
+      const itemsSummary = document.getElementById('checkout-items-summary');
+      const orderDate = document.getElementById('order-delivery-date');
+      const orderTime = document.getElementById('order-delivery-time');
+
+      buildDeliveryDateOptions(orderDate);
+      if (selectedDelivery.date) {
+        const exists = Array.from(orderDate.options).some(o => o.value === selectedDelivery.date);
+        if (exists) orderDate.value = selectedDelivery.date;
+      }
+      if (selectedDelivery.time && orderTime) {
+        orderTime.value = selectedDelivery.time;
+      }
+
+      if (orderTime && orderTime.options && orderTime.options.length >= 3) {
+        orderTime.options[0].text = typeof t === 'function' ? t('pdp_delivery_time_morning', '오전 10:00~13:00') : '오전 10:00~13:00';
+        orderTime.options[1].text = typeof t === 'function' ? t('pdp_delivery_time_afternoon', '오후 14:00~18:00') : '오후 14:00~18:00';
+        orderTime.options[2].text = typeof t === 'function' ? t('pdp_delivery_time_evening', '저녁 18:00~21:00') : '저녁 18:00~21:00';
+      }
+
+      itemsSummary.innerHTML = '';
+      let subtotal = 0;
+
+      cart.forEach(item => {
+        const itemTotal = (item.price + item.optionPrice) * item.quantity;
+        subtotal += itemTotal;
+        const tp = typeof tProduct === 'function' ? tProduct(item.product) : item.product;
+        const optDisplay = item.optionPrice === 0
+          ? (typeof t === 'function' ? t('pdp_package_basic', '기본 단아 한지 포장') : '기본 단아 한지 포장')
+          : (typeof t === 'function' ? t('pdp_package_silk', '전통 실크 본견 보자기 & 노리개 포장') : '전통 실크 본견 보자기 & 노리개 포장');
+
+        const row = document.createElement('div');
+        row.className = 'flex justify-between text-xs py-1 text-ink-gray border-b border-ink-black/5';
+        row.innerHTML = `
+          <div>
+            <span class="font-bold text-ink-black">${tp.name}</span>
+            ${item.sizeLabel ? `<span class="text-seal-red text-[11px]"> (${item.sizeLabel})</span>` : ''}
+            <span> × ${item.quantity}</span>
+            <div class="text-[11px] text-ink-light">${optDisplay}</div>
+          </div>
+          <span class="font-bold text-ink-black">${formatPrice(itemTotal)}</span>
+        `;
+        itemsSummary.appendChild(row);
+      });
+
+      document.getElementById('checkout-final-price').innerText = formatPrice(subtotal);
+      toggleCheckoutModal(true);
+    }
+
+    function toggleCheckoutModal(open) {
+      const modal = document.getElementById('checkout-modal');
+      if (modal) {
+        if (open) modal.classList.remove('hidden');
+        else modal.classList.add('hidden');
+      }
+      if (typeof updatePopupVisibility === 'function') updatePopupVisibility();
+    }
+
+    // 주문 제출 -> localStorage 'seoldamhwa_orders'에 저장 및 실시간 재고 차감!
+    function submitCustomerOrder(e) {
+      e.preventDefault();
+      const dateVal = document.getElementById('order-delivery-date').value;
+      if (!dateVal) {
+        alert(typeof t === 'function' ? t('pdp_delivery_label', '희망 배송일을 선택해 주세요.') : '희망 배송일을 선택해 주세요.');
+        return;
+      }
+      const timeVal = document.getElementById('order-delivery-time').value;
+      const deliveryDate = `${dateVal} ${timeVal}`;
+      const orderNumber = `SDH-${Date.now().toString().slice(-8)}`;
+      const name = document.getElementById('order-name').value;
+      const phone = document.getElementById('order-phone').value;
+      const address = document.getElementById('order-address').value;
+      const message = document.getElementById('order-message').value;
+      const subtotal = cart.reduce((sum, i) => sum + (i.price + i.optionPrice) * i.quantity, 0);
+
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const createdDate = `${year}-${month}-${day}`;
+      const createdAt = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+
+      // 핵심 규칙: 주문 저장 데이터(items)는 UI 언어와 상관없이 항상 한국어 상품명(원본 name)으로 저장!
+      const newOrder = {
+        id: `ord-${Date.now()}`,
+        orderNumber: orderNumber,
+        customerName: name,
+        phone: phone,
+        deliveryDate: deliveryDate,
+        address: address,
+        message: message,
+        items: cart.map(i => ({
+          ...i,
+          product: {
+            ...i.product,
+            name: i.product.name // 원본 한국어 보존
+          }
+        })),
+        totalAmount: subtotal,
+        status: 'preparing', // 제작 중
+        createdAt: createdAt,
+        createdDate: createdDate
+      };
+
+      // 1) 기존 주문 불러와서 추가
+      const existingOrders = JSON.parse(localStorage.getItem('seoldamhwa_orders') || '[]');
+      existingOrders.unshift(newOrder);
+      localStorage.setItem('seoldamhwa_orders', JSON.stringify(existingOrders));
+
+      // 2) 상품 재고 수량 실시간 차감
+      const currentProducts = loadProducts();
+      cart.forEach(item => {
+        const prod = currentProducts.find(p => p.id === item.product.id);
+        if (prod && typeof prod.stockQuantity === 'number' && !prod.inquiryOnly) {
+          prod.stockQuantity = Math.max(0, prod.stockQuantity - item.quantity);
+        }
+      });
+      saveProducts(currentProducts);
+      renderProducts(currentCategory);
+
+      const alertFmt = typeof t === 'function'
+        ? t('order_alert_complete', '[주문 완료] {name} 님의 주문이 성공적으로 접수되었습니다.\n희망 배송일: {date}')
+        : '[주문 완료] {name} 님의 주문이 성공적으로 접수되었습니다.\n희망 배송일: {date}';
+      alert(alertFmt.replace('{name}', name).replace('{date}', deliveryDate));
+
+      cart = [];
+      updateCartUI();
+      toggleCheckoutModal(false);
+    }
+
+    // 1:1 상담 문의 핸들러는 하단 단일 정의로 통합 관리
+
+    // 5. 뷰 전환 및 모바일 메뉴 제어
+    function toggleMobileMenu(forceClose) {
+      const panel = document.getElementById('mobile-menu-dropdown');
+      if (!panel) return;
+      if (forceClose === false || (forceClose === undefined && !panel.classList.contains('hidden'))) {
+        panel.classList.add('hidden');
+      } else {
+        panel.classList.remove('hidden');
+      }
+    }
+
+    function handleMobileNav(view) {
+      toggleMobileMenu(false);
+      switchView(view);
+    }
+
+    
+    // ----------------------------------------------------
+    // 팝업 슬라이더 상태 및 제어 로직 (Popup Slider)
+    // ----------------------------------------------------
+    let currentPopupSlides = [];
+    let currentPopupIndex = 0;
+    let popupAutoAdvanceTimer = null;
+    let isPopupActiveNow = false;
+    let isPopupTemporarilyHidden = false;
+
+    // 0번 요구사항: #inquiry-date min 속성 설정 함수
+    function onInquiryDateFocus(el) {
+      if (!el) return;
+      el.type = 'date';
+      const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const kp = typeof getKoreaTimeParts === 'function' ? getKoreaTimeParts(tomorrow) : null;
+      el.min = kp ? kp.dateStr : tomorrow.toISOString().slice(0, 10);
+    }
+
+    function initPopupSlider() {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const isPopupPreview = urlParams.get('popupPreview') === '1';
+        const isProductPreview = !!urlParams.get('preview');
+
+        // 상품 미리보기(?preview=) 페이지에서는 팝업을 표시하지 않음
+        if (isProductPreview) return;
+
+        const kp = typeof getKoreaTimeParts === 'function' ? getKoreaTimeParts() : { dateStr: new Date().toISOString().slice(0, 10) };
+        const todayStr = kp.dateStr;
+
+        // "오늘 그만 보기" 체크 (미리보기 모드 제외)
+        if (!isPopupPreview) {
+          try {
+            const dismissedDate = localStorage.getItem('seoldamhwa_popup_dismissed_date');
+            if (dismissedDate === todayStr) return;
+          } catch (e) {}
+
+          // 첫 페이지 뷰에서만 노출 (세션 스토리지 체크)
+          try {
+            if (sessionStorage.getItem('seoldamhwa_popup_viewed_session')) return;
+          } catch (e) {}
+        }
+
+        const popups = typeof loadPopups === 'function' ? loadPopups() : { enabled: false, slides: [] };
+        if (!isPopupPreview && !popups.enabled) return;
+
+        const allSlides = Array.isArray(popups.slides) ? popups.slides.slice() : [];
+        allSlides.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+
+        // 유효 슬라이드 선별
+        let validSlides = [];
+        if (isPopupPreview) {
+          validSlides = allSlides; // 미리보기 시 중지된 슬라이드 포함
+        } else {
+          validSlides = allSlides.filter(s => typeof isSlideActiveAndInPeriod === 'function' ? isSlideActiveAndInPeriod(s, todayStr) : s.active);
+        }
+
+        if (validSlides.length === 0) return;
+
+        currentPopupSlides = validSlides;
+        currentPopupIndex = 0;
+
+        if (isPopupPreview) {
+          showPopupSlider();
+        } else {
+          setTimeout(showPopupSlider, 1500);
+        }
+      } catch (err) {
+        console.error('initPopupSlider error:', err);
+      }
+    }
+
+    function showPopupSlider() {
+      if (currentPopupSlides.length === 0) return;
+      isPopupActiveNow = true;
+
+      try {
+        sessionStorage.setItem('seoldamhwa_popup_viewed_session', '1');
+      } catch (e) {}
+
+      renderCurrentPopupSlide();
+      updatePopupVisibility();
+
+      if (currentPopupSlides.length >= 2) {
+        startPopupAutoAdvance();
+      }
+
+      // 호버 및 터치 일시정지, 모바일 스와이프 이벤트 등록
+      setupPopupInteractions();
+    }
+
+    function renderCurrentPopupSlide() {
+      if (!isPopupActiveNow || currentPopupSlides.length === 0) return;
+      const slide = currentPopupSlides[currentPopupIndex] || currentPopupSlides[0];
+      if (!slide) return;
+
+      const imgEl = document.getElementById('popup-slide-img');
+      const titleEl = document.getElementById('popup-slide-title');
+      const textEl = document.getElementById('popup-slide-text');
+      const btnWrap = document.getElementById('popup-slide-btn-wrap');
+      const btnEl = document.getElementById('popup-slide-btn');
+      const navEl = document.getElementById('popup-slider-nav');
+      const counterEl = document.getElementById('popup-slide-counter');
+      const stoppedBadge = document.getElementById('popup-slide-stopped-badge');
+
+      const curLang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'ko';
+
+      let displayTitle = slide.title || '';
+      let displayText = slide.text || '';
+      if (curLang === 'en') {
+        if (slide.titleEn && slide.titleEn.trim()) displayTitle = slide.titleEn.trim();
+        if (slide.textEn && slide.textEn.trim()) displayText = slide.textEn.trim();
+      } else if (curLang === 'ja') {
+        if (slide.titleJa && slide.titleJa.trim()) displayTitle = slide.titleJa.trim();
+        if (slide.textJa && slide.textJa.trim()) displayText = slide.textJa.trim();
+      }
+
+      const defaultBtnLabel = typeof t === 'function' ? t('popup_view_details', '자세히 보기') : '자세히 보기';
+      const displayBtnLabel = slide.buttonLabel && slide.buttonLabel.trim() ? slide.buttonLabel.trim() : defaultBtnLabel;
+
+      if (imgEl) {
+        imgEl.src = slide.image || 'assets/images/story_bojagi_gift.jpg';
+        imgEl.alt = displayTitle;
+      }
+      if (titleEl) titleEl.textContent = displayTitle;
+      if (textEl) textEl.textContent = displayText;
+
+      if (btnWrap && btnEl) {
+        if (slide.linkType === 'url' || slide.linkType === 'internal') {
+          btnEl.textContent = displayBtnLabel;
+          btnWrap.classList.remove('hidden');
+        } else {
+          btnWrap.classList.add('hidden');
+        }
+      }
+
+      if (navEl && counterEl) {
+        if (currentPopupSlides.length >= 2) {
+          counterEl.textContent = `${currentPopupIndex + 1} / ${currentPopupSlides.length}`;
+          navEl.classList.remove('hidden');
+        } else {
+          navEl.classList.add('hidden');
+        }
+      }
+
+      if (stoppedBadge) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const isPopupPreview = urlParams.get('popupPreview') === '1';
+        if (isPopupPreview && !slide.active) {
+          stoppedBadge.textContent = typeof t === 'function' ? t('popup_status_stopped', '중지됨') : '중지됨';
+          stoppedBadge.classList.remove('hidden');
+        } else {
+          stoppedBadge.classList.add('hidden');
+        }
+      }
+    }
+
+    function nextPopupSlide() {
+      if (currentPopupSlides.length <= 1) return;
+      currentPopupIndex = (currentPopupIndex + 1) % currentPopupSlides.length;
+      renderCurrentPopupSlide();
+    }
+
+    function prevPopupSlide() {
+      if (currentPopupSlides.length <= 1) return;
+      currentPopupIndex = (currentPopupIndex - 1 + currentPopupSlides.length) % currentPopupSlides.length;
+      renderCurrentPopupSlide();
+    }
+
+    function startPopupAutoAdvance() {
+      stopPopupAutoAdvance();
+      if (currentPopupSlides.length >= 2) {
+        popupAutoAdvanceTimer = setInterval(nextPopupSlide, 5000);
+      }
+    }
+
+    function stopPopupAutoAdvance() {
+      if (popupAutoAdvanceTimer) {
+        clearInterval(popupAutoAdvanceTimer);
+        popupAutoAdvanceTimer = null;
+      }
+    }
+
+    function handlePopupSlideClick() {
+      const slide = currentPopupSlides[currentPopupIndex];
+      if (!slide) return;
+
+      if (slide.linkType === 'url') {
+        if (slide.url && typeof isValidPopupUrl === 'function' && isValidPopupUrl(slide.url)) {
+          window.open(slide.url, '_blank', 'noopener,noreferrer');
+        }
+      } else if (slide.linkType === 'internal') {
+        const target = slide.internalTarget || 'story';
+        if (target === 'story') {
+          if (typeof switchView === 'function') switchView('story');
+        } else if (target === 'shop') {
+          if (typeof switchView === 'function') switchView('shop');
+        } else if (target === 'custom') {
+          if (typeof switchView === 'function') switchView('custom');
+        } else if (target.startsWith('product:')) {
+          const prodId = target.split(':')[1];
+          if (typeof openProductDetail === 'function') openProductDetail(prodId);
+        }
+        closePopupNow();
+      }
+    }
+
+    function closePopupToday() {
+      try {
+        const kp = typeof getKoreaTimeParts === 'function' ? getKoreaTimeParts() : { dateStr: new Date().toISOString().slice(0, 10) };
+        localStorage.setItem('seoldamhwa_popup_dismissed_date', kp.dateStr);
+      } catch (e) {}
+      closePopupNow();
+    }
+
+    function closePopupNow() {
+      isPopupActiveNow = false;
+      stopPopupAutoAdvance();
+      const container = document.getElementById('popup-slider-container');
+      const backdrop = document.getElementById('popup-slider-backdrop');
+      if (container) container.classList.add('hidden');
+      if (backdrop) backdrop.classList.add('hidden');
+    }
+
+    // 모달(PDP, 장바구니, 주문 결제) 열릴 때 팝업 숨김 처리
+    function updatePopupVisibility() {
+      if (!isPopupActiveNow) return;
+      const pdpModal = document.getElementById('pdp-modal');
+      const cartDrawer = document.getElementById('cart-drawer');
+      const checkoutModal = document.getElementById('checkout-modal');
+
+      const isPdpOpen = pdpModal && !pdpModal.classList.contains('hidden');
+      const isCartOpen = cartDrawer && !cartDrawer.classList.contains('hidden');
+      const isCheckoutOpen = checkoutModal && !checkoutModal.classList.contains('hidden');
+
+      const shouldHide = isPdpOpen || isCartOpen || isCheckoutOpen;
+      const container = document.getElementById('popup-slider-container');
+      const backdrop = document.getElementById('popup-slider-backdrop');
+
+      if (container) {
+        if (shouldHide) container.classList.add('hidden');
+        else container.classList.remove('hidden');
+      }
+      if (backdrop) {
+        if (shouldHide) backdrop.classList.add('hidden');
+        else backdrop.classList.remove('hidden');
+      }
+    }
+
+    let popupInteractionsSetup = false;
+    function setupPopupInteractions() {
+      if (popupInteractionsSetup) return;
+      popupInteractionsSetup = true;
+
+      const container = document.getElementById('popup-slider-container');
+      if (container) {
+        container.addEventListener('mouseenter', stopPopupAutoAdvance);
+        container.addEventListener('mouseleave', () => {
+          if (isPopupActiveNow && currentPopupSlides.length >= 2) startPopupAutoAdvance();
+        });
+
+        // 모바일 터치 스와이프
+        let touchStartX = 0;
+        let touchEndX = 0;
+        container.addEventListener('touchstart', (e) => {
+          stopPopupAutoAdvance();
+          touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        container.addEventListener('touchend', (e) => {
+          touchEndX = e.changedTouches[0].screenX;
+          const diff = touchEndX - touchStartX;
+          if (Math.abs(diff) > 40) {
+            if (diff < 0) nextPopupSlide();
+            else prevPopupSlide();
+          }
+          if (isPopupActiveNow && currentPopupSlides.length >= 2) startPopupAutoAdvance();
+        }, { passive: true });
+      }
+
+      // Esc 키로 팝업 닫기
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isPopupActiveNow) {
+          const pdpModal = document.getElementById('pdp-modal');
+          const checkoutModal = document.getElementById('checkout-modal');
+          const isModalOpen = (pdpModal && !pdpModal.classList.contains('hidden')) || (checkoutModal && !checkoutModal.classList.contains('hidden'));
+          if (!isModalOpen) {
+            closePopupNow();
+          }
+        }
+      });
+    }
+
+    function switchView(view) {
+      toggleMobileMenu(false);
+      document.getElementById('view-shop').classList.add('hidden');
+      document.getElementById('view-story').classList.add('hidden');
+      document.getElementById('view-custom').classList.add('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.className = 'nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors';
+      });
+
+      if (view === 'shop') {
+        document.getElementById('view-shop').classList.remove('hidden');
+        document.getElementById('nav-shop').className = 'nav-btn py-1 text-seal-red font-bold border-b-2 border-seal-red transition-colors';
+      } else if (view === 'story') {
+        document.getElementById('view-story').classList.remove('hidden');
+        document.getElementById('nav-story').className = 'nav-btn py-1 text-seal-red font-bold border-b-2 border-seal-red transition-colors';
+      } else if (view === 'custom') {
+        document.getElementById('view-custom').classList.remove('hidden');
+        document.getElementById('nav-custom').className = 'nav-btn py-1 text-seal-red font-bold border-b-2 border-seal-red transition-colors';
+        initInquiryProductOptions();
+        try { initCurationUI(); } catch (e) { console.error('initCurationUI error:', e); }
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 5단계 맞춤 추천 사유 한국어 맵
+    const RECIPIENT_PHRASES = {
+      '연인': '연인에게',
+      '부모님·어른': '부모님께',
+      '친구': '친구에게',
+      '동료·상사': '동료·상사분께',
+      '직장 동료·상사': '동료·상사분께',
+      '스승·은인': '스승님께',
+      '나에게': '나를 위한',
+      '공간·기업': '공간 연출에'
+    };
+
+    const OCCASION_PHRASES = {
+      '생일': '생일 선물로',
+      '기념일·프러포즈': '기념일에',
+      '졸업·입학': '졸업·입학 축하로',
+      '승진·개업': '개업·승진 축하로',
+      '결혼·상견례': '결혼·상견례 자리에',
+      '어버이날·스승의날': '어버이날·스승의날에',
+      '위로·병문안': '병문안·위로의 마음으로',
+      '특별한 날 없이': '일상의 선물로'
+    };
+
+    // 5단계 질문 및 선택지 정의
+    const CURATION_QUESTIONS = [
+      {
+        step: 1,
+        titleKey: 'curation_q1',
+        title: '누구에게 선물하시나요?',
+        field: 'recipient',
+        canSkip: false,
+        options: [
+          { label: '연인', i18nKey: 'opt_recipient_lover' },
+          { label: '부모님·어른', i18nKey: 'opt_recipient_parent' },
+          { label: '친구', i18nKey: 'opt_recipient_friend' },
+          { label: '동료·상사', i18nKey: 'opt_recipient_colleague' },
+          { label: '스승·은인', i18nKey: 'opt_recipient_mentor' },
+          { label: '나에게', i18nKey: 'opt_recipient_me' },
+          { label: '공간·기업', i18nKey: 'opt_recipient_space' }
+        ]
+      },
+      {
+        step: 2,
+        titleKey: 'curation_q2',
+        title: '어떤 날인가요?',
+        field: 'occasion',
+        canSkip: false,
+        options: [
+          { label: '생일', i18nKey: 'opt_occasion_birthday' },
+          { label: '기념일·프러포즈', i18nKey: 'opt_occasion_anniversary' },
+          { label: '졸업·입학', i18nKey: 'opt_occasion_grad' },
+          { label: '승진·개업', i18nKey: 'opt_occasion_promote' },
+          { label: '결혼·상견례', i18nKey: 'opt_occasion_wedding' },
+          { label: '어버이날·스승의날', i18nKey: 'opt_occasion_parents_day' },
+          { label: '위로·병문안', i18nKey: 'opt_occasion_comfort' },
+          { label: '특별한 날 없이', i18nKey: 'opt_occasion_just' }
+        ]
+      },
+      {
+        step: 3,
+        titleKey: 'curation_q3',
+        title: '어떤 마음을 전하고 싶으세요?',
+        field: 'feeling',
+        canSkip: false,
+        options: [
+          { label: '축하', i18nKey: 'opt_feeling_congrat' },
+          { label: '감사', i18nKey: 'opt_feeling_thanks' },
+          { label: '사랑', i18nKey: 'opt_feeling_love' },
+          { label: '응원', i18nKey: 'opt_feeling_cheer' },
+          { label: '위로', i18nKey: 'opt_feeling_comfort' },
+          { label: '공간 연출', i18nKey: 'opt_feeling_space' }
+        ]
+      },
+      {
+        step: 4,
+        titleKey: 'curation_q4',
+        title: '어떤 색이 좋으세요?',
+        field: 'color',
+        canSkip: true,
+        options: [
+          { label: '레드·버건디', i18nKey: 'opt_color_red', colorStyle: 'background-color: #8B1E2D;' },
+          { label: '핑크·피치', i18nKey: 'opt_color_pink', colorStyle: 'background-color: #F2B8C6;' },
+          { label: '화이트·그린', i18nKey: 'opt_color_white', colorStyle: 'background: linear-gradient(135deg, #EEF2E6 50%, #7A9A6A 50%);' },
+          { label: '옐로우·오렌지', i18nKey: 'opt_color_yellow', colorStyle: 'background-color: #F4C542;' },
+          { label: '블루·퍼플', i18nKey: 'opt_color_blue', colorStyle: 'background-color: #4B5FA8;' },
+          { label: '여러 색 섞어서', i18nKey: 'opt_color_mix', colorStyle: 'background: conic-gradient(#8B1E2D, #F4C542, #7A9A6A, #4B5FA8, #F2B8C6, #8B1E2D);' },
+          { label: '잘 모르겠어요', i18nKey: 'opt_color_neutral', isNeutral: true }
+        ]
+      },
+      {
+        step: 5,
+        titleKey: 'curation_q5',
+        title: '예산은 어느 정도 생각하세요?',
+        field: 'budget',
+        canSkip: true,
+        options: [
+          { label: '3만원 이하', i18nKey: 'opt_budget_under30' },
+          { label: '3~5만원', i18nKey: 'opt_budget_30to50' },
+          { label: '5~7만원', i18nKey: 'opt_budget_50to70' },
+          { label: '7~10만원', i18nKey: 'opt_budget_70to100' },
+          { label: '10만원 이상', i18nKey: 'opt_budget_over100' },
+          { label: '상담 후 결정', i18nKey: 'opt_budget_consult' }
+        ]
+      }
+    ];
+
+    let currentCurationStep = 1;
+    let curationAnswers = {
+      recipient: null,
+      occasion: null,
+      feeling: null,
+      color: null,
+      budget: null
+    };
+
+    // 상품의 새로운 5단계 예산 티어 판별 헬퍼
+    function getProductBudgetTiers(p) {
+      if (p.inquiryOnly) {
+        return ['상담 후 결정'];
+      }
+      const prices = (p.sizes && p.sizes.length > 0)
+        ? p.sizes.map(s => Number(s.price) || 0)
+        : [Number(p.price) || 0];
+
+      const tiers = new Set();
+      prices.forEach(price => {
+        if (price <= 30000) tiers.add('3만원 이하');
+        else if (price <= 50000) tiers.add('3~5만원');
+        else if (price <= 70000) tiers.add('5~7만원');
+        else if (price <= 100000) tiers.add('7~10만원');
+        else tiers.add('10만원 이상');
+      });
+      return Array.from(tiers);
+    }
+
+    // Stepper UI 초기화
+    function initCurationUI() {
+      renderCurationStep(currentCurationStep);
+    }
+
+    // 특정 스텝 렌더링
+    function renderCurationStep(stepNum) {
+      currentCurationStep = Math.max(1, Math.min(5, stepNum));
+      const q = CURATION_QUESTIONS[currentCurationStep - 1];
+      if (!q) return;
+
+      // 프로그레스 바 (20% ~ 100%)
+      const bar = document.getElementById('curation-progress-bar');
+      if (bar) bar.style.width = `${currentCurationStep * 20}%`;
+
+      // 뱃지 및 타이틀
+      const badge = document.getElementById('curation-step-badge');
+      if (badge) badge.innerText = typeof t === 'function' ? t('curation_step_fmt', '{step}단계 / 5단계').replace('{step}', currentCurationStep) : `${currentCurationStep}단계 / 5단계`;
+      const title = document.getElementById('curation-question-title');
+      if (title) title.innerText = typeof t === 'function' ? t(q.titleKey, q.title) : q.title;
+
+      // [이전] 버튼 토글
+      const prevBtn = document.getElementById('curation-prev-btn');
+      if (prevBtn) {
+        if (currentCurationStep > 1) prevBtn.classList.remove('hidden');
+        else prevBtn.classList.add('hidden');
+      }
+
+      // [건너뛰기] 버튼 토글 (4~5단계)
+      const skipBtn = document.getElementById('curation-skip-btn');
+      if (skipBtn) {
+        if (q.canSkip) skipBtn.classList.remove('hidden');
+        else skipBtn.classList.add('hidden');
+      }
+
+      // 이전 선택된 태그 목록 렌더링 (클릭 시 해당 단계로 복귀)
+      renderCurationTagsBar();
+
+      // 3단계 이상 답변 시 [내게 어울리는 꽃 보기] 버튼 표시
+      const finishWrap = document.getElementById('curation-finish-btn-wrap');
+      if (finishWrap) {
+        if (curationAnswers.recipient && curationAnswers.occasion && curationAnswers.feeling) {
+          finishWrap.classList.remove('hidden');
+        } else {
+          finishWrap.classList.add('hidden');
+        }
+      }
+
+      // 옵션 버튼 그리드 렌더링
+      const grid = document.getElementById('curation-options-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      const currentVal = curationAnswers[q.field];
+
+      q.options.forEach(opt => {
+        const isSelected = currentVal === opt.label;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `min-h-[52px] text-xs sm:text-sm font-medium rounded-xs border p-3 flex items-center justify-center transition-all cursor-pointer text-center relative ${isSelected ? 'border-seal-red bg-[#FAF7F2] text-seal-red font-bold ring-1 ring-seal-red/20 shadow-xs' : 'border-ink-black/15 bg-white text-ink-black hover:border-seal-red/50 hover:bg-[#FAF7F2]/50'}`;
+
+        let swatchHtml = '';
+        if (opt.colorStyle) {
+          swatchHtml = `<span class="w-4 h-4 rounded-full inline-block shrink-0 border border-black/10 shadow-2xs mr-2" style="${opt.colorStyle}"></span>`;
+        } else if (opt.isNeutral) {
+          swatchHtml = `<span class="w-4 h-4 rounded-full inline-block shrink-0 border border-dashed border-ink-black/40 mr-2 bg-black/5"></span>`;
+        }
+
+        const checkMark = isSelected ? '<span class="text-seal-red font-bold ml-1.5 shrink-0">✓</span>' : '';
+
+        const optLabel = typeof t === 'function' && opt.i18nKey ? t(opt.i18nKey, opt.label) : opt.label;
+        btn.innerHTML = `<span class="flex items-center justify-center">${swatchHtml}<span>${optLabel}</span>${checkMark}</span>`;
+
+        btn.onclick = () => selectCurationAnswer(q.field, opt.label);
+        grid.appendChild(btn);
+      });
+    }
+
+    // 선택된 태그 바 렌더링
+    function renderCurationTagsBar() {
+      const bar = document.getElementById('curation-tags-bar');
+      if (!bar) return;
+      bar.innerHTML = '';
+
+      CURATION_QUESTIONS.forEach(q => {
+        const val = curationAnswers[q.field];
+        if (val) {
+          const opt = q.options.find(o => o.label === val);
+          const displayVal = (typeof t === 'function' && opt && opt.i18nKey)
+            ? t(opt.i18nKey, val)
+            : val;
+          const tag = document.createElement('button');
+          tag.type = 'button';
+          tag.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FAF7F2] border border-seal-red/30 text-seal-red text-[11px] font-bold hover:bg-seal-red/10 cursor-pointer transition-colors';
+          tag.innerHTML = `<span>${displayVal}</span><span class="text-seal-red/70">✕</span>`;
+          tag.onclick = () => goToStep(q.step);
+          bar.appendChild(tag);
+        }
+      });
+    }
+
+    // 특정 단계로 이동
+    function goToStep(stepNum) {
+      renderCurationStep(stepNum);
+    }
+
+    // 이전 단계로 이동
+    function goToPrevStep() {
+      if (currentCurationStep > 1) {
+        goToStep(currentCurationStep - 1);
+      }
+    }
+
+    // 건너뛰기 처리 (4단계 또는 5단계)
+    function skipCurrentStep() {
+      const q = CURATION_QUESTIONS[currentCurationStep - 1];
+      if (q) curationAnswers[q.field] = null;
+
+      if (currentCurationStep === 4) {
+        goToStep(5);
+      } else if (currentCurationStep === 5) {
+        executeCustomRecommendation();
+      }
+    }
+
+    // 선택지 선택 핸들러 (선택 후 자동으로 다음 스텝 이동)
+    function selectCurationAnswer(field, value) {
+      curationAnswers[field] = value;
+
+      // 3단계 완료 시 결과 버튼 활성화
+      const finishWrap = document.getElementById('curation-finish-btn-wrap');
+      if (finishWrap && curationAnswers.recipient && curationAnswers.occasion && curationAnswers.feeling) {
+        finishWrap.classList.remove('hidden');
+      }
+
+      // 태그 바 갱신
+      renderCurationTagsBar();
+
+      // UI에 선택 상태 즉시 반영 후 다음 스텝 이동
+      renderCurationStep(currentCurationStep);
+
+      setTimeout(() => {
+        if (currentCurationStep < 5) {
+          goToStep(currentCurationStep + 1);
+        } else {
+          executeCustomRecommendation();
+        }
+      }, 220);
+    }
+
+    // 처음부터 다시 고르기 리셋
+    function resetCuration() {
+      curationAnswers = {
+        recipient: null,
+        occasion: null,
+        feeling: null,
+        color: null,
+        budget: null
+      };
+      currentCurationStep = 1;
+      const resSection = document.getElementById('curation-results-section');
+      if (resSection) resSection.classList.add('hidden');
+      renderCurationStep(1);
+
+      const card = document.getElementById('curation-stepper-card');
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // 예산 안내 박스에서 1:1 상담 신청 폼으로 이동 및 값 자동 채움
+    function applyBudgetInquiry() {
+      switchView('custom');
+      initInquiryProductOptions();
+      
+      const typeSelect = document.getElementById('inquiry-type');
+      if (typeSelect) typeSelect.value = '맞춤 꽃다발·꽃바구니 제작';
+      handleInquiryTypeChange();
+
+      const msgEl = document.getElementById('inquiry-message');
+      if (msgEl) {
+        msgEl.value = `[맞춤 담화 선택 조건]
+- 대상: ${curationAnswers.recipient || '미선택'}
+- 상황: ${curationAnswers.occasion || '미선택'}
+- 마음: ${curationAnswers.feeling || '미선택'}
+- 선호 색상: ${curationAnswers.color || '선택 안 함'}
+- 희망 예산: ${curationAnswers.budget || '상담 후 결정'}
+
+위 조건과 예산에 맞춰 1:1 꽃 제작 상담을 신청합니다.`;
+      }
+
+      setTimeout(() => {
+        const formSec = document.getElementById('custom-inquiry-section');
+        if (formSec) {
+          formSec.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+
+
+    // 맞춤 추천 사유 언어별 서식 헬퍼
+    function formatCurationReason(answers, matchedParts, lang) {
+      if (lang === 'en') {
+        const rMapEn = {
+          '연인': 'your partner',
+          '부모님·어른': 'parents & elders',
+          '친구': 'a friend',
+          '동료·상사': 'colleagues',
+          '스승·은인': 'your mentor',
+          '나에게': 'yourself',
+          '공간·기업': 'space styling'
+        };
+        const oMapEn = {
+          '생일': 'a birthday celebration',
+          '기념일·프러포즈': 'an anniversary & proposal',
+          '졸업·입학': 'graduation & new beginnings',
+          '승진·개업': 'promotion & opening',
+          '결혼·상견례': 'wedding & celebration',
+          '어버이날·스승의날': "Parents' & Teachers' Day",
+          '위로·병문안': 'comfort & warm thoughts',
+          '특별한 날 없이': 'everyday life'
+        };
+        const fMapEn = {
+          '축하': 'celebration',
+          '감사': 'gratitude',
+          '사랑': 'love',
+          '응원': 'cheering',
+          '위로': 'comfort',
+          '공간 연출': 'styling'
+        };
+
+        const parts = [];
+        if (answers.recipient && rMapEn[answers.recipient]) {
+          parts.push(`For ${rMapEn[answers.recipient]}`);
+        }
+        if (answers.occasion && oMapEn[answers.occasion]) {
+          parts.push(`for ${oMapEn[answers.occasion]}`);
+        }
+        if (parts.length === 0 && answers.feeling && fMapEn[answers.feeling]) {
+          parts.push(`With ${fMapEn[answers.feeling]}`);
+        }
+        return parts.length > 0 ? parts.join(' · ') : 'Perfect Bespoke Choice';
+      }
+
+      if (lang === 'ja') {
+        const rMapJa = {
+          '연인': '大切な恋人',
+          '부모님·어른': 'ご両親・目上の方',
+          '친구': '親しいご友人',
+          '동료·상사': '職場の同僚・上司',
+          '스승·은인': '恩師・恩人',
+          '나에게': '自分へのご褒美',
+          '공간·기업': '空間・オフィス'
+        };
+        const oMapJa = {
+          '생일': 'お誕生日のお祝い',
+          '기념일·프러포즈': '記念日・プロポーズ',
+          '졸업·입학': '卒業・入学の門出',
+          '승진·개업': '昇進・開業の祝祭',
+          '결혼·상견례': 'ご結婚・お顔合わせ',
+          '어버이날·스승의날': '母の日・感謝の節目',
+          '위로·병문안': 'お見舞い・安らぎ',
+          '특별한 날 없이': '日常の彩り'
+        };
+        const fMapJa = {
+          '축하': '祝福の想い',
+          '감사': '感謝の心',
+          '사랑': '溢れる愛',
+          '응원': '温かなエール',
+          '위로': '慰めと癒やし',
+          '공간 연출': '空間の調和'
+        };
+
+        const parts = [];
+        if (answers.recipient && rMapJa[answers.recipient]) {
+          parts.push(`${rMapJa[answers.recipient]}への贈り物に`);
+        }
+        if (answers.occasion && oMapJa[answers.occasion]) {
+          parts.push(`${oMapJa[answers.occasion]}に`);
+        }
+        if (parts.length === 0 && answers.feeling && fMapJa[answers.feeling]) {
+          parts.push(`${fMapJa[answers.feeling]}を込めて`);
+        }
+        return parts.length > 0 ? parts.join(' · ') : '心に寄り添うお誂えの提案';
+      }
+
+      // ko
+      if (matchedParts && matchedParts.length > 0) {
+        return matchedParts.join(' · ');
+      }
+      const recipPhrase = (answers.recipient && RECIPIENT_PHRASES[answers.recipient]) || '소중한 분을 위한';
+      return `${recipPhrase} 정갈한 선물로 추천해요`;
+    }
+
+    // 큐레이션 추천 알고리즘 실행
+    function executeCustomRecommendation() {
+      const products = loadProducts();
+      const tags = typeof CURATION_TAGS !== 'undefined' ? CURATION_TAGS : {};
+
+      // 상담 전용 상품 노출 허용 조건 검증
+      const isAllowedInquiryOnly = (
+        curationAnswers.recipient === '공간·기업' ||
+        curationAnswers.feeling === '공간 연출' ||
+        curationAnswers.occasion === '결혼·상견례' ||
+        curationAnswers.occasion === '승진·개업'
+      );
+
+      // 각 상품별 매칭 점수 계산
+      const scored = [];
+
+      products.forEach(p => {
+        // 비공개 상품 및 예약 미도래 상품 제외 (B4)
+        if (typeof isProductVisible === 'function' && !isProductVisible(p)) {
+          return;
+        }
+        // inquiryOnly 상품 제한: 허용 조건에 맞지 않으면 완전히 제외
+        if (p.inquiryOnly && !isAllowedInquiryOnly) {
+          return;
+        }
+
+        let score = 0;
+        const matchedParts = [];
+        const pTags = tags[p.id];
+
+        if (pTags) {
+          // 누구에게 (가중치 3)
+          let recipientPhrase = '';
+          if (curationAnswers.recipient) {
+            const r = curationAnswers.recipient;
+            if (pTags.recipients?.includes(r) || (r === '동료·상사' && pTags.recipients?.includes('직장 동료·상사'))) {
+              score += 3;
+              recipientPhrase = RECIPIENT_PHRASES[r] || `${r}께`;
+              matchedParts.push(recipientPhrase);
+            }
+          }
+          // 어떤 날 (가중치 3)
+          let occasionPhrase = '';
+          if (curationAnswers.occasion && pTags.occasions?.includes(curationAnswers.occasion)) {
+            score += 3;
+            occasionPhrase = OCCASION_PHRASES[curationAnswers.occasion] || `${curationAnswers.occasion}에`;
+            matchedParts.push(occasionPhrase);
+          }
+          // 어떤 마음 (가중치 2) - 중복 단어 방지
+          if (curationAnswers.feeling && pTags.feelings?.includes(curationAnswers.feeling)) {
+            score += 2;
+            const f = curationAnswers.feeling;
+            const isOverlap = recipientPhrase && (recipientPhrase.includes(f) || (f === '공간 연출' && recipientPhrase.includes('공간')));
+            if (!isOverlap) {
+              matchedParts.push(`${f}의 마음을 담기 좋아요`);
+            } else if (matchedParts.length > 0) {
+              const lastIdx = matchedParts.length - 1;
+              if (matchedParts[lastIdx].endsWith('로') || matchedParts[lastIdx].endsWith('에')) {
+                matchedParts[lastIdx] = matchedParts[lastIdx] + ' 좋아요';
+              }
+            }
+          }
+          // 어떤 색 (가중치 2)
+          if (curationAnswers.color && curationAnswers.color !== '잘 모르겠어요' && pTags.colors?.includes(curationAnswers.color)) {
+            score += 2;
+          }
+        } else {
+          score = 1;
+        }
+
+        // 예산은? (가중치 2, 명백히 벗어나면 -2)
+        if (curationAnswers.budget) {
+          const tiers = getProductBudgetTiers(p);
+          if (tiers.includes(curationAnswers.budget)) {
+            score += 2;
+          }
+          if (p.inquiryOnly) {
+            if (curationAnswers.budget !== '상담 후 결정') score -= 2;
+          } else {
+            const prices = (p.sizes && p.sizes.length > 0) ? p.sizes.map(s => Number(s.price) || 0) : [Number(p.price) || 0];
+            const minP = Math.min(...prices);
+            const maxP = Math.max(...prices);
+            if (curationAnswers.budget === '상담 후 결정') score -= 2;
+            else if (curationAnswers.budget === '10만원 이상' && maxP < 100000) score -= 2;
+            else if (curationAnswers.budget === '3만원 이하' && minP > 30000) score -= 2;
+            else if (curationAnswers.budget === '3~5만원' && (minP > 50000 || maxP < 30000)) score -= 2;
+            else if (curationAnswers.budget === '5~7만원' && (minP > 70000 || maxP < 50000)) score -= 2;
+            else if (curationAnswers.budget === '7~10만원' && (minP > 100000 || maxP < 70000)) score -= 2;
+          }
+        }
+
+        // 자연스러운 추천 사유 구성 (언어별 대응)
+        const curLang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'ko';
+        const reasonText = formatCurationReason(curationAnswers, matchedParts, curLang);
+
+        scored.push({
+          product: p,
+          score: score,
+          reason: reasonText
+        });
+      });
+
+      // 점수 내림차순 정렬
+      scored.sort((a, b) => b.score - a.score);
+
+      // 상위 3위에 들 수 있었으나 품절(stockQuantity === 0)로 건너뛰어지는 상품 탐지
+      const top3Candidates = scored.slice(0, 3);
+      const skippedSoldOut = top3Candidates.find(item => item.product.stockQuantity === 0);
+
+      // 실제 전시할 재고 보유 상품 상위 3개 선별
+      const inStockItems = scored.filter(item => item.product.stockQuantity > 0);
+      const displayTop3 = inStockItems.slice(0, 3);
+      lastCuratedProducts = displayTop3.map(item => item.product);
+
+      // 선택한 예산에 정확히 부합하는 상품이 있는지 검사
+      let hasExactBudget = true;
+      if (curationAnswers.budget && curationAnswers.budget !== '상담 후 결정') {
+        hasExactBudget = products.some(p => getProductBudgetTiers(p).includes(curationAnswers.budget));
+      }
+
+      renderCurationResults(displayTop3, skippedSoldOut ? skippedSoldOut.product : null, hasExactBudget);
+    }
+
+    // 추천 결과 3개 카드 렌더링
+    function renderCurationResults(topItems, soldOutProduct, hasExactBudget) {
+      const container = document.getElementById('curation-cards-grid');
+      const section = document.getElementById('curation-results-section');
+      const noticeEl = document.getElementById('curation-soldout-notice');
+      const budgetNoticeBox = document.getElementById('curation-budget-notice-box');
+      const headingEl = document.getElementById('curation-result-heading');
+      const descEl = document.getElementById('curation-result-desc');
+      if (!container || !section) return;
+
+      // 예산 미달성/준비 중 안내 박스 처리
+      if (!hasExactBudget) {
+        if (budgetNoticeBox) budgetNoticeBox.classList.remove('hidden');
+        if (headingEl) headingEl.innerText = typeof t === 'function' ? t('curation_res_alt_title', '예산보다 조금 높지만 잘 어울리는 꽃') : '예산보다 조금 높지만 잘 어울리는 꽃';
+      } else {
+        if (budgetNoticeBox) budgetNoticeBox.classList.add('hidden');
+        if (headingEl) headingEl.innerText = typeof t === 'function' ? t('curation_res_title', '선택하신 마음에 어울리는 꽃 제안') : '선택하신 마음에 어울리는 꽃 제안';
+      }
+      if (descEl) {
+        descEl.innerText = typeof t === 'function' ? t('curation_res_desc', '설담화 화훼 장인이 선별한 최적의 꽃과 선물 3가지입니다.') : '설담화 화훼 장인이 선별한 최적의 꽃과 선물 3가지입니다.';
+      }
+
+      container.innerHTML = '';
+
+      topItems.forEach((item, index) => {
+        const p = item.product;
+        const tp = typeof tProduct === 'function' ? tProduct(p) : p;
+        const isBest = index === 0;
+        
+        let priceText = '';
+        if (p.inquiryOnly) {
+          priceText = typeof t === 'function' ? t('inquiry_price_label', '상담 후 견적') : '상담 후 견적';
+        } else if (p.sizes && p.sizes.length > 0) {
+          const minPrice = Math.min(...p.sizes.map(s => s.price));
+          priceText = `${formatPrice(minPrice)}${p.sizes.length >= 2 ? '~' : ''}`;
+        } else {
+          priceText = formatPrice(p.price || 0);
+        }
+
+        const isOutOfStock = p.stockQuantity === 0;
+
+        const bestBadgeText = typeof t === 'function' ? t('curation_best_badge', '★ 가장 잘 어울려요') : '★ 가장 잘 어울려요';
+        const recBadgeText = typeof t === 'function' ? t('curation_rec_fmt', '추천 {n}').replace('{n}', index + 1) : `추천 ${index + 1}`;
+        const soldoutText = typeof t === 'function' ? t('stock_soldout', '일시 품절') : '일시 품절';
+        const detailBtnText = typeof t === 'function' ? t('btn_detail', '자세히 보기') : '자세히 보기';
+        const consultBtnText = typeof t === 'function' ? t('btn_consult', '1:1 상담') : '1:1 상담';
+        const orderBtnText = typeof t === 'function' ? t('btn_order', '주문하기') : '주문하기';
+
+        const card = document.createElement('div');
+        card.className = `p-4 sm:p-5 rounded-xs border flex flex-col justify-between transition-all ${isBest ? 'bg-white border-seal-red shadow-md ring-1 ring-seal-red/20' : 'bg-[#FAF7F2] border-ink-black/10'}`;
+
+        card.innerHTML = `
+          <div class="space-y-3">
+            <div class="relative aspect-[4/3] rounded-xs overflow-hidden bg-[#ECE8E1]">
+              <img src="${p.image}" alt="${tp.name}" class="w-full h-full object-cover">
+              ${isBest ? `
+                <span class="absolute top-2.5 left-2.5 bg-seal-red text-white text-[11px] font-bold px-2.5 py-1 rounded-xs shadow">
+                  ${bestBadgeText}
+                </span>
+              ` : `
+                <span class="absolute top-2.5 left-2.5 bg-ink-black/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-xs shadow">
+                  ${recBadgeText}
+                </span>
+              `}
+              ${isOutOfStock ? `
+                <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
+                  <span class="bg-ink-black text-white text-xs font-bold px-3 py-1 rounded-xs">${soldoutText}</span>
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="space-y-1">
+              <span class="inline-block text-[11px] font-bold text-seal-red bg-seal-red/10 px-2 py-0.5 rounded-full">
+                ${item.reason}
+              </span>
+              <h4 class="font-bold text-base text-ink-black">${tp.name}</h4>
+              <p class="font-serif text-xs text-seal-red italic line-clamp-1">"${tp.poeticLine}"</p>
+              <p class="font-bold text-sm text-ink-black pt-1">${priceText}</p>
+            </div>
+          </div>
+
+          <div class="pt-4 mt-2 border-t border-ink-black/10 flex gap-2">
+            <button type="button" onclick="openProductDetail('${p.id}')" class="jakae-btn flex-1 py-2.5 px-3 text-xs font-bold rounded-xs cursor-pointer shadow-xs text-center">
+              ${detailBtnText}
+            </button>
+            ${p.inquiryOnly ? `
+              <button type="button" onclick="goToCustomInquiry('${p.id}')" class="jakae-light-btn flex-1 py-2.5 px-3 text-xs font-bold rounded-xs border border-seal-red/40 hover:border-seal-red cursor-pointer shadow-xs text-center">
+                ${consultBtnText}
+              </button>
+            ` : `
+              <button type="button" onclick="openProductDetail('${p.id}')" class="jakae-light-btn flex-1 py-2.5 px-3 text-xs font-bold rounded-xs border border-seal-red/40 hover:border-seal-red cursor-pointer shadow-xs text-center">
+                ${orderBtnText}
+              </button>
+            `}
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+
+      // 품절 상품 안내 문구 렌더링
+      if (noticeEl) {
+        if (soldOutProduct) {
+          const soldOutTrans = typeof tProduct === 'function' ? tProduct(soldOutProduct) : soldOutProduct;
+          noticeEl.textContent = typeof t === 'function'
+            ? t('curation_soldout_fmt', "'{name}'도 잘 어울리지만 지금은 일시 품절이에요. 상담으로 입고 일정을 문의해 주세요.").replace('{name}', soldOutTrans.name)
+            : `'${soldOutTrans.name}'도 잘 어울리지만 지금은 일시 품절이에요. 상담으로 입고 일정을 문의해 주세요.`;
+          noticeEl.classList.remove('hidden');
+        } else {
+          noticeEl.textContent = '';
+          noticeEl.classList.add('hidden');
+        }
+      }
+
+      section.classList.remove('hidden');
+      section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+        function applyCurationToInquiry() {
+      switchView('custom');
+      initInquiryProductOptions();
+
+      const typeSelect = document.getElementById('inquiry-type');
+      if (typeSelect) typeSelect.value = '맞춤 꽃다발·꽃바구니 제작';
+      handleInquiryTypeChange();
+
+      const msgEl = document.getElementById('inquiry-message');
+      if (msgEl) {
+        const topProdNames = (lastCuratedProducts || []).map(p => p.name).join(', ');
+        msgEl.value = `[맞춤 담화 추천 결과 기반 상담 신청]
+- 추천된 상품: ${topProdNames || '없음'}
+- 대상: ${curationAnswers.recipient || '미선택'}
+- 상황: ${curationAnswers.occasion || '미선택'}
+- 마음: ${curationAnswers.feeling || '미선택'}
+- 선호 색상: ${curationAnswers.color || '선택 안 함'}
+- 예산: ${curationAnswers.budget || '상담 후 결정'}
+
+위 추천 결과를 바탕으로 1:1 맞춤 꽃 상담을 요청합니다.`;
+      }
+
+      setTimeout(() => {
+        const formSec = document.getElementById('custom-inquiry-section');
+        if (formSec) {
+          formSec.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+    // 상담 유형 변경 핸들러
+    function handleInquiryTypeChange() {
+      const typeSelect = document.getElementById('inquiry-type');
+      const wrap = document.getElementById('inquiry-product-wrap');
+      const pSelect = document.getElementById('inquiry-product');
+      if (!typeSelect || !wrap) return;
+
+      if (typeSelect.value === '특정 상품 문의') {
+        wrap.classList.remove('hidden');
+        if (pSelect) pSelect.setAttribute('required', 'required');
+      } else {
+        wrap.classList.add('hidden');
+        if (pSelect) pSelect.removeAttribute('required');
+      }
+    }
+
+    // 특정 상품 문의용 select 옵션 초기화 (비공개 상품 제외)
+    function initInquiryProductOptions() {
+      const select = document.getElementById('inquiry-product');
+      if (!select) return;
+      const prevVal = select.value;
+      const products = loadProducts().filter(p => typeof isProductVisible === 'function' ? isProductVisible(p) : true);
+      select.innerHTML = products.map(p => `
+        <option value="${p.id}">${p.name}</option>
+      `).join('');
+      if (prevVal && products.some(p => p.id === prevVal)) {
+        select.value = prevVal;
+      }
+    }
+
+    // 상품 상세(PDP) 또는 푸터 버튼에서 1:1 상담 문의로 바로 이동
+    function goToCustomInquiry(productId) {
+      closeProductDetail();
+      switchView('custom');
+      initInquiryProductOptions();
+      try { initCurationUI(); } catch (e) { console.error('initCurationUI error:', e); }
+      renderSiteSettings();
+      initFloatingControls();
+
+      const typeSelect = document.getElementById('inquiry-type');
+      const productSelect = document.getElementById('inquiry-product');
+      const wrap = document.getElementById('inquiry-product-wrap');
+
+      if (productId) {
+        const products = loadProducts();
+        const prod = products.find(p => p.id === productId);
+
+        if (prod && prod.inquiryOnly) {
+          // 견적 전용 상품: '웨딩·행사·공간 연출' 자동 선택
+          if (typeSelect) typeSelect.value = '웨딩·행사·공간 연출';
+          if (wrap) wrap.classList.add('hidden');
+          if (productSelect) productSelect.removeAttribute('required');
+        } else if (prod) {
+          // 일반 상품: '특정 상품 문의' + 해당 상품 선택
+          if (typeSelect) typeSelect.value = '특정 상품 문의';
+          if (wrap) wrap.classList.remove('hidden');
+          if (productSelect) {
+            productSelect.setAttribute('required', 'required');
+            productSelect.value = prod.id;
+          }
+        }
+      } else {
+        // 빈 인자(푸터 버튼 등): 기본 '맞춤 꽃다발·꽃바구니 제작'
+        if (typeSelect && !typeSelect.value) {
+          typeSelect.value = '맞춤 꽃다발·꽃바구니 제작';
+        }
+        handleInquiryTypeChange();
+      }
+
+      setTimeout(() => {
+        const formSec = document.getElementById('custom-inquiry-section');
+        if (formSec) {
+          formSec.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+
+    // 1:1 맞춤 상담 문의 제출
+    function submitCustomInquiry(e) {
+      e.preventDefault();
+      const name = document.getElementById('inquiry-name').value.trim();
+      const phone = document.getElementById('inquiry-phone').value.trim();
+      const date = document.getElementById('inquiry-date').value || '미정';
+      const typeSelect = document.getElementById('inquiry-type');
+      const type = typeSelect ? typeSelect.value : '맞춤 꽃다발·꽃바구니 제작';
+
+      let productName = '';
+      if (type === '특정 상품 문의') {
+        const pSelect = document.getElementById('inquiry-product');
+        if (pSelect && pSelect.selectedIndex >= 0) {
+          productName = pSelect.options[pSelect.selectedIndex].text;
+        }
+      }
+
+      const message = document.getElementById('inquiry-message').value.trim();
+
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const createdDate = `${year}-${month}-${day}`;
+
+      const inquiry = {
+        id: `inq-${Date.now()}`,
+        name: name,
+        phone: phone,
+        date: date,
+        type: type,
+        productName: productName,
+        message: message,
+        createdDate: createdDate,
+        status: 'new'
+      };
+
+      const inquiries = JSON.parse(localStorage.getItem('seoldamhwa_inquiries') || '[]');
+      inquiries.unshift(inquiry);
+      localStorage.setItem('seoldamhwa_inquiries', JSON.stringify(inquiries));
+
+      alert(`[상담 신청 완료] ${name} 님의 맞춤 상담 문의가 정상 접수되었습니다!
+설담화 화훼 장인이 확인 후 기재해주신 연락처(${phone})로 정성껏 안내드리겠습니다.`);
+      document.getElementById('custom-inquiry-form').reset();
+      handleInquiryTypeChange();
+    }
+
+    // 7. 검색 기능
+    function toggleSearchModal(open) {
+      const modal = document.getElementById('search-modal');
+      if (open) {
+        modal.classList.remove('hidden');
+        document.getElementById('search-input').focus();
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    function handleSearch(val) {
+      const resultsContainer = document.getElementById('search-results');
+      resultsContainer.innerHTML = '';
+      if (!val.trim()) return;
+
+      const products = loadProducts().filter(p => typeof isProductVisible === 'function' ? isProductVisible(p) : true);
+      const query = val.toLowerCase().trim();
+      const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'ko';
+
+      const matched = products.filter(p => {
+        const tp = typeof tProduct === 'function' ? tProduct(p, lang) : p;
+        return (
+          (p.name && p.name.toLowerCase().includes(query)) ||
+          (tp.name && tp.name.toLowerCase().includes(query)) ||
+          (p.poeticLine && p.poeticLine.toLowerCase().includes(query)) ||
+          (tp.poeticLine && tp.poeticLine.toLowerCase().includes(query)) ||
+          (p.flowerMeaning && p.flowerMeaning.toLowerCase().includes(query)) ||
+          (tp.flowerMeaning && tp.flowerMeaning.toLowerCase().includes(query)) ||
+          (p.description && p.description.toLowerCase().includes(query)) ||
+          (tp.description && tp.description.toLowerCase().includes(query))
+        );
+      });
+
+      if (matched.length === 0) {
+        const noRes = typeof t === 'function' ? t('search_no_results', '검색 결과가 없습니다.') : '검색 결과가 없습니다.';
+        resultsContainer.innerHTML = `<div class="p-3 text-center text-ink-gray">${noRes}</div>`;
+        return;
+      }
+
+      matched.forEach(p => {
+        const tp = typeof tProduct === 'function' ? tProduct(p, lang) : p;
+        const item = document.createElement('div');
+        item.className = 'p-2 hover:bg-[#FAF7F2] rounded-xs flex items-center justify-between cursor-pointer';
+        item.onclick = () => {
+          toggleSearchModal(false);
+          openProductDetail(p.id);
+        };
+
+        let priceText = '';
+        if (p.inquiryOnly) {
+          priceText = typeof t === 'function' ? t('inquiry_price_label', '상담 후 견적') : '상담 후 견적';
+        } else if (p.sizes && p.sizes.length > 0) {
+          const minPrice = Math.min(...p.sizes.map(s => s.price));
+          const hasMultipleSizes = p.sizes.length >= 2;
+          priceText = `${formatPrice(minPrice)}${hasMultipleSizes ? '~' : ''}`;
+        } else {
+          priceText = formatPrice(p.price || 0);
+        }
+
+        item.innerHTML = `
+          <div class="flex items-center gap-3">
+            <img src="${p.image}" class="w-10 h-10 object-cover rounded-xs border border-ink-black/10">
+            <div>
+              <p class="font-bold text-ink-black">${tp.name}</p>
+              <p class="font-serif text-seal-red text-[11px] italic">"${tp.poeticLine}"</p>
+            </div>
+          </div>
+          <span class="font-bold text-ink-black text-xs">${priceText}</span>
+        `;
+        resultsContainer.appendChild(item);
+      });
+    }
+
+    
+    // 다른 창/탭과 실시간 동기화 (Live Sync)
+    window.addEventListener('seoldamhwa_settings_updated', () => renderSiteSettings());
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'seoldamhwa_products') {
+        renderProducts(currentCategory);
+        initInquiryProductOptions();
+      try { initCurationUI(); } catch (e) { console.error('initCurationUI error:', e); }
+      renderSiteSettings();
+      initFloatingControls();
+      }
+      if (e.key === 'seoldamhwa_settings') {
+        renderSiteSettings();
+      }
+      if (e.key === 'seoldamhwa_orders') {
+        // 주문 관련 갱신 필요시 대응
+      }
+    });
+
+    
+    // 매장 설정 및 고객센터/지도 렌더링
+    
+    // 요일별 운영시간 상세 패널 토글
+    function toggleWeeklyHoursDetail() {
+      const panel = document.getElementById('footer-hours-detail-panel');
+      const arrow = document.getElementById('hours-detail-arrow');
+      if (panel) {
+        panel.classList.toggle('hidden');
+        if (arrow) {
+          arrow.style.transform = panel.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+      }
+    }
+
+    // 매장 설정 및 고객센터/지도 렌더링
+    function renderSiteSettings() {
+      const s = typeof loadSettings === 'function' ? loadSettings() : {
+        phone: '02-764-1920',
+        email: 'contact@seoldamhwa.kr',
+        address: '서울시 종로구 북촌로 42',
+        addressDetail: '(임시 주소)',
+        directions: '',
+        kakaoChannelUrl: '',
+        showLocation: false,
+        weeklyHours: typeof DEFAULT_WEEKLY_HOURS !== 'undefined' ? DEFAULT_WEEKLY_HOURS : [],
+        closures: []
+      };
+
+      const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'ko';
+
+      // 1) 전화번호 & 이메일
+      const bandPhone = document.getElementById('footer-band-phone');
+      if (bandPhone) {
+        bandPhone.href = `tel:${(s.phone || '').replace(/[^0-9]/g, '')}`;
+        bandPhone.innerText = s.phone || '02-764-1920';
+      }
+      const bandEmail = document.getElementById('footer-band-email');
+      if (bandEmail) {
+        bandEmail.href = `mailto:${s.email || ''}`;
+        bandEmail.innerText = s.email || 'contact@seoldamhwa.kr';
+      }
+
+      // 2) 카카오톡 채널 버튼
+      const bandKakao = document.getElementById('footer-band-kakao');
+      const floatKakao = document.getElementById('float-kakao-btn');
+      const hasKakao = s.kakaoChannelUrl && s.kakaoChannelUrl.trim();
+      if (bandKakao) {
+        if (hasKakao) {
+          bandKakao.classList.remove('hidden');
+          bandKakao.href = s.kakaoChannelUrl.trim();
+        } else {
+          bandKakao.classList.add('hidden');
+        }
+      }
+      if (floatKakao) {
+        if (hasKakao) {
+          floatKakao.classList.remove('hidden');
+          floatKakao.href = s.kakaoChannelUrl.trim();
+        } else {
+          floatKakao.classList.add('hidden');
+        }
+      }
+
+      // 3) 오늘 실시간 영업 상태 (한국 시간 기준)
+      const now = new Date();
+      const statusObj = typeof getStoreStatus === 'function' ? getStoreStatus(now, s) : { status: 'open', time: '18:00' };
+      const dotEl = document.getElementById('store-status-dot');
+      const textEl = document.getElementById('store-status-text');
+
+      if (dotEl && textEl) {
+        dotEl.className = 'w-2 h-2 rounded-full shrink-0';
+        let statusText = '';
+
+        switch (statusObj.status) {
+          case 'open':
+            dotEl.classList.add('bg-emerald-600');
+            statusText = typeof t === 'function'
+              ? t('cs_band_status_open', '지금 영업 중 · {time}까지').replace('{time}', statusObj.time)
+              : `지금 영업 중 · ${statusObj.time}까지`;
+            break;
+
+          case 'lunch':
+            dotEl.classList.add('bg-amber-500');
+            statusText = typeof t === 'function'
+              ? t('cs_band_status_lunch', '점심시간 · {time}부터 다시 열어요').replace('{time}', statusObj.time)
+              : `점심시간 · ${statusObj.time}부터 다시 열어요`;
+            break;
+
+          case 'before-open':
+            dotEl.classList.add('bg-gray-400');
+            statusText = typeof t === 'function'
+              ? t('cs_band_status_before_open', '영업 준비 중 · {time}에 열어요').replace('{time}', statusObj.time)
+              : `영업 준비 중 · ${statusObj.time}에 열어요`;
+            break;
+
+          case 'closed-today':
+            dotEl.classList.add('bg-gray-400');
+            if (statusObj.isClosure && statusObj.reason) {
+              statusText = typeof t === 'function'
+                ? t('cs_band_status_closed_today_reason', '오늘은 쉬어요 · {reason}').replace('{reason}', statusObj.reason)
+                : `오늘은 쉬어요 · ${statusObj.reason}`;
+            } else {
+              statusText = typeof t === 'function'
+                ? t('cs_band_status_closed_today', '오늘은 쉬어요')
+                : '오늘은 쉬어요';
+            }
+            break;
+
+          case 'after-close':
+          default:
+            dotEl.classList.add('bg-gray-400');
+            if (statusObj.nextOpen && statusObj.nextOpen.daysAhead === 1) {
+              statusText = typeof t === 'function'
+                ? t('cs_band_status_after_close_tomorrow', '오늘 영업 마감 · 내일 {time}에 열어요').replace('{time}', statusObj.nextOpen.openTime)
+                : `오늘 영업 마감 · 내일 ${statusObj.nextOpen.openTime}에 열어요`;
+            } else if (statusObj.nextOpen) {
+              const dayName = typeof t === 'function' ? t('day_full_' + statusObj.nextOpen.dayIdx, '월요일') : '월요일';
+              statusText = typeof t === 'function'
+                ? t('cs_band_status_after_close_day', '오늘 영업 마감 · {day} {time}에 열어요').replace('{day}', dayName).replace('{time}', statusObj.nextOpen.openTime)
+                : `오늘 영업 마감 · ${dayName} ${statusObj.nextOpen.openTime}에 열어요`;
+            } else {
+              statusText = typeof t === 'function' ? t('cs_band_status_closed_today', '오늘은 쉬어요') : '오늘은 쉬어요';
+            }
+            break;
+        }
+
+        textEl.innerText = statusText;
+      }
+
+      // 4) 주간 운영시간 요일 병합 리스트 렌더링 (월~일 순서)
+      const schedListEl = document.getElementById('footer-weekly-schedule-list');
+      if (schedListEl) {
+        schedListEl.innerHTML = '';
+        const weekly = s.weeklyHours || (typeof DEFAULT_WEEKLY_HOURS !== 'undefined' ? DEFAULT_WEEKLY_HOURS : []);
+        const order = [1, 2, 3, 4, 5, 6, 0]; // 월, 화, 수, 목, 금, 토, 일
+
+        // 연속된 동일 스케줄 그룹핑
+        const groups = [];
+        let curGroup = null;
+
+        order.forEach(dayIdx => {
+          const h = weekly[dayIdx] || { open: false };
+          const key = h.open ? `open_${h.start}_${h.end}_${h.lunch}_${h.lunchStart}_${h.lunchEnd}` : 'closed';
+          if (!curGroup || curGroup.key !== key) {
+            curGroup = { key, days: [dayIdx], h };
+            groups.push(curGroup);
+          } else {
+            curGroup.days.push(dayIdx);
+          }
+        });
+
+        groups.forEach(g => {
+          const dNames = g.days.map(d => typeof t === 'function' ? t('day_' + d, String(d)) : String(d));
+          let daysLabel = '';
+          if (dNames.length === 1) {
+            daysLabel = dNames[0];
+          } else if (dNames.length === 2 && (g.days.includes(6) && g.days.includes(0))) {
+            // 토·일 표기
+            daysLabel = dNames.join(lang === 'en' ? ' & ' : '·');
+          } else {
+            daysLabel = `${dNames[0]}–${dNames[dNames.length - 1]}`;
+          }
+
+          let text = '';
+          const closedText = typeof t === 'function' ? t('cs_band_closed', '휴무') : '휴무';
+          const lunchLabel = typeof t === 'function' ? t('cs_band_lunch_label', '점심') : '점심';
+
+          if (!g.h.open) {
+            text = `${daysLabel} ${closedText}`;
+          } else {
+            const timePart = `${g.h.start || '10:00'}–${g.h.end || '18:00'}`;
+            const lunchPart = g.h.lunch ? ` (${lunchLabel} ${g.h.lunchStart || '12:30'}–${g.h.lunchEnd || '13:30'})` : '';
+            text = `${daysLabel} ${timePart}${lunchPart}`;
+          }
+
+          const div = document.createElement('div');
+          div.className = 'flex justify-between items-center py-0.5';
+          div.innerHTML = `<span class="text-ink-black">${daysLabel}</span><span>${text.replace(daysLabel, '').trim()}</span>`;
+          schedListEl.appendChild(div);
+        });
+      }
+
+      // 5) 향후 30일 이내 임시 휴무 목록
+      const closuresWrap = document.getElementById('footer-upcoming-closures-wrap');
+      const closuresListEl = document.getElementById('footer-upcoming-closures-list');
+      if (closuresWrap && closuresListEl) {
+        closuresListEl.innerHTML = '';
+        const closures = s.closures || [];
+        const kp = typeof getKoreaTimeParts === 'function' ? getKoreaTimeParts() : { dateStr: new Date().toISOString().slice(0, 10) };
+        const todayStr = kp.dateStr;
+
+        const [curY, curM, curD] = todayStr.split('-').map(Number);
+        const upcomingMap = new Map();
+
+        // 1. 등록된 임시 휴무 수집
+        closures.forEach(c => {
+          if (c.date >= todayStr) {
+            upcomingMap.set(c.date, { date: c.date, reason: c.reason || '', isTemp: true });
+          }
+        });
+
+        // 2. 향후 30일간 공휴일 휴무 수집
+        for (let i = 0; i <= 30; i++) {
+          const dObj = new Date(Date.UTC(curY, curM - 1, curD + i, 3, 0, 0));
+          const y = dObj.getUTCFullYear();
+          const m = String(dObj.getUTCMonth() + 1).padStart(2, '0');
+          const d = String(dObj.getUTCDate()).padStart(2, '0');
+          const dStr = `${y}-${m}-${d}`;
+
+          if (!upcomingMap.has(dStr) && typeof getDaySchedule === 'function') {
+            const sched = getDaySchedule(dStr, s);
+            if (!sched.open && sched.reason) {
+              upcomingMap.set(dStr, { date: dStr, reason: sched.reason, isTemp: false });
+            }
+          }
+        }
+
+        const upcoming = Array.from(upcomingMap.values()).filter(c => {
+          const diffDays = (new Date(c.date).getTime() - new Date(todayStr).getTime()) / (24 * 60 * 60 * 1000);
+          return diffDays >= 0 && diffDays <= 30;
+        });
+        upcoming.sort((a, b) => a.date.localeCompare(b.date));
+
+        if (upcoming.length > 0) {
+          closuresWrap.classList.remove('hidden');
+          upcoming.forEach(c => {
+            const [y, m, d] = c.date.split('-').map(Number);
+            const fakeUtc = new Date(Date.UTC(y, m - 1, d, 3, 0, 0));
+            const dayIdx = typeof getKoreaTimeParts === 'function' ? getKoreaTimeParts(fakeUtc).day : fakeUtc.getDay();
+            const dayName = typeof t === 'function' ? t('day_' + dayIdx, '') : '';
+            const tempLabel = typeof t === 'function' ? t('cs_band_temp_closure_label', '임시 휴무') : '임시 휴무';
+            const closedLabel = typeof t === 'function' ? t('cs_band_closed', '휴무') : '휴무';
+            const translatedReason = typeof tHoliday === 'function' ? tHoliday(c.reason, lang) : c.reason;
+
+            let line = '';
+            if (c.isTemp) {
+              if (lang === 'en') {
+                line = `Closed on ${m}/${d} (${dayName})${c.reason ? ' · ' + c.reason : ''}`;
+              } else if (lang === 'ja') {
+                line = `${m}月${d}日(${dayName}) ${tempLabel}${c.reason ? ' · ' + c.reason : ''}`;
+              } else {
+                line = `${m}월 ${d}일(${dayName}) ${tempLabel}${c.reason ? ' · ' + c.reason : ''}`;
+              }
+            } else {
+              // 공휴일 휴무 ("12월 25일(금) 성탄절 휴무")
+              if (lang === 'en') {
+                line = `Closed on ${m}/${d} (${dayName}) · ${translatedReason}`;
+              } else if (lang === 'ja') {
+                line = `${m}月${d}日(${dayName}) ${translatedReason} ${closedLabel}`;
+              } else {
+                line = `${m}월 ${d}일(${dayName}) ${translatedReason} ${closedLabel}`;
+              }
+            }
+
+            const item = document.createElement('div');
+            item.innerText = line;
+            closuresListEl.appendChild(item);
+          });
+        } else {
+          closuresWrap.classList.add('hidden');
+        }
+      }
+
+      // 6) 오시는 길 섹션 토글
+      const csSection = document.getElementById('cs-section');
+      if (csSection) {
+        if (s.showLocation) {
+          csSection.classList.remove('hidden');
+          const addrEl = document.getElementById('cs-address');
+          if (addrEl) addrEl.innerText = s.address || '서울시 종로구 북촌로 42';
+          const addrDetailEl = document.getElementById('cs-address-detail');
+          if (addrDetailEl) addrDetailEl.innerText = s.addressDetail || '';
+          const dirEl = document.getElementById('cs-directions');
+          if (dirEl) {
+            if (s.directions && s.directions.trim()) {
+              dirEl.innerText = s.directions.trim();
+              dirEl.classList.remove('hidden');
+            } else {
+              dirEl.classList.add('hidden');
+            }
+          }
+          const iframe = document.getElementById('cs-map-iframe');
+          if (iframe && typeof mapEmbedUrl === 'function' && s.address) {
+            iframe.src = mapEmbedUrl(s.address);
+          }
+          const kakaoMapBtn = document.getElementById('cs-btn-kakao-map');
+          if (kakaoMapBtn && typeof kakaoMapUrl === 'function' && s.address) {
+            kakaoMapBtn.href = kakaoMapUrl(s.address);
+          }
+          const naverMapBtn = document.getElementById('cs-btn-naver-map');
+          if (naverMapBtn && typeof naverMapUrl === 'function' && s.address) {
+            naverMapBtn.href = naverMapUrl(s.address);
+          }
+        } else {
+          csSection.classList.add('hidden');
+        }
+      }
+
+      // 7) 배송일 드롭다운 갱신
+      const pdpDateSelect = document.getElementById('pdp-delivery-date');
+      if (pdpDateSelect && typeof buildDeliveryDateOptions === 'function') {
+        buildDeliveryDateOptions(pdpDateSelect);
+      }
+      const orderDateSelect = document.getElementById('order-delivery-date');
+      if (orderDateSelect && typeof buildDeliveryDateOptions === 'function') {
+        buildDeliveryDateOptions(orderDateSelect);
+      }
+    }
+  
+    // 60초마다 공개/비공개 예약 상태 확인 및 필요 시 재렌더링
+    let lastVisibleProductIdsStr = '';
+    function checkScheduledProductsVisibility() {
+      try {
+        const pdpModal = document.getElementById('pdp-modal');
+        // PDP 모달이 열려 있는 동안에는 재렌더링하지 않음
+        if (pdpModal && !pdpModal.classList.contains('hidden')) {
+          return;
+        }
+
+        const products = typeof loadProducts === 'function' ? loadProducts() : [];
+        const visibleIds = products
+          .filter(p => typeof isProductVisible === 'function' ? isProductVisible(p) : true)
+          .map(p => p.id)
+          .sort()
+          .join(',');
+
+        if (lastVisibleProductIdsStr === '') {
+          lastVisibleProductIdsStr = visibleIds;
+          return;
+        }
+
+        if (lastVisibleProductIdsStr !== visibleIds) {
+          lastVisibleProductIdsStr = visibleIds;
+          if (typeof renderProducts === 'function') {
+            renderProducts(typeof currentCategory !== 'undefined' ? currentCategory : 'all');
+          }
+          if (typeof updateHeroRecommendButton === 'function') {
+            updateHeroRecommendButton();
+          }
+          if (typeof initInquiryProductOptions === 'function') {
+            initInquiryProductOptions();
+          }
+        }
+      } catch (e) {
+        console.error('checkScheduledProductsVisibility error:', e);
+      }
+    }
+    setInterval(checkScheduledProductsVisibility, 60000);
+
+  </script>
+</body>
+</html>
