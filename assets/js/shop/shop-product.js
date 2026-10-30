@@ -2,7 +2,8 @@
 // 설담화 쇼핑몰: 상품 상세(창)·재입고 알림 신청·사이즈·수량·장바구니 담기·바로 구매
 // index.html에서 순서대로 불러옵니다 (함수는 전역으로 공유).
 
-function openProductDetail(productId, isPreview = false) {
+// 상품 페이지 그리기 (주소 이동은 shop-product-page.js의 openProductDetail)
+function renderProductPage(productId, isPreview = false) {
   const products = loadProducts();
   const prod = products.find(p => p.id === productId);
   if (!prod) return;
@@ -290,8 +291,7 @@ function addToCartFromPDP() {
   });
 
   updateCartUI();
-  closeProductDetail();
-  toggleCartDrawer(true);
+  toggleCartDrawer(true); // 상품 페이지에 머무른 채 장바구니 열기
   if (typeof updatePopupVisibility === 'function') updatePopupVisibility();
 }
 

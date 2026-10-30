@@ -417,6 +417,11 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         </button>
 
+        <button onclick="openWishlist()" class="p-2 text-ink-charcoal hover:text-seal-red hover:bg-[#FAF7F2] rounded-full transition-colors relative cursor-pointer" title="찜한 꽃 · 최근 본 꽃" aria-label="찜한 꽃 · 최근 본 꽃">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+          <span id="wish-count-badge" class="hidden absolute top-0 right-0 bg-ink-black text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">0</span>
+        </button>
+
         <button onclick="toggleCartDrawer(true)" class="p-2 text-ink-charcoal hover:text-seal-red hover:bg-[#FAF7F2] rounded-full transition-colors relative cursor-pointer" title="장바구니">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
           <span id="cart-badge" class="absolute top-0 right-0 bg-seal-red text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">1</span>
@@ -912,6 +917,163 @@
       </div>
     </div>
 
+  <!-- 상품 상세 페이지 (#/flower/<상품 id>) - 예전 창(pdp-modal)을 페이지로 바꿈, id는 그대로 -->
+  <div id="pdp-modal" class="hidden max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 space-y-10">
+    <nav class="flex items-center justify-between gap-3 text-xs text-ink-gray" aria-label="위치">
+      <div class="flex items-center gap-1.5 min-w-0">
+        <a href="#/" data-i18n="pdp_crumb_home" class="hover:text-seal-red">홈</a><span>›</span>
+        <a href="#/" id="pdp-crumb-cat" class="hover:text-seal-red">꽃다발</a><span>›</span>
+        <span id="pdp-crumb-name" class="text-ink-black font-bold truncate"></span>
+      </div>
+      <button type="button" onclick="leaveProductPage()" data-i18n="pdp_back" class="shrink-0 px-3 py-1.5 border border-ink-black/20 rounded-full bg-white hover:border-seal-red hover:text-seal-red cursor-pointer">← 뒤로</button>
+    </nav>
+
+    <div class="relative bg-hanji w-full rounded-xs border border-ink-black/10">
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 lg:items-start">
+        <!-- 좌측 고해상도 이미지 (7열) -->
+        <div class="lg:col-span-7 p-6 sm:p-10 border-b lg:border-b-0 lg:border-r border-ink-black/10 bg-[#FAF7F2] flex flex-col justify-between">
+          <div>
+            <div class="hanok-card p-3 bg-white">
+              <div class="corner-tl"></div><div class="corner-tr"></div><div class="corner-bl"></div><div class="corner-br"></div>
+              <div class="aspect-[4/5] overflow-hidden bg-[#ECE8E1]">
+                <img id="pdp-image" src="" alt="" class="w-full h-full object-cover">
+              </div>
+            </div>
+            <div id="pdp-thumbs" class="mt-3 grid grid-cols-5 gap-2"></div>
+          </div>
+
+          <div class="mt-8 pt-6 border-t border-ink-black/10 grid grid-cols-2 gap-4 text-xs text-ink-gray">
+            <div class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-seal-red shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <div><strong data-i18n="pdp_badge_fresh_title" class="text-ink-black block">신선 직송 안심 보증</strong><span data-i18n="pdp_badge_fresh_desc">전국 지정일 안전 특송 출고</span></div>
+            </div>
+            <div class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-seal-red shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <div><strong data-i18n="pdp_badge_silk_title" class="text-ink-black block">수공예 비단 보자기</strong><span data-i18n="pdp_badge_silk_desc">오방색 양단 실크 & 옥노리개 패키징</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 우측 구매 패널 (5열) - 데스크톱 sticky 고정 -->
+        <div class="lg:col-span-5 p-6 sm:p-10 lg:p-8 flex flex-col justify-between space-y-5 lg:sticky lg:top-24 lg:self-start bg-hanji z-10">
+          <div class="space-y-4">
+            <div class="text-xs font-bold text-seal-red tracking-wider uppercase" id="pdp-category">꽃다발</div>
+            
+            <div class="space-y-1">
+              <div class="flex items-start justify-between gap-3">
+                <h1 id="pdp-title" class="text-2xl sm:text-3xl font-extrabold text-ink-black">상품명</h1>
+                <button type="button" id="pdp-wish-btn" onclick="toggleWishCurrent()" aria-pressed="false" class="shrink-0 w-10 h-10 rounded-full border border-ink-black/15 bg-white flex items-center justify-center text-xl text-ink-gray hover:text-seal-red hover:border-seal-red cursor-pointer" aria-label="찜하기">♡</button>
+              </div>
+              <!-- 브랜드 특화 한 줄 글귀 (Storytelling Copy) -->
+              <p id="pdp-poetic" class="font-serif text-base sm:text-lg text-seal-red font-semibold leading-snug pt-1 italic">
+                ""
+              </p>
+            </div>
+
+            <div class="py-2.5 border-y border-ink-black/10 flex justify-between items-baseline">
+              <span data-i18n="pdp_price_label" class="text-xs font-semibold text-ink-light">판매가</span>
+              <span id="pdp-price" class="text-2xl font-bold text-ink-black">0원</span>
+            </div>
+
+            <div class="bg-[#FAF7F2] p-4 rounded-xs border border-ink-black/10 text-xs text-ink-gray space-y-1.5 leading-relaxed">
+              <p id="pdp-meaning" class="text-ink-black font-bold">꽃말: </p>
+              <p id="pdp-desc" class="font-normal"></p>
+            </div>
+
+            <!-- 크기 선택 (사이즈 옵션이 있는 경우) -->
+            <div id="pdp-size-container" class="space-y-1">
+              <label data-i18n="pdp_size_label" class="block text-xs font-bold text-ink-black">크기 선택</label>
+              <select id="pdp-size-select" onchange="onSizeChanged()" class="w-full bg-white border border-ink-black/20 p-2.5 text-xs font-medium rounded-xs focus:border-seal-red">
+              </select>
+            </div>
+
+            <!-- 생화 희망 배송일 및 시간 선택 -->
+            <div id="pdp-delivery-container" class="space-y-1">
+              <label data-i18n="pdp_delivery_label" class="block text-xs font-bold text-ink-black">생화 희망 배송일 및 시간 (필수)</label>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <select id="pdp-delivery-date" class="w-full bg-white border border-ink-black/20 p-2.5 text-xs font-medium rounded-xs focus:border-seal-red">
+                </select>
+                <select id="pdp-delivery-time" class="w-full bg-white border border-ink-black/20 p-2.5 text-xs font-medium rounded-xs focus:border-seal-red">
+                  <option value="오전 10:00~13:00">오전 10:00~13:00</option>
+                  <option value="오후 14:00~18:00">오후 14:00~18:00</option>
+                  <option value="저녁 18:00~21:00">저녁 18:00~21:00</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 보자기 포장 옵션 선택 -->
+            <div id="pdp-package-container" class="space-y-1">
+              <label data-i18n="pdp_package_label" class="block text-xs font-bold text-ink-black">보자기 포장</label>
+              <select id="pdp-package-opt" onchange="updatePDPPrice()" class="w-full bg-white border border-ink-black/20 p-2.5 text-xs font-medium rounded-xs focus:border-seal-red">
+                <option value="0">기본 단아 한지 포장 (무료)</option>
+                <option value="15000">전통 실크 본견 보자기 & 노리개 포장 (+15,000원)</option>
+              </select>
+            </div>
+
+            <!-- 수량 선택 및 재고 안내 -->
+            <div id="pdp-qty-container" class="flex items-center justify-between py-1">
+              <div class="flex items-center gap-2">
+                <span data-i18n="pdp_qty_label" class="text-xs font-bold text-ink-black">수량</span>
+                <span id="pdp-stock-notice" class="text-xs font-bold text-seal-red"></span>
+              </div>
+              <div class="flex items-center border border-ink-black/20 bg-white rounded-xs">
+                <button type="button" onclick="changeQty(-1)" class="p-1.5 px-3 text-ink-gray hover:text-ink-black font-bold cursor-pointer">-</button>
+                <span id="pdp-qty" class="px-3 text-xs font-bold">1</span>
+                <button type="button" onclick="changeQty(1)" class="p-1.5 px-3 text-ink-gray hover:text-ink-black font-bold cursor-pointer">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 하단 금액 및 버튼 (휴대폰에서는 아래에 붙어 늘 보임) -->
+          <div id="pdp-bottom-bar" class="pt-4 border-t border-ink-black/10 space-y-3 sticky bottom-0 z-10 bg-hanji pb-3 shadow-[0_-8px_16px_-12px_rgba(0,0,0,0.25)] md:static md:pb-0 md:shadow-none md:bg-transparent">
+            <div id="pdp-normal-total-row" class="flex justify-between items-baseline">
+              <span data-i18n="pdp_total_label" class="text-xs font-semibold text-ink-light">총 주문금액</span>
+              <span id="pdp-total" class="text-2xl font-bold text-seal-red">0원</span>
+            </div>
+
+            <div id="pdp-normal-btns" class="grid grid-cols-2 gap-3">
+              <button id="pdp-btn-cart" onclick="addToCartFromPDP()" data-i18n="pdp_btn_cart" class="jakae-light-btn py-3.5 px-4 text-xs sm:text-sm font-bold rounded-xs cursor-pointer">
+                장바구니 담기
+              </button>
+              <button id="pdp-btn-buy" onclick="buyNowFromPDP()" data-i18n="pdp_btn_buy" class="jakae-btn py-3.5 px-4 text-xs sm:text-sm font-bold rounded-xs cursor-pointer shadow-md">
+                바로 구매하기
+              </button>
+            </div>
+
+            <!-- 품절 상품: 재입고 알림 신청 -->
+            <form id="pdp-restock-box" onsubmit="submitRestockRequest(event)" class="hidden space-y-2 bg-[#FAF7F2] border border-seal-red/30 rounded-xs p-3 text-xs">
+              <p class="font-bold text-ink-black" data-i18n="restock_title">🔔 다시 들어오면 알려 드릴게요</p>
+              <p class="text-ink-gray" data-i18n="restock_desc">연락처를 남겨 주시면 입고되는 대로 문자로 안내드려요.</p>
+              <div class="grid grid-cols-[1fr_1.4fr] gap-2">
+                <input type="text" id="restock-name" maxlength="20" data-i18n-placeholder="restock_name_ph" placeholder="이름 (선택)" class="min-w-0 bg-white border border-ink-black/20 p-2 rounded-xs">
+                <input type="tel" id="restock-phone" required maxlength="20" placeholder="010-0000-0000" class="min-w-0 bg-white border border-ink-black/20 p-2 rounded-xs">
+              </div>
+              <label class="flex items-start gap-2 cursor-pointer text-ink-black">
+                <input type="checkbox" id="restock-consent" required class="mt-0.5 w-4 h-4 shrink-0">
+                <span data-i18n="restock_consent">[필수] 재입고 안내를 위한 연락처 수집·이용에 동의합니다 (안내 후 파기).</span>
+              </label>
+              <button type="submit" data-i18n="restock_btn" class="w-full py-2.5 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">재입고 알림 신청</button>
+              <p id="restock-message" class="hidden font-bold text-emerald-700"></p>
+            </form>
+
+            <!-- 웨딩·공간 연출 등 견적 문의 전용 안내 및 버튼 -->
+            <div id="pdp-inquiry-container" class="space-y-3 hidden">
+              <p data-i18n="pdp_inquiry_guide" class="text-xs text-ink-gray leading-relaxed bg-[#FAF7F2] p-3 rounded-xs border border-ink-black/10">
+                공간 연출 및 웨딩 스타일링은 공간 규모와 계절에 맞춘 1:1 상담 후 맞춤 견적서가 발행됩니다.
+              </p>
+              <button onclick="goToCustomInquiry(currentSelectedProduct ? currentSelectedProduct.id : '')" data-i18n="pdp_btn_inquiry" class="jakae-btn w-full py-3.5 px-4 text-xs sm:text-sm font-bold rounded-xs cursor-pointer shadow-md">
+                1:1 맞춤 상담 문의하기
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 자세한 설명 · 추천 · 최근 본 꽃 (shop-product-page.js가 채움) -->
+    <section id="pdp-details" class="space-y-10"></section>
+  </div>
+
   </main>
 
     <!-- 3. 아틀리에 오시는 길 (Location Section: 오프라인 매장 미공개 시 섹션 전체 숨김) -->
@@ -1091,152 +1253,6 @@
   </aside>
 
   <!-- 5. 상품 상세 뷰 / PDP 모달 (비대칭 레이아웃 + 한 줄 글귀 + 희망 배송일) -->
-  <div id="pdp-modal" class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
-    <div class="fixed inset-0" onclick="closeProductDetail()"></div>
-
-    <div class="relative bg-hanji w-full max-w-5xl rounded-xs shadow-2xl border border-ink-black/20 z-10 overflow-hidden my-auto">
-      <button onclick="closeProductDetail()" class="absolute top-4 right-4 z-20 p-2 text-ink-black hover:text-seal-red hover:bg-[#FAF7F2] rounded-full transition-colors cursor-pointer">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-      </button>
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 lg:items-start max-h-[90vh] overflow-y-auto">
-        <!-- 좌측 고해상도 이미지 (7열) -->
-        <div class="lg:col-span-7 p-6 sm:p-10 border-b lg:border-b-0 lg:border-r border-ink-black/10 bg-[#FAF7F2] flex flex-col justify-between">
-          <div>
-            <div class="hanok-card p-3 bg-white">
-              <div class="corner-tl"></div><div class="corner-tr"></div><div class="corner-bl"></div><div class="corner-br"></div>
-              <div class="aspect-[4/5] overflow-hidden bg-[#ECE8E1]">
-                <img id="pdp-image" src="" alt="" class="w-full h-full object-cover">
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-8 pt-6 border-t border-ink-black/10 grid grid-cols-2 gap-4 text-xs text-ink-gray">
-            <div class="flex items-start gap-2">
-              <svg class="w-4 h-4 text-seal-red shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-              <div><strong data-i18n="pdp_badge_fresh_title" class="text-ink-black block">신선 직송 안심 보증</strong><span data-i18n="pdp_badge_fresh_desc">전국 지정일 안전 특송 출고</span></div>
-            </div>
-            <div class="flex items-start gap-2">
-              <svg class="w-4 h-4 text-seal-red shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-              <div><strong data-i18n="pdp_badge_silk_title" class="text-ink-black block">수공예 비단 보자기</strong><span data-i18n="pdp_badge_silk_desc">오방색 양단 실크 & 옥노리개 패키징</span></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 우측 구매 패널 (5열) - 데스크톱 sticky 고정 -->
-        <div class="lg:col-span-5 p-6 sm:p-10 lg:p-8 flex flex-col justify-between space-y-5 lg:sticky lg:top-0 lg:self-start bg-hanji z-10 lg:max-h-[90vh] lg:overflow-y-auto">
-          <div class="space-y-4">
-            <div class="text-xs font-bold text-seal-red tracking-wider uppercase" id="pdp-category">꽃다발</div>
-            
-            <div class="space-y-1">
-              <h1 id="pdp-title" class="text-2xl sm:text-3xl font-extrabold text-ink-black">상품명</h1>
-              <!-- 브랜드 특화 한 줄 글귀 (Storytelling Copy) -->
-              <p id="pdp-poetic" class="font-serif text-base sm:text-lg text-seal-red font-semibold leading-snug pt-1 italic">
-                ""
-              </p>
-            </div>
-
-            <div class="py-2.5 border-y border-ink-black/10 flex justify-between items-baseline">
-              <span data-i18n="pdp_price_label" class="text-xs font-semibold text-ink-light">판매가</span>
-              <span id="pdp-price" class="text-2xl font-bold text-ink-black">0원</span>
-            </div>
-
-            <div class="bg-[#FAF7F2] p-4 rounded-xs border border-ink-black/10 text-xs text-ink-gray space-y-1.5 leading-relaxed">
-              <p id="pdp-meaning" class="text-ink-black font-bold">꽃말: </p>
-              <p id="pdp-desc" class="font-normal"></p>
-            </div>
-
-            <!-- 크기 선택 (사이즈 옵션이 있는 경우) -->
-            <div id="pdp-size-container" class="space-y-1">
-              <label data-i18n="pdp_size_label" class="block text-xs font-bold text-ink-black">크기 선택</label>
-              <select id="pdp-size-select" onchange="onSizeChanged()" class="w-full bg-white border border-ink-black/20 p-2.5 text-xs font-medium rounded-xs focus:border-seal-red">
-              </select>
-            </div>
-
-            <!-- 생화 희망 배송일 및 시간 선택 -->
-            <div id="pdp-delivery-container" class="space-y-1">
-              <label data-i18n="pdp_delivery_label" class="block text-xs font-bold text-ink-black">생화 희망 배송일 및 시간 (필수)</label>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <select id="pdp-delivery-date" class="w-full bg-white border border-ink-black/20 p-2.5 text-xs font-medium rounded-xs focus:border-seal-red">
-                </select>
-                <select id="pdp-delivery-time" class="w-full bg-white border border-ink-black/20 p-2.5 text-xs font-medium rounded-xs focus:border-seal-red">
-                  <option value="오전 10:00~13:00">오전 10:00~13:00</option>
-                  <option value="오후 14:00~18:00">오후 14:00~18:00</option>
-                  <option value="저녁 18:00~21:00">저녁 18:00~21:00</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- 보자기 포장 옵션 선택 -->
-            <div id="pdp-package-container" class="space-y-1">
-              <label data-i18n="pdp_package_label" class="block text-xs font-bold text-ink-black">보자기 포장</label>
-              <select id="pdp-package-opt" onchange="updatePDPPrice()" class="w-full bg-white border border-ink-black/20 p-2.5 text-xs font-medium rounded-xs focus:border-seal-red">
-                <option value="0">기본 단아 한지 포장 (무료)</option>
-                <option value="15000">전통 실크 본견 보자기 & 노리개 포장 (+15,000원)</option>
-              </select>
-            </div>
-
-            <!-- 수량 선택 및 재고 안내 -->
-            <div id="pdp-qty-container" class="flex items-center justify-between py-1">
-              <div class="flex items-center gap-2">
-                <span data-i18n="pdp_qty_label" class="text-xs font-bold text-ink-black">수량</span>
-                <span id="pdp-stock-notice" class="text-xs font-bold text-seal-red"></span>
-              </div>
-              <div class="flex items-center border border-ink-black/20 bg-white rounded-xs">
-                <button type="button" onclick="changeQty(-1)" class="p-1.5 px-3 text-ink-gray hover:text-ink-black font-bold cursor-pointer">-</button>
-                <span id="pdp-qty" class="px-3 text-xs font-bold">1</span>
-                <button type="button" onclick="changeQty(1)" class="p-1.5 px-3 text-ink-gray hover:text-ink-black font-bold cursor-pointer">+</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- 하단 금액 및 버튼 (휴대폰에서는 아래에 붙어 늘 보임) -->
-          <div id="pdp-bottom-bar" class="pt-4 border-t border-ink-black/10 space-y-3 sticky bottom-0 z-10 bg-hanji pb-3 shadow-[0_-8px_16px_-12px_rgba(0,0,0,0.25)] md:static md:pb-0 md:shadow-none md:bg-transparent">
-            <div id="pdp-normal-total-row" class="flex justify-between items-baseline">
-              <span data-i18n="pdp_total_label" class="text-xs font-semibold text-ink-light">총 주문금액</span>
-              <span id="pdp-total" class="text-2xl font-bold text-seal-red">0원</span>
-            </div>
-
-            <div id="pdp-normal-btns" class="grid grid-cols-2 gap-3">
-              <button id="pdp-btn-cart" onclick="addToCartFromPDP()" data-i18n="pdp_btn_cart" class="jakae-light-btn py-3.5 px-4 text-xs sm:text-sm font-bold rounded-xs cursor-pointer">
-                장바구니 담기
-              </button>
-              <button id="pdp-btn-buy" onclick="buyNowFromPDP()" data-i18n="pdp_btn_buy" class="jakae-btn py-3.5 px-4 text-xs sm:text-sm font-bold rounded-xs cursor-pointer shadow-md">
-                바로 구매하기
-              </button>
-            </div>
-
-            <!-- 품절 상품: 재입고 알림 신청 -->
-            <form id="pdp-restock-box" onsubmit="submitRestockRequest(event)" class="hidden space-y-2 bg-[#FAF7F2] border border-seal-red/30 rounded-xs p-3 text-xs">
-              <p class="font-bold text-ink-black" data-i18n="restock_title">🔔 다시 들어오면 알려 드릴게요</p>
-              <p class="text-ink-gray" data-i18n="restock_desc">연락처를 남겨 주시면 입고되는 대로 문자로 안내드려요.</p>
-              <div class="grid grid-cols-[1fr_1.4fr] gap-2">
-                <input type="text" id="restock-name" maxlength="20" data-i18n-placeholder="restock_name_ph" placeholder="이름 (선택)" class="min-w-0 bg-white border border-ink-black/20 p-2 rounded-xs">
-                <input type="tel" id="restock-phone" required maxlength="20" placeholder="010-0000-0000" class="min-w-0 bg-white border border-ink-black/20 p-2 rounded-xs">
-              </div>
-              <label class="flex items-start gap-2 cursor-pointer text-ink-black">
-                <input type="checkbox" id="restock-consent" required class="mt-0.5 w-4 h-4 shrink-0">
-                <span data-i18n="restock_consent">[필수] 재입고 안내를 위한 연락처 수집·이용에 동의합니다 (안내 후 파기).</span>
-              </label>
-              <button type="submit" data-i18n="restock_btn" class="w-full py-2.5 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">재입고 알림 신청</button>
-              <p id="restock-message" class="hidden font-bold text-emerald-700"></p>
-            </form>
-
-            <!-- 웨딩·공간 연출 등 견적 문의 전용 안내 및 버튼 -->
-            <div id="pdp-inquiry-container" class="space-y-3 hidden">
-              <p data-i18n="pdp_inquiry_guide" class="text-xs text-ink-gray leading-relaxed bg-[#FAF7F2] p-3 rounded-xs border border-ink-black/10">
-                공간 연출 및 웨딩 스타일링은 공간 규모와 계절에 맞춘 1:1 상담 후 맞춤 견적서가 발행됩니다.
-              </p>
-              <button onclick="goToCustomInquiry(currentSelectedProduct ? currentSelectedProduct.id : '')" data-i18n="pdp_btn_inquiry" class="jakae-btn w-full py-3.5 px-4 text-xs sm:text-sm font-bold rounded-xs cursor-pointer shadow-md">
-                1:1 맞춤 상담 문의하기
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- 4. 장바구니 드로어 (Cart Drawer) -->
   <div id="cart-drawer" class="fixed inset-0 z-50 overflow-hidden hidden">
     <div class="absolute inset-0 bg-black/60 backdrop-blur-xs" onclick="toggleCartDrawer(false)"></div>
@@ -1495,6 +1511,7 @@
   <!-- 쇼핑몰 화면 동작 (화면별 파일, 순서 중요) -->
   <script src="assets/js/shop/shop-core.js"></script>
   <script src="assets/js/shop/shop-product.js"></script>
+  <script src="assets/js/shop/shop-product-page.js"></script>
   <script src="assets/js/shop/shop-checkout.js"></script>
   <script src="assets/js/shop/shop-nav.js"></script>
   <script src="assets/js/shop/shop-curation.js"></script>
