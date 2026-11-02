@@ -58,7 +58,7 @@ function renderDictionaryPage() {
   h.textContent = flT('dict_title', '꽃 사전');
   const d = document.createElement('p');
   d.className = 'text-sm text-ink-gray';
-  d.textContent = flT('dict_desc', '설담화가 쓰는 꽃의 꽃말과 제철을 모았어요. 상품 이름을 누르면 그 꽃이 든 상품으로 가요.');
+  d.textContent = flT('dict_desc', '설담화가 쓰는 꽃의 꽃말과 제철을 모았어요.');
   head.append(h, d);
   view.appendChild(head);
 
@@ -148,7 +148,8 @@ function renderDictionaryGrid() {
     .filter(f => s.month === 'all' || flowerMonths(f).includes(month))
     .filter(f => !q || [f.name, f.nameEn, f.nameJa, f.meaning, f.meaningEn, f.meaningJa].join(' ').toLowerCase().includes(q));
   grid.innerHTML = '';
-  grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4';
+  // auto-rows-fr: 모든 줄의 카드 높이를 같게
+  grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr gap-4';
   if (!flowers.length) {
     const e = document.createElement('p');
     e.className = 'col-span-full text-center text-sm text-ink-gray py-16';
@@ -226,42 +227,13 @@ function renderDictionaryGrid() {
 
     if (lang === 'ko' && f.care) {
       const care = document.createElement('p');
-      care.className = 'text-[13px] text-ink-charcoal leading-relaxed bg-white/70 border border-ink-black/5 rounded-xs px-3 py-2';
+      // 카드 크기가 같도록 관리 팁은 맨 아래 두 줄까지
+      care.className = 'mt-auto text-[13px] text-ink-charcoal leading-relaxed bg-white/70 border border-ink-black/5 rounded-xs px-3 py-2 line-clamp-2';
+      care.title = f.care;
       care.textContent = `💧 ${f.care}`;
       body.appendChild(care);
     }
 
-    const foot = document.createElement('div');
-    foot.className = 'mt-auto pt-3 border-t border-ink-black/10 space-y-2';
-    if (used.length) {
-      const label = document.createElement('p');
-      label.className = 'text-xs font-bold text-ink-gray';
-      label.textContent = `${flT('dict_products', '이 꽃이 든 상품')} (${used.length})`;
-      const links = document.createElement('div');
-      links.className = 'flex flex-wrap gap-1.5 text-xs';
-      used.slice(0, 4).forEach(p => {
-        const tp = typeof tProduct === 'function' ? tProduct(p) : p;
-        const a = document.createElement('button');
-        a.type = 'button';
-        a.className = 'max-w-full truncate px-2.5 py-1 rounded-full bg-white/90 border border-ink-black/10 font-bold text-ink-black hover:border-seal-red hover:text-seal-red cursor-pointer';
-        a.textContent = tp.name;
-        a.title = tp.name;
-        a.onclick = () => openProductDetail(p.id);
-        links.appendChild(a);
-      });
-      const go = document.createElement('button');
-      go.type = 'button';
-      go.className = 'w-full py-2 rounded-xs bg-ink-black text-white text-xs font-bold hover:bg-seal-red cursor-pointer';
-      go.textContent = flT('dict_browse_flower', '이 꽃이 든 상품 모두 보기 →');
-      go.onclick = () => openFlowersPageWithFlower(f.id);
-      foot.append(label, links, go);
-    } else {
-      const none = document.createElement('p');
-      none.className = 'text-xs text-ink-gray';
-      none.textContent = flT('dict_no_products', '아직 이 꽃이 든 상품이 없어요. 맞춤 상담으로 문의해 주세요.');
-      foot.appendChild(none);
-    }
-    body.appendChild(foot);
     card.appendChild(body);
     grid.appendChild(card);
   });
