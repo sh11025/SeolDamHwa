@@ -182,10 +182,11 @@ function renderProductDetails(p) {
   const story = document.createElement('div');
   story.className = 'space-y-4';
   story.appendChild(sectionTitle(ppT('pdp_section_story', '이 꽃에 담긴 이야기')));
+  // 설명 한 칸 + 그 아래 쓰인 꽃 이름 한 줄 (꽃이 많아도 칸이 길어지지 않음)
   const storyBox = document.createElement('div');
-  storyBox.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
+  storyBox.className = 'bg-white/70 border border-ink-black/10 rounded-xs p-5 space-y-4';
   const intro = document.createElement('div');
-  intro.className = 'bg-white/70 border border-ink-black/10 rounded-xs p-5 space-y-2 text-sm leading-relaxed';
+  intro.className = 'space-y-2 text-sm leading-relaxed';
   const poetic = document.createElement('p');
   poetic.className = 'font-serif text-seal-red font-semibold text-base';
   poetic.textContent = `"${tp.poeticLine || ''}"`;
@@ -196,12 +197,12 @@ function renderProductDetails(p) {
   storyBox.appendChild(intro);
   const flowersBox = document.createElement('div');
   flowersBox.id = 'pdp-flowers';
-  flowersBox.className = 'space-y-2';
+  flowersBox.className = 'space-y-2 pt-4 border-t border-ink-black/10';
   if (typeof renderProductFlowers === 'function' && renderProductFlowers(p, flowersBox)) {
     // 꽃 사전에서 채움 (shop-flowers.js)
   } else if (tp.flowerMeaning) {
     const m = document.createElement('div');
-    m.className = 'bg-[#FAF7F2] border border-ink-black/10 rounded-xs p-5 text-sm';
+    m.className = 'text-sm';
     const label = document.createElement('p');
     label.className = 'text-xs font-bold text-ink-gray mb-1';
     label.textContent = ppT('pdp_flower_meaning', '꽃과 꽃말');
@@ -211,9 +212,13 @@ function renderProductDetails(p) {
     m.append(label, v);
     flowersBox.appendChild(m);
   }
-  storyBox.appendChild(flowersBox);
+  if (flowersBox.childNodes.length) storyBox.appendChild(flowersBox);
   story.appendChild(storyBox);
   root.appendChild(story);
+
+  // 1-2) 꽃별 관리 안내 (꽃 사전의 글·사진·영상)
+  const guideSec = typeof buildFlowerGuideSection === 'function' ? buildFlowerGuideSection(p, sectionTitle) : null;
+  if (guideSec) root.appendChild(guideSec);
 
   // 2) 포장·배송·관리·교환환불 (정성 안내 페이지 내용을 접어서)
   if (typeof loadPages === 'function') {

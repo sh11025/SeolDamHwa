@@ -7,9 +7,7 @@
 const BROWSE_PAGE_SIZE = 12;
 const BROWSE_CATEGORIES = [
   { id: 'all', key: 'cat_all', label: '전체 둘러보기' },
-  { id: 'bouquet', key: 'cat_bouquet', label: '꽃다발' },
-  { id: 'basket', key: 'cat_basket', label: '꽃바구니' },
-  { id: 'space', key: 'cat_space', label: '웨딩·공간' }
+  ...PRODUCT_CATEGORIES
 ];
 // 거르기 칸 = 맞춤 담화 질문 (field → 상품 태그 이름)
 const BROWSE_FILTERS = [

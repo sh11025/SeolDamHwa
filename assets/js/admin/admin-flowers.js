@@ -59,9 +59,11 @@ function openFlowerModal(id) {
   const f = id ? loadFlowers().find(x => x.id === id) : null;
   document.getElementById('flower-modal-title').textContent = f ? `꽃 사전 수정 · ${f.name}` : '꽃 사전에 새 꽃 추가';
   document.getElementById('flower-edit-id').value = f ? f.id : '';
-  ['name', 'nameEn', 'nameJa', 'meaning', 'meaningEn', 'meaningJa', 'colors', 'care', 'image'].forEach(k => {
+  ['name', 'nameEn', 'nameJa', 'meaning', 'meaningEn', 'meaningJa', 'colors', 'care', 'image', 'guideText', 'guideVideo'].forEach(k => {
     document.getElementById(`flower-${k}`).value = f ? (f[k] || '') : '';
   });
+  flowerGuideImages = f && Array.isArray(f.guideImages) ? f.guideImages.slice() : [];
+  renderFlowerGuideImages();
   renderFlowerMonthButtons(f ? flowerMonths(f) : []);
   document.getElementById('flower-yearround').checked = !!(f && f.yearRound);
   document.getElementById('admin-flower-modal').classList.remove('hidden');
@@ -74,6 +76,37 @@ function setFlowerImage(src) {
   const img = document.getElementById('flower-image-preview');
   img.src = src || '';
   img.classList.toggle('invisible', !src);
+}
+
+// 꽃별 관리 안내 사진 (여러 장)
+let flowerGuideImages = [];
+
+function renderFlowerGuideImages() {
+  const box = document.getElementById('flower-guide-images');
+  if (!box) return;
+  box.innerHTML = '';
+  flowerGuideImages.forEach((src, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'relative w-16 h-16 rounded-xs overflow-hidden border border-ink-black/10 bg-[#ECE8E1]';
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = '';
+    img.className = 'w-full h-full object-cover';
+    const x = document.createElement('button');
+    x.type = 'button';
+    x.textContent = '✕';
+    x.title = '빼기';
+    x.className = 'absolute top-0 right-0 w-5 h-5 bg-black/60 text-white text-[10px] cursor-pointer';
+    x.onclick = () => { flowerGuideImages.splice(i, 1); renderFlowerGuideImages(); };
+    cell.append(img, x);
+    box.appendChild(cell);
+  });
+}
+
+function addFlowerGuideImage(src) {
+  if (!src || flowerGuideImages.includes(src)) return;
+  flowerGuideImages.push(src);
+  renderFlowerGuideImages();
 }
 
 function closeFlowerModal() {
@@ -89,7 +122,7 @@ function saveFlower(e) {
   const editId = document.getElementById('flower-edit-id').value;
   if (flowers.some(f => f.name === name && f.id !== editId)) { alert(`'${name}'은(는) 이미 꽃 사전에 있어요.`); return; }
   const months = [...document.querySelectorAll('#flower-months .flower-month:checked')].map(b => Number(b.value));
-  const data = { name, nameEn: val('nameEn'), nameJa: val('nameJa'), meaning: val('meaning'), meaningEn: val('meaningEn'), meaningJa: val('meaningJa'), months, yearRound: document.getElementById('flower-yearround').checked, colors: val('colors'), care: val('care'), image: val('image') };
+  const data = { name, nameEn: val('nameEn'), nameJa: val('nameJa'), meaning: val('meaning'), meaningEn: val('meaningEn'), meaningJa: val('meaningJa'), months, yearRound: document.getElementById('flower-yearround').checked, colors: val('colors'), care: val('care'), image: val('image'), guideText: val('guideText'), guideImages: flowerGuideImages.slice(), guideVideo: val('guideVideo') };
   if (editId) {
     saveFlowers(flowers.map(f => f.id === editId ? { ...f, ...data } : f));
   } else {
@@ -120,14 +153,21 @@ function resetFlowerDictionary() {
 }
 
 /* ---------- 상품 수정 창: 사용한 꽃 ---------- */
+// 고른 순서를 그대로 기억 (상품 페이지 '꽃별 관리 안내' 순서)
+let editProdFlowerOrder = [];
+
 function currentProductFlowerSelection() {
-  return [...document.querySelectorAll('#edit-prod-flowers .prod-flower:checked')].map(b => b.value);
+  const checked = new Set([...document.querySelectorAll('#edit-prod-flowers .prod-flower:checked')].map(b => b.value));
+  editProdFlowerOrder = editProdFlowerOrder.filter(id => checked.has(id));
+  checked.forEach(id => { if (!editProdFlowerOrder.includes(id)) editProdFlowerOrder.push(id); });
+  return editProdFlowerOrder.slice();
 }
 
 function renderProductFlowerPicker(selected) {
   const box = document.getElementById('edit-prod-flowers');
   if (!box) return;
   const month = currentKoreaMonth();
+  editProdFlowerOrder = selected.slice();
   box.innerHTML = '';
   loadFlowers().forEach(f => {
     const label = document.createElement('label');
@@ -152,7 +192,50 @@ function updateProductFlowerSummary() {
   const inSeason = flowers.filter(f => isFlowerInSeason(f));
   out.textContent = !flowers.length
     ? '고른 꽃이 없으면 상품 페이지에는 위 \'꽃말 및 상징\' 한 줄만 보여요.'
-    : `${flowers.map(f => f.name).join(' · ')}${inSeason.length ? ` → 지금 제철(${inSeason.map(f => f.name).join(', ')})이라 쇼핑몰에 '🌿 지금이 제철'로 보여요.` : ''}`;
+    : `${inSeason.length ? `지금 제철(${inSeason.map(f => f.name).join(', ')})이라 쇼핑몰에 '🌿 지금이 제철'로 보여요.` : ''}`;
+  renderProductFlowerOrder(ids);
+}
+
+// 고른 꽃 순서 바꾸기: 위·아래 화살표 (맨 위 꽃이 상품 페이지에서 먼저·펼쳐져 보임)
+function renderProductFlowerOrder(ids) {
+  const box = document.getElementById('edit-prod-flowers-order');
+  if (!box) return;
+  box.innerHTML = '';
+  if (!ids.length) return;
+  const all = loadFlowers();
+  const head = document.createElement('p');
+  head.className = 'text-[11px] font-bold text-ink-black';
+  head.textContent = '보이는 순서 (상품 페이지 꽃별 관리 안내 순서)';
+  box.appendChild(head);
+  ids.forEach((id, i) => {
+    const f = all.find(x => x.id === id);
+    if (!f) return;
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-2 px-2 py-1 bg-white border border-ink-black/10 rounded-xs text-[11px]';
+    const num = document.createElement('span');
+    num.className = 'w-4 text-ink-gray font-bold';
+    num.textContent = i + 1;
+    const name = document.createElement('span');
+    name.className = 'flex-1 font-bold text-ink-black';
+    const hasGuide = f.guideText || (f.guideImages && f.guideImages.length) || f.guideVideo;
+    name.textContent = f.name + (hasGuide ? '' : '  · 관리 안내 없음(관리 팁만 보여요)');
+    row.append(num, name);
+    [['↑', -1], ['↓', 1]].forEach(([label, d]) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = label;
+      b.disabled = (d < 0 && i === 0) || (d > 0 && i === ids.length - 1);
+      b.className = 'w-6 h-6 border border-ink-black/20 rounded-xs cursor-pointer disabled:opacity-30 disabled:cursor-default hover:border-seal-red';
+      b.setAttribute('aria-label', `${f.name} ${d < 0 ? '위로' : '아래로'}`);
+      b.onclick = () => {
+        const j = i + d;
+        [editProdFlowerOrder[i], editProdFlowerOrder[j]] = [editProdFlowerOrder[j], editProdFlowerOrder[i]];
+        renderProductFlowerOrder(editProdFlowerOrder.slice());
+      };
+      row.appendChild(b);
+    });
+    box.appendChild(row);
+  });
 }
 
 // doSaveProduct()에서 부름

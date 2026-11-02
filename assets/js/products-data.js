@@ -3,6 +3,24 @@
 
 const DATA_VERSION = 2;
 
+// 상품 종류 (꽃 둘러보기 탭·홈 거르기·관리자 선택·상품 페이지 표시가 모두 이 목록을 씀)
+// goods: 꽃이 아닌 굿즈(디자인 화분·영양제·씨앗 등) → 제철·꽃 사전 없음, 택배로만
+const PRODUCT_CATEGORIES = [
+  { id: 'bouquet', key: 'cat_bouquet', label: '꽃다발' },
+  { id: 'basket', key: 'cat_basket', label: '꽃바구니' },
+  { id: 'vase', key: 'cat_vase', label: '화병꽂이·센터피스' },
+  { id: 'dried', key: 'cat_dried', label: '드라이·프리저브드' },
+  { id: 'space', key: 'cat_space', label: '웨딩·공간' },
+  { id: 'plant', key: 'cat_plant', label: '화분·식물' },
+  { id: 'goods', key: 'cat_goods', label: '굿즈' }
+];
+
+function categoryLabel(id) {
+  const c = PRODUCT_CATEGORIES.find(x => x.id === id);
+  if (!c) return id || '';
+  return typeof t === 'function' ? t(c.key, c.label) : c.label;
+}
+
 const DEFAULT_PRODUCTS = [
   {
     id: 'signature-bouquet',

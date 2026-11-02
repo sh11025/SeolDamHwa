@@ -20,7 +20,7 @@
 ## 2. 작업 방식 (꼭 지키기)
 0. **화면 클래스(Tailwind)를 새로 쓰거나 바꾸면 꼭 `npm run build:css`** (처음 한 번은 `npm install`). 예전 CDN 대신 `assets/css/tailwind.css`를 미리 만들어 쓰므로, 다시 만들지 않으면 새 클래스는 화면에 안 먹어요. 설정은 `tailwind.config.js`, 원본은 `src/tailwind.css`. 고치는 중에는 `npm run watch:css`를 켜 두면 저장할 때마다 자동으로 만들어져요.
 1. 바꾸기 전 `git status` 확인, 끝나면 커밋 (커밋 메시지 끝에 공동 작성자 줄).
-2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[56]**.
+2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[58]**.
 3. 검증: `python -m http.server 5500`로 띄우고 브라우저에서 직접 클릭. 매번 확인할 것
    - 인라인 스크립트 문법(`node --check`), 모든 `getElementById` id 존재
    - 버튼이 부르는 함수가 모두 있는지: 콘솔에서 `[...new Set([...document.documentElement.outerHTML.matchAll(/on\w+="([A-Za-z_]\w*)\(/g)].map(m=>m[1]))].filter(n=>typeof window[n]!=='function')` → `[]` (예외: `if`)
@@ -66,11 +66,12 @@
    - ~~[47] 사용자 오류·아이디어 묶음~~ 완료: 팝업은 홈에서만(`updatePopupVisibility`, 실제로 보였을 때만 '봤음' 표시), 주소 찾기는 다음 우편번호 `embed`(`#address-search-layer`), 받는 분 = 주문자 실시간 동기화, 꽃 사전 카드 사진+하얀 막(`flowerPhoto`, 꽃 사전 `image` 칸), 꽃으로 거르기 `openFlowersPageWithFlower()`(`browseState.flower`), 홈 맞춤 담화 띠 움직임 `startCtaPicker()`(shop-curation.js), 쿠폰 기간 끝 정리 `cleanupExpiredCoupons()` + 기록 `seoldamhwa_coupon_history`(coupon_history.csv) + 통계 `renderCouponStats()`.
      - 참고: 휴대폰에 팝업이 안 보인 원인은 팝업 설정이 브라우저마다 따로 저장되기 때문. `start-server.bat`으로 열면 DATA 폴더를 통해 같은 설정을 받음. 지금 저장된 팝업은 '꺼짐' 상태.
    - ~~단골·기념일~~: 손님 개인정보를 더 모으게 되어 하지 않기로 함 (2026-10-30 사용자 결정).
-4-000. **사용자 아이디어 (2026-11-02, 아직 정하는 중)**
-   - 홈 '맞춤 담화' 띠(`#custom-cta`)의 검은 바탕이 불편함 → 다른 방식 제안 중(한지색 바탕 + 낙관색 테두리·꽃살 모서리, 또는 사진 배경 + 하얀 막 등).
-   - 상품 페이지 '이 꽃에 담긴 이야기'(쓰인 꽃이 많으면 길어짐) 정리: 그 아래에 꽃별 설명(사진·영상·글·유튜브)을 넣고, 순서를 관리자가 바꿀 수 있게 할 계획.
-   - 굿즈 판매(디자인 화분, 화분 영양제, 식물 씨앗 등) + 꽃 둘러보기 종류 탭이 3개뿐이라 다양하지 않음 → 상품 종류(카테고리) 늘리기.
-   - 예시 상품 종류를 다양하게(관리자에서 고르고 지우고 고치는 연습 + 상품 페이지 시험용) → 종류가 정해지면 함께.
+4-000. ~~[56]·[57] 사용자 아이디어 (2026-11-02)~~ 완료:
+   - 상품 종류 7가지: `PRODUCT_CATEGORIES`·`categoryLabel()`(products-data.js) 한 곳에서 정의 → 꽃 둘러보기 탭 `BROWSE_CATEGORIES`, 홈 종류 버튼 `renderCategoryPills()`(shop-core.js, `#home-category-pills`), 관리자 `edit-prod-cat`, 상품 페이지 표시. id: bouquet·basket·vase·dried·space·plant·goods.
+   - 굿즈(`goods`): `productFlowerIds()`가 빈 목록 → 제철·꽃 이야기 없음. 결제는 장바구니가 모두 굿즈면 택배만(`checkoutAllGoods`, 택배가 꺼져 있으면 원래 방법 유지). 사용자 매장 설정은 지금 '퀵'만 켜져 있음.
+   - 예시 상품 41개(admin-tools.js, 굿즈 4·드라이 4·화분 4·화병 4 포함).
+   - 맞춤 담화 띠 `#custom-cta`: 한지 카드형(한지 바탕 + 인주색 테두리 + `.kkotsal` 모서리), 움직이는 꽃 고르기는 그대로.
+   - 상품 페이지: 설명 + 쓰인 꽃 칩(`renderProductFlowers`) → '꽃별 관리 안내' 접기 목록 `buildFlowerGuideSection()`(shop-flowers.js, `#pdp-guide-<꽃id>`). 꽃 사전 새 칸 `guideText`·`guideImages`·`guideVideo`(flowers.csv에 추가), 관리자 꽃 사전 창에서 입력. 순서 = 상품 `flowers` 순서, 관리자 상품 창 `#edit-prod-flowers-order` ↑↓(`editProdFlowerOrder`).
 4-00. **남은 디자인 추천 10~13번 (2026-11-02 사용자 승인, 8번 버튼 정리는 하지 않기로)**: ⑩ 휴대폰 오른쪽 아래 ♡·💬 버튼을 하나로 묶어 누르면 펼치기 ⑪ 휴대폰 머리글의 언어 선택(KO)을 ☰ 메뉴 안으로(메뉴에 이미 언어 선택 있음 → 머리글 것만 `hidden sm:block`) ⑫ 관리자 대시보드 맨 위 '오늘 할 일'(오늘 배송·제작 중·새 상담·재입고 대기) ⑬ 관리자 왼쪽 메뉴를 소제목으로 묶기(판매: 상품·꽃 사전·쿠폰 / 주문·상담 / 매출 / 매장: 설정·안내 페이지·팝업 / 연동). [54]에서 1~5·7·9번과 첫 화면 정리·숫자 쪽 넘기기(`browseState.page`)는 끝남. 6번(홈 포장 소개 줄이기)은 사용자가 원래가 낫다고 해서 [55]에서 되돌림 — 복주머니는 차별점이라 홈에 크게 둘 것.
 4-0. ~~[49] 꽃 사전 화면~~ 완료: 12폭 병풍 달 고르기(`#dict-folding-screen`, 절기 `SOLAR_TERMS`, 사계절 색 `SEASON_TONES` — 사용자가 4가지로 줄이길 원함), 카드는 `hanok-card` + 꽃살 모서리 `.kkotsal`(index.html CSS). 사용자 결정: 오방색 색 거르기와 두루마리 펼침 상세는 쓰기 불편해서 하지 않음, 족자 모양·둥근 창도 쓰지 않음. [50] 카드 크기를 맞추려고 '이 꽃이 든 상품' 목록(상품 이름 버튼들)은 뺌(카드 `auto-rows-fr`, 관리 팁 두 줄). [51] '이 꽃이 든 상품 모두 보기' 버튼은 사용자 요청으로 다시 넣음 → `openFlowersPageWithFlower()`, 상품 없는 꽃은 안내 문구.
 4-1. ~~[48] 전체 점검 결과 정리~~ 완료 (2026-11-02). 남은 것은 아래 "오픈 준비"의 사용자 결정 항목. 처음 정리:

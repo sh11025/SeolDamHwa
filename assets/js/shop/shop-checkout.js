@@ -86,6 +86,7 @@ function proceedCheckoutFromCart() {
 
 // ---- 주문서: 받는 분·배송 방법·배송비·주소 찾기 ----
 let checkoutItemsTotal = 0;
+let checkoutAllGoods = false; // 장바구니가 모두 굿즈면 택배로만 보냄
 let addressSearchSido = '';
 
 function coT(key, fallback) {
@@ -264,7 +265,10 @@ function renderDeliveryMethodOptions() {
   const wrap = document.getElementById('delivery-method-options');
   if (!wrap || typeof getDeliveryMethods !== 'function') return;
   const s = loadSettings();
-  const methods = getDeliveryMethods(s);
+  let methods = getDeliveryMethods(s);
+  // 굿즈만 담았으면 택배만 (택배를 꺼 두었으면 원래 방법 그대로)
+  const goodsOnly = checkoutAllGoods && methods.some(m => m.id === 'parcel');
+  if (goodsOnly) methods = methods.filter(m => m.id === 'parcel');
   const prev = selectedDeliveryMethod();
   const until = typeof quickSameDayUntil === 'function' ? quickSameDayUntil(s) : '';
   // 당일 마감 시각이 없으면 '당일'이라고 하지 않음 (달력도 내일부터)
@@ -297,7 +301,7 @@ function renderDeliveryMethodOptions() {
     wrap.appendChild(label);
   });
   const note = document.getElementById('delivery-note');
-  note.textContent = (s.delivery && s.delivery.note) || '';
+  note.textContent = [goodsOnly ? coT('co_goods_parcel_only', '굿즈는 택배로만 보내 드려요.') : '', (s.delivery && s.delivery.note) || ''].filter(Boolean).join(' ');
   note.classList.toggle('hidden', !note.textContent);
 }
 
@@ -583,6 +587,7 @@ function openCheckoutModal() {
   });
 
   checkoutItemsTotal = subtotal;
+  checkoutAllGoods = cart.every(item => item.product && item.product.category === 'goods');
   // QR로 받은 쿠폰 코드가 있으면 미리 넣기 (적용은 손님이 [적용]을 눌러야)
   try {
     const pending = sessionStorage.getItem('sdh_coupon_pending');

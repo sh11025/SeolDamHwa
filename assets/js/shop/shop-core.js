@@ -232,6 +232,7 @@ function renderProducts(category) {
     updateHomeSliderArrows();
     requestAnimationFrame(updateHomeSliderArrows);
   }
+  renderCategoryPills();
   if (typeof refreshFlowersPage === 'function') refreshFlowersPage();
   if (typeof refreshDictionaryPage === 'function') refreshDictionaryPage();
   updateHeroRecommendButton();
@@ -252,6 +253,23 @@ function updateHomeSliderArrows() {
   const max = grid.scrollWidth - grid.clientWidth - 4;
   if (prev) prev.disabled = grid.scrollLeft <= 4;
   if (next) next.disabled = grid.scrollLeft >= max;
+}
+
+// 홈 종류 버튼 (전체 + 상품 종류)
+function renderCategoryPills() {
+  const box = document.getElementById('home-category-pills');
+  if (!box) return;
+  box.innerHTML = '';
+  [{ id: 'all', key: 'cat_all', label: '전체 둘러보기' }, ...PRODUCT_CATEGORIES].forEach(c => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.id = `cat-${c.id}`;
+    b.textContent = typeof t === 'function' ? t(c.key, c.label) : c.label;
+    b.onclick = () => filterCategory(c.id);
+    const on = (currentCategory || 'all') === c.id;
+    b.className = `cat-pill px-4 py-2 text-xs sm:text-sm font-semibold rounded-xs cursor-pointer ${on ? 'bg-ink-black text-white shadow-xs' : 'bg-[#FAF7F2] text-ink-gray hover:text-ink-black border border-ink-black/10'}`;
+    box.appendChild(b);
+  });
 }
 
 // 카테고리 필터

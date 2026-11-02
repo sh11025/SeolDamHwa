@@ -174,7 +174,7 @@ function formatFlowerSeason(f, lang = 'ko') {
 
 // 상품에 쓰인 꽃 id 목록 (관리자에서 고른 p.flowers 우선)
 function productFlowerIds(p) {
-  if (!p) return [];
+  if (!p || p.category === 'goods') return [];
   if (Array.isArray(p.flowers)) return p.flowers;
   return DEFAULT_PRODUCT_FLOWERS[p.id] || [];
 }

@@ -293,8 +293,8 @@
       body.on-product-page aside[aria-label="빠른 바로가기"] { bottom: 150px; }
     }
     .cta-pick { transition: transform .45s cubic-bezier(.2,.8,.2,1), box-shadow .45s, opacity .45s, filter .45s; }
-    .cta-pick.is-looking { transform: translateY(-10px) scale(1.12); box-shadow: 0 0 0 3px #F1DDB3; z-index: 2; }
-    .cta-pick.is-picked { transform: translateY(-14px) scale(1.25); box-shadow: 0 0 0 3px #8B2500, 0 10px 24px rgba(0,0,0,.35); z-index: 3; }
+    .cta-pick.is-looking { transform: translateY(-10px) scale(1.12); box-shadow: 0 0 0 3px #E8C9A8; z-index: 2; }
+    .cta-pick.is-picked { transform: translateY(-14px) scale(1.25); box-shadow: 0 0 0 3px #8B2500, 0 10px 20px rgba(60,40,20,.25); z-index: 3; }
     .cta-pick.is-dim { opacity: .45; filter: grayscale(.6); }
     @media (prefers-reduced-motion: reduce) { .cta-pick { transition: none; } }
     /* 읽기 편하게: 쇼핑몰의 작은 글씨는 최소 13px (장바구니·찜 숫자 배지 text-[10px]는 그대로) */
@@ -533,18 +533,8 @@
 
         <!-- 카테고리 필터 탭 -->
         <div class="flex flex-wrap items-center justify-center gap-2 pb-10 border-b border-ink-black/10">
-          <button onclick="filterCategory('all')" id="cat-all" data-i18n="cat_all" class="cat-pill px-4 py-2 text-xs sm:text-sm font-semibold rounded-xs bg-ink-black text-white cursor-pointer shadow-xs">
-            전체 둘러보기
-          </button>
-          <button onclick="filterCategory('bouquet')" id="cat-bouquet" data-i18n="cat_bouquet" class="cat-pill px-4 py-2 text-xs sm:text-sm font-semibold rounded-xs bg-[#FAF7F2] text-ink-gray hover:text-ink-black border border-ink-black/10 cursor-pointer">
-            꽃다발
-          </button>
-          <button onclick="filterCategory('basket')" id="cat-basket" data-i18n="cat_basket" class="cat-pill px-4 py-2 text-xs sm:text-sm font-semibold rounded-xs bg-[#FAF7F2] text-ink-gray hover:text-ink-black border border-ink-black/10 cursor-pointer">
-            꽃바구니
-          </button>
-          <button onclick="filterCategory('space')" id="cat-space" data-i18n="cat_space" class="cat-pill px-4 py-2 text-xs sm:text-sm font-semibold rounded-xs bg-[#FAF7F2] text-ink-gray hover:text-ink-black border border-ink-black/10 cursor-pointer">
-            웨딩·공간
-          </button>
+          <!-- 종류 버튼은 PRODUCT_CATEGORIES로 그림 (shop-core.js renderCategoryPills) -->
+          <div id="home-category-pills" class="contents"></div>
         </div>
         <!-- 상품 슬라이더: 4개씩 보이고 옆으로 넘김 (관리자 '홈에 보이기'·'홈 순서') -->
         <div class="relative pt-12">
@@ -562,20 +552,23 @@
 
       <!-- 맞춤 담화 안내 띠 -->
       <section id="custom-cta" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-        <div class="relative overflow-hidden rounded-sm bg-ink-black text-hanji px-6 py-10 sm:px-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div class="space-y-2 max-w-xl">
-            <p data-i18n="cta_badge" class="font-brush text-2xl text-[#F1DDB3]">맞춤 담화</p>
+        <!-- 한지 카드: 한지 바탕 + 얇은 인주색 테두리 + 꽃살 모서리 -->
+        <div class="relative overflow-hidden rounded-sm bg-[#F6F1E7] text-ink-black border border-seal-red/35 shadow-xs px-6 py-10 sm:px-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <span class="kkotsal tl" aria-hidden="true"></span><span class="kkotsal tr" aria-hidden="true"></span><span class="kkotsal bl" aria-hidden="true"></span><span class="kkotsal br" aria-hidden="true"></span>
+          <div class="pointer-events-none absolute inset-[7px] border border-seal-red/15 rounded-xs" aria-hidden="true"></div>
+          <div class="relative space-y-2 max-w-xl">
+            <p data-i18n="cta_badge" class="font-brush text-2xl text-seal-red">맞춤 담화</p>
             <h2 data-i18n="cta_title" class="text-xl sm:text-2xl font-extrabold tracking-tight break-keep">어떤 꽃이 좋을지 모르겠다면</h2>
-            <p data-i18n="cta_desc" class="text-sm text-hanji/80 leading-relaxed break-keep">누구에게, 어떤 날, 어떤 마음인지 몇 가지만 고르면 어울리는 꽃을 골라 드려요.</p>
+            <p data-i18n="cta_desc" class="text-sm text-ink-charcoal leading-relaxed break-keep">누구에게, 어떤 날, 어떤 마음인지 몇 가지만 고르면 어울리는 꽃을 골라 드려요.</p>
           </div>
           <!-- 꽃을 하나씩 짚어 보다가 하나를 골라 주는 움직임 (shop-curation.js startCtaPicker) -->
-          <button type="button" onclick="switchView('custom')" id="cta-picker" class="group shrink-0 flex flex-col items-center gap-3 cursor-pointer" aria-label="맞춤 담화로 꽃 추천 받기">
+          <button type="button" onclick="switchView('custom')" id="cta-picker" class="relative group shrink-0 flex flex-col items-center gap-3 cursor-pointer" aria-label="맞춤 담화로 꽃 추천 받기">
             <div id="cta-picker-row" class="flex items-end -space-x-3 h-[88px]"></div>
-            <p id="cta-picker-caption" class="h-5 text-xs font-bold text-[#F1DDB3] tracking-wide transition-opacity duration-300" aria-live="off"></p>
+            <p id="cta-picker-caption" class="h-5 text-xs font-bold text-seal-red tracking-wide transition-opacity duration-300" aria-live="off"></p>
           </button>
-          <div class="flex flex-col sm:flex-row gap-2 shrink-0">
+          <div class="relative flex flex-col sm:flex-row gap-2 shrink-0">
             <button type="button" onclick="switchView('custom')" data-i18n="cta_btn" class="px-6 py-3 bg-seal-red text-white text-sm font-bold rounded-xs hover:opacity-90 cursor-pointer">맞춤 추천 받기 →</button>
-            <button type="button" onclick="toggleChatPanel(true)" data-i18n="cta_btn_chat" class="px-6 py-3 border border-hanji/40 text-hanji text-sm font-bold rounded-xs hover:border-hanji cursor-pointer">💬 바로 물어보기</button>
+            <button type="button" onclick="toggleChatPanel(true)" data-i18n="cta_btn_chat" class="px-6 py-3 border border-ink-black/25 bg-white text-ink-black text-sm font-bold rounded-xs hover:border-seal-red hover:text-seal-red cursor-pointer">💬 바로 물어보기</button>
           </div>
         </div>
       </section>

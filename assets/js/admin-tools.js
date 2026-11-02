@@ -45,7 +45,7 @@ const SAMPLE_PRODUCTS = [
     curationTags: { recipients: ['나에게', '공간·기업'], occasions: ['특별한 날 없이'], feelings: ['공간 연출', '응원'], colors: ['여러 색 섞어서', '잘 모르겠어요'] }
   },
   {
-    id: 'sample-orchid', name: '[예시] 동양란 개업 화분', englishName: 'Oriental Orchid Pot', category: 'basket',
+    id: 'sample-orchid', name: '[예시] 동양란 개업 화분', englishName: 'Oriental Orchid Pot', category: 'plant',
     price: 120000, sizes: [{ label: '1대', price: 120000, recommended: true }, { label: '2대', price: 180000, recommended: false }], inquiryOnly: false,
     poeticLine: '곧게 뻗은 잎처럼 오래 번창하시길', flowerMeaning: '동양란 · 번영, 고결함', stockQuantity: 4,
     image: 'assets/images/products/royal-blue-garden.jpg',
@@ -67,7 +67,7 @@ const SAMPLE_PRODUCTS = [
   }
 ];
 
-// 상품이 많을 때 화면 점검용 예시 22개 더 (모두 30개). 일부러 까다로운 경우를 섞음:
+// 상품이 많을 때 화면 점검용 예시 33개 더 (모두 41개, 7가지 종류에 골고루). 일부러 까다로운 경우를 섞음:
 // 아주 긴 이름, 사이즈 0~4개, 사진 여러 장, 깨진 사진 주소, 품절·품절 임박, 비공개·예약, 홈에 숨김, 꽃 사전 연결
 (function addStressSampleProducts() {
   const photos = ['signature-bouquet', 'norigae-basket', 'space-design', 'bohemian-autumn', 'pale-pink-rose', 'creamy-sunshine', 'royal-blue-garden'].map(n => `assets/images/products/${n}.jpg`);
@@ -81,13 +81,13 @@ const SAMPLE_PRODUCTS = [
     ['프리지아 졸업 꽃다발', 'Freesia Graduation', 'bouquet', 28000, 3, 30, ['freesia', 'babys-breath'], ''],
     ['라넌큘러스 파스텔 바구니', 'Ranunculus Pastel Basket', 'basket', 68000, 1, 4, ['ranunculus'], ''],
     ['동백 겨울 한 가지', 'Camellia Branch', 'bouquet', 42000, 0, 9, ['camellia'], ''],
-    ['매화 서재 화병꽂이', 'Plum Blossom Vase', 'space', 85000, 1, 3, ['plum-blossom'], ''],
+    ['매화 서재 화병꽂이', 'Plum Blossom Vase', 'vase', 85000, 1, 3, ['plum-blossom'], ''],
     ['수국 한가득 여름 바구니', 'Hydrangea Summer Basket', 'basket', 95000, 2, 0, ['hydrangea', 'eucalyptus'], ''],
     ['카네이션 어버이날 꽃바구니', 'Carnation Basket', 'basket', 55000, 3, 40, ['carnation'], ''],
     ['백합 위로의 꽃다발', 'Lily Comfort Bouquet', 'bouquet', 49000, 2, 12, ['lily'], ''],
     ['코스모스 들판 핸드타이드', 'Cosmos Handtied', 'bouquet', 36000, 1, 18, ['cosmos'], ''],
-    ['맨드라미 가을 드라이 리스', 'Cockscomb Dry Wreath', 'space', 120000, 0, 2, ['cockscomb'], ''],
-    ['다알리아 버건디 센터피스', 'Dahlia Centerpiece', 'space', 150000, 2, 5, ['dahlia', 'rose'], 'home1'],
+    ['맨드라미 가을 드라이 리스', 'Cockscomb Dry Wreath', 'dried', 120000, 0, 2, ['cockscomb'], ''],
+    ['다알리아 버건디 센터피스', 'Dahlia Centerpiece', 'vase', 150000, 2, 5, ['dahlia', 'rose'], 'home1'],
     ['국화 감사 꽃바구니', 'Chrysanthemum Thanks', 'basket', 62000, 2, 7, ['chrysanthemum'], ''],
     ['거베라 응원 미니 꽃다발', 'Gerbera Cheer Mini', 'bouquet', 25000, 1, 1, ['gerbera'], ''],
     ['연꽃 차 테이블 장식', 'Lotus Tea Table', 'space', 0, 0, 0, ['lotus'], 'inquiry'],
@@ -98,7 +98,21 @@ const SAMPLE_PRODUCTS = [
     ['예약 공개 확인용 꽃바구니', 'Scheduled Check', 'basket', 72000, 2, 10, ['magnolia'], 'scheduled'],
     ['홈에 숨긴 꽃다발', 'Hidden on Home', 'bouquet', 47000, 2, 14, ['calla'], 'hideHome'],
     ['해바라기·델피늄 여름 바구니', 'Sunflower Delphinium Basket', 'basket', 110000, 2, 3, ['sunflower', 'delphinium'], ''],
-    ['호접란 개업 화분 (대형)', 'Large Moth Orchid', 'space', 250000, 1, 2, ['phalaenopsis'], '']
+    ['호접란 개업 화분 (대형)', 'Large Moth Orchid', 'plant', 250000, 1, 2, ['phalaenopsis'], ''],
+    // 화병꽂이·센터피스
+    ['작약 백자 화병꽂이', 'Peony in White Porcelain', 'vase', 98000, 1, 4, ['peony', 'snapdragon'], ''],
+    // 드라이·프리저브드
+    ['라벤더 드라이 한 다발', 'Dried Lavender Bundle', 'dried', 26000, 2, 25, ['lavender'], ''],
+    ['프리저브드 장미 유리돔', 'Preserved Rose Dome', 'dried', 59000, 1, 0, ['rose'], ''],
+    ['목화·스타티스 드라이 꽃다발', 'Cotton & Statice Dried', 'dried', 45000, 2, 9, ['cotton', 'statice'], ''],
+    // 화분·식물
+    ['심비디움 겨울 화분', 'Cymbidium Pot', 'plant', 89000, 1, 6, ['cymbidium'], ''],
+    ['라벤더 창가 미니 화분', 'Lavender Window Pot', 'plant', 22000, 1, 30, ['lavender'], ''],
+    // 굿즈 (꽃 없음 · 택배로만)
+    ['백자 디자인 화분 (소)', 'White Porcelain Planter S', 'goods', 35000, 2, 12, [], ''],
+    ['옹기 미니 화분 2개 세트', 'Onggi Mini Pot Set', 'goods', 28000, 1, 2, [], ''],
+    ['화분 영양제 (앰플 10개)', 'Plant Nutrient Ampoules', 'goods', 9000, 1, 80, [], ''],
+    ['우리 들꽃 씨앗 모음', 'Korean Wildflower Seeds', 'goods', 7000, 2, 50, [], '']
   ];
   rows.forEach(([name, en, category, base, nSizes, stock, flowers, flag], i) => {
     const labels = ['S', 'M', 'L', 'XL'];

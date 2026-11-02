@@ -813,7 +813,7 @@
           <!-- 예시 데이터 -->
           <div class="admin-card p-5 rounded-sm space-y-3">
             <h2 class="text-base font-bold text-ink-black">예시 데이터</h2>
-            <p class="text-ink-gray leading-relaxed">버튼 <strong class="text-ink-black">한 번</strong>이면 연습용 데이터가 한꺼번에 들어가요: 꽃다발·꽃바구니·화분·정기 배송·상담 상품까지 <strong class="text-ink-black">예시 상품 30개</strong>(1만9천원~25만원, 품절·품절 임박, 아주 긴 이름, 사진 여러 장, 깨진 사진, 비공개·예약 등 화면 점검용 포함), <strong class="text-ink-black">최근 90일 주문</strong>, 석 달치 지출, 상담 문의 3건. 이름 앞에 <strong class="text-ink-black">[예시]</strong>가 붙어요.</p>
+            <p class="text-ink-gray leading-relaxed">버튼 <strong class="text-ink-black">한 번</strong>이면 연습용 데이터가 한꺼번에 들어가요: 꽃다발·꽃바구니·화병꽂이·드라이·웨딩·화분·굿즈 7가지 종류에 골고루 <strong class="text-ink-black">예시 상품 41개</strong>(7천원~25만원, 품절·품절 임박, 아주 긴 이름, 사진 여러 장, 깨진 사진, 비공개·예약 등 화면 점검용 포함), <strong class="text-ink-black">최근 90일 주문</strong>, 석 달치 지출, 상담 문의 3건. 이름 앞에 <strong class="text-ink-black">[예시]</strong>가 붙어요.</p>
             <label class="flex items-start gap-2 cursor-pointer">
               <input type="checkbox" id="sample-show-in-shop" checked class="mt-0.5 w-4 h-4">
               <span>예시 상품을 <strong>쇼핑몰에도 보이기</strong> <span class="text-xs text-ink-gray">(갤러리·맞춤 담화 예산 구간·품절 표시를 확인할 때. 실제 오픈 전에는 꼭 지워 주세요)</span></span>
@@ -1344,6 +1344,17 @@
       </div>
       <label class="block font-bold text-ink-black">색<input type="text" id="flower-colors" maxlength="60" placeholder="예: 빨강 · 분홍 · 흰색" class="mt-1 w-full bg-white border border-ink-black/20 p-2 rounded-xs font-normal"></label>
       <label class="block font-bold text-ink-black">관리 팁 <span class="font-normal text-ink-gray">(한국어 화면에만 보여요)</span><textarea id="flower-care" rows="2" maxlength="200" class="mt-1 w-full bg-white border border-ink-black/20 p-2 rounded-xs font-normal"></textarea></label>
+      <!-- 꽃별 관리 안내: 이 꽃이 든 모든 상품 페이지 '꽃별 관리 안내'에 같이 나옴 -->
+      <div class="space-y-2 p-3 bg-[#FAF7F2] border border-ink-black/10 rounded-xs">
+        <p class="font-bold text-ink-black">꽃별 관리 안내 <span class="font-normal text-ink-gray">(이 꽃이 든 모든 상품 페이지에 같이 보여요. 한 번만 넣으면 돼요)</span></p>
+        <label class="block font-bold text-ink-black">자세한 설명<textarea id="flower-guideText" rows="4" maxlength="1500" placeholder="예: 받으신 날 줄기 끝을 사선으로 1~2cm 잘라 주세요. 물은 이틀에 한 번…" class="mt-1 w-full bg-white border border-ink-black/20 p-2 rounded-xs font-normal"></textarea></label>
+        <div>
+          <p class="font-bold text-ink-black mb-1">사진 <span class="font-normal text-ink-gray">(여러 장 가능)</span></p>
+          <div id="flower-guide-images" class="flex flex-wrap gap-2"></div>
+          <button type="button" onclick="openImagePicker(src => addFlowerGuideImage(src))" class="mt-1 px-3 py-1.5 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">사진 더하기</button>
+        </div>
+        <label class="block font-bold text-ink-black">영상 <span class="font-normal text-ink-gray">(유튜브 주소 또는 assets/videos/… 파일 주소)</span><input type="text" id="flower-guideVideo" maxlength="300" placeholder="https://youtu.be/…" class="mt-1 w-full bg-white border border-ink-black/20 p-2 rounded-xs font-normal"></label>
+      </div>
       <div class="pt-3 border-t border-ink-black/10 flex justify-end gap-2">
         <button type="button" onclick="closeFlowerModal()" class="px-4 py-2 border border-ink-black/20 rounded-xs font-bold hover:bg-gray-100 cursor-pointer">취소</button>
         <button type="submit" class="jakae-btn px-6 py-2 rounded-sm font-bold cursor-pointer">저장</button>
@@ -1394,7 +1405,11 @@
               <select id="edit-prod-cat" aria-label="종류" class="bg-white border border-ink-black/20 py-1 px-2 rounded-xs font-bold text-ink-black">
                 <option value="bouquet">꽃다발</option>
                 <option value="basket">꽃바구니</option>
+                <option value="vase">화병꽂이·센터피스</option>
+                <option value="dried">드라이·프리저브드</option>
                 <option value="space">웨딩·공간</option>
+                <option value="plant">화분·식물</option>
+                <option value="goods">굿즈 (화분·영양제·씨앗 등)</option>
               </select>
             </div>
 
@@ -1458,6 +1473,8 @@
               </div>
               <div id="edit-prod-flowers" class="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto p-2 bg-white border border-ink-black/15 rounded-xs text-[11px]"></div>
               <p id="edit-prod-flowers-summary" class="text-[11px] text-ink-gray mt-1"></p>
+              <!-- 고른 꽃의 순서 = 상품 페이지 '꽃별 관리 안내' 순서 (맨 위 꽃이 펼쳐져 보임) -->
+              <div id="edit-prod-flowers-order" class="mt-2 space-y-1"></div>
             </div>
           </div>
         </section>

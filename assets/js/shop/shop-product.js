@@ -24,12 +24,7 @@ function renderProductPage(productId, isPreview = false) {
   document.getElementById('pdp-image').src = prod.image;
   document.getElementById('pdp-title').innerText = tp.name;
   
-  const catNames = {
-    bouquet: typeof t === 'function' ? t('cat_bouquet', '꽃다발') : '꽃다발',
-    basket: typeof t === 'function' ? t('cat_basket', '꽃바구니') : '꽃바구니',
-    space: typeof t === 'function' ? t('cat_space', '웨딩·공간') : '웨딩·공간'
-  };
-  document.getElementById('pdp-category').innerText = catNames[prod.category] || '전통 화훼';
+  document.getElementById('pdp-category').innerText = categoryLabel(prod.category) || '전통 화훼';
   document.getElementById('pdp-poetic').innerText = `"${tp.poeticLine}"`;
   const meaningPrefix = typeof t === 'function' ? t('pdp_meaning_prefix', '꽃말: ') : '꽃말: ';
   document.getElementById('pdp-meaning').innerText = `${meaningPrefix}${tp.flowerMeaning}`;

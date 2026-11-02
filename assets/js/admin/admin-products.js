@@ -27,11 +27,7 @@ function renderProductsTable() {
   if (!tbody) return;
   tbody.innerHTML = '';
 
-  const catNames = {
-    bouquet: '꽃다발',
-    basket: '꽃바구니',
-    space: '웨딩·공간'
-  };
+  const catNames = Object.fromEntries(PRODUCT_CATEGORIES.map(c => [c.id, c.label]));
 
   const q = ((document.getElementById('prod-search') || {}).value || '').trim().toLowerCase();
   const stockFilter = (document.getElementById('prod-stock-filter') || {}).value || 'all';
