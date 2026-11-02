@@ -29,6 +29,17 @@ function monthStrip(f, current) {
   return strip;
 }
 
+// 달마다 대표 절기 (병풍 폭에 함께 적음)
+const SOLAR_TERMS = {
+  ko: ['소한', '입춘', '경칩', '청명', '입하', '망종', '소서', '입추', '백로', '한로', '입동', '대설'],
+  ja: ['小寒', '立春', '啓蟄', '清明', '立夏', '芒種', '小暑', '立秋', '白露', '寒露', '立冬', '大雪'],
+  en: ['Winter', 'Spring', 'Spring', 'Spring', 'Summer', 'Summer', 'Summer', 'Autumn', 'Autumn', 'Autumn', 'Winter', 'Winter']
+};
+
+function solarTermLabel(m, lang) {
+  return (SOLAR_TERMS[lang] || SOLAR_TERMS.ko)[m - 1];
+}
+
 function monthLabel(m, lang) {
   if (lang === 'en') return monthNameEn(m);
   return lang === 'ja' ? `${m}月` : `${m}월`;
@@ -51,22 +62,62 @@ function renderDictionaryPage() {
   head.append(h, d);
   view.appendChild(head);
 
-  // 달 고르기: 지금 제철 / 전체 / 1~12월
-  const months = document.createElement('div');
-  months.className = 'flex flex-wrap items-center justify-center gap-1.5 mb-4';
+  // 달 고르기: [지금 제철] [전체] + 12폭 병풍 (폭마다 그 달의 절기)
+  const current = currentKoreaMonth();
+  const quick = document.createElement('div');
+  quick.className = 'flex items-center justify-center gap-2 mb-3';
   const pill = (value, text) => {
     const b = document.createElement('button');
     b.type = 'button';
     const on = String(s.month) === String(value);
-    b.className = `px-3 py-1.5 text-xs font-bold rounded-xs cursor-pointer ${on ? 'bg-ink-black text-white' : 'bg-[#FAF7F2] text-ink-gray hover:text-ink-black border border-ink-black/10'}`;
+    b.className = `px-4 py-2 text-xs sm:text-sm font-bold rounded-xs cursor-pointer ${on ? 'bg-ink-black text-white' : 'bg-[#FAF7F2] text-ink-gray hover:text-ink-black border border-ink-black/10'}`;
     b.textContent = text;
     b.setAttribute('aria-pressed', on ? 'true' : 'false');
     b.onclick = () => { dictionaryState.month = value; renderDictionaryPage(); };
     return b;
   };
-  months.append(pill('now', flT('dict_now', '🌿 지금 제철')), pill('all', flT('dict_all', '전체')));
-  for (let m = 1; m <= 12; m++) months.appendChild(pill(m, monthLabel(m, lang)));
-  view.appendChild(months);
+  quick.append(pill('now', flT('dict_now', '🌿 지금 제철')), pill('all', flT('dict_all', '전체')));
+  view.appendChild(quick);
+
+  const screenWrap = document.createElement('div');
+  screenWrap.className = 'home-slider overflow-x-auto mb-5 -mx-4 px-4 sm:mx-0 sm:px-0'; // home-slider: 스크롤 막대 숨김
+  const screen = document.createElement('div');
+  screen.id = 'dict-folding-screen';
+  screen.setAttribute('role', 'group');
+  screen.setAttribute('aria-label', flT('dict_screen_label', '달 고르기'));
+  screen.className = 'grid grid-cols-12 min-w-[640px] border border-ink-black/20 rounded-xs overflow-hidden bg-[#FAF7F2]';
+  const selected = s.month === 'now' ? current : s.month;
+  for (let m = 1; m <= 12; m++) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    const on = s.month !== 'all' && Number(selected) === m;
+    // 병풍 접힌 면처럼 폭마다 아주 옅게 번갈아
+    b.className = `relative py-2.5 text-center cursor-pointer border-r last:border-r-0 border-ink-black/10 transition-colors ${on ? 'bg-seal-red text-white' : (m % 2 ? 'bg-[#FBF9F5]' : 'bg-[#F4F0E8]') + ' text-ink-gray hover:text-seal-red'}`;
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    const num = document.createElement('span');
+    num.className = `block text-sm font-extrabold ${on ? 'text-white' : 'text-ink-black'}`;
+    num.textContent = monthLabel(m, lang);
+    const term = document.createElement('span');
+    term.className = 'block text-[11px] mt-0.5';
+    term.textContent = solarTermLabel(m, lang);
+    b.append(num, term);
+    if (m === current) {
+      const dot = document.createElement('span');
+      dot.className = `absolute top-1 right-1 w-1.5 h-1.5 rounded-full ${on ? 'bg-white' : 'bg-seal-red'}`;
+      dot.title = flT('dict_this_month', '이번 달');
+      b.appendChild(dot);
+      b.setAttribute('aria-label', `${monthLabel(m, lang)} ${solarTermLabel(m, lang)} · ${flT('dict_this_month', '이번 달')}`);
+    }
+    b.onclick = () => { dictionaryState.month = m === current ? 'now' : m; renderDictionaryPage(); };
+    screen.appendChild(b);
+  }
+  screenWrap.appendChild(screen);
+  view.appendChild(screenWrap);
+  // 휴대폰처럼 병풍이 화면보다 넓으면 고른 달이 가운데 오게
+  requestAnimationFrame(() => {
+    const on = screen.querySelector('[aria-pressed="true"]');
+    if (on && screenWrap.scrollWidth > screenWrap.clientWidth) screenWrap.scrollLeft = on.offsetLeft - (screenWrap.clientWidth - on.offsetWidth) / 2;
+  });
 
   const search = document.createElement('input');
   search.type = 'search';
@@ -110,7 +161,7 @@ function renderDictionaryGrid() {
     const used = products.filter(p => productFlowerIds(p).includes(f.id));
     const photo = flowerPhoto(f, used);
     const card = document.createElement('article');
-    card.className = 'relative overflow-hidden rounded-sm border border-ink-black/10 bg-[#FBF9F5] shadow-xs flex flex-col';
+    card.className = 'hanok-card relative overflow-hidden flex flex-col';
     // 꽃 사진을 하얀 막 뒤에 깔아 글씨가 잘 읽히게
     if (photo) {
       const bg = document.createElement('img');
@@ -123,6 +174,12 @@ function renderDictionaryGrid() {
       veil.className = 'absolute inset-0 bg-gradient-to-b from-white/75 via-white/88 to-white/95';
       card.append(bg, veil);
     }
+    ['tl', 'tr', 'bl', 'br'].forEach(pos => {
+      const c = document.createElement('span');
+      c.className = `kkotsal ${pos}`;
+      c.setAttribute('aria-hidden', 'true');
+      card.appendChild(c);
+    });
     const body = document.createElement('div');
     body.className = 'relative z-10 p-5 sm:p-6 flex flex-col gap-3 h-full';
 
