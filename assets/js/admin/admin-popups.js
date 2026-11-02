@@ -167,7 +167,7 @@ function updateInternalTargetProductOptions() {
   let prodOptions = '';
   if (visibleProducts.length > 0) {
     prodOptions = '<optgroup label="상품 바로가기">' + visibleProducts.map(p => `
-      <option value="product:${p.id}">상품: ${p.name}</option>
+      <option value="product:${escapeHtml(p.id)}">상품: ${escapeHtml(p.name)}</option>
     `).join('') + '</optgroup>';
   }
 

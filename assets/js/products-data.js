@@ -234,3 +234,26 @@ if (typeof document !== 'undefined') {
     img.classList.add('object-contain', 'p-[18%]', 'opacity-30');
   }, true);
 }
+
+// 화면에 글자를 넣을 때 < > & " ' 가 태그로 읽히지 않게 (상품 이름 등, 쇼핑몰·관리자 공통)
+function htmlText(value) {
+  return String(value === undefined || value === null ? '' : value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+}
+
+// 브라우저 저장 공간(약 5MB)이 가득 차서 저장이 안 될 때 알려 줌 (사진을 많이 올렸을 때 등)
+(function guardStorageQuota() {
+  if (typeof Storage === 'undefined') return;
+  const original = Storage.prototype.setItem;
+  let lastAlert = 0;
+  Storage.prototype.setItem = function (key, value) {
+    try {
+      return original.call(this, key, value);
+    } catch (e) {
+      if (e && (e.name === 'QuotaExceededError' || e.code === 22) && Date.now() - lastAlert > 10000) {
+        lastAlert = Date.now();
+        alert('브라우저 저장 공간이 가득 차서 저장하지 못했어요.\n관리자 > 상품 사진 고르기 창에서 안 쓰는 사진을 지우거나, 사진 대신 이미지 주소(https://...)를 써 주세요.');
+      }
+      throw e;
+    }
+  };
+})();

@@ -67,6 +67,8 @@ function renderAdminSettings() {
 }
 
 // 주간 운영시간 테이블 렌더링 (월~일 순서)
+const DAY_NAMES_KO = ['일', '월', '화', '수', '목', '금', '토'];
+
 function renderWeeklyHoursTable() {
   const tbody = document.getElementById('admin-weekly-hours-tbody');
   if (!tbody) return;
@@ -84,25 +86,25 @@ function renderWeeklyHoursTable() {
       <td class="p-2.5 text-center ${dayColor}">${DAY_SHORT_NAMES[dayIdx]}</td>
       <td class="p-2.5 text-center">
         <label class="relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" id="hours-open-${dayIdx}" ${h.open ? 'checked' : ''} onchange="toggleDayOpen(${dayIdx}, this.checked)" class="sr-only peer">
+          <input type="checkbox" id="hours-open-${dayIdx}" aria-label="${DAY_NAMES_KO ? DAY_NAMES_KO[dayIdx] : ''}요일 영업" ${h.open ? 'checked' : ''} onchange="toggleDayOpen(${dayIdx}, this.checked)" class="sr-only peer">
           <div class="w-8 h-4 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-seal-red"></div>
         </label>
       </td>
       <td class="p-2.5">
         <div class="inline-flex items-center gap-1.5">
-          <input type="time" id="hours-start-${dayIdx}" value="${h.start || '10:00'}" ${!h.open ? 'disabled' : ''} onchange="updateDayTime(${dayIdx}, 'start', this.value)" class="bg-white border border-ink-black/20 p-1.5 rounded-xs text-xs font-mono disabled:bg-gray-100 disabled:text-gray-400">
+          <input type="time" id="hours-start-${dayIdx}" aria-label="${DAY_NAMES_KO ? DAY_NAMES_KO[dayIdx] : ''}요일 여는 시각" value="${h.start || '10:00'}" ${!h.open ? 'disabled' : ''} onchange="updateDayTime(${dayIdx}, 'start', this.value)" class="bg-white border border-ink-black/20 p-1.5 rounded-xs text-xs font-mono disabled:bg-gray-100 disabled:text-gray-400">
           <span class="text-ink-light">~</span>
-          <input type="time" id="hours-end-${dayIdx}" value="${h.end || '18:00'}" ${!h.open ? 'disabled' : ''} onchange="updateDayTime(${dayIdx}, 'end', this.value)" class="bg-white border border-ink-black/20 p-1.5 rounded-xs text-xs font-mono disabled:bg-gray-100 disabled:text-gray-400">
+          <input type="time" id="hours-end-${dayIdx}" aria-label="${DAY_NAMES_KO ? DAY_NAMES_KO[dayIdx] : ''}요일 닫는 시각" value="${h.end || '18:00'}" ${!h.open ? 'disabled' : ''} onchange="updateDayTime(${dayIdx}, 'end', this.value)" class="bg-white border border-ink-black/20 p-1.5 rounded-xs text-xs font-mono disabled:bg-gray-100 disabled:text-gray-400">
         </div>
       </td>
       <td class="p-2.5 text-center">
-        <input type="checkbox" id="hours-lunch-${dayIdx}" ${h.lunch ? 'checked' : ''} ${!h.open ? 'disabled' : ''} onchange="toggleDayLunch(${dayIdx}, this.checked)" class="rounded-xs border-ink-black/20 text-seal-red focus:ring-seal-red disabled:opacity-40">
+        <input type="checkbox" id="hours-lunch-${dayIdx}" aria-label="${DAY_NAMES_KO ? DAY_NAMES_KO[dayIdx] : ''}요일 점심시간 있음" ${h.lunch ? 'checked' : ''} ${!h.open ? 'disabled' : ''} onchange="toggleDayLunch(${dayIdx}, this.checked)" class="rounded-xs border-ink-black/20 text-seal-red focus:ring-seal-red disabled:opacity-40">
       </td>
       <td class="p-2.5">
         <div class="inline-flex items-center gap-1.5">
-          <input type="time" id="hours-lunch-start-${dayIdx}" value="${h.lunchStart || '12:30'}" ${(!h.open || !h.lunch) ? 'disabled' : ''} onchange="updateDayTime(${dayIdx}, 'lunchStart', this.value)" class="bg-white border border-ink-black/20 p-1.5 rounded-xs text-xs font-mono disabled:bg-gray-100 disabled:text-gray-400">
+          <input type="time" id="hours-lunch-start-${dayIdx}" aria-label="${DAY_NAMES_KO ? DAY_NAMES_KO[dayIdx] : ''}요일 점심 시작" value="${h.lunchStart || '12:30'}" ${(!h.open || !h.lunch) ? 'disabled' : ''} onchange="updateDayTime(${dayIdx}, 'lunchStart', this.value)" class="bg-white border border-ink-black/20 p-1.5 rounded-xs text-xs font-mono disabled:bg-gray-100 disabled:text-gray-400">
           <span class="text-ink-light">~</span>
-          <input type="time" id="hours-lunch-end-${dayIdx}" value="${h.lunchEnd || '13:30'}" ${(!h.open || !h.lunch) ? 'disabled' : ''} onchange="updateDayTime(${dayIdx}, 'lunchEnd', this.value)" class="bg-white border border-ink-black/20 p-1.5 rounded-xs text-xs font-mono disabled:bg-gray-100 disabled:text-gray-400">
+          <input type="time" id="hours-lunch-end-${dayIdx}" aria-label="${DAY_NAMES_KO ? DAY_NAMES_KO[dayIdx] : ''}요일 점심 끝" value="${h.lunchEnd || '13:30'}" ${(!h.open || !h.lunch) ? 'disabled' : ''} onchange="updateDayTime(${dayIdx}, 'lunchEnd', this.value)" class="bg-white border border-ink-black/20 p-1.5 rounded-xs text-xs font-mono disabled:bg-gray-100 disabled:text-gray-400">
         </div>
       </td>
     `;

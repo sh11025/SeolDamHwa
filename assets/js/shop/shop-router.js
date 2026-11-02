@@ -40,6 +40,7 @@ function applyRoute() {
     return;
   }
   if (name === 'story' || name === 'custom') { showView(name); return; }
+  if (name) { goHomeWithNotice('route_unknown', '없는 페이지라 홈으로 왔어요.'); return; }
   showView('shop');
 }
 

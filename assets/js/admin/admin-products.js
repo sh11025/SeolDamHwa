@@ -105,9 +105,9 @@ function renderProductsTable() {
     const catLabel = catNames[p.category] || p.category;
 
     tr.innerHTML = `
-      <td class="py-3 px-4"><img src="${p.image}" class="w-12 h-14 object-cover border border-ink-black/10 rounded-xs"></td>
-      <td class="py-3 px-4 font-bold text-ink-black text-sm">${p.name}<p class="text-[11px] text-ink-gray font-normal">${catLabel}</p></td>
-      <td class="py-3 px-4 max-w-xs font-serif text-seal-red font-semibold leading-relaxed line-clamp-2">"${p.poeticLine}"</td>
+      <td class="py-3 px-4"><img src="${escapeHtml(p.image)}" alt="" class="w-12 h-14 object-cover border border-ink-black/10 rounded-xs"></td>
+      <td class="py-3 px-4 font-bold text-ink-black text-sm">${escapeHtml(p.name)}<p class="text-[11px] text-ink-gray font-normal">${catLabel}</p></td>
+      <td class="py-3 px-4 max-w-xs font-serif text-seal-red font-semibold leading-relaxed line-clamp-2">"${escapeHtml(p.poeticLine)}"</td>
       <td class="py-3 px-4 font-bold text-ink-black">${priceText}</td>
       <td class="py-3 px-4">${stBadge}${p.inquiryOnly ? '' : `<div class="mt-1.5 inline-flex items-center border border-ink-black/20 rounded-xs bg-white overflow-hidden" role="group" aria-label="재고 조절">
           <button type="button" onclick="adjustStock('${p.id}', -1)" class="px-2 py-0.5 font-bold hover:bg-[#EFECE6] cursor-pointer" aria-label="재고 하나 빼기">−</button>

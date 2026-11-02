@@ -46,7 +46,7 @@ function updateCartUI() {
       <div class="flex-1 flex flex-col justify-between py-0.5 text-xs">
         <div>
           <div class="flex justify-between font-bold text-ink-black">
-            <span>${tp.name}</span>
+            <span>${htmlText(tp.name)}</span>
             <button onclick="removeFromCart(${index})" class="text-ink-light hover:text-seal-red cursor-pointer">✕</button>
           </div>
           ${item.sizeLabel ? `<p class="text-[11px] text-seal-red font-medium mt-0.5">${sizePrefix}${item.sizeLabel}</p>` : ''}
@@ -266,7 +266,9 @@ function renderDeliveryMethodOptions() {
   const s = loadSettings();
   const methods = getDeliveryMethods(s);
   const prev = selectedDeliveryMethod();
-  const names = { quick: coT('co_method_quick', '퀵 당일 배송'), parcel: coT('co_method_parcel', '택배'), pickup: coT('co_method_pickup', '매장 픽업') };
+  const until = typeof quickSameDayUntil === 'function' ? quickSameDayUntil(s) : '';
+  // 당일 마감 시각이 없으면 '당일'이라고 하지 않음 (달력도 내일부터)
+  const names = { quick: until ? coT('co_method_quick', '퀵 당일 배송') : coT('co_method_quick_plain', '퀵 배송'), parcel: coT('co_method_parcel', '택배'), pickup: coT('co_method_pickup', '매장 픽업') };
   wrap.innerHTML = '';
   methods.forEach((m, i) => {
     const fee = calcDeliveryFee(m.id, checkoutItemsTotal, s);
@@ -286,7 +288,7 @@ function renderDeliveryMethodOptions() {
     title.textContent = names[m.id];
     const area = document.createElement('span');
     area.className = 'block text-[11px] text-ink-gray';
-    area.textContent = m.area || '';
+    area.textContent = [m.area || '', m.id === 'quick' && until ? coT('co_quick_until', '오늘 {time}까지 주문하면 오늘 받아요').replace('{time}', until) : ''].filter(Boolean).join(' · ');
     text.append(title, area);
     const price = document.createElement('span');
     price.className = 'font-bold text-ink-black whitespace-nowrap';
@@ -323,6 +325,8 @@ function recalcCheckout() {
   const isPickup = method === 'pickup';
   document.getElementById('address-fields').classList.toggle('hidden', isPickup);
   document.getElementById('order-address').required = !isPickup;
+  // 퀵을 골랐을 때만 오늘 날짜가 생길 수 있어 달력 다시 그리기
+  if (typeof renderDeliveryCalendar === 'function') renderDeliveryCalendar();
   // 시간대는 퀵·픽업만, 택배는 날짜만
   const needsTime = deliveryNeedsTime(method);
   document.getElementById('co-date-label').textContent = isPickup ? coT('co_pickup_day_label', '픽업 날짜 (필수)') : coT('co_date_label', '생화 희망 배송일 (필수)');
@@ -568,7 +572,7 @@ function openCheckoutModal() {
     row.className = 'flex justify-between text-xs py-1 text-ink-gray border-b border-ink-black/5';
     row.innerHTML = `
       <div>
-        <span class="font-bold text-ink-black">${tp.name}</span>
+        <span class="font-bold text-ink-black">${htmlText(tp.name)}</span>
         ${item.sizeLabel ? `<span class="text-seal-red text-[11px]"> (${item.sizeLabel})</span>` : ''}
         <span> × ${item.quantity}</span>
         <div class="text-[11px] text-ink-light">${optDisplay}</div>
@@ -633,6 +637,14 @@ function validateCheckoutStep2() {
     if (!el.checkValidity()) { el.reportValidity(); return false; }
   }
   if (!selectedDeliveryMethod()) { alert(coT('co_method_required', '배송 방법을 골라 주세요.')); return false; }
+  const pickedDate = document.getElementById('order-delivery-date').value;
+  if (pickedDate && !getAvailableDeliveryDates().some(d => d.value === pickedDate)) {
+    // 예: 당일 퀵 마감 시각이 지나 버림
+    document.getElementById('order-delivery-date').value = '';
+    renderDeliveryCalendar();
+    alert(coT('co_date_expired', '고른 날짜는 이제 받을 수 없어요. 달력에서 다시 골라 주세요.'));
+    return false;
+  }
   if (!document.getElementById('order-delivery-date').value) {
     alert(coT('co_date_required', '달력에서 날짜를 골라 주세요.'));
     document.getElementById('delivery-calendar').scrollIntoView({ block: 'center' });
@@ -685,6 +697,13 @@ function renderCheckoutReview() {
 function submitCustomerOrder(e) {
   e.preventDefault();
   const dateVal = document.getElementById('order-delivery-date').value;
+  if (dateVal && !getAvailableDeliveryDates().some(d => d.value === dateVal)) {
+    document.getElementById('order-delivery-date').value = '';
+    renderDeliveryCalendar();
+    goCheckoutStep(2);
+    alert(coT('co_date_expired', '고른 날짜는 이제 받을 수 없어요. 달력에서 다시 골라 주세요.'));
+    return;
+  }
   if (!dateVal) {
     alert(coT('co_date_required', '달력에서 날짜를 골라 주세요.'));
     return;
@@ -746,7 +765,8 @@ function submitCustomerOrder(e) {
     couponCode = fresh.code;
     couponDiscountAmount = r.discount;
   }
-  const methodLabels = { quick: '퀵 당일 배송', parcel: '택배', pickup: '매장 픽업' };
+  const isToday = typeof getKoreaTimeParts === 'function' && dateVal === getKoreaTimeParts(new Date()).dateStr;
+  const methodLabels = { quick: isToday ? '퀵 당일 배송' : '퀵 배송', parcel: '택배', pickup: '매장 픽업' };
   const isPickup = method === 'pickup';
   const address = isPickup ? '매장 픽업' : [val('order-address'), val('order-address-detail')].filter(Boolean).join(', ');
 

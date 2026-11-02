@@ -280,7 +280,7 @@ function openProductDetail(productId, isPreview = false, fromRoute = false) {
   renderProductPage(productId, isPreview);
   const page = document.getElementById('pdp-modal');
   if (!page || page.classList.contains('hidden') || !currentSelectedProduct || currentSelectedProduct.id !== productId) {
-    if (fromRoute) showView('shop'); // 없는 상품이나 비공개 상품 주소
+    if (fromRoute) goHomeWithNotice('route_no_product', '찾는 상품이 없거나 지금은 볼 수 없어요.'); // 없는 상품이나 비공개 상품 주소
     return;
   }
   hideMainViews();
@@ -374,7 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof SHOP_ROUTES !== 'undefined') {
     SHOP_ROUTES.flower = params => openProductDetail(params[0], false, true);
     SHOP_ROUTES.wishlist = () => showWishlistPage();
-    SHOP_ROUTES.checkout = () => { if (cart.length) openCheckoutModal(); else showView('shop'); };
+    SHOP_ROUTES.checkout = () => { if (cart.length) openCheckoutModal(); else goHomeWithNotice('route_cart_empty', '장바구니가 비어 있어요. 꽃을 먼저 담아 주세요.'); };
   }
   updateWishBadge();
 });

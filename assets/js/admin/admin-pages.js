@@ -183,6 +183,7 @@ function renderDeliverySettings() {
     if (fee) fee.value = d[k].fee;
     document.getElementById(`dlv-${k}-area`).value = d[k].area || '';
   });
+  document.getElementById('dlv-quick-sameday').value = (d.quick && d.quick.sameDayUntil) || '';
   document.getElementById('dlv-free-over').value = d.freeOver;
   document.getElementById('dlv-note').value = d.note || '';
 }
@@ -201,7 +202,7 @@ function saveDeliverySettings(e) {
   saveSettings({
     ...s,
     delivery: {
-      quick: { enabled: on('quick'), fee: num('dlv-quick-fee'), area: val('dlv-quick-area') },
+      quick: { enabled: on('quick'), fee: num('dlv-quick-fee'), area: val('dlv-quick-area'), sameDayUntil: val('dlv-quick-sameday') },
       parcel: { enabled: on('parcel'), fee: num('dlv-parcel-fee'), area: val('dlv-parcel-area') },
       pickup: { enabled: on('pickup'), fee: 0, area: val('dlv-pickup-area') },
       freeOver: num('dlv-free-over'),

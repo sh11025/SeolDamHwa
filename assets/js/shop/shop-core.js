@@ -39,11 +39,21 @@ let currentQty = 1;
 let currentCategory = 'all';
 
 // 고를 수 있는 배송일 (내일부터 영업일 14일, 정기 휴무·임시 휴무 제외). [{ value: 'YYYY-MM-DD'(한국 날짜), label }]
-function getAvailableDeliveryDates() {
+// 퀵이고 관리자가 '당일 퀵 마감 시각'을 정했으면, 그 시각 전에는 오늘도 고를 수 있음
+function getAvailableDeliveryDates(method = (typeof selectedDeliveryMethod === 'function' ? selectedDeliveryMethod() : '')) {
   const currentLang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'ko';
   const settings = typeof loadSettings === 'function' ? loadSettings() : {};
   const now = new Date();
   const list = [];
+  const until = method === 'quick' && typeof quickSameDayUntil === 'function' ? quickSameDayUntil(settings) : '';
+  if (until && typeof getKoreaTimeParts === 'function') {
+    const kp = getKoreaTimeParts(now);
+    const sched = typeof getDaySchedule === 'function' ? getDaySchedule(kp.dateStr, settings) : { open: true };
+    if (sched.open && kp.timeStr < until) {
+      const label = typeof formatDeliveryDateOption === 'function' ? formatDeliveryDateOption(new Date(kp.year, kp.month - 1, kp.date), currentLang) : kp.dateStr;
+      list.push({ value: kp.dateStr, label: `${label} · ${typeof t === 'function' ? t('co_today', '오늘') : '오늘'}` });
+    }
+  }
   // 최대 60일까지 탐색하며 open인 날 14일 수집
   for (let dayOffset = 1; list.length < 14 && dayOffset <= 60; dayOffset++) {
     const d = new Date(now.getTime() + dayOffset * 24 * 60 * 60 * 1000);
@@ -135,24 +145,24 @@ function buildProductCard(p) {
     <div class="hanok-card p-3 transition-all duration-300">
       <div class="corner-tl"></div><div class="corner-tr"></div><div class="corner-bl"></div><div class="corner-br"></div>
       <div class="card-media relative aspect-[3/4] overflow-hidden bg-[#ECE8E1]">
-        <img loading="lazy" decoding="async" src="${cover}" alt="${tp.name}" class="${imgClass}">
+        <img loading="lazy" decoding="async" src="${htmlText(cover)}" alt="${htmlText(tp.name)}" class="${imgClass}">
         ${badgeHtml}
         <!-- 호버 시 시적 글귀 노출 -->
         <div class="card-hover-overlay absolute inset-0 bg-gradient-to-t from-ink-black/85 via-ink-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5 text-white">
-          <p class="font-serif text-base sm:text-lg text-white/95 mb-1.5 leading-snug font-semibold italic line-clamp-2">"${tp.poeticLine}"</p>
+          <p class="font-serif text-base sm:text-lg text-white/95 mb-1.5 leading-snug font-semibold italic line-clamp-2">"${htmlText(tp.poeticLine)}"</p>
           <div class="flex items-center gap-1.5 text-sm text-white/90">
             <span class="w-1 h-3 bg-seal-red rounded-xs"></span>
-            <span>${meaningPrefix}${tp.flowerMeaning}</span>
+            <span>${meaningPrefix}${htmlText(tp.flowerMeaning)}</span>
           </div>
         </div>
       </div>
     </div>
     <!-- 카드 하단 정보 -->
     <div class="mt-3 text-center space-y-1">
-      <h3 class="text-sm sm:text-base font-bold text-ink-black tracking-tight group-hover:text-seal-red transition-colors">${tp.name}</h3>
+      <h3 class="text-sm sm:text-base font-bold text-ink-black tracking-tight group-hover:text-seal-red transition-colors">${htmlText(tp.name)}</h3>
       ${inSeason ? `<span class="season-badge inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-xs">${seasonText}</span>` : ''}
       <!-- 터치 화면용 시적 글귀 -->
-      <p class="touch-poetic-line hidden font-serif text-xs sm:text-sm text-seal-red italic line-clamp-1 px-1">"${tp.poeticLine}"</p>
+      <p class="touch-poetic-line hidden font-serif text-xs sm:text-sm text-seal-red italic line-clamp-1 px-1">"${htmlText(tp.poeticLine)}"</p>
       <p class="text-sm font-semibold ${stockStatus === 'out_of_stock' ? 'text-ink-light' : 'text-ink-gray'}">${priceDisplay}</p>
     </div>
   `;
@@ -348,3 +358,26 @@ function closePreviewMode() {
 }
 
 // 2. 상품 상세 PDP 모달 열기 (미리보기 모드 isPreview 지원)
+
+// 화면 아래 잠깐 뜨는 안내 (예: 없는 상품 주소로 들어왔을 때)
+function showToast(message) {
+  let el = document.getElementById('shop-toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'shop-toast';
+    el.setAttribute('role', 'status');
+    el.className = 'fixed left-1/2 -translate-x-1/2 bottom-24 z-[90] max-w-[90vw] px-4 py-2.5 rounded-full bg-ink-black text-white text-sm font-bold shadow-lg transition-opacity duration-300 opacity-0 pointer-events-none';
+    document.body.appendChild(el);
+  }
+  el.textContent = message;
+  el.classList.remove('opacity-0');
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => el.classList.add('opacity-0'), 3200);
+}
+
+// 들어갈 수 없는 주소면 홈으로 가면서 주소도 홈으로 바꾸고 알려 줌
+function goHomeWithNotice(key, fallback) {
+  showView('shop');
+  if (typeof setRouteHash === 'function') setRouteHash('#/', true);
+  showToast(typeof t === 'function' ? t(key, fallback) : fallback);
+}

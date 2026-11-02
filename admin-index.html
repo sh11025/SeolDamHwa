@@ -1127,7 +1127,7 @@
 
                   <!-- 신규 공휴일 추가 폼 -->
                   <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2.5 bg-[#FAF7F2] border border-ink-black/15 rounded-xs">
-                    <input type="date" id="new-holiday-date" class="bg-white border border-ink-black/20 p-2 rounded-xs text-xs font-bold text-ink-black focus:border-seal-red">
+                    <input type="date" id="new-holiday-date" aria-label="추가할 공휴일 날짜" class="bg-white border border-ink-black/20 p-2 rounded-xs text-xs font-bold text-ink-black focus:border-seal-red">
                     <input type="text" id="new-holiday-name" placeholder="공휴일 이름 (예: 임시공휴일, 선거일)" class="flex-1 bg-white border border-ink-black/20 p-2 rounded-xs text-xs focus:border-seal-red">
                     <button type="button" onclick="addCustomHoliday()" class="jakae-btn py-2 px-4 rounded-xs text-xs font-bold shrink-0 cursor-pointer shadow-xs">
                       공휴일 추가
@@ -1157,7 +1157,7 @@
 
                 <!-- 신규 임시 휴무 추가 폼 -->
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2.5 bg-[#FAF7F2] border border-ink-black/15 rounded-xs">
-                  <input type="date" id="new-closure-date" class="bg-white border border-ink-black/20 p-2 rounded-xs text-xs font-bold text-ink-black focus:border-seal-red">
+                  <input type="date" id="new-closure-date" aria-label="임시 휴무 날짜" class="bg-white border border-ink-black/20 p-2 rounded-xs text-xs font-bold text-ink-black focus:border-seal-red">
                   <input type="text" id="new-closure-reason" placeholder="사유 (예: 추석 연휴, 개인 사정)" class="flex-1 bg-white border border-ink-black/20 p-2 rounded-xs text-xs focus:border-seal-red">
                   <button type="button" onclick="addClosureDate()" class="jakae-btn py-2 px-4 rounded-xs text-xs font-bold shrink-0 cursor-pointer shadow-xs">
                     추가
@@ -1246,8 +1246,9 @@
             <table class="w-full text-left">
               <thead><tr class="text-xs text-ink-gray border-b border-ink-black/10"><th class="py-2 pr-2">사용</th><th class="py-2 pr-2">방법</th><th class="py-2 pr-2">배송비(원)</th><th class="py-2">가능 지역·안내</th></tr></thead>
               <tbody>
-                <tr class="border-b border-ink-black/5"><td class="py-2 pr-2"><input type="checkbox" id="dlv-quick-on" class="w-4 h-4"></td><td class="py-2 pr-2 font-bold whitespace-nowrap">퀵 당일 배송</td><td class="py-2 pr-2"><input type="number" id="dlv-quick-fee" min="0" step="500" class="w-28 bg-white border border-ink-black/20 p-1.5 rounded-xs"></td><td class="py-2"><input type="text" id="dlv-quick-area" maxlength="60" class="w-full bg-white border border-ink-black/20 p-1.5 rounded-xs"></td></tr>
-                <tr class="border-b border-ink-black/5"><td class="py-2 pr-2"><input type="checkbox" id="dlv-parcel-on" class="w-4 h-4"></td><td class="py-2 pr-2 font-bold whitespace-nowrap">택배</td><td class="py-2 pr-2"><input type="number" id="dlv-parcel-fee" min="0" step="500" class="w-28 bg-white border border-ink-black/20 p-1.5 rounded-xs"></td><td class="py-2"><input type="text" id="dlv-parcel-area" maxlength="60" class="w-full bg-white border border-ink-black/20 p-1.5 rounded-xs"></td></tr>
+                <tr class="border-b border-ink-black/5"><td class="py-2 pr-2"><input type="checkbox" id="dlv-quick-on" class="w-4 h-4"></td><td class="py-2 pr-2 font-bold whitespace-nowrap">퀵 당일 배송</td><td class="py-2 pr-2"><input type="number" id="dlv-quick-fee" aria-label="퀵 배송비" min="0" step="500" class="w-28 bg-white border border-ink-black/20 p-1.5 rounded-xs"></td><td class="py-2"><input type="text" id="dlv-quick-area" maxlength="60" aria-label="퀵 배송 지역" class="w-full bg-white border border-ink-black/20 p-1.5 rounded-xs">
+                  <label class="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-ink-gray">당일 퀵 주문 마감 <input type="time" id="dlv-quick-sameday" class="bg-white border border-ink-black/20 p-1 rounded-xs text-ink-black"> <span>(이 시각 전 주문은 오늘 받기 가능 · 비우면 내일부터)</span></label></td></tr>
+                <tr class="border-b border-ink-black/5"><td class="py-2 pr-2"><input type="checkbox" id="dlv-parcel-on" class="w-4 h-4"></td><td class="py-2 pr-2 font-bold whitespace-nowrap">택배</td><td class="py-2 pr-2"><input type="number" id="dlv-parcel-fee" aria-label="택배 배송비" min="0" step="500" class="w-28 bg-white border border-ink-black/20 p-1.5 rounded-xs"></td><td class="py-2"><input type="text" id="dlv-parcel-area" aria-label="택배 지역" maxlength="60" class="w-full bg-white border border-ink-black/20 p-1.5 rounded-xs"></td></tr>
                 <tr><td class="py-2 pr-2"><input type="checkbox" id="dlv-pickup-on" class="w-4 h-4"></td><td class="py-2 pr-2 font-bold whitespace-nowrap">매장 픽업</td><td class="py-2 pr-2 text-ink-gray">무료</td><td class="py-2"><input type="text" id="dlv-pickup-area" maxlength="60" placeholder="예: 북촌 아틀리에에서 직접 받아 가기" class="w-full bg-white border border-ink-black/20 p-1.5 rounded-xs"></td></tr>
               </tbody>
             </table>

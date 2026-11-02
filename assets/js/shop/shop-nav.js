@@ -341,6 +341,9 @@ function showView(view) {
     document.getElementById('nav-guide').className = 'nav-btn py-1 text-seal-red font-bold border-b-2 border-seal-red transition-colors';
     showGuideTab(currentGuideTab);
   }
+  // 브라우저 탭 제목
+  const titleKey = { story: ['nav_story', '설담화 이야기'], custom: ['nav_custom', '맞춤 담화'], guide: ['nav_guide', '정성 안내'] }[view];
+  if (titleKey) document.title = `${typeof t === 'function' ? t(titleKey[0], titleKey[1]) : titleKey[1]} | 설담화`;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 

@@ -53,7 +53,7 @@ const DEFAULT_SETTINGS = {
   business: { companyName: '설담화', ceo: '', bizNumber: '', mailOrderNumber: '', bizAddress: '', privacyOfficer: '' }, // 사업자 정보 (맨 아래·약관에 표시)
   // 배송 방법·배송비 (관리자 > 매장 정보 설정에서 수정)
   delivery: {
-    quick: { enabled: true, fee: 15000, area: '서울 전 지역' },      // 퀵 당일 배송
+    quick: { enabled: true, fee: 15000, area: '서울 전 지역', sameDayUntil: '' }, // 퀵 배송 (sameDayUntil 'HH:MM'이면 그 시각 전 주문은 오늘 받기 가능)
     parcel: { enabled: false, fee: 4000, area: '전국 (생화 특성상 제주·도서 지역 제외)' }, // 택배
     pickup: { enabled: false, fee: 0, area: '' },                    // 매장 픽업 (매장 공개 후 켜기)
     freeOver: 100000,   // 이 금액 이상 주문하면 배송비 무료 (0이면 무료 조건 없음)
@@ -383,6 +383,12 @@ function naverMapUrl(address) {
 
 // 배송 방법 목록 (켜진 것만)
 const DELIVERY_METHOD_ORDER = ['quick', 'parcel', 'pickup'];
+
+// 당일 퀵 마감 시각 ('HH:MM' 또는 '')
+function quickSameDayUntil(settings = loadSettings()) {
+  const q = (settings.delivery || DEFAULT_SETTINGS.delivery).quick || {};
+  return /^\d{2}:\d{2}$/.test(String(q.sameDayUntil || '')) ? q.sameDayUntil : '';
+}
 
 function getDeliveryMethods(settings = loadSettings()) {
   const d = settings.delivery || DEFAULT_SETTINGS.delivery;
