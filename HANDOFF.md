@@ -1,6 +1,6 @@
 # 설담화 작업 이어받기 안내 (HANDOFF)
 
-> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-02 [47]
+> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-02 [48]
 
 ## 1. 프로젝트 한눈에
 - `index.html`: 손님 쇼핑몰 / `admin-index.html`: 관리자 센터. 둘 다 Tailwind CDN + 순수 JS, 데이터는 브라우저 `localStorage`(키 `seoldamhwa_*`).
@@ -20,7 +20,7 @@
 ## 2. 작업 방식 (꼭 지키기)
 0. **화면 클래스(Tailwind)를 새로 쓰거나 바꾸면 꼭 `npm run build:css`** (처음 한 번은 `npm install`). 예전 CDN 대신 `assets/css/tailwind.css`를 미리 만들어 쓰므로, 다시 만들지 않으면 새 클래스는 화면에 안 먹어요. 설정은 `tailwind.config.js`, 원본은 `src/tailwind.css`. 고치는 중에는 `npm run watch:css`를 켜 두면 저장할 때마다 자동으로 만들어져요.
 1. 바꾸기 전 `git status` 확인, 끝나면 커밋 (커밋 메시지 끝에 공동 작성자 줄).
-2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[48]**.
+2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[49]**.
 3. 검증: `python -m http.server 5500`로 띄우고 브라우저에서 직접 클릭. 매번 확인할 것
    - 인라인 스크립트 문법(`node --check`), 모든 `getElementById` id 존재
    - 버튼이 부르는 함수가 모두 있는지: 콘솔에서 `[...new Set([...document.documentElement.outerHTML.matchAll(/on\w+="([A-Za-z_]\w*)\(/g)].map(m=>m[1]))].filter(n=>typeof window[n]!=='function')` → `[]` (예외: `if`)
@@ -66,12 +66,14 @@
    - ~~[47] 사용자 오류·아이디어 묶음~~ 완료: 팝업은 홈에서만(`updatePopupVisibility`, 실제로 보였을 때만 '봤음' 표시), 주소 찾기는 다음 우편번호 `embed`(`#address-search-layer`), 받는 분 = 주문자 실시간 동기화, 꽃 사전 카드 사진+하얀 막(`flowerPhoto`, 꽃 사전 `image` 칸), 꽃으로 거르기 `openFlowersPageWithFlower()`(`browseState.flower`), 홈 맞춤 담화 띠 움직임 `startCtaPicker()`(shop-curation.js), 쿠폰 기간 끝 정리 `cleanupExpiredCoupons()` + 기록 `seoldamhwa_coupon_history`(coupon_history.csv) + 통계 `renderCouponStats()`.
      - 참고: 휴대폰에 팝업이 안 보인 원인은 팝업 설정이 브라우저마다 따로 저장되기 때문. `start-server.bat`으로 열면 DATA 폴더를 통해 같은 설정을 받음. 지금 저장된 팝업은 '꺼짐' 상태.
    - ~~단골·기념일~~: 손님 개인정보를 더 모으게 되어 하지 않기로 함 (2026-10-30 사용자 결정).
-4-1. **[48] 전체 점검 결과 정리 (2026-11-02, 사용자 "모두 정리 후 진행")**
+4-1. ~~[48] 전체 점검 결과 정리~~ 완료 (2026-11-02). 남은 것은 아래 "오픈 준비"의 사용자 결정 항목. 처음 정리:
    - 오류: ① 같은 상품을 여러 번 담으면 재고 초과 + 결제 직전 재고 재확인 없음 ② 손님 기기 주문은 디스코드 알림이 안 감(웹후크가 관리자 브라우저에만) → 서버가 대신 보냄 ③ 서버 모드에서 다른 기기 손님은 주문 조회 불가 → 서버에 주문번호+연락처 한 건 조회 ④ 상품 수정 창 바깥 누르면 고친 내용이 확인 없이 사라짐
    - 편의·가독성: 장바구니 새로고침 시 사라짐 → 이 기기에 저장 / '퀵 당일'인데 오늘 못 고름 → 당일 주문 마감 시각 설정 / 없는 상품·빈 장바구니 주소 → 안내 + 주소 정리 / 이야기·맞춤 담화·정성 안내 탭 제목 / 운영시간 표 입력칸 이름 / 상품 글자 안전 처리(관리자 입력) / 저장 공간이 가득 찼을 때 안내
    - 운영 편의: 새 주문 알림(소리·배지) / 서버 백업 되돌리기 버튼 / 하루 주문 마감 시각(= 당일 퀵 마감)
    - 오픈 준비: Tailwind CDN 대신 미리 만든 CSS / 다른 기기에서 관리자 쓰기용 비밀번호 로그인(서버 모드) / 영상 압축(ffmpeg 필요) / 공유 미리보기 전체 주소·실제 DB·호스팅·결제(사용자 결정 필요)
-5. **오픈 준비(나중)**: 서버·DB 연결(현재 load/save 함수만 교체하도록 분리돼 있음), 결제 연결, 관리자 로그인, 실제 후기 기능, 약관 전문가 검토.
+   - [48]에서 만든 것: 재고 `stockLeftFor()`·결제 직전 재확인, 장바구니 `seoldamhwa_cart`(서버·백업 제외), 상품 창 `closeProductModal(force)`·`rememberProductModalState()`, 서버 `/api/notify`(디스코드 대신 보내기, 웹후크는 `DATA/.integrations.json`), `/api/order-lookup`, `/api/backups`·`/api/restore`, `/api/login`·`/api/logout`·`/api/admin-password`(`DATA/.admin.json`, PBKDF2), 다른 기기 관리자 로그인 화면(data-sync.js `showAdminLogin`), 당일 퀵 `delivery.quick.sameDayUntil`, `showToast()`·`goHomeWithNotice()`, `htmlText()`, 저장 공간 가득 참 안내(products-data.js), 새 주문 알림(admin-orders.js 끝), Tailwind 미리 만들기(`npm run build:css`).
+5. **오픈 준비(나중)**
+   - 사용자 결정이 필요한 것 (2026-11-02 기준): ① 영상 압축 — ffmpeg 설치 필요(설치 허락 받으면 assets/videos 두 개를 1MB 안팎으로) ② 공유 미리보기 `og:image`·`og:url` — 도메인이 정해져야 함 ③ 실제 DB·호스팅·관리자 로그인(인터넷 공개용) — 업체 선택(예: Supabase, Cloudflare, 카페24 등) ④ 결제(PG) — 사업자 등록 후.: 서버·DB 연결(현재 load/save 함수만 교체하도록 분리돼 있음), 결제 연결, 관리자 로그인, 실제 후기 기능, 약관 전문가 검토.
 
 ## 5. 아직 사용자 확인이 필요한 것
 - 꽃 사전 기본 26종의 꽃말·제철 달·관리 팁은 일반적인 정보로 채웠어요. 매장에서 실제로 들어오는 시기에 맞게 관리자 '꽃 사전'에서 고쳐 주세요. 기본 상품 4개의 '사용한 꽃'은 각 상품 '꽃말 및 상징' 칸에 적힌 꽃으로 넣었어요.
