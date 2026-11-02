@@ -27,7 +27,7 @@ const BROWSE_SORTS = [
 ];
 
 const BROWSE_EMPTY_FILTERS = { recipient: '', occasion: '', feeling: '', color: '', budget: '' };
-let browseState = { category: 'all', ...BROWSE_EMPTY_FILTERS, season: false, flower: '', sort: 'recommend', shown: BROWSE_PAGE_SIZE };
+let browseState = { category: 'all', ...BROWSE_EMPTY_FILTERS, season: false, flower: '', sort: 'recommend', page: 1 };
 
 function brT(key, fallback) {
   return typeof t === 'function' ? t(key, fallback) : fallback;
@@ -135,7 +135,7 @@ function renderFlowersPage() {
     b.setAttribute('aria-pressed', on ? 'true' : 'false');
     b.onclick = () => {
       browseState.category = c.id;
-      browseState.shown = BROWSE_PAGE_SIZE;
+      browseState.page = 1;
       if (typeof setRouteHash === 'function') setRouteHash(c.id === 'all' ? '#/flowers' : `#/flowers/${c.id}`, true);
       renderFlowersPage();
     };
@@ -144,7 +144,7 @@ function renderFlowersPage() {
   view.appendChild(pills);
 
   // 가격대 · 색 · 상황 · 정렬
-  const set = (key) => (v) => { browseState[key] = v; browseState.shown = BROWSE_PAGE_SIZE; renderFlowersPage(); };
+  const set = (key) => (v) => { browseState[key] = v; browseState.page = 1; renderFlowersPage(); };
   const bar = document.createElement('div');
   bar.className = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pb-6 border-b border-ink-black/10';
   BROWSE_FILTERS.forEach(f => {
@@ -162,7 +162,7 @@ function renderFlowersPage() {
   seasonBox.id = 'browse-season';
   seasonBox.className = 'w-4 h-4 cursor-pointer';
   seasonBox.checked = !!s.season;
-  seasonBox.onchange = () => { browseState.season = seasonBox.checked; browseState.shown = BROWSE_PAGE_SIZE; renderFlowersPage(); };
+  seasonBox.onchange = () => { browseState.season = seasonBox.checked; browseState.page = 1; renderFlowersPage(); };
   seasonWrap.append(seasonBox, document.createTextNode(brT('browse_season_only', '🌿 지금 제철인 꽃만')));
   const extraRow = document.createElement('div');
   extraRow.className = 'flex flex-wrap items-center gap-x-4 gap-y-2';
@@ -176,7 +176,7 @@ function renderFlowersPage() {
     chip.className = 'mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-seal-red text-white text-xs font-bold cursor-pointer hover:opacity-90';
     chip.textContent = `${brT('browse_flower_chip', '{name} 들어간 꽃만').replace('{name}', flowerText(chosen).name)} ✕`;
     chip.setAttribute('aria-label', brT('browse_flower_clear', '꽃 거르기 지우기'));
-    chip.onclick = () => { browseState.flower = ''; browseState.shown = BROWSE_PAGE_SIZE; renderFlowersPage(); };
+    chip.onclick = () => { browseState.flower = ''; browseState.page = 1; renderFlowersPage(); };
     extraRow.appendChild(chip);
   }
   view.appendChild(extraRow);
@@ -218,32 +218,48 @@ function renderFlowersPage() {
     const grid = document.createElement('div');
     grid.id = 'browse-grid';
     grid.className = 'grid grid-cols-2 lg:grid-cols-4 gap-x-4 sm:gap-x-8 gap-y-10 sm:gap-y-14 pt-2';
-    results.slice(0, s.shown).forEach(p => grid.appendChild(buildProductCard(p)));
+    // 숫자 쪽 넘기기 (12개씩): 1 … 4 5 6 … 12
+    const pages = Math.max(1, Math.ceil(results.length / BROWSE_PAGE_SIZE));
+    const page = Math.min(Math.max(1, s.page || 1), pages);
+    results.slice((page - 1) * BROWSE_PAGE_SIZE, page * BROWSE_PAGE_SIZE).forEach(p => grid.appendChild(buildProductCard(p)));
     view.appendChild(grid);
-    if (results.length > s.shown) {
-      const more = document.createElement('div');
-      more.className = 'text-center pt-12';
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.id = 'browse-more-btn';
-      b.className = 'px-8 py-3 text-sm font-bold border border-ink-black/25 bg-white rounded-xs hover:border-ink-black cursor-pointer';
-      b.textContent = brT('browse_more', '더 보기 ({shown}/{total})').replace('{shown}', Math.min(s.shown, results.length)).replace('{total}', results.length);
-      b.onclick = () => { browseState.shown += BROWSE_PAGE_SIZE; renderFlowersPage(); };
-      more.appendChild(b);
-      view.appendChild(more);
+    if (pages > 1) {
+      const nav = document.createElement('nav');
+      nav.id = 'browse-pages';
+      nav.setAttribute('aria-label', brT('browse_pages', '쪽 넘기기'));
+      nav.className = 'flex flex-wrap items-center justify-center gap-1.5 pt-12';
+      const go = n => { browseState.page = n; renderFlowersPage(); view.scrollIntoView({ block: 'start' }); };
+      const btn = (label, n, opts = {}) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = label;
+        b.disabled = !!opts.disabled;
+        if (opts.aria) b.setAttribute('aria-label', opts.aria);
+        if (n === page && !opts.arrow) b.setAttribute('aria-current', 'page');
+        b.className = `min-w-[40px] h-10 px-2 rounded-xs text-sm font-bold border cursor-pointer disabled:opacity-30 disabled:cursor-default ${n === page && !opts.arrow ? 'bg-ink-black text-white border-ink-black' : 'bg-white text-ink-black border-ink-black/20 hover:border-seal-red hover:text-seal-red'}`;
+        if (!opts.disabled) b.onclick = () => go(n);
+        nav.appendChild(b);
+      };
+      const gap = () => { const sp = document.createElement('span'); sp.className = 'px-1 text-ink-gray'; sp.textContent = '…'; nav.appendChild(sp); };
+      btn('‹', page - 1, { arrow: true, disabled: page === 1, aria: brT('browse_prev', '이전 쪽') });
+      const show = new Set([1, pages, page - 1, page, page + 1].filter(n => n >= 1 && n <= pages));
+      let last = 0;
+      [...show].sort((a, b) => a - b).forEach(n => { if (n - last > 1) gap(); btn(String(n), n); last = n; });
+      btn('›', page + 1, { arrow: true, disabled: page === pages, aria: brT('browse_next', '다음 쪽') });
+      view.appendChild(nav);
     }
   }
 }
 
 function resetBrowseFilters() {
-  browseState = { ...browseState, ...BROWSE_EMPTY_FILTERS, season: false, flower: '', shown: BROWSE_PAGE_SIZE };
+  browseState = { ...browseState, ...BROWSE_EMPTY_FILTERS, season: false, flower: '', page: 1 };
   renderFlowersPage();
 }
 
 // 꽃 둘러보기 보이기 (주소에서 들어올 때도 사용)
 function showFlowersPage(category) {
   const cat = BROWSE_CATEGORIES.some(c => c.id === category) ? category : 'all';
-  if (cat !== browseState.category) browseState = { ...browseState, category: cat, shown: BROWSE_PAGE_SIZE };
+  if (cat !== browseState.category) browseState = { ...browseState, category: cat, page: 1 };
   const page = document.getElementById('pdp-modal');
   if (page) page.classList.add('hidden');
   if (typeof hideMainViews === 'function') hideMainViews();
@@ -259,7 +275,7 @@ function showFlowersPage(category) {
 
 // 꽃 사전 → 그 꽃이 든 상품만 보기 (다른 거르기는 지우고 시작)
 function openFlowersPageWithFlower(flowerId) {
-  browseState = { ...browseState, ...BROWSE_EMPTY_FILTERS, season: false, flower: flowerId, category: 'all', shown: BROWSE_PAGE_SIZE };
+  browseState = { ...browseState, ...BROWSE_EMPTY_FILTERS, season: false, flower: flowerId, category: 'all', page: 1 };
   openFlowersPage('all');
 }
 
