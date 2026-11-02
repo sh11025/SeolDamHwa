@@ -286,3 +286,117 @@ function restoreOrder(ordId) {
   renderDashboard();
   try { renderFinance(); } catch (e) {}
 }
+
+/* ---------- 새 주문·상담 알림 (관리자 화면을 켜 둔 동안) ----------
+ * 쇼핑몰 탭이나 다른 기기(서버 모드)에서 새 주문·상담이 들어오면 소리 + 화면 알림 + 탭 제목에 숫자 */
+const adminSeen = { orders: null, inquiries: null };
+let adminUnread = 0;
+let adminAudio = null;
+const ADMIN_BASE_TITLE = document.title;
+
+function adminSoundOn() {
+  return localStorage.getItem('seoldamhwa_admin_sound') !== 'off';
+}
+
+function playAdminChime() {
+  if (!adminSoundOn()) return;
+  try {
+    adminAudio = adminAudio || new (window.AudioContext || window.webkitAudioContext)();
+    [880, 1318.5].forEach((freq, i) => {
+      const osc = adminAudio.createOscillator();
+      const gain = adminAudio.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const t0 = adminAudio.currentTime + i * 0.18;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(0.25, t0 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.35);
+      osc.connect(gain).connect(adminAudio.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.4);
+    });
+  } catch (e) { /* 소리를 못 내는 브라우저 */ }
+}
+
+function adminIds(key) {
+  try { return new Set(JSON.parse(localStorage.getItem(key) || '[]').filter(x => !x.isSample).map(x => x.id)); } catch (e) { return new Set(); }
+}
+
+function showAdminNotice(text, tab) {
+  let box = document.getElementById('admin-notice-stack');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'admin-notice-stack';
+    box.setAttribute('role', 'status');
+    box.className = 'fixed right-4 bottom-4 z-[70] flex flex-col gap-2 w-[min(360px,calc(100vw-2rem))]';
+    document.body.appendChild(box);
+  }
+  const card = document.createElement('div');
+  card.className = 'bg-ink-black text-white rounded-sm shadow-2xl px-4 py-3 flex items-center gap-3 text-sm';
+  const p = document.createElement('p');
+  p.className = 'flex-1 font-bold leading-snug';
+  p.textContent = text;
+  const go = document.createElement('button');
+  go.type = 'button';
+  go.className = 'px-3 py-1.5 bg-seal-red rounded-xs text-xs font-bold cursor-pointer whitespace-nowrap';
+  go.textContent = '보기';
+  go.onclick = () => { switchAdminTab(tab); card.remove(); clearAdminUnread(); };
+  const x = document.createElement('button');
+  x.type = 'button';
+  x.className = 'text-lg leading-none text-white/70 hover:text-white cursor-pointer';
+  x.textContent = '×';
+  x.setAttribute('aria-label', '알림 닫기');
+  x.onclick = () => card.remove();
+  card.append(p, go, x);
+  box.appendChild(card);
+  setTimeout(() => card.remove(), 60000);
+}
+
+function clearAdminUnread() {
+  adminUnread = 0;
+  document.title = ADMIN_BASE_TITLE;
+}
+
+function checkNewOrdersAndInquiries() {
+  const now = { orders: adminIds('seoldamhwa_orders'), inquiries: adminIds('seoldamhwa_inquiries') };
+  if (adminSeen.orders === null) { adminSeen.orders = now.orders; adminSeen.inquiries = now.inquiries; return; }
+  const newOrders = [...now.orders].filter(id => !adminSeen.orders.has(id));
+  const newInq = [...now.inquiries].filter(id => !adminSeen.inquiries.has(id));
+  adminSeen.orders = now.orders;
+  adminSeen.inquiries = now.inquiries;
+  if (!newOrders.length && !newInq.length) return;
+  const orders = JSON.parse(localStorage.getItem('seoldamhwa_orders') || '[]');
+  newOrders.forEach(id => {
+    const o = orders.find(x => x.id === id) || {};
+    showAdminNotice(`🌸 새 주문 ${o.orderNumber || ''} · ${o.deliveryDate || ''} · ${formatWon(o.totalAmount || 0)}`, 'orders');
+  });
+  if (newInq.length) showAdminNotice(`💬 새 상담 문의 ${newInq.length}건`, 'reviews');
+  adminUnread += newOrders.length + newInq.length;
+  document.title = `(${adminUnread}) 새 소식 · ${ADMIN_BASE_TITLE}`;
+  playAdminChime();
+  ['renderDashboard', 'renderOrdersList', 'renderInquiriesList'].forEach(fn => { try { if (typeof window[fn] === 'function') window[fn](); } catch (e) { /* 그 화면이 없으면 건너뜀 */ } });
+}
+
+function toggleAdminSound() {
+  localStorage.setItem('seoldamhwa_admin_sound', adminSoundOn() ? 'off' : 'on');
+  renderAdminSoundButton();
+  if (adminSoundOn()) playAdminChime();
+}
+
+function renderAdminSoundButton() {
+  const b = document.getElementById('admin-sound-btn');
+  if (!b) return;
+  const on = adminSoundOn();
+  b.textContent = on ? '🔔 새 주문 소리 켜짐' : '🔕 새 주문 소리 꺼짐';
+  b.setAttribute('aria-pressed', on ? 'true' : 'false');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  checkNewOrdersAndInquiries();
+  setInterval(checkNewOrdersAndInquiries, 5000);
+  window.addEventListener('storage', e => { if (e.key === 'seoldamhwa_orders' || e.key === 'seoldamhwa_inquiries') checkNewOrdersAndInquiries(); });
+  window.addEventListener('focus', () => { if (adminUnread) setTimeout(clearAdminUnread, 1500); });
+  // 브라우저는 한 번 누른 뒤에야 소리를 낼 수 있어서, 처음 클릭 때 소리 장치를 준비
+  document.addEventListener('click', () => { try { adminAudio = adminAudio || new (window.AudioContext || window.webkitAudioContext)(); adminAudio.resume(); } catch (e) { /* 무시 */ } }, { once: true });
+  renderAdminSoundButton();
+});
