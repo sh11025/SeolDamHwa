@@ -12,6 +12,11 @@ async function refreshCsvStatus() {
   if (!status) return;
   document.getElementById('csv-folder-actions').classList.toggle('hidden', !csvFolderSupported());
   document.getElementById('csv-fallback-actions').classList.toggle('hidden', csvFolderSupported());
+  if (window.SDH_SERVER_MODE) {
+    status.innerText = '서버 연결됨 · 바뀌면 DATA 폴더에 바로 저장';
+    status.className = 'text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800';
+    return;
+  }
   if (!csvFolderSupported()) { status.innerText = '파일 내려받기 방식'; return; }
   if (!csvFolderHandle) csvFolderHandle = await getSavedDataFolder();
   const granted = csvFolderHandle ? await ensureFolderPermission(csvFolderHandle, false) : false;
@@ -89,6 +94,7 @@ function toggleCsvAutosave(on) {
 // 데이터가 바뀌면 2초 뒤 자동 저장 (권한이 있을 때만, 묻지 않음)
 function scheduleCsvAutoSave(key) {
   if (!key || !key.startsWith('seoldamhwa_') || /_(lang|csv_autosave|popup_dismissed_date|ai_settings|ai_key|integrations)$/.test(key)) return;
+  if (window.SDH_SERVER_MODE) return; // server.py로 열면 data-sync.js가 DATA 폴더에 바로 저장
   if (localStorage.getItem('seoldamhwa_csv_autosave') !== '1' || !csvFolderSupported()) return;
   clearTimeout(csvAutoSaveTimer);
   csvAutoSaveTimer = setTimeout(() => handleSaveCsv(true), 2000);
