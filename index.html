@@ -205,6 +205,8 @@
     .corner-bl { position: absolute; bottom: 6px; left: 6px; width: 10px; height: 10px; border-bottom: 1.5px solid #8B2500; border-left: 1.5px solid #8B2500; pointer-events: none; }
     /* 꽃 사전 카드: 상품 카드의 창살(ㄱ자) 대신 꽃살 무늬 모서리 */
     .kkotsal { position: absolute; width: 14px; height: 14px; z-index: 2; pointer-events: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cg fill='none' stroke='%238B2500' stroke-width='1.2'%3E%3Ccircle cx='5' cy='2.6' r='2.3'/%3E%3Ccircle cx='2.6' cy='5' r='2.3'/%3E%3Ccircle cx='7.4' cy='5' r='2.3'/%3E%3Ccircle cx='5' cy='7.4' r='2.3'/%3E%3C/g%3E%3Ccircle cx='5' cy='5' r='1' fill='%238B2500'/%3E%3C/svg%3E") no-repeat center / contain; }
+    /* 모서리 무늬는 space-y 칸 띄우기의 영향을 받지 않게 (위치가 어긋나던 문제) */
+    .kkotsal, .corner-tl, .corner-tr, .corner-bl, .corner-br { margin: 0 !important; }
     .kkotsal.tl { top: 5px; left: 5px; }
     .kkotsal.tr { top: 5px; right: 5px; transform: scaleX(-1); }
     .kkotsal.bl { bottom: 5px; left: 5px; transform: scaleY(-1); }
@@ -557,18 +559,18 @@
           <span class="kkotsal tl" aria-hidden="true"></span><span class="kkotsal tr" aria-hidden="true"></span><span class="kkotsal bl" aria-hidden="true"></span><span class="kkotsal br" aria-hidden="true"></span>
           <div class="pointer-events-none absolute inset-[7px] border border-seal-red/15 rounded-xs" aria-hidden="true"></div>
           <!-- 왼쪽: 글 + 버튼 / 오른쪽: 꽃 고르는 움직임 -->
-          <div class="relative space-y-2 max-w-xl flex-1 min-w-0">
+          <div class="relative space-y-2 md:w-1/2 min-w-0">
             <p data-i18n="cta_badge" class="font-brush text-2xl text-seal-red">맞춤 담화</p>
             <h2 data-i18n="cta_title" class="text-xl sm:text-2xl font-extrabold tracking-tight break-keep">어떤 꽃이 좋을지 모르겠다면</h2>
-            <p data-i18n="cta_desc" class="text-sm text-ink-charcoal leading-relaxed break-keep">누구에게, 어떤 날, 어떤 마음인지 몇 가지만 고르면 어울리는 꽃을 골라 드려요.</p>
+            <p data-i18n="cta_desc" class="text-sm sm:text-base text-ink-charcoal leading-relaxed break-keep">누구에게, 어떤 날, 어떤 마음인지 몇 가지만 고르면 어울리는 꽃을 골라 드려요.</p>
             <div class="relative flex flex-wrap gap-2 pt-3">
               <button type="button" onclick="switchView('custom')" data-i18n="cta_btn" class="px-6 py-3 bg-seal-red text-white text-sm font-bold rounded-xs hover:opacity-90 cursor-pointer">맞춤 추천 받기 →</button>
               <button type="button" onclick="toggleChatPanel(true)" data-i18n="cta_btn_chat" class="px-6 py-3 border border-ink-black/25 bg-white text-ink-black text-sm font-bold rounded-xs hover:border-seal-red hover:text-seal-red cursor-pointer">💬 바로 물어보기</button>
             </div>
           </div>
           <!-- 꽃을 하나씩 짚어 보다가 하나를 골라 주는 움직임 (shop-curation.js startCtaPicker) -->
-          <button type="button" onclick="switchView('custom')" id="cta-picker" class="relative group shrink-0 self-center flex flex-col items-center gap-3 cursor-pointer" aria-label="맞춤 담화로 꽃 추천 받기">
-            <div id="cta-picker-row" class="flex items-end -space-x-3 sm:-space-x-4 h-[100px] sm:h-[124px] lg:h-[144px] pt-4"></div>
+          <button type="button" onclick="switchView('custom')" id="cta-picker" class="relative group self-center md:self-stretch md:w-1/2 flex flex-col items-center justify-center gap-3 cursor-pointer" aria-label="맞춤 담화로 꽃 추천 받기">
+            <div id="cta-picker-row" class="w-full flex items-end justify-center -space-x-3 lg:-space-x-5 pt-6"></div>
             <p id="cta-picker-caption" class="h-6 text-sm font-bold text-seal-red tracking-wide transition-opacity duration-300" aria-live="off"></p>
           </button>
         </div>
@@ -621,10 +623,10 @@
                 </svg>
               </div>
               <div>
-                <span data-i18n="pack_card1_tag" class="text-[11px] font-bold tracking-wider text-seal-red uppercase">다시 쓰는 보자기</span>
-                <h3 data-i18n="pack_card1_title" class="text-lg font-bold text-ink-black mt-0.5">버리지 않는 포장</h3>
+                <span data-i18n="pack_card1_tag" class="text-xs sm:text-sm font-bold tracking-wider text-seal-red uppercase">다시 쓰는 보자기</span>
+                <h3 data-i18n="pack_card1_title" class="text-lg sm:text-xl font-bold text-ink-black mt-0.5">버리지 않는 포장</h3>
               </div>
-              <p data-i18n="pack_card1_desc" class="text-xs sm:text-sm text-ink-gray leading-relaxed">
+              <p data-i18n="pack_card1_desc" class="text-sm sm:text-base text-ink-charcoal leading-relaxed">
                 한복 원단 보자기와 복주머니로 감싸, 꽃이 진 뒤에도 일상에서 다시 쓰입니다.
               </p>
             </div>
@@ -637,10 +639,10 @@
                 </svg>
               </div>
               <div>
-                <span data-i18n="pack_card2_tag" class="text-[11px] font-bold tracking-wider text-seal-red uppercase">한 사람을 위한 꽃</span>
-                <h3 data-i18n="pack_card2_title" class="text-lg font-bold text-ink-black mt-0.5">1:1 맞춤 꽃</h3>
+                <span data-i18n="pack_card2_tag" class="text-xs sm:text-sm font-bold tracking-wider text-seal-red uppercase">한 사람을 위한 꽃</span>
+                <h3 data-i18n="pack_card2_title" class="text-lg sm:text-xl font-bold text-ink-black mt-0.5">1:1 맞춤 꽃</h3>
               </div>
-              <p data-i18n="pack_card2_desc" class="text-xs sm:text-sm text-ink-gray leading-relaxed">
+              <p data-i18n="pack_card2_desc" class="text-sm sm:text-base text-ink-charcoal leading-relaxed">
                 받는 분과 날의 의미를 듣고, 꽃과 색, 카드 문구까지 한 사람을 위해 짓습니다.
               </p>
             </div>
@@ -653,10 +655,10 @@
                 </svg>
               </div>
               <div>
-                <span data-i18n="pack_card3_tag" class="text-[11px] font-bold tracking-wider text-seal-red uppercase">취향 큐레이션</span>
-                <h3 data-i18n="pack_card3_title" class="text-lg font-bold text-ink-black mt-0.5">취향을 읽는 설계</h3>
+                <span data-i18n="pack_card3_tag" class="text-xs sm:text-sm font-bold tracking-wider text-seal-red uppercase">취향 큐레이션</span>
+                <h3 data-i18n="pack_card3_title" class="text-lg sm:text-xl font-bold text-ink-black mt-0.5">취향을 읽는 설계</h3>
               </div>
-              <p data-i18n="pack_card3_desc" class="text-xs sm:text-sm text-ink-gray leading-relaxed">
+              <p data-i18n="pack_card3_desc" class="text-sm sm:text-base text-ink-charcoal leading-relaxed">
                 다양한 취향 데이터를 바탕으로, 가장 한국적이면서 마음에 꼭 맞는 구성을 제안합니다.
               </p>
             </div>
@@ -757,12 +759,11 @@
       <div class="text-center space-y-2">
         <span data-i18n="curation_badge" class="text-xs font-bold text-seal-red bg-seal-red/10 px-3 py-1 rounded-full">맞춤 담화</span>
         <h1 data-i18n="curation_title" class="text-2xl sm:text-3xl font-extrabold text-ink-black tracking-tight">어떤 꽃이 어울릴지 함께 찾아볼게요</h1>
-        <p data-i18n="curation_desc" class="text-xs sm:text-sm text-ink-gray">다섯 가지만 골라 주시면 설담화가 어울리는 꽃을 골라 드려요.</p>
+        <p data-i18n="curation_desc" class="text-sm sm:text-base text-ink-gray">다섯 가지만 골라 주시면 설담화가 어울리는 꽃을 골라 드려요.</p>
       </div>
 
       <!-- 큐레이터 스텝 카드 -->
       <div id="curation-stepper-card" class="relative bg-white/95 rounded-sm border border-ink-black/10 shadow-sm p-6 sm:p-10 space-y-6">
-        <span class="kkotsal tl" aria-hidden="true"></span><span class="kkotsal tr" aria-hidden="true"></span><span class="kkotsal bl" aria-hidden="true"></span><span class="kkotsal br" aria-hidden="true"></span>
         
         <!-- 슬림 프로그레스 바 -->
         <div class="w-full bg-ink-black/10 h-1.5 rounded-full overflow-hidden">
@@ -847,16 +848,17 @@
             </button>
           </div>
         </div>
+        <span class="kkotsal tl" aria-hidden="true"></span><span class="kkotsal tr" aria-hidden="true"></span><span class="kkotsal bl" aria-hidden="true"></span><span class="kkotsal br" aria-hidden="true"></span>
       </div>
-    
-      <div id="custom-inquiry-section" class="hanok-card p-6 sm:p-10 space-y-6 bg-white/90">
-        <div class="corner-tl"></div><div class="corner-tr"></div><div class="corner-bl"></div><div class="corner-br"></div>
+
+      <!-- 상담 카드: 위 질문 카드와 같은 꽃살 모서리 -->
+      <div id="custom-inquiry-section" class="relative rounded-sm border border-ink-black/10 shadow-sm p-6 sm:p-10 space-y-6 bg-white/95">
         <div class="border-b border-ink-black/10 pb-4 text-center sm:text-left">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-seal-red/30 bg-[#FAF7F2] text-xs font-bold text-seal-red mb-2">
             <span data-i18n="inquiry_badge">1:1 맞춤 상담 문의</span>
           </div>
           <h2 data-i18n="inquiry_title" class="text-2xl font-extrabold text-ink-black">설담화 화훼 장인과의 1:1 상담 신청</h2>
-          <p data-i18n="inquiry_desc" class="text-xs sm:text-sm text-ink-gray mt-1">공간 연출, 예식 스타일링, 특별한 맞춤 선물 등 원하시는 이야기를 남겨주시면 정성껏 답변드립니다.</p>
+          <p data-i18n="inquiry_desc" class="text-sm sm:text-base text-ink-gray mt-1">공간 연출, 예식 스타일링, 특별한 맞춤 선물 등 원하시는 이야기를 남겨주시면 정성껏 답변드립니다.</p>
         </div>
 
         <form onsubmit="submitCustomInquiry(event)" id="custom-inquiry-form" class="space-y-4 text-xs">
@@ -913,6 +915,7 @@
             </button>
           </div>
         </form>
+        <span class="kkotsal tl" aria-hidden="true"></span><span class="kkotsal tr" aria-hidden="true"></span><span class="kkotsal bl" aria-hidden="true"></span><span class="kkotsal br" aria-hidden="true"></span>
       </div>
     </div>
 
@@ -1004,7 +1007,7 @@
               <span id="pdp-price" class="text-2xl font-bold text-ink-black">0원</span>
             </div>
 
-            <div class="bg-[#FAF7F2] p-4 rounded-xs border border-ink-black/10 text-xs text-ink-gray space-y-1.5 leading-relaxed">
+            <div class="bg-[#FAF7F2] p-4 rounded-xs border border-ink-black/10 text-sm text-ink-gray space-y-1.5 leading-relaxed">
               <p id="pdp-meaning" class="text-ink-black font-bold">꽃말: </p>
               <p id="pdp-desc" class="font-normal"></p>
             </div>
@@ -1073,7 +1076,7 @@
 
             <!-- 웨딩·공간 연출 등 견적 문의 전용 안내 및 버튼 -->
             <div id="pdp-inquiry-container" class="space-y-3 hidden">
-              <p data-i18n="pdp_inquiry_guide" class="text-xs text-ink-gray leading-relaxed bg-[#FAF7F2] p-3 rounded-xs border border-ink-black/10">
+              <p data-i18n="pdp_inquiry_guide" class="text-sm text-ink-gray leading-relaxed bg-[#FAF7F2] p-3 rounded-xs border border-ink-black/10">
                 공간 연출 및 웨딩 스타일링은 공간 규모와 계절에 맞춘 1:1 상담 후 맞춤 견적서가 발행됩니다.
               </p>
               <button onclick="goToCustomInquiry(currentSelectedProduct ? currentSelectedProduct.id : '')" data-i18n="pdp_btn_inquiry" class="jakae-btn w-full py-3.5 px-4 text-xs sm:text-sm font-bold rounded-xs cursor-pointer shadow-md">
@@ -1389,7 +1392,7 @@
             <img src="assets/images/seal.svg" alt="설담화 낙관" class="w-[26px] h-[26px] shrink-0 drop-shadow-xs select-none">
           </div>
           <p data-i18n="footer_tagline" class="font-serif text-sm text-seal-red italic">"이야기를 나누는 꽃, 선조의 풍류와 여백을 담다"</p>
-          <p data-i18n="footer_desc" class="text-xs sm:text-sm text-ink-gray leading-relaxed max-w-lg">
+          <p data-i18n="footer_desc" class="text-sm text-ink-gray leading-relaxed max-w-lg">
             설담화는 2030 세대를 위한 모던 오리엔탈 플로럴 셀렉트샵입니다.
             조선 궁중 화조도와 달항아리의 여백, 그리고 제철 생화로 공간에 품격을 건넵니다.
           </p>

@@ -723,7 +723,7 @@ function startCtaPicker() {
     img.src = (Array.isArray(p.images) && p.images[0]) || p.image;
     img.alt = '';
     img.loading = 'lazy';
-    img.className = 'cta-pick relative w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-full object-cover border-2 border-white shadow-xs bg-[#ECE8E1]';
+    img.className = 'cta-pick relative min-w-0 w-16 sm:w-24 md:w-20 lg:w-28 xl:w-32 aspect-square h-auto rounded-full object-cover border-2 border-white shadow-xs bg-[#ECE8E1]';
     row.appendChild(img);
     return img;
   });
