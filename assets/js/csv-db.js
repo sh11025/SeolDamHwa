@@ -89,8 +89,8 @@ const CSV_TABLES = {
   },
   flowers: {
     file: 'flowers.csv',
-    columns: ['id', 'name', 'nameEn', 'nameJa', 'meaning', 'meaningEn', 'meaningJa', 'months', 'colors', 'care', 'image'],
-    json: ['months'],
+    columns: ['id', 'name', 'nameEn', 'nameJa', 'meaning', 'meaningEn', 'meaningJa', 'months', 'yearRound', 'colors', 'care', 'image'],
+    json: ['months'], bool: ['yearRound'],
     read: () => (typeof loadFlowers === 'function' ? loadFlowers() : []),
     write: rows => localStorage.setItem('seoldamhwa_flowers', JSON.stringify(rows.map(r => ({ ...r, months: Array.isArray(r.months) ? r.months : [] }))))
   },

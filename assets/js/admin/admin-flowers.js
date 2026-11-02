@@ -24,7 +24,7 @@ function renderFlowerDictionary() {
       const cells = [
         `<span class="font-bold text-ink-black">${escapeHtml(f.name)}</span> <span class="text-ink-gray">${escapeHtml(f.nameEn || '')}</span>`,
         escapeHtml(f.meaning || ''),
-        `${escapeHtml(formatFlowerMonths(f))}${isFlowerInSeason(f, month) ? ' <span class="ml-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-xs">지금 제철</span>' : ''}`,
+        `${escapeHtml(formatFlowerSeason(f))}${isFlowerInSeason(f, month) ? ' <span class="ml-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-xs">지금 제철</span>' : ''}`,
         escapeHtml(f.colors || ''),
         used ? `${used}개` : '<span class="text-ink-light">-</span>'
       ];
@@ -63,6 +63,7 @@ function openFlowerModal(id) {
     document.getElementById(`flower-${k}`).value = f ? (f[k] || '') : '';
   });
   renderFlowerMonthButtons(f ? flowerMonths(f) : []);
+  document.getElementById('flower-yearround').checked = !!(f && f.yearRound);
   document.getElementById('admin-flower-modal').classList.remove('hidden');
   setFlowerImage(f ? (f.image || '') : '');
   setTimeout(() => document.getElementById('flower-name').focus(), 50);
@@ -88,7 +89,7 @@ function saveFlower(e) {
   const editId = document.getElementById('flower-edit-id').value;
   if (flowers.some(f => f.name === name && f.id !== editId)) { alert(`'${name}'은(는) 이미 꽃 사전에 있어요.`); return; }
   const months = [...document.querySelectorAll('#flower-months .flower-month:checked')].map(b => Number(b.value));
-  const data = { name, nameEn: val('nameEn'), nameJa: val('nameJa'), meaning: val('meaning'), meaningEn: val('meaningEn'), meaningJa: val('meaningJa'), months, colors: val('colors'), care: val('care'), image: val('image') };
+  const data = { name, nameEn: val('nameEn'), nameJa: val('nameJa'), meaning: val('meaning'), meaningEn: val('meaningEn'), meaningJa: val('meaningJa'), months, yearRound: document.getElementById('flower-yearround').checked, colors: val('colors'), care: val('care'), image: val('image') };
   if (editId) {
     saveFlowers(flowers.map(f => f.id === editId ? { ...f, ...data } : f));
   } else {
@@ -112,8 +113,9 @@ function deleteFlower(id) {
 }
 
 function resetFlowerDictionary() {
-  if (!confirm('꽃 사전을 처음 들어 있던 26종으로 되돌릴까요? 직접 추가하거나 고친 꽃은 사라져요.')) return;
+  if (!confirm(`꽃 사전을 처음 들어 있던 기본 목록(${DEFAULT_FLOWERS.length}종)으로 되돌릴까요? 직접 추가하거나 고친 꽃은 사라져요.`)) return;
   localStorage.removeItem(FLOWERS_KEY);
+  localStorage.removeItem('seoldamhwa_flowers_version');
   renderFlowerDictionary();
 }
 

@@ -220,7 +220,7 @@ function renderDictionaryGrid() {
       dd.textContent = v;
       info.append(dt, dd);
     };
-    addRow(flT('flower_season', '제철'), formatFlowerMonths(f, lang));
+    addRow(flT('flower_season', '제철'), formatFlowerSeason(f, lang));
     if (lang === 'ko') addRow(flT('dict_colors', '색'), f.colors);
     body.appendChild(info);
     body.appendChild(monthStrip(f, current));

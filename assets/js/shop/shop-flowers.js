@@ -50,7 +50,7 @@ function renderProductFlowers(p, box) {
 
     const rows = [
       [flT('flower_meaning_label', '꽃말'), ft.meaning],
-      [flT('flower_season', '제철'), formatFlowerMonths(f, lang)]
+      [flT('flower_season', '제철'), formatFlowerSeason(f, lang)]
     ];
     if (lang === 'ko' && f.care) rows.push([flT('flower_care', '관리 팁'), f.care]);
     rows.forEach(([k, v]) => {

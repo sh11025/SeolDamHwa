@@ -1,13 +1,13 @@
 # 설담화 작업 이어받기 안내 (HANDOFF)
 
-> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-02 [51]
+> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-02 [52]
 
 ## 1. 프로젝트 한눈에
 - `index.html`: 손님 쇼핑몰 / `admin-index.html`: 관리자 센터. 둘 다 Tailwind CDN + 순수 JS, 데이터는 브라우저 `localStorage`(키 `seoldamhwa_*`).
 - [37]부터 화면 코드가 파일로 나뉨: 쇼핑몰 `assets/js/shop/*.js`(core→product→product-page→checkout→nav→curation→inquiry→guide→settings→browse→flowers→dictionary→router→chat 순서로 불러옴), 관리자 `assets/js/admin/*.js`(dashboard→…→tools-ui). 일반 script라 함수는 전역 공유, **불러오는 순서를 바꾸지 말 것**.
 - 쇼핑몰 주소: `shop-router.js` — `switchView(view)`는 화면+주소를 함께 바꾸고, 실제 화면 그리기는 `showView(view)`. 새 페이지는 `SHOP_ROUTES['이름'] = params => {...}` 로 등록. 지금 주소: `#/`, `#/story`, `#/custom`, `#/guide/<탭>`, `#/flowers/<종류>`, `#/dictionary`(꽃 사전), `#/flower/<id>`, `#/wishlist`, `#/checkout`. 데스크톱 메뉴는 1280px 이상에서만, 그보다 좁으면 햄버거 메뉴.
 - 공용 JS (`assets/js/`)
-  - `flowers-data.js` 꽃 사전(`seoldamhwa_flowers`, 기본 `DEFAULT_FLOWERS` 26종)·제철 계산(`isProductInSeason`, 한국 시간 달 기준). 상품의 사용한 꽃은 `p.flowers`(없으면 `DEFAULT_PRODUCT_FLOWERS` — 기본 상품의 '꽃말 및 상징' 칸에 적힌 꽃)
+  - `flowers-data.js` 꽃 사전(`seoldamhwa_flowers`, 기본 `DEFAULT_FLOWERS` 62종, `yearRound`=연중 유통, `formatFlowerSeason()`; 기본 목록을 바꾸면 `FLOWER_DEFAULTS_VERSION`을 올리고 `upgradeSavedFlowers()`가 저장된 꽃 사전에 새 꽃만 더하고 안 고친 꽃만 갱신)·제철 계산(`isProductInSeason`, 한국 시간 달 기준). 상품의 사용한 꽃은 `p.flowers`(없으면 `DEFAULT_PRODUCT_FLOWERS` — 기본 상품의 '꽃말 및 상징' 칸에 적힌 꽃)
   - `products-data.js` 상품·맞춤 담화 태그 (`DATA_VERSION`은 올리지 말 것: 올리면 저장된 상품·재고가 초기화됨)
   - `site-settings.js` 매장 설정·운영시간·공휴일·사업자·배송비(`delivery`) + `calcDeliveryFee()`
   - `i18n.js` KO/EN/JA 번역 (`t()`, `applyLanguage()`), 저장 데이터는 항상 한국어
@@ -20,7 +20,7 @@
 ## 2. 작업 방식 (꼭 지키기)
 0. **화면 클래스(Tailwind)를 새로 쓰거나 바꾸면 꼭 `npm run build:css`** (처음 한 번은 `npm install`). 예전 CDN 대신 `assets/css/tailwind.css`를 미리 만들어 쓰므로, 다시 만들지 않으면 새 클래스는 화면에 안 먹어요. 설정은 `tailwind.config.js`, 원본은 `src/tailwind.css`. 고치는 중에는 `npm run watch:css`를 켜 두면 저장할 때마다 자동으로 만들어져요.
 1. 바꾸기 전 `git status` 확인, 끝나면 커밋 (커밋 메시지 끝에 공동 작성자 줄).
-2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[52]**.
+2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[53]**.
 3. 검증: `python -m http.server 5500`로 띄우고 브라우저에서 직접 클릭. 매번 확인할 것
    - 인라인 스크립트 문법(`node --check`), 모든 `getElementById` id 존재
    - 버튼이 부르는 함수가 모두 있는지: 콘솔에서 `[...new Set([...document.documentElement.outerHTML.matchAll(/on\w+="([A-Za-z_]\w*)\(/g)].map(m=>m[1]))].filter(n=>typeof window[n]!=='function')` → `[]` (예외: `if`)
@@ -77,6 +77,6 @@
    - 사용자 결정이 필요한 것 (2026-11-02 기준): ① 영상 압축 — ffmpeg 설치 필요(설치 허락 받으면 assets/videos 두 개를 1MB 안팎으로) ② 공유 미리보기 `og:image`·`og:url` — 도메인이 정해져야 함 ③ 실제 DB·호스팅·관리자 로그인(인터넷 공개용) — 업체 선택(예: Supabase, Cloudflare, 카페24 등) ④ 결제(PG) — 사업자 등록 후.: 서버·DB 연결(현재 load/save 함수만 교체하도록 분리돼 있음), 결제 연결, 관리자 로그인, 실제 후기 기능, 약관 전문가 검토.
 
 ## 5. 아직 사용자 확인이 필요한 것
-- 꽃 사전 기본 26종의 꽃말·제철 달·관리 팁은 일반적인 정보로 채웠어요. 매장에서 실제로 들어오는 시기에 맞게 관리자 '꽃 사전'에서 고쳐 주세요. 기본 상품 4개의 '사용한 꽃'은 각 상품 '꽃말 및 상징' 칸에 적힌 꽃으로 넣었어요.
+- 꽃 사전 기본 62종: 사용자가 준 표(2026-11-02, 35종)의 꽃말·색·제철을 그대로 썼고, 나머지(동백·매화·목련·연꽃·코스모스·국화 + 꽃집에서 자주 쓰는 21종)와 관리 팁은 일반적인 정보로 채웠어요. 매장에서 실제로 들어오는 시기에 맞게 관리자 '꽃 사전'에서 고쳐 주세요. 기본 상품 4개의 '사용한 꽃'은 각 상품 '꽃말 및 상징' 칸에 적힌 꽃으로 넣었어요.
 - 실제 디스코드 메시지 모양, AI 3종 실제 초안, 문자 앱 열기, PDF·운송장 실제 인쇄, 카카오 우편번호 창.
 - GPT·Gemini 기본 모델명(`gpt-5`, `gemini-2.5-flash`)은 관리자에서 최신 이름으로 바꿀 수 있음.
