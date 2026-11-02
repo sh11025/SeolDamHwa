@@ -939,8 +939,11 @@
         <div class="corner-tl"></div><div class="corner-tr"></div><div class="corner-bl"></div><div class="corner-br"></div>
         <h2 id="guide-title" class="text-xl font-extrabold text-ink-black mb-1"></h2>
         <p id="guide-lang-note" class="hidden mb-3 text-xs text-ink-gray"></p>
-        <div id="guide-media" class="hidden"></div>
-        <div id="guide-body" class="info-page-body text-sm md:text-base text-ink-charcoal leading-relaxed mt-4" role="tabpanel"></div>
+        <!-- PC: 왼쪽 글 · 오른쪽 사진·영상 / 휴대폰: 사진·영상이 먼저 -->
+        <div id="guide-layout" class="mt-4 grid grid-cols-1 gap-6">
+          <div id="guide-body" class="info-page-body text-sm md:text-base text-ink-charcoal leading-relaxed lg:order-1" role="tabpanel"></div>
+          <div id="guide-media" class="hidden"></div>
+        </div>
       </article>
       <div class="text-center">
         <button type="button" onclick="goToCustomInquiry('')" data-i18n="guide_cta" class="jakae-btn px-8 py-3 text-sm font-bold rounded-sm cursor-pointer">더 궁금한 점은 1:1 상담으로 물어보세요</button>

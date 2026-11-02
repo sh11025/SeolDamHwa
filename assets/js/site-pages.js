@@ -252,23 +252,27 @@ function youtubeEmbedUrl(url) {
 }
 
 // 사진·영상 칸 그리기 (쇼핑몰 정성 안내와 관리자 미리보기에서 같이 사용)
-function renderPageMediaInto(box, media) {
+// opts.locked: 손님 화면 - 영상은 소리 없이 저절로 반복 재생, 제어 막대·클릭·내려받기 없음
+// opts.column: 한 줄로 쌓기 (정성 안내 PC 오른쪽 칸)
+function renderPageMediaInto(box, media, opts = {}) {
   if (!box) return;
   box.innerHTML = '';
   const m = normalizePageMedia(media);
   const items = [...(m.video ? [{ video: m.video }] : []), ...m.images.map(src => ({ src }))];
   box.classList.toggle('hidden', !items.length);
   if (!items.length) return;
-  box.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3';
+  box.className = opts.column ? 'grid grid-cols-2 gap-3' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3';
   const aspect = m.ratio === '1:1' ? 'aspect-square' : 'aspect-[4/3]';
   items.forEach((it, i) => {
     const cell = document.createElement('div');
-    cell.className = `${aspect} w-full overflow-hidden rounded-xs bg-[#ECE8E1] border border-ink-black/10`;
+    cell.className = `${aspect} w-full overflow-hidden rounded-xs bg-[#ECE8E1] border border-ink-black/10${opts.column && it.video ? ' col-span-2' : ''}`;
     if (it.video) {
       const yt = youtubeEmbedUrl(it.video);
       if (yt) {
         const f = document.createElement('iframe');
-        f.src = yt;
+        const id = yt.split('/').pop();
+        f.src = opts.locked ? `${yt}?autoplay=1&mute=1&controls=0&loop=1&playlist=${id}&modestbranding=1&rel=0&playsinline=1&disablekb=1` : yt;
+        if (opts.locked) f.style.pointerEvents = 'none';
         f.title = '안내 영상';
         f.loading = 'lazy';
         f.allow = 'encrypted-media; picture-in-picture';
@@ -278,10 +282,23 @@ function renderPageMediaInto(box, media) {
       } else {
         const v = document.createElement('video');
         v.src = it.video;
-        v.controls = true;
         v.muted = true;
         v.playsInline = true;
-        v.preload = 'metadata';
+        if (opts.locked) {
+          v.autoplay = true;
+          v.loop = true;
+          v.preload = 'auto';
+          v.disablePictureInPicture = true;
+          v.setAttribute('controlslist', 'nodownload nofullscreen noremoteplayback noplaybackrate');
+          v.setAttribute('aria-hidden', 'true');
+          v.tabIndex = -1;
+          v.style.pointerEvents = 'none';
+          v.addEventListener('contextmenu', e => e.preventDefault());
+          v.play().catch(() => {});
+        } else {
+          v.controls = true;
+          v.preload = 'metadata';
+        }
         v.className = 'w-full h-full object-cover';
         cell.appendChild(v);
       }
