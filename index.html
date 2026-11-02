@@ -1273,6 +1273,18 @@
 
   </main>
 
+  <!-- 주소 찾기 (다음 우편번호, 페이지 안 창) -->
+  <div id="address-search-layer" class="hidden fixed inset-0 z-[80] bg-black/50 flex items-end sm:items-center justify-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="address-search-title">
+    <div class="fixed inset-0" onclick="closeAddressSearch()"></div>
+    <div class="relative z-10 bg-white w-full sm:max-w-lg h-[80vh] sm:h-[560px] rounded-t-xl sm:rounded-sm overflow-hidden flex flex-col shadow-2xl">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-ink-black/10">
+        <p id="address-search-title" data-i18n="co_find_address" class="font-bold text-sm text-ink-black">주소 찾기</p>
+        <button type="button" onclick="closeAddressSearch()" class="text-2xl leading-none text-ink-gray hover:text-ink-black cursor-pointer" aria-label="닫기">×</button>
+      </div>
+      <div id="address-search-box" class="flex-1 min-h-0"></div>
+    </div>
+  </div>
+
   <!-- 아틀리에 오시는 길: 홈 맨 아래와 정성 안내 '오시는 길' 탭에서만 보임 (shop-settings.js updateLocationSection) -->
   <section id="cs-section" class="hidden border-t border-ink-black/10 bg-[#FAF7F2]/60 py-14 md:py-16">
     <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">

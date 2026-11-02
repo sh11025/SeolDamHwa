@@ -343,6 +343,14 @@ function toggleSameRecipient() {
   document.getElementById('recipient-fields').classList.toggle('opacity-60', same);
 }
 
+// '주문하시는 분과 같아요'를 켠 뒤에 주문자 이름·연락처를 고쳐도 받는 분에 바로 따라가게
+document.addEventListener('DOMContentLoaded', () => {
+  ['order-orderer-name', 'order-orderer-phone'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => { if (document.getElementById('order-same-recipient').checked) toggleSameRecipient(); });
+  });
+});
+
 // 퀵은 서울만 (주소 찾기로 고른 경우에만 확인)
 function checkAddressArea() {
   const warn = document.getElementById('address-area-warning');
@@ -353,17 +361,34 @@ function checkAddressArea() {
   return !bad;
 }
 
+// 주소 찾기: 새 창 대신 페이지 안 창에 띄움 (휴대폰·팝업 차단에서도 고른 주소가 바로 들어가게)
+function closeAddressSearch() {
+  const layer = document.getElementById('address-search-layer');
+  if (layer) layer.classList.add('hidden');
+  const box = document.getElementById('address-search-box');
+  if (box) box.innerHTML = '';
+}
+
 function openAddressSearch() {
   const run = () => {
+    const layer = document.getElementById('address-search-layer');
+    const box = document.getElementById('address-search-box');
+    box.innerHTML = '';
+    layer.classList.remove('hidden');
     new daum.Postcode({
       oncomplete: data => {
         document.getElementById('order-zipcode').value = data.zonecode || '';
-        document.getElementById('order-address').value = data.roadAddress || data.jibunAddress || data.address || '';
+        const addr = document.getElementById('order-address');
+        addr.value = data.roadAddress || data.jibunAddress || data.address || '';
+        addr.dispatchEvent(new Event('input', { bubbles: true }));
         addressSearchSido = data.sido || '';
+        closeAddressSearch();
         checkAddressArea();
         document.getElementById('order-address-detail').focus();
-      }
-    }).open();
+      },
+      width: '100%',
+      height: '100%'
+    }).embed(box, { autoClose: false });
   };
   if (window.daum && window.daum.Postcode) return run();
   const s = document.createElement('script');
