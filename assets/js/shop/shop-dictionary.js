@@ -29,6 +29,21 @@ function monthStrip(f, current) {
   return strip;
 }
 
+// 병풍 사계절 색 (봄 3~5 진달래 분홍, 여름 6~8 녹음 청록, 가을 9~11 단풍 주홍, 겨울 12~2 눈 하늘 회청)
+const SEASON_TONES = {
+  spring: { light: '#F4DCE4', deep: '#B4567A' },
+  summer: { light: '#D5E8DF', deep: '#2F7559' },
+  autumn: { light: '#F3DCC8', deep: '#A9572B' },
+  winter: { light: '#E3E9EE', deep: '#566C80' }
+};
+
+function seasonOfMonth(m) {
+  if (m >= 3 && m <= 5) return 'spring';
+  if (m >= 6 && m <= 8) return 'summer';
+  if (m >= 9 && m <= 11) return 'autumn';
+  return 'winter';
+}
+
 // 달마다 대표 절기 (병풍 폭에 함께 적음)
 const SOLAR_TERMS = {
   ko: ['소한', '입춘', '경칩', '청명', '입하', '망종', '소서', '입추', '백로', '한로', '입동', '대설'],
@@ -91,8 +106,10 @@ function renderDictionaryPage() {
     const b = document.createElement('button');
     b.type = 'button';
     const on = s.month !== 'all' && Number(selected) === m;
-    // 병풍 접힌 면처럼 폭마다 아주 옅게 번갈아
-    b.className = `relative py-2.5 text-center cursor-pointer border-r last:border-r-0 border-ink-black/10 transition-colors ${on ? 'bg-seal-red text-white' : (m % 2 ? 'bg-[#FBF9F5]' : 'bg-[#F4F0E8]') + ' text-ink-gray hover:text-seal-red'}`;
+    // 사계절 색: 평소는 옅게, 고른 달은 그 계절의 진한 색
+    const tone = SEASON_TONES[seasonOfMonth(m)];
+    b.className = `relative py-2.5 text-center cursor-pointer border-r last:border-r-0 border-ink-black/10 transition-colors ${on ? 'text-white' : 'text-ink-gray hover:text-seal-red'}`;
+    b.style.backgroundColor = on ? tone.deep : tone.light;
     b.setAttribute('aria-pressed', on ? 'true' : 'false');
     const num = document.createElement('span');
     num.className = `block text-sm font-extrabold ${on ? 'text-white' : 'text-ink-black'}`;
