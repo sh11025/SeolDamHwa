@@ -21,9 +21,13 @@ function switchView(view) {
 
 function setRouteHash(hash, replace) {
   if (location.hash === hash || (hash === '#/' && (location.hash === '' || location.hash === '#'))) return;
-  routerSkipHash = hash;
-  if (replace) history.replaceState(null, '', hash);
-  else location.hash = hash;
+  // replaceState는 hashchange가 안 일어나므로, 건너뛰기 표시는 location.hash로 바꿀 때만
+  if (replace) {
+    history.replaceState(null, '', hash);
+  } else {
+    routerSkipHash = hash;
+    location.hash = hash;
+  }
 }
 
 function parseRoute(hash = location.hash) {
