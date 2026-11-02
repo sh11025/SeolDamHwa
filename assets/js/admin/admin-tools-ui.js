@@ -190,11 +190,15 @@ function switchAdminTab(tabName) {
   window.scrollTo({ top: 0 });
   ['dashboard', 'products', 'flowers', 'orders', 'finance', 'coupons', 'reviews', 'settings', 'popups', 'integrations', 'pages'].forEach(t => {
     document.getElementById(`panel-${t}`).classList.add('hidden');
-    document.getElementById(`tab-btn-${t}`).className = 'sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors';
+    const b = document.getElementById(`tab-btn-${t}`);
+    b.classList.remove('is-active');
+    b.removeAttribute('aria-current');
   });
 
   document.getElementById(`panel-${tabName}`).classList.remove('hidden');
-  document.getElementById(`tab-btn-${tabName}`).className = 'sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm bg-ink-black text-hanji font-bold cursor-pointer transition-colors';
+  const active = document.getElementById(`tab-btn-${tabName}`);
+  active.classList.add('is-active');
+  active.setAttribute('aria-current', 'page');
   if (tabName === 'popups') { try { initPopupsAdmin(); } catch (e) { console.error('initPopupsAdmin error:', e); } }
   if (tabName === 'dashboard') { try { renderDashboard(); } catch (e) { console.error('renderDashboard error:', e); } }
   if (tabName === 'finance') { try { renderFinance(); } catch (e) { console.error('renderFinance error:', e); } }

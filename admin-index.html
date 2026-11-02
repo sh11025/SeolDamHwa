@@ -94,6 +94,29 @@
     main .text-\[11px\], aside .text-\[11px\], #admin-product-modal .text-\[11px\] { font-size: 12px; line-height: 1.45; }
     main .text-\[10px\], aside .text-\[10px\] { font-size: 11px; }
 
+    /* 왼쪽 메뉴: 하나하나 버튼 모양으로 구분 (지금 보는 메뉴는 먹색 + 왼쪽 인주색 띠) */
+    .sidebar-group { display: flex; align-items: center; gap: 8px; padding: 14px 4px 4px; font-size: 12px; font-weight: 800; color: #8B2500; letter-spacing: 0.02em; }
+    .sidebar-group::after { content: ''; flex: 1; height: 1px; background: rgba(139, 37, 0, 0.18); }
+    .sidebar-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: 4px; background: #fff; border: 1px solid rgba(26, 26, 26, 0.12); box-shadow: 0 1px 0 rgba(26, 26, 26, 0.04); color: #3A3A3A; font-size: 14px; font-weight: 600; text-align: left; cursor: pointer; transition: border-color .15s, color .15s, background-color .15s; }
+    .sidebar-btn:hover { border-color: rgba(139, 37, 0, 0.5); color: #1A1A1A; }
+    .sidebar-btn svg { color: #8B2500; flex-shrink: 0; }
+    .sidebar-btn.is-active { background: #1A1A1A; border-color: #1A1A1A; color: #FBF9F5; font-weight: 700; box-shadow: inset 4px 0 0 #8B2500; }
+    .sidebar-btn.is-active svg { color: #F1C9B5; }
+
+    /* 표 읽기 편하게: 머리줄 색, 줄마다 옅은 구분, 칸이 너무 눌리지 않게 */
+    main table thead th { background: #F3EEE5; color: #4A4A4A; font-weight: 700; white-space: nowrap; }
+    main table tbody tr { transition: background-color .1s; }
+    main table tbody tr:hover { background: rgba(243, 237, 227, 0.55); }
+    main table td, main table th { vertical-align: middle; }
+    main .overflow-x-auto > table { min-width: 860px; }
+    main h1 { line-height: 1.3; }
+    .sidebar-btn.is-active [id^="badge-"] { background: #FBF9F5; color: #8B2500; }
+    /* 이름·글귀 칸이 한 단어씩 줄바꿈되지 않게 */
+    #admin-products-table td:nth-child(2) { min-width: 170px; }
+    #admin-products-table td:nth-child(3) { min-width: 210px; }
+    #admin-flowers-table td:nth-child(1) { min-width: 120px; }
+    #admin-flowers-table td:nth-child(2) { min-width: 150px; }
+    #admin-flowers-table td:nth-child(4) { min-width: 130px; }
     /* 대시보드 기간 탭 */
     .period-btn { padding: 6px 12px; font-size: 13px; font-weight: 700; border-radius: 2px; border: 1px solid rgba(26,26,26,0.2); background: #fff; color: #1A1A1A; cursor: pointer; }
     .period-btn.active { background: #1A1A1A; color: #FBF9F5; border-color: #1A1A1A; }
@@ -142,8 +165,6 @@
     }
     @media (max-width: 1023px) {
       body.admin-menu-open { overflow: hidden; }
-      /* 좁은 화면: 표는 글자가 세로로 깨지지 않게 옆으로 밀어서 보기 */
-      main .overflow-x-auto > table { min-width: 760px; }
     }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
@@ -181,7 +202,7 @@
   <div class="flex-1 flex flex-col lg:flex-row">
     <!-- 2. 좌측 사이드바 내비게이션: PC는 왼쪽에 고정, 휴대폰·태블릿(1024px 미만)은 ☰로 여닫는 서랍 -->
     <div id="admin-sidebar-backdrop" onclick="toggleAdminMenu(false)" class="hidden lg:hidden fixed inset-0 z-40 bg-black/40"></div>
-    <aside id="admin-sidebar" class="fixed lg:static inset-y-0 left-0 z-50 w-72 lg:w-64 -translate-x-full lg:translate-x-0 transition-transform duration-200 overflow-y-auto bg-[#FAF7F2] border-r border-ink-black/10 p-5 shrink-0 flex flex-col justify-between">
+    <aside id="admin-sidebar" class="fixed lg:static inset-y-0 left-0 z-50 w-72 lg:w-60 xl:w-64 -translate-x-full lg:translate-x-0 transition-transform duration-200 overflow-y-auto bg-[#FAF7F2] border-r border-ink-black/10 p-5 shrink-0 flex flex-col justify-between">
       <div class="space-y-6">
         
         <!-- 사이드바 상단 붉은 직인 배너 -->
@@ -196,83 +217,83 @@
         </div>
 
         <!-- 사이드바 메뉴: 판매 / 주문·상담 / 매출 / 매장 / 연동 -->
-        <nav class="space-y-1 text-sm font-semibold" aria-label="관리자 메뉴">
-          <button onclick="switchAdminTab('dashboard')" id="tab-btn-dashboard" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm bg-ink-black text-hanji font-bold cursor-pointer transition-colors">
+        <nav class="space-y-1.5" aria-label="관리자 메뉴">
+          <button onclick="switchAdminTab('dashboard')" id="tab-btn-dashboard" class="sidebar-btn is-active" aria-current="page">
             <div class="flex items-center gap-2.5">
               <svg class="w-4 h-4 text-seal-red" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
               <span>대시보드 요약</span>
             </div>
             <span>›</span>
           </button>
-          <p class="pt-4 pb-1 px-3.5 text-[11px] font-bold text-ink-light tracking-wider">판매</p>
-          <button onclick="switchAdminTab('products')" id="tab-btn-products" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
+          <p class="sidebar-group">판매</p>
+          <button onclick="switchAdminTab('products')" id="tab-btn-products" class="sidebar-btn">
             <div class="flex items-center gap-2.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
               <span>상품 및 이야기 관리</span>
             </div>
             <span id="badge-prod-count" class="text-xs bg-seal-red/15 text-seal-red px-1.5 py-0.5 rounded font-bold">8</span>
           </button>
-          <button onclick="switchAdminTab('flowers')" id="tab-btn-flowers" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
+          <button onclick="switchAdminTab('flowers')" id="tab-btn-flowers" class="sidebar-btn">
             <div class="flex items-center gap-2.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21V11m0 0c0-3 2-6 6-7 0 4-2 7-6 7zm0 0c0-3-2-6-6-7 0 4 2 7 6 7z"/></svg>
               <span>꽃 사전</span>
             </div>
             <span id="badge-flower-count" class="text-xs bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold"></span>
           </button>
-          <button onclick="switchAdminTab('coupons')" id="tab-btn-coupons" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
+          <button onclick="switchAdminTab('coupons')" id="tab-btn-coupons" class="sidebar-btn">
             <div class="flex items-center gap-2.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
               <span>오프라인 쿠폰</span>
             </div>
             <span id="badge-coupon-count" class="text-xs bg-seal-red/15 text-seal-red px-1.5 py-0.5 rounded font-bold"></span>
           </button>
-          <p class="pt-4 pb-1 px-3.5 text-[11px] font-bold text-ink-light tracking-wider">주문·상담</p>
-          <button onclick="switchAdminTab('orders')" id="tab-btn-orders" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
+          <p class="sidebar-group">주문·상담</p>
+          <button onclick="switchAdminTab('orders')" id="tab-btn-orders" class="sidebar-btn">
             <div class="flex items-center gap-2.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
               <span>주문 및 신선 배송 관리</span>
             </div>
             <span id="badge-order-count" class="text-xs bg-seal-red text-white px-1.5 py-0.5 rounded font-bold">0</span>
           </button>
-          <button onclick="switchAdminTab('reviews')" id="tab-btn-reviews" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
+          <button onclick="switchAdminTab('reviews')" id="tab-btn-reviews" class="sidebar-btn">
             <div class="flex items-center gap-2.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
               <span>고객 상담 문의</span>
             </div>
             <span id="badge-inquiry-count" class="text-xs bg-black/10 text-ink-gray px-1.5 py-0.5 rounded">0</span>
           </button>
-          <p class="pt-4 pb-1 px-3.5 text-[11px] font-bold text-ink-light tracking-wider">매출</p>
-          <button onclick="switchAdminTab('finance')" id="tab-btn-finance" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
+          <p class="sidebar-group">매출</p>
+          <button onclick="switchAdminTab('finance')" id="tab-btn-finance" class="sidebar-btn">
             <div class="flex items-center gap-2.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
               <span>매출·지출 관리</span>
             </div>
             <span>›</span>
           </button>
-          <p class="pt-4 pb-1 px-3.5 text-[11px] font-bold text-ink-light tracking-wider">매장</p>
-          <button onclick="switchAdminTab('settings')" id="tab-btn-settings" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
+          <p class="sidebar-group">매장</p>
+          <button onclick="switchAdminTab('settings')" id="tab-btn-settings" class="sidebar-btn">
             <div class="flex items-center gap-2.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
               <span>매장 정보 설정</span>
             </div>
             <span>›</span>
           </button>
-          <button onclick="switchAdminTab('pages')" id="tab-btn-pages" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
+          <button onclick="switchAdminTab('pages')" id="tab-btn-pages" class="sidebar-btn">
             <div class="flex items-center gap-2.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
               <span>사업자·안내 페이지</span>
             </div>
             <span>›</span>
           </button>
-          <button onclick="switchAdminTab('popups')" id="tab-btn-popups" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
+          <button onclick="switchAdminTab('popups')" id="tab-btn-popups" class="sidebar-btn">
             <div class="flex items-center gap-2.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
               <span>팝업 관리</span>
             </div>
             <span id="popups-active-badge" class="text-xs bg-black/10 text-ink-gray px-1.5 py-0.5 rounded">0</span>
           </button>
-          <p class="pt-4 pb-1 px-3.5 text-[11px] font-bold text-ink-light tracking-wider">연동</p>
-          <button onclick="switchAdminTab('integrations')" id="tab-btn-integrations" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors">
+          <p class="sidebar-group">연동</p>
+          <button onclick="switchAdminTab('integrations')" id="tab-btn-integrations" class="sidebar-btn">
             <div class="flex items-center gap-2.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
               <span>연동·데이터</span>
@@ -296,7 +317,7 @@
     </aside>
 
     <!-- 3. 메인 콘텐츠 영역 (Main Content Area) -->
-    <main class="flex-1 min-w-0 p-4 sm:p-6 lg:p-10 overflow-y-auto">
+    <main class="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 xl:p-10 overflow-y-auto">
       <div id="sample-data-banner" class="hidden mb-6 px-4 py-3 rounded-sm bg-amber-50 border border-amber-300 text-sm text-amber-900 flex flex-wrap items-center justify-between gap-2">
         <span><strong>예시 데이터가 들어 있어요.</strong> <span id="sample-banner-shop" class="hidden font-bold text-seal-red">예시 상품이 쇼핑몰에도 보이는 중이에요.</span> 실제 운영 전에 꼭 지워 주세요.</span>
         <button type="button" onclick="handleRemoveSampleData()" class="px-3 py-1.5 bg-white border border-amber-400 rounded-xs font-bold cursor-pointer hover:bg-amber-100">예시 데이터 모두 지우기</button>
