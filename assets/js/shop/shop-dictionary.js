@@ -234,6 +234,24 @@ function renderDictionaryGrid() {
       body.appendChild(care);
     }
 
+    // 이 꽃이 든 상품 모두 보기 (없으면 안내 문구를 같은 자리에)
+    const foot = document.createElement('div');
+    foot.className = `${lang === 'ko' && f.care ? '' : 'mt-auto '}pt-1`;
+    if (used.length) {
+      const go = document.createElement('button');
+      go.type = 'button';
+      go.className = 'w-full py-2 rounded-xs bg-ink-black text-white text-xs font-bold hover:bg-seal-red cursor-pointer';
+      go.textContent = `${flT('dict_browse_flower', '이 꽃이 든 상품 모두 보기 →')} (${used.length})`;
+      go.onclick = () => openFlowersPageWithFlower(f.id);
+      foot.appendChild(go);
+    } else {
+      const none = document.createElement('p');
+      none.className = 'py-2 text-xs text-ink-gray text-center';
+      none.textContent = flT('dict_no_products', '아직 이 꽃이 든 상품이 없어요. 맞춤 상담으로 문의해 주세요.');
+      foot.appendChild(none);
+    }
+    body.appendChild(foot);
+
     card.appendChild(body);
     grid.appendChild(card);
   });
