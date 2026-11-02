@@ -6,7 +6,7 @@
 // 표 구조와 CSV 변환은 csv-db.js(CSV_TABLES, tableToCsv, importCsvTables)를 그대로 씀.
 
 const DataSync = (() => {
-  const KEYS = { order_items: r => `${r.orderId}#${r.lineNo}`, settings: r => String(r.key) };
+  const KEYS = { order_items: r => `${r.orderId}#${r.lineNo}`, settings: r => String(r.key), coupons: r => String(r.code) };
   const keyOf = (table, row) => (KEYS[table] ? KEYS[table](row) : String(row.id));
   const SYNCED_FLAG = 'seoldamhwa_server_synced';
   const IGNORE = /_(lang|csv_autosave|popup_dismissed_date|ai_settings|ai_key|integrations|server_synced|wishlist|recent)$/;
@@ -182,7 +182,7 @@ const DataSync = (() => {
   }
 
   function refreshScreens() {
-    ['renderDashboard', 'renderProductsTable', 'renderOrdersList', 'renderInquiriesList', 'renderRestockList', 'renderFinance', 'renderFlowerDictionary', 'renderProducts', 'updateWishBadge', 'renderSiteSettings']
+    ['renderDashboard', 'renderProductsTable', 'renderOrdersList', 'renderCouponsAdmin', 'renderInquiriesList', 'renderRestockList', 'renderFinance', 'renderFlowerDictionary', 'renderProducts', 'updateWishBadge', 'renderSiteSettings']
       .forEach(fn => { try { if (typeof window[fn] === 'function') window[fn](); } catch (e) { /* 그 화면이 없으면 건너뜀 */ } });
   }
 

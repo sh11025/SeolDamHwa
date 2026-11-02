@@ -13,8 +13,8 @@ const CSV_TABLES = {
   },
   orders: {
     file: 'orders.csv',
-    columns: ['id', 'orderNumber', 'createdDate', 'createdAt', 'status', 'ordererName', 'ordererPhone', 'recipientName', 'recipientPhone', 'customerName', 'phone', 'zipcode', 'address', 'deliveryMethod', 'deliveryMethodLabel', 'deliveryFee', 'itemsTotal', 'totalAmount', 'deliveryDate', 'message', 'hideSender', 'request', 'courier', 'trackingNumber', 'statusBeforeCancel', 'isSample'],
-    bool: ['hideSender', 'isSample'], num: ['deliveryFee', 'itemsTotal', 'totalAmount'],
+    columns: ['id', 'orderNumber', 'createdDate', 'createdAt', 'status', 'ordererName', 'ordererPhone', 'recipientName', 'recipientPhone', 'customerName', 'phone', 'zipcode', 'address', 'deliveryMethod', 'deliveryMethodLabel', 'deliveryFee', 'itemsTotal', 'totalAmount', 'deliveryDate', 'message', 'hideSender', 'request', 'courier', 'trackingNumber', 'statusBeforeCancel', 'isSample', 'couponCode', 'couponDiscount'],
+    bool: ['hideSender', 'isSample'], num: ['deliveryFee', 'itemsTotal', 'totalAmount', 'couponDiscount'],
     read: () => JSON.parse(localStorage.getItem('seoldamhwa_orders') || '[]'),
     write: null // order_items와 합쳐서 저장 (아래 importCsvTables)
   },
@@ -93,6 +93,13 @@ const CSV_TABLES = {
     json: ['months'],
     read: () => (typeof loadFlowers === 'function' ? loadFlowers() : []),
     write: rows => localStorage.setItem('seoldamhwa_flowers', JSON.stringify(rows.map(r => ({ ...r, months: Array.isArray(r.months) ? r.months : [] }))))
+  },
+  coupons: {
+    file: 'coupons.csv',
+    columns: ['code', 'batchId', 'batchName', 'type', 'value', 'minOrder', 'startDate', 'endDate', 'active', 'createdAt', 'usedAt', 'orderNumber'],
+    bool: ['active'], num: ['value', 'minOrder'],
+    read: () => (typeof loadCoupons === 'function' ? loadCoupons() : []),
+    write: rows => localStorage.setItem('seoldamhwa_coupons', JSON.stringify(rows))
   },
   images: {
     file: 'images.csv',
@@ -179,7 +186,7 @@ function buildAllCsv() {
 function importCsvTables(files) {
   const has = f => typeof files[f] === 'string';
   const result = [];
-  ['products', 'expenses', 'inquiries', 'restock', 'pages', 'flowers', 'images'].forEach(name => {
+  ['products', 'expenses', 'inquiries', 'restock', 'pages', 'flowers', 'coupons', 'images'].forEach(name => {
     const f = CSV_TABLES[name].file;
     if (!has(f)) return;
     const rows = csvToTable(name, files[f]);

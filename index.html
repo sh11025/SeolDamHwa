@@ -1220,10 +1220,22 @@
           </label>
         </div>
 
+        <!-- 오프라인 쿠폰 -->
+        <div class="text-xs space-y-1.5">
+          <label for="coupon-code" data-i18n="co_coupon_label" class="block font-bold text-ink-black">쿠폰 코드 (선택)</label>
+          <div class="flex gap-2">
+            <input type="text" id="coupon-code" maxlength="20" autocomplete="off" data-i18n-placeholder="co_coupon_ph" placeholder="예: SDH-7K2P-QX9A" class="flex-1 min-w-0 bg-white border border-ink-black/20 p-2 rounded-xs font-mono uppercase tracking-wider" onkeydown="if (event.key === 'Enter') { event.preventDefault(); applyCouponCode(); }">
+            <button type="button" id="coupon-apply-btn" onclick="applyCouponCode()" data-i18n="co_coupon_apply" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">적용</button>
+            <button type="button" id="coupon-remove-btn" onclick="removeCouponCode()" data-i18n="co_coupon_remove" class="hidden px-3 py-2 border border-ink-black/20 bg-white font-bold rounded-xs cursor-pointer">빼기</button>
+          </div>
+          <p id="coupon-message" class="hidden font-bold" aria-live="polite"></p>
+        </div>
+
         <div class="pt-3 border-t border-ink-black/10">
           <div class="space-y-1 text-xs mb-2">
             <div class="flex justify-between text-ink-gray"><span data-i18n="co_items_total">상품 금액</span><span id="checkout-items-total">0원</span></div>
             <div class="flex justify-between text-ink-gray"><span data-i18n="co_delivery_fee">배송비</span><span id="checkout-delivery-fee">0원</span></div>
+            <div id="checkout-coupon-row" class="hidden flex justify-between text-seal-red font-bold"><span data-i18n="co_coupon_discount">쿠폰 할인</span><span id="checkout-coupon-discount">-0원</span></div>
             <p id="checkout-free-hint" class="hidden text-[11px] text-seal-red text-right"></p>
           </div>
           <div class="flex justify-between items-baseline mb-3">
@@ -1624,6 +1636,7 @@
   <script src="assets/js/restock.js"></script>
   <script src="assets/js/csv-db.js"></script>
   <script src="assets/js/data-sync.js"></script>
+  <script src="assets/js/coupons.js"></script>
 
   <!-- JavaScript: 쇼핑몰 동작 & 인터랙션 로직 -->
   <!-- 쇼핑몰 화면 동작 (화면별 파일, 순서 중요) -->

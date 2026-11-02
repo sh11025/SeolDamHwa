@@ -96,6 +96,70 @@ function selectedDeliveryMethod() {
   return r ? r.value : '';
 }
 
+/* ---------- 오프라인 쿠폰 (coupons.js) ---------- */
+let appliedCoupon = null;
+
+function couponMessage(text, ok) {
+  const el = document.getElementById('coupon-message');
+  if (!el) return;
+  el.textContent = text || '';
+  el.classList.toggle('hidden', !text);
+  el.classList.toggle('text-emerald-700', !!ok);
+  el.classList.toggle('text-seal-red', !ok);
+}
+
+function couponReasonText(reason, c) {
+  if (reason === 'used') return coT('coupon_err_used', '이미 사용한 쿠폰이에요.');
+  if (reason === 'stopped') return coT('coupon_err_stopped', '지금은 쓸 수 없는 쿠폰이에요.');
+  if (reason === 'before') return coT('coupon_err_before', '{date}부터 쓸 수 있어요.').replace('{date}', c.startDate);
+  if (reason === 'expired') return coT('coupon_err_expired', '기간이 끝난 쿠폰이에요.');
+  if (reason === 'min') return coT('coupon_err_min', '상품 금액이 {amount} 이상이면 쓸 수 있어요.').replace('{amount}', formatPrice(Number(c.minOrder) || 0));
+  return coT('coupon_err_none', '없는 쿠폰 코드예요. 다시 확인해 주세요.');
+}
+
+// 지금 장바구니 금액으로 할인 금액 (조건이 안 맞게 되면 0)
+function currentCouponDiscount() {
+  if (!appliedCoupon || typeof checkCoupon !== 'function') return 0;
+  const r = checkCoupon(appliedCoupon, checkoutItemsTotal);
+  return r.ok ? r.discount : 0;
+}
+
+function applyCouponCode() {
+  const input = document.getElementById('coupon-code');
+  const raw = input.value.trim();
+  if (!raw) { couponMessage(coT('coupon_err_none', '없는 쿠폰 코드예요. 다시 확인해 주세요.'), false); return; }
+  const c = findCoupon(raw);
+  const r = checkCoupon(c, checkoutItemsTotal);
+  if (!r.ok) { appliedCoupon = null; couponMessage(couponReasonText(r.reason, c), false); recalcCheckout(); syncCouponButtons(); return; }
+  appliedCoupon = c;
+  input.value = c.code;
+  couponMessage(`${c.batchName ? `${c.batchName} · ` : ''}${coT('coupon_ok', '{amount} 할인이 적용됐어요.').replace('{amount}', formatPrice(r.discount))}`, true);
+  recalcCheckout();
+  syncCouponButtons();
+}
+
+function removeCouponCode() {
+  appliedCoupon = null;
+  document.getElementById('coupon-code').value = '';
+  couponMessage('', true);
+  recalcCheckout();
+  syncCouponButtons();
+}
+
+function syncCouponButtons() {
+  document.getElementById('coupon-code').readOnly = !!appliedCoupon;
+  document.getElementById('coupon-apply-btn').classList.toggle('hidden', !!appliedCoupon);
+  document.getElementById('coupon-remove-btn').classList.toggle('hidden', !appliedCoupon);
+}
+
+// 쿠폰 QR로 들어오면 (index.html?coupon=코드) 결제 때 자동으로 넣어 둠
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    const code = new URLSearchParams(location.search).get('coupon');
+    if (code) sessionStorage.setItem('sdh_coupon_pending', code);
+  } catch (e) { /* 무시 */ }
+});
+
 // 퀵·픽업만 시간대를 고름 (택배는 날짜만)
 function deliveryNeedsTime(method) {
   return method === 'quick' || method === 'pickup';
@@ -242,7 +306,10 @@ function recalcCheckout() {
   const t1 = document.getElementById('checkout-items-total-1');
   if (t1) t1.innerText = formatPrice(checkoutItemsTotal);
   document.getElementById('checkout-delivery-fee').innerText = fee === 0 ? coT('co_free', '무료') : formatPrice(fee);
-  document.getElementById('checkout-final-price').innerText = formatPrice(checkoutItemsTotal + fee);
+  const discount = currentCouponDiscount();
+  document.getElementById('checkout-coupon-row').classList.toggle('hidden', !discount);
+  document.getElementById('checkout-coupon-discount').innerText = `-${formatPrice(discount)}`;
+  document.getElementById('checkout-final-price').innerText = formatPrice(checkoutItemsTotal + fee - discount);
   const hint = document.getElementById('checkout-free-hint');
   const freeOver = s.delivery ? s.delivery.freeOver : 0;
   if (method && method !== 'pickup' && fee > 0 && freeOver > checkoutItemsTotal) {
@@ -316,6 +383,7 @@ function showOrderComplete(order) {
     [coT('co_recipient_title', '받으시는 분'), order.recipientName],
     [order.deliveryMethod === 'pickup' ? coT('co_pickup_date_short', '픽업일') : coT('co_delivery_date_short', '배송일'), order.deliveryDate],
     [coT('co_method_title', '배송 방법'), order.deliveryMethodLabel],
+    ...(order.couponCode ? [[coT('co_coupon_discount', '쿠폰 할인'), `-${formatPrice(order.couponDiscount)} (${order.couponCode})`]] : []),
     [coT('checkout_total_label', '최종 결제 금액'), formatPrice(order.totalAmount)]
   ];
   const dl = document.getElementById('done-summary');
@@ -483,6 +551,12 @@ function openCheckoutModal() {
   });
 
   checkoutItemsTotal = subtotal;
+  // QR로 받은 쿠폰 코드가 있으면 미리 넣기 (적용은 손님이 [적용]을 눌러야)
+  try {
+    const pending = sessionStorage.getItem('sdh_coupon_pending');
+    const box = document.getElementById('coupon-code');
+    if (pending && box && !appliedCoupon && !box.value) box.value = pending;
+  } catch (e) { /* 무시 */ }
   renderDeliveryMethodOptions();
   recalcCheckout();
   goCheckoutStep(1);
@@ -610,6 +684,23 @@ function submitCustomerOrder(e) {
   const orderNumber = `SDH-${Date.now().toString().slice(-8)}`;
   const itemsTotal = cart.reduce((sum, i) => sum + (i.price + i.optionPrice) * i.quantity, 0);
   const deliveryFee = calcDeliveryFee(method, itemsTotal, settings);
+  // 쿠폰: 주문 직전에 한 번 더 확인 (그 사이 다른 곳에서 썼을 수 있음)
+  let couponCode = '';
+  let couponDiscountAmount = 0;
+  if (appliedCoupon) {
+    const fresh = findCoupon(appliedCoupon.code);
+    const r = checkCoupon(fresh, itemsTotal);
+    if (!r.ok) {
+      couponMessage(couponReasonText(r.reason, fresh), false);
+      appliedCoupon = null;
+      syncCouponButtons();
+      recalcCheckout();
+      alert(couponReasonText(r.reason, fresh));
+      return;
+    }
+    couponCode = fresh.code;
+    couponDiscountAmount = r.discount;
+  }
   const methodLabels = { quick: '퀵 당일 배송', parcel: '택배', pickup: '매장 픽업' };
   const isPickup = method === 'pickup';
   const address = isPickup ? '매장 픽업' : [val('order-address'), val('order-address-detail')].filter(Boolean).join(', ');
@@ -642,7 +733,8 @@ function submitCustomerOrder(e) {
     hideSender: document.getElementById('order-hide-sender').checked,
     request: val('order-request'),
     items: cart.map(i => ({ ...i, product: { ...i.product, name: i.product.name } })),
-    totalAmount: itemsTotal + deliveryFee,
+    ...(couponCode ? { couponCode, couponDiscount: couponDiscountAmount } : {}),
+    totalAmount: itemsTotal + deliveryFee - couponDiscountAmount,
     status: 'preparing',
     createdAt,
     createdDate
@@ -663,6 +755,14 @@ function submitCustomerOrder(e) {
   });
   saveProducts(currentProducts);
   renderProducts(currentCategory);
+  if (couponCode) {
+    markCouponUsed(couponCode, orderNumber);
+    try { sessionStorage.removeItem('sdh_coupon_pending'); } catch (e) { /* 무시 */ }
+    appliedCoupon = null;
+    document.getElementById('coupon-code').value = '';
+    couponMessage('', true);
+    syncCouponButtons();
+  }
 
   cart = [];
   updateCartUI();

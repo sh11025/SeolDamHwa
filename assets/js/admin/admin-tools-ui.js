@@ -171,7 +171,7 @@ async function sendPurchasePlanToDiscord(btn) {
 }
 
 function switchAdminTab(tabName) {
-  ['dashboard', 'products', 'flowers', 'orders', 'finance', 'reviews', 'settings', 'popups', 'integrations', 'pages'].forEach(t => {
+  ['dashboard', 'products', 'flowers', 'orders', 'finance', 'coupons', 'reviews', 'settings', 'popups', 'integrations', 'pages'].forEach(t => {
     document.getElementById(`panel-${t}`).classList.add('hidden');
     document.getElementById(`tab-btn-${t}`).className = 'sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors';
   });
@@ -183,6 +183,7 @@ function switchAdminTab(tabName) {
   if (tabName === 'finance') { try { renderFinance(); } catch (e) { console.error('renderFinance error:', e); } }
   if (tabName === 'settings') { try { renderDeliverySettings(); } catch (e) { console.error('renderDeliverySettings error:', e); } }
   if (tabName === 'reviews') { try { renderRestockList(); } catch (e) { console.error('renderRestockList error:', e); } }
+  if (tabName === 'coupons') { try { renderCouponsAdmin(); } catch (e) { console.error('renderCouponsAdmin error:', e); } }
   if (tabName === 'flowers') { try { renderFlowerDictionary(); } catch (e) { console.error('renderFlowerDictionary error:', e); } }
   if (tabName === 'pages') { try { renderPagesAdmin(); } catch (e) { console.error('renderPagesAdmin error:', e); } }
   if (tabName === 'integrations') { try { refreshCsvStatus(); } catch (e) {} }

@@ -138,6 +138,7 @@ function renderOrdersList() {
               <p class="text-ink-black">${o.zipcode ? `(${escapeHtml(o.zipcode)}) ` : ''}${escapeHtml(o.address)}</p>
               ${o.ordererName && (o.ordererName !== o.recipientName || o.ordererPhone !== o.recipientPhone) ? `<p class="pt-1 text-ink-gray">주문하신 분: <span class="text-ink-black font-bold">${escapeHtml(o.ordererName)}</span> · <a href="tel:${escapeHtml(o.ordererPhone)}" class="underline">${escapeHtml(o.ordererPhone)}</a></p>` : ''}
               ${o.deliveryMethodLabel ? `<p class="text-ink-gray">배송: <span class="text-ink-black font-bold">${escapeHtml(o.deliveryMethodLabel)}</span>${typeof o.deliveryFee === 'number' ? ` · 배송비 ${formatWon(o.deliveryFee)}` : ''}</p>` : ''}
+              ${o.couponCode ? `<p class="text-ink-gray">쿠폰: <span class="text-seal-red font-bold">-${formatWon(o.couponDiscount || 0)}</span> <span class="font-mono">${escapeHtml(o.couponCode)}</span></p>` : ''}
               ${o.request ? `<p class="text-ink-gray">요청: <span class="text-ink-black">${escapeHtml(o.request)}</span></p>` : ''}
               ${o.hideSender ? '<p class="font-bold text-amber-800">🤫 익명 선물 (카드에 보내는 분 이름 생략)</p>' : ''}
               ${o.message ? `<p class="mt-2 text-seal-red font-serif italic bg-[#F3EDE3] p-2 rounded-xs border-l-2 border-seal-red">✉️ "${escapeHtml(o.message)}"</p>` : '<p class="text-ink-light mt-2">카드 메시지 없음</p>'}

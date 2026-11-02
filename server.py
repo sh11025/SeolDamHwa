@@ -21,7 +21,7 @@ import threading
 import time
 from datetime import datetime
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(ROOT, 'DATA')
@@ -31,11 +31,12 @@ TABLES = {
     'products': 'products.csv', 'orders': 'orders.csv', 'order_items': 'order_items.csv',
     'expenses': 'expenses.csv', 'inquiries': 'inquiries.csv', 'restock': 'restock.csv',
     'popups': 'popups.csv', 'pages': 'pages.csv', 'settings': 'settings.csv',
-    'flowers': 'flowers.csv', 'images': 'images.csv',
+    'flowers': 'flowers.csv', 'images': 'images.csv', 'coupons': 'coupons.csv',
 }
 PUBLIC_TABLES = {'products', 'popups', 'pages', 'settings', 'flowers'}   # 손님 기기도 읽을 수 있는 표
 REMOTE_INSERT_TABLES = {'orders', 'order_items', 'inquiries', 'restock'}  # 손님 기기는 새 줄 추가만
-KEYS = {'order_items': ('orderId', 'lineNo'), 'settings': ('key',)}
+KEYS = {'order_items': ('orderId', 'lineNo'), 'settings': ('key',), 'coupons': ('code',)}
+COUPON_PUBLIC = ('code', 'batchName', 'type', 'value', 'minOrder', 'startDate', 'endDate', 'active')
 MAX_BODY = 60 * 1024 * 1024
 BACKUP_EVERY = 600  # 초
 BACKUP_KEEP = 40
@@ -139,7 +140,28 @@ def apply_change(change, local):
         applied += len([k for k in order if k in gone])
         order = [k for k in order if k not in gone]
     write_table(table, header, [index[k] for k in order])
+    if table == 'orders':
+        mark_coupons_used(change.get('upserts') or [])
     return applied, rejected
+
+
+def mark_coupons_used(orders):
+    """쿠폰을 쓴 주문이 들어오면 그 쿠폰을 '사용됨'으로 (손님 기기는 쿠폰 표를 못 바꾸므로 서버가 처리)"""
+    used = {str(o.get('couponCode') or ''): str(o.get('orderNumber') or '') for o in orders if o.get('couponCode')}
+    if not used:
+        return
+    existing = read_table('coupons')
+    if not existing:
+        return
+    header, rows = existing
+    changed = False
+    for r in rows:
+        if r.get('code') in used and not r.get('usedAt'):
+            r['usedAt'] = datetime.now().isoformat(timespec='seconds')
+            r['orderNumber'] = used[r['code']]
+            changed = True
+    if changed:
+        write_table('coupons', header, rows)
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -173,6 +195,20 @@ class Handler(SimpleHTTPRequestHandler):
         # 개인정보 CSV·Git·서버 파일은 주소로 직접 못 열게
         if lower.startswith(('/data/', '/.git', '/.claude')) or lower in ('/server.py', '/data'):
             self.send_error(404)
+            return
+        if path == '/api/coupon':
+            # 쿠폰 한 장만 확인 (손님 기기는 쿠폰 목록 전체를 못 받음)
+            code = (parse_qs(urlparse(self.path).query).get('code') or [''])[0].strip().upper()
+            with LOCK:
+                existing = read_table('coupons')
+            row = next((r for r in (existing[1] if existing else []) if r.get('code') == code), None)
+            if not row:
+                self.send_json({'ok': False})
+                return
+            coupon = {k: row.get(k, '') for k in COUPON_PUBLIC}
+            coupon['used'] = bool(row.get('usedAt'))
+            coupon['active'] = row.get('active') != 'false'
+            self.send_json({'ok': True, 'coupon': coupon})
             return
         if path == '/api/csv':
             local = self.is_local()
