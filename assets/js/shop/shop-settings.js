@@ -345,12 +345,13 @@ function updateLocationSection() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  window.addEventListener('hashchange', () => setTimeout(updateLocationSection, 0));
+  window.addEventListener('hashchange', () => setTimeout(() => { updateLocationSection(); if (typeof updatePopupVisibility === 'function') updatePopupVisibility(); }, 0));
   const originalHide = typeof hideMainViews === 'function' ? hideMainViews : null;
   if (originalHide) {
     hideMainViews = function (...args) {
       const r = originalHide.apply(this, args);
       updateLocationSection();
+      if (typeof updatePopupVisibility === 'function') updatePopupVisibility();
       return r;
     };
   }
@@ -358,6 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
   showView = function (...args) {
     const r = originalShowView.apply(this, args);
     updateLocationSection();
+    if (typeof updatePopupVisibility === 'function') updatePopupVisibility();
     return r;
   };
 });

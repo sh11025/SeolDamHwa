@@ -96,10 +96,6 @@ function showPopupSlider() {
   if (currentPopupSlides.length === 0) return;
   isPopupActiveNow = true;
 
-  try {
-    sessionStorage.setItem('seoldamhwa_popup_viewed_session', '1');
-  } catch (e) {}
-
   renderCurrentPopupSlide();
   updatePopupVisibility();
 
@@ -244,9 +240,11 @@ function closePopupNow() {
   if (backdrop) backdrop.classList.add('hidden');
 }
 
-// 모달(PDP, 장바구니, 주문 결제) 열릴 때 팝업 숨김 처리
+// 팝업은 홈 화면에서만 (다른 메뉴·상품·결제로 가면 숨기고, 홈으로 돌아오면 다시), 장바구니가 열리면 숨김
 function updatePopupVisibility() {
   if (!isPopupActiveNow) return;
+  const home = document.getElementById('view-shop');
+  const isAwayFromHome = !home || home.classList.contains('hidden');
   const pdpModal = document.getElementById('pdp-modal');
   const cartDrawer = document.getElementById('cart-drawer');
   const checkoutModal = document.getElementById('checkout-modal');
@@ -255,7 +253,7 @@ function updatePopupVisibility() {
   const isCartOpen = cartDrawer && !cartDrawer.classList.contains('hidden');
   const isCheckoutOpen = checkoutModal && !checkoutModal.classList.contains('hidden');
 
-  const shouldHide = isPdpOpen || isCartOpen || isCheckoutOpen;
+  const shouldHide = isAwayFromHome || isPdpOpen || isCartOpen || isCheckoutOpen;
   const container = document.getElementById('popup-slider-container');
   const backdrop = document.getElementById('popup-slider-backdrop');
 
@@ -266,6 +264,9 @@ function updatePopupVisibility() {
   if (backdrop) {
     if (shouldHide) backdrop.classList.add('hidden');
     else backdrop.classList.remove('hidden');
+  }  // 손님 눈에 실제로 보였을 때만 '이번 방문에 봤음'으로 (상품 페이지로 먼저 들어와도 홈에 오면 보이게)
+  if (!shouldHide) {
+    try { sessionStorage.setItem('seoldamhwa_popup_viewed_session', '1'); } catch (e) {}
   }
 }
 
