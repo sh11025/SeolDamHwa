@@ -195,6 +195,7 @@ function renderProducts(category) {
   }
   if (typeof refreshFlowersPage === 'function') refreshFlowersPage();
   if (typeof refreshDictionaryPage === 'function') refreshDictionaryPage();
+  if (typeof startCtaPicker === 'function' && document.getElementById('cta-picker-row')?.children.length) startCtaPicker();
 }
 
 function scrollHomeSlider(dir) {

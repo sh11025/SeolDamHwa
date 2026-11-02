@@ -699,3 +699,62 @@ function renderCurationResults(topItems, soldOutProduct, hasExactBudget) {
   }, 100);
 }
 // 상담 유형 변경 핸들러
+
+/* ---------- 홈 '맞춤 담화' 띠: 꽃을 하나씩 짚어 보다가 하나를 골라 주는 움직임 ---------- */
+let ctaPickerTimer = null;
+
+function ctaPickerCaptions() {
+  const tt = (k, f) => (typeof t === 'function' ? t(k, f) : f);
+  return [tt('cta_pick_1', '누구에게 주실까요?'), tt('cta_pick_2', '어떤 날인가요?'), tt('cta_pick_3', '어떤 마음을 담을까요?'), tt('cta_pick_4', '이 꽃이 어울려요 ✓')];
+}
+
+function startCtaPicker() {
+  const row = document.getElementById('cta-picker-row');
+  const caption = document.getElementById('cta-picker-caption');
+  if (!row || !caption) return;
+  clearInterval(ctaPickerTimer);
+  const products = loadProducts().filter(p => (typeof isProductVisible === 'function' ? isProductVisible(p) : true) && p.image).slice(0, 5);
+  row.innerHTML = '';
+  if (products.length < 2) { row.parentElement.classList.add('hidden'); return; }
+  row.parentElement.classList.remove('hidden');
+  const items = products.map(p => {
+    const img = document.createElement('img');
+    img.src = (Array.isArray(p.images) && p.images[0]) || p.image;
+    img.alt = '';
+    img.loading = 'lazy';
+    img.className = 'cta-pick relative w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-ink-black bg-[#ECE8E1]';
+    row.appendChild(img);
+    return img;
+  });
+  const captions = ctaPickerCaptions();
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) { // 움직임을 줄인 기기: 고른 모습만 보여 줌
+    items.forEach((el, i) => el.classList.toggle(i === 1 ? 'is-picked' : 'is-dim', true));
+    caption.textContent = captions[3];
+    return;
+  }
+  let step = 0;
+  let pick = 0;
+  const tick = () => {
+    const visible = row.getBoundingClientRect().bottom > 0 && row.getBoundingClientRect().top < window.innerHeight;
+    if (!visible || document.hidden) return; // 화면 밖에서는 쉬기
+    items.forEach(el => el.classList.remove('is-looking', 'is-picked', 'is-dim'));
+    if (step < 3) {
+      // 질문마다 다른 꽃을 짚어 봄
+      items[(pick + step + 1) % items.length].classList.add('is-looking');
+      caption.textContent = captions[step];
+    } else {
+      // 하나를 골라 줌
+      items.forEach((el, i) => el.classList.add(i === pick ? 'is-picked' : 'is-dim'));
+      caption.textContent = captions[3];
+    }
+    step = (step + 1) % 5; // 마지막 한 번은 고른 모습을 조금 더 오래
+    if (step === 0) pick = (pick + 2) % items.length;
+  };
+  tick();
+  ctaPickerTimer = setInterval(tick, 1400);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  try { startCtaPicker(); } catch (e) { console.error('startCtaPicker error:', e); }
+});
