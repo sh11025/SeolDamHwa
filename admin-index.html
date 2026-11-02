@@ -11,8 +11,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
   
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
   <script src="assets/js/products-data.js"></script>
   <script src="assets/js/flowers-data.js"></script>
   <script src="assets/js/site-settings.js"></script>
@@ -30,32 +28,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
   <!-- 차트: Chart.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            hanji: '#FBF9F5',
-            ink: {
-              black: '#1A1A1A',
-              charcoal: '#2E2E2E',
-              gray: '#666666',
-              light: '#999999',
-            },
-            seal: {
-              red: '#8B2500',
-              crimson: '#A3330D'
-            }
-          },
-          fontFamily: {
-            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
-            serif: ['"Noto Serif KR"', 'serif'],
-            brush: ['"Nanum Brush Script"', 'cursive']
-          }
-        }
-      }
-    }
-  </script>
 
   <style>
     body {
@@ -174,6 +146,8 @@
       main .overflow-x-auto > table { min-width: 760px; }
     }
   </style>
+  <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
+  <link rel="stylesheet" href="assets/css/tailwind.css">
 </head>
 <body class="min-h-screen flex flex-col selection:bg-seal-red/15 selection:text-seal-red">
   <!-- 1. 관리자 상단 헤더 (Admin Top Bar) -->

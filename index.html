@@ -24,33 +24,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
   
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            hanji: '#FBF9F5',
-            ink: {
-              black: '#1A1A1A',
-              charcoal: '#2A2A2A',
-              gray: '#666666',
-              light: '#999999',
-            },
-            seal: {
-              red: '#8B2500',
-              crimson: '#A3330D'
-            }
-          },
-          fontFamily: {
-            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
-            serif: ['"Noto Serif KR"', 'serif'],
-            brush: ['"Nanum Brush Script"', 'cursive']
-          }
-        }
-      }
-    }
 
     // 8. 동영상 제어 초기화 (항상 음소거, 1.4배속 재생 및 스크롤 시 재생/정지)
     function initVideoControls() {
@@ -325,6 +299,8 @@
     .info-page-body .page-ul { list-style: disc; padding-left: 20px; margin: 6px 0; }
     .info-page-body .page-ul li { margin: 3px 0; }
   </style>
+  <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
+  <link rel="stylesheet" href="assets/css/tailwind.css">
 </head>
 <body class="selection:bg-seal-red/15 selection:text-seal-red min-h-screen flex flex-col">
   <!-- 상품 미리보기 모드 상단 고정 배너 -->

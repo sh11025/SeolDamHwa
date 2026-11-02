@@ -1,0 +1,4 @@
+/* 설담화 화면 스타일 원본 - npm run build:css 로 assets/css/tailwind.css를 만듭니다 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
