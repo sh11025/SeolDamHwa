@@ -136,6 +136,61 @@ const CHART_BASE = {
   }
 };
 
+// 오늘 할 일: 오늘 배송 · 제작 중 · 새 상담 · 재입고 알림 대기 · 품절 임박
+function renderTodayTasks(orders, products, inquiries, today) {
+  const box = document.getElementById('today-tasks');
+  if (!box) return;
+  const dateEl = document.getElementById('today-tasks-date');
+  if (dateEl) dateEl.textContent = `${Number(today.slice(5, 7))}월 ${Number(today.slice(8, 10))}일 (${weekdayLabel(today)})`;
+  const active = o => o.status !== 'cancelled' && o.status !== 'completed';
+  const todayDeliv = orders.filter(o => active(o) && getDeliveryDate(o) === today).length;
+  const making = orders.filter(o => o.status === 'preparing').length;
+  const newInq = inquiries.filter(i => i.status === 'new').length;
+  const restock = typeof restockWaitingCount === 'function' ? restockWaitingCount() : 0;
+  const low = products.filter(p => !p.inquiryOnly && getStockStatus(p.stockQuantity) === 'low_stock').length;
+  const tasks = [
+    { label: '오늘 배송', n: todayDeliv, unit: '건', go: () => goTodayTask('orders', 'today') },
+    { label: '제작 중', n: making, unit: '건', go: () => goTodayTask('orders', 'preparing') },
+    { label: '새 상담', n: newInq, unit: '건', go: () => goTodayTask('reviews') },
+    { label: '재입고 알림 대기', n: restock, unit: '명', go: () => goTodayTask('restock') },
+    { label: '품절 임박', n: low, unit: '개', go: () => goTodayTask('low') }
+  ];
+  box.innerHTML = '';
+  tasks.forEach(tk => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.onclick = tk.go;
+    b.className = `text-left p-3 rounded-xs border cursor-pointer transition-colors ${tk.n ? 'bg-white border-seal-red/40 hover:border-seal-red' : 'bg-[#FAF7F2] border-ink-black/10 hover:border-ink-black/30'}`;
+    const l = document.createElement('p');
+    l.className = 'text-xs font-bold text-ink-gray';
+    l.textContent = tk.label;
+    const v = document.createElement('p');
+    v.className = `text-xl font-extrabold ${tk.n ? 'text-seal-red' : 'text-ink-light'}`;
+    v.textContent = `${tk.n}${tk.unit}`;
+    b.append(l, v);
+    box.appendChild(b);
+  });
+}
+
+function goTodayTask(kind, arg) {
+  if (kind === 'orders') {
+    switchAdminTab('orders');
+    const dateSel = document.getElementById('order-date-filter');
+    if (dateSel) dateSel.value = arg === 'today' ? 'today' : 'all';
+    if (typeof setOrderStatusFilter === 'function') setOrderStatusFilter(arg === 'preparing' ? 'preparing' : 'all');
+  } else if (kind === 'reviews') {
+    switchAdminTab('reviews');
+  } else if (kind === 'restock') {
+    switchAdminTab('reviews');
+    const el = document.getElementById('admin-restock-list');
+    if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  } else if (kind === 'low') {
+    switchAdminTab('products');
+    const sel = document.getElementById('prod-stock-filter');
+    if (sel) { sel.value = 'low'; renderProductsTable(); }
+  }
+}
+
 function renderDashboard() {
   const orders = loadAdminOrders();
   const products = loadAdminProducts();
@@ -161,6 +216,8 @@ function renderDashboard() {
   document.getElementById('metric-orders-sub').innerText = `제작 중 ${prepCount} · 포장 완료 ${packCount} · 배송 중 ${delivCount}`;
   const newInquiries = inquiries.filter(i => i.status === 'new').length + (typeof restockWaitingCount === 'function' ? restockWaitingCount() : 0);
   document.getElementById('metric-inquiries-sub').innerText = `새 상담 ${newInquiries}건 →`;
+
+  try { renderTodayTasks(orders, products, inquiries, today); } catch (e) { console.error('renderTodayTasks error:', e); }
 
   // 사이드바 숫자
   document.getElementById('badge-order-count').innerText = prepCount + packCount + delivCount;

@@ -348,3 +348,20 @@ function showView(view) {
 }
 
 // 5단계 맞춤 추천 사유 한국어 맵
+
+// 휴대폰 오른쪽 아래: ♡·💬 묶음 펼치기/접기
+function toggleFabGroup(force) {
+  const group = document.getElementById('fab-group');
+  const btn = document.getElementById('fab-toggle-btn');
+  if (!group || !btn) return;
+  const open = typeof force === 'boolean' ? force : group.classList.contains('hidden');
+  group.classList.toggle('hidden', !open);
+  group.classList.toggle('flex', open);
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  document.getElementById('fab-toggle-open').classList.toggle('hidden', open);
+  document.getElementById('fab-toggle-close').classList.toggle('hidden', !open);
+  if (!open) {
+    if (typeof toggleChatPanel === 'function') toggleChatPanel(false);
+    if (typeof toggleWishPanel === 'function') toggleWishPanel(false);
+  }
+}

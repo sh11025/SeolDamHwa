@@ -67,6 +67,11 @@ function updateWishBadge() {
     floatBadge.textContent = n;
     floatBadge.classList.toggle('hidden', n === 0);
   }
+  const fabBadge = document.getElementById('fab-toggle-badge');
+  if (fabBadge) {
+    fabBadge.textContent = n;
+    fabBadge.classList.toggle('hidden', n === 0);
+  }
   const panel = document.getElementById('wish-panel');
   if (panel && !panel.classList.contains('hidden')) renderWishPanel();
 }
