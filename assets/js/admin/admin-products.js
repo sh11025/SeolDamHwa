@@ -4,6 +4,34 @@
 
 // 2. 상품 및 한 줄 글귀 테이블 렌더링 & 필터
 let currentProductFilter = 'all';
+let currentProductCategory = 'all';
+
+function setProductCategory(cat) {
+  currentProductCategory = cat;
+  renderProductsTable();
+}
+
+// 종류 버튼: 전체 + 7가지 (상품 수 표시, 상품이 없는 종류도 보여 줌)
+function renderProductCategoryFilter(allProducts) {
+  const box = document.getElementById('prod-cat-filter');
+  if (!box) return;
+  box.innerHTML = '';
+  const label = document.createElement('span');
+  label.className = 'text-xs font-bold text-ink-gray mr-1';
+  label.textContent = '종류';
+  box.appendChild(label);
+  [{ id: 'all', label: '전체' }, ...PRODUCT_CATEGORIES].forEach(c => {
+    const n = c.id === 'all' ? allProducts.length : allProducts.filter(p => p.category === c.id).length;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = `${c.label} ${n}`;
+    const on = currentProductCategory === c.id;
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.className = `px-2.5 py-1 text-xs font-bold rounded-full cursor-pointer ${on ? 'bg-seal-red text-white' : 'bg-white text-ink-black border border-ink-black/15 hover:border-seal-red'}${n || on ? '' : ' opacity-50'}`;
+    b.onclick = () => setProductCategory(c.id);
+    box.appendChild(b);
+  });
+}
 
 function setProductFilter(filter) {
   currentProductFilter = filter;
@@ -31,7 +59,9 @@ function renderProductsTable() {
 
   const q = ((document.getElementById('prod-search') || {}).value || '').trim().toLowerCase();
   const stockFilter = (document.getElementById('prod-stock-filter') || {}).value || 'all';
+  renderProductCategoryFilter(allProducts);
   const filtered = allProducts.filter(p => {
+    if (currentProductCategory !== 'all' && p.category !== currentProductCategory) return false;
     if (q && ![p.name, p.englishName, p.flowerMeaning, p.poeticLine].join(' ').toLowerCase().includes(q)) return false;
     if (stockFilter !== 'all') {
       if (p.inquiryOnly) return false;

@@ -477,6 +477,8 @@
           </select>
           <input type="search" id="prod-search" oninput="renderProductsTable()" placeholder="상품명·꽃 이름 찾기" class="flex-1 min-w-[160px] bg-white border border-ink-black/20 py-1.5 px-2 rounded-xs text-sm">
         </div>
+        <!-- 종류별 나누기 (괄호 안 = 상품 수). admin-products.js renderProductCategoryFilter -->
+        <div id="prod-cat-filter" class="flex flex-wrap items-center gap-1.5" role="group" aria-label="상품 종류"></div>
 
         <!-- 상품 목록 테이블 -->
         <div class="admin-card rounded-sm overflow-hidden">

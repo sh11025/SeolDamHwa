@@ -553,23 +553,24 @@
       <!-- 맞춤 담화 안내 띠 -->
       <section id="custom-cta" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         <!-- 한지 카드: 한지 바탕 + 얇은 인주색 테두리 + 꽃살 모서리 -->
-        <div class="relative overflow-hidden rounded-sm bg-[#F6F1E7] text-ink-black border border-seal-red/35 shadow-xs px-6 py-10 sm:px-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div class="relative overflow-hidden rounded-sm bg-[#F6F1E7] text-ink-black border border-seal-red/35 shadow-xs px-6 py-10 sm:px-12 flex flex-col md:flex-row md:items-center justify-between gap-8">
           <span class="kkotsal tl" aria-hidden="true"></span><span class="kkotsal tr" aria-hidden="true"></span><span class="kkotsal bl" aria-hidden="true"></span><span class="kkotsal br" aria-hidden="true"></span>
           <div class="pointer-events-none absolute inset-[7px] border border-seal-red/15 rounded-xs" aria-hidden="true"></div>
-          <div class="relative space-y-2 max-w-xl">
+          <!-- 왼쪽: 글 + 버튼 / 오른쪽: 꽃 고르는 움직임 -->
+          <div class="relative space-y-2 max-w-xl flex-1 min-w-0">
             <p data-i18n="cta_badge" class="font-brush text-2xl text-seal-red">맞춤 담화</p>
             <h2 data-i18n="cta_title" class="text-xl sm:text-2xl font-extrabold tracking-tight break-keep">어떤 꽃이 좋을지 모르겠다면</h2>
             <p data-i18n="cta_desc" class="text-sm text-ink-charcoal leading-relaxed break-keep">누구에게, 어떤 날, 어떤 마음인지 몇 가지만 고르면 어울리는 꽃을 골라 드려요.</p>
+            <div class="relative flex flex-wrap gap-2 pt-3">
+              <button type="button" onclick="switchView('custom')" data-i18n="cta_btn" class="px-6 py-3 bg-seal-red text-white text-sm font-bold rounded-xs hover:opacity-90 cursor-pointer">맞춤 추천 받기 →</button>
+              <button type="button" onclick="toggleChatPanel(true)" data-i18n="cta_btn_chat" class="px-6 py-3 border border-ink-black/25 bg-white text-ink-black text-sm font-bold rounded-xs hover:border-seal-red hover:text-seal-red cursor-pointer">💬 바로 물어보기</button>
+            </div>
           </div>
           <!-- 꽃을 하나씩 짚어 보다가 하나를 골라 주는 움직임 (shop-curation.js startCtaPicker) -->
-          <button type="button" onclick="switchView('custom')" id="cta-picker" class="relative group shrink-0 flex flex-col items-center gap-3 cursor-pointer" aria-label="맞춤 담화로 꽃 추천 받기">
-            <div id="cta-picker-row" class="flex items-end -space-x-3 h-[88px]"></div>
-            <p id="cta-picker-caption" class="h-5 text-xs font-bold text-seal-red tracking-wide transition-opacity duration-300" aria-live="off"></p>
+          <button type="button" onclick="switchView('custom')" id="cta-picker" class="relative group shrink-0 self-center flex flex-col items-center gap-3 cursor-pointer" aria-label="맞춤 담화로 꽃 추천 받기">
+            <div id="cta-picker-row" class="flex items-end -space-x-3 sm:-space-x-4 h-[100px] sm:h-[124px] lg:h-[144px] pt-4"></div>
+            <p id="cta-picker-caption" class="h-6 text-sm font-bold text-seal-red tracking-wide transition-opacity duration-300" aria-live="off"></p>
           </button>
-          <div class="relative flex flex-col sm:flex-row gap-2 shrink-0">
-            <button type="button" onclick="switchView('custom')" data-i18n="cta_btn" class="px-6 py-3 bg-seal-red text-white text-sm font-bold rounded-xs hover:opacity-90 cursor-pointer">맞춤 추천 받기 →</button>
-            <button type="button" onclick="toggleChatPanel(true)" data-i18n="cta_btn_chat" class="px-6 py-3 border border-ink-black/25 bg-white text-ink-black text-sm font-bold rounded-xs hover:border-seal-red hover:text-seal-red cursor-pointer">💬 바로 물어보기</button>
-          </div>
         </div>
       </section>
 
@@ -760,7 +761,8 @@
       </div>
 
       <!-- 큐레이터 스텝 카드 -->
-      <div id="curation-stepper-card" class="bg-white/95 rounded-sm border border-ink-black/10 shadow-sm p-6 sm:p-10 space-y-6">
+      <div id="curation-stepper-card" class="relative bg-white/95 rounded-sm border border-ink-black/10 shadow-sm p-6 sm:p-10 space-y-6">
+        <span class="kkotsal tl" aria-hidden="true"></span><span class="kkotsal tr" aria-hidden="true"></span><span class="kkotsal bl" aria-hidden="true"></span><span class="kkotsal br" aria-hidden="true"></span>
         
         <!-- 슬림 프로그레스 바 -->
         <div class="w-full bg-ink-black/10 h-1.5 rounded-full overflow-hidden">

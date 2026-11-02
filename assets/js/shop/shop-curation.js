@@ -600,9 +600,10 @@ function renderCurationResults(topItems, soldOutProduct, hasExactBudget) {
     const orderBtnText = typeof t === 'function' ? t('btn_order', '주문하기') : '주문하기';
 
     const card = document.createElement('div');
-    card.className = `p-4 sm:p-5 rounded-xs border flex flex-col justify-between transition-all ${isBest ? 'bg-white border-seal-red shadow-md ring-1 ring-seal-red/20' : 'bg-[#FAF7F2] border-ink-black/10'}`;
+    card.className = `relative p-4 sm:p-5 rounded-xs border flex flex-col justify-between transition-all ${isBest ? 'bg-white border-seal-red shadow-md ring-1 ring-seal-red/20' : 'bg-[#FAF7F2] border-ink-black/10'}`;
 
     card.innerHTML = `
+      <div class="corner-tl"></div><div class="corner-tr"></div><div class="corner-bl"></div><div class="corner-br"></div>
       <div class="space-y-3">
         <div class="relative aspect-[4/3] rounded-xs overflow-hidden bg-[#ECE8E1]">
           <img loading="lazy" decoding="async" src="${p.image}" alt="${tp.name}" class="w-full h-full object-cover">
@@ -722,7 +723,7 @@ function startCtaPicker() {
     img.src = (Array.isArray(p.images) && p.images[0]) || p.image;
     img.alt = '';
     img.loading = 'lazy';
-    img.className = 'cta-pick relative w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-white shadow-xs bg-[#ECE8E1]';
+    img.className = 'cta-pick relative w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-full object-cover border-2 border-white shadow-xs bg-[#ECE8E1]';
     row.appendChild(img);
     return img;
   });
