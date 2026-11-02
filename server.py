@@ -12,13 +12,18 @@
 """
 import argparse
 import csv
+import hashlib
+import hmac
 import io
 import json
 import os
+import re
+import secrets
 import shutil
 import socket
 import threading
 import time
+import urllib.request
 from datetime import datetime
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
@@ -44,6 +49,89 @@ BACKUP_KEEP = 40
 
 LOCK = threading.Lock()
 _last_backup = 0.0
+
+# 디스코드 웹후크·관리자 비밀번호 (Git에 올라가지 않는 숨김 파일, 관리자만 바꿈)
+INTEGRATIONS_FILE = os.path.join(DATA, '.integrations.json')
+ADMIN_FILE = os.path.join(DATA, '.admin.json')
+WEBHOOK_RE = re.compile(r'^https://(?:(?:canary|ptb)\.)?discord(?:app)?\.com/api/webhooks/\d+/[\w-]+$')
+SESSIONS = {}          # 로그인 표 → 끝나는 시각
+SESSION_HOURS = 12
+_hits = {}             # (ip, 종류) → 최근 요청 시각들 (너무 자주 묻는 것 막기)
+
+
+def too_many(ip, kind, limit, per=60):
+    now = time.time()
+    lst = [t for t in _hits.get((ip, kind), []) if now - t < per]
+    lst.append(now)
+    _hits[(ip, kind)] = lst
+    return len(lst) > limit
+
+
+def read_json_file(path, default):
+    try:
+        with open(path, encoding='utf-8') as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return default
+
+
+def write_json_file(path, obj):
+    tmp = path + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        json.dump(obj, f, ensure_ascii=False)
+    os.replace(tmp, path)
+
+
+def hash_password(password, salt=None):
+    salt = salt or secrets.token_hex(16)
+    digest = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), bytes.fromhex(salt), 200_000).hex()
+    return salt, digest
+
+
+def check_password(password):
+    saved = read_json_file(ADMIN_FILE, {})
+    if not saved.get('salt') or not saved.get('hash'):
+        return False
+    return hmac.compare_digest(hash_password(password, saved['salt'])[1], saved['hash'])
+
+
+def send_discord(channel, payload):
+    """손님 기기에서 온 알림을 서버에 저장된 웹후크로 보냄 (웹후크 주소는 손님에게 안 보임)"""
+    cfg = read_json_file(INTEGRATIONS_FILE, {})
+    if channel == 'order':
+        if cfg.get('notifyOrders') is False:
+            return False, 'off'
+        url = (cfg.get('orderWebhook') or '').strip()
+    else:
+        if cfg.get('notifyInquiries') is False:
+            return False, 'off'
+        url = (cfg.get('inquiryWebhook') or cfg.get('orderWebhook') or '').strip()
+    if not WEBHOOK_RE.match(url):
+        return False, 'no-webhook'
+    body = dict(payload or {})
+    body['username'] = '설담화 알림'
+    body['allowed_mentions'] = {'parse': []}
+    data = json.dumps(body, ensure_ascii=False).encode('utf-8')
+    if len(data) > 12000:
+        return False, 'too-big'
+    req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json', 'User-Agent': 'Seoldamhwa/1.0'}, method='POST')
+    try:
+        with urllib.request.urlopen(req, timeout=8) as res:
+            return 200 <= res.status < 300, res.status
+    except Exception as e:  # 인터넷이 끊겨도 주문 저장은 계속
+        return False, str(e)[:80]
+
+
+def list_backups():
+    if not os.path.isdir(BACKUP):
+        return []
+    out = []
+    for d in sorted(os.listdir(BACKUP), reverse=True):
+        p = os.path.join(BACKUP, d)
+        if os.path.isdir(p):
+            files = [f for f in os.listdir(p) if f in TABLES.values()]
+            out.append({'name': d, 'files': len(files)})
+    return out
 
 
 def key_of(table, row):
@@ -172,6 +260,22 @@ class Handler(SimpleHTTPRequestHandler):
     def is_local(self):
         return self.client_address[0] in ('127.0.0.1', '::1')
 
+    def session_token(self):
+        cookie = self.headers.get('Cookie') or ''
+        m = re.search(r'(?:^|;\s*)sdh_admin=([\w-]+)', cookie)
+        return m.group(1) if m else ''
+
+    def is_admin(self):
+        """이 컴퓨터이거나, 다른 기기에서 관리자 비밀번호로 로그인한 경우"""
+        if self.is_local():
+            return True
+        tok = self.session_token()
+        exp = SESSIONS.get(tok)
+        if exp and exp > time.time():
+            return True
+        SESSIONS.pop(tok, None)
+        return False
+
     def end_headers(self):
         self.send_header('Cache-Control', 'no-store')  # 고친 파일이 바로 보이게
         super().end_headers()
@@ -211,8 +315,45 @@ class Handler(SimpleHTTPRequestHandler):
             coupon['active'] = row.get('active') != 'false'
             self.send_json({'ok': True, 'coupon': coupon})
             return
+        query = parse_qs(urlparse(self.path).query)
+        if path == '/api/session':
+            self.send_json({'ok': True, 'admin': self.is_admin(), 'local': self.is_local(), 'hasPassword': bool(read_json_file(ADMIN_FILE, {}).get('hash'))})
+            return
+        if path == '/api/order-lookup':
+            # 주문번호 + 연락처가 맞는 주문 한 건만 (손님 기기용)
+            if too_many(self.client_address[0], 'lookup', 20):
+                self.send_json({'ok': False, 'error': '잠시 뒤에 다시 해 주세요'}, 429)
+                return
+            number = (query.get('number') or [''])[0].strip().upper()
+            phone = re.sub(r'\D', '', (query.get('phone') or [''])[0])
+            with LOCK:
+                orders = read_table('orders')
+                items = read_table('order_items')
+            row = None
+            if orders and number and len(phone) >= 9:
+                row = next((r for r in orders[1] if str(r.get('orderNumber', '')).upper() == number
+                            and phone in (re.sub(r'\D', '', r.get('ordererPhone') or r.get('phone') or ''),)), None)
+            if not row:
+                self.send_json({'ok': False})
+                return
+            def as_csv(header, rows):
+                buf = io.StringIO()
+                w = csv.writer(buf, lineterminator='\r\n')
+                w.writerow(header)
+                for r in rows:
+                    w.writerow([r.get(c, '') for c in header])
+                return buf.getvalue()
+            item_rows = [r for r in (items[1] if items else []) if r.get('orderId') == row.get('id')]
+            self.send_json({'ok': True, 'orders': as_csv(orders[0], [row]), 'items': as_csv(items[0], item_rows) if items else ''})
+            return
+        if path == '/api/backups':
+            if not self.is_admin():
+                self.send_json({'ok': False, 'error': '관리자만'}, 403)
+                return
+            self.send_json({'ok': True, 'backups': list_backups()})
+            return
         if path == '/api/csv':
-            local = self.is_local()
+            local = self.is_admin()
             readable = [t for t in TABLES if local or t in PUBLIC_TABLES]
             files = {}
             with LOCK:
@@ -232,7 +373,87 @@ class Handler(SimpleHTTPRequestHandler):
         except Exception:
             self.send_json({'ok': False, 'error': '잘못된 요청'}, 400)
             return
-        local = self.is_local()
+        local = self.is_admin()
+        ip = self.client_address[0]
+        if path == '/api/login':
+            if too_many(ip, 'login', 5):
+                self.send_json({'ok': False, 'error': '너무 여러 번 틀렸어요. 1분 뒤에 다시 해 주세요.'}, 429)
+                return
+            if not check_password(str(body.get('password') or '')):
+                self.send_json({'ok': False, 'error': '비밀번호가 맞지 않아요.'}, 401)
+                return
+            tok = secrets.token_urlsafe(24)
+            SESSIONS[tok] = time.time() + SESSION_HOURS * 3600
+            payload = json.dumps({'ok': True}).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Set-Cookie', f'sdh_admin={tok}; HttpOnly; SameSite=Strict; Path=/; Max-Age={SESSION_HOURS * 3600}')
+            self.send_header('Content-Length', str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
+        if path == '/api/logout':
+            SESSIONS.pop(self.session_token(), None)
+            self.send_response(200)
+            self.send_header('Set-Cookie', 'sdh_admin=; Path=/; Max-Age=0')
+            self.send_header('Content-Length', '0')
+            self.end_headers()
+            return
+        if path == '/api/admin-password':
+            if not local:
+                self.send_json({'ok': False, 'error': '관리자만'}, 403)
+                return
+            pw = str(body.get('password') or '')
+            if len(pw) < 8:
+                self.send_json({'ok': False, 'error': '비밀번호는 8자 이상으로 정해 주세요.'}, 400)
+                return
+            salt, digest = hash_password(pw)
+            write_json_file(ADMIN_FILE, {'salt': salt, 'hash': digest, 'updatedAt': datetime.now().isoformat(timespec='seconds')})
+            SESSIONS.clear()  # 바꾸면 다른 기기는 다시 로그인
+            self.send_json({'ok': True})
+            return
+        if path == '/api/integrations':
+            if not local:
+                self.send_json({'ok': False, 'error': '관리자만'}, 403)
+                return
+            cfg = {
+                'orderWebhook': str(body.get('orderWebhook') or '').strip(),
+                'inquiryWebhook': str(body.get('inquiryWebhook') or '').strip(),
+                'notifyOrders': body.get('notifyOrders') is not False,
+                'notifyInquiries': body.get('notifyInquiries') is not False,
+            }
+            for k in ('orderWebhook', 'inquiryWebhook'):
+                if cfg[k] and not WEBHOOK_RE.match(cfg[k]):
+                    cfg[k] = ''
+            write_json_file(INTEGRATIONS_FILE, cfg)
+            self.send_json({'ok': True})
+            return
+        if path == '/api/notify':
+            # 새 주문·상담 알림 (손님 기기도 보낼 수 있지만 자주 못 보내게)
+            channel = 'order' if body.get('channel') == 'order' else 'inquiry'
+            if too_many(ip, 'notify', 10):
+                self.send_json({'ok': False, 'error': 'too-many'}, 429)
+                return
+            ok, info = send_discord(channel, body.get('payload'))
+            self.send_json({'ok': ok, 'info': info})
+            return
+        if path == '/api/restore':
+            if not local:
+                self.send_json({'ok': False, 'error': '관리자만'}, 403)
+                return
+            name = str(body.get('folder') or '')
+            if name not in [b['name'] for b in list_backups()]:
+                self.send_json({'ok': False, 'error': '없는 백업'}, 404)
+                return
+            src = os.path.join(BACKUP, name)
+            with LOCK:
+                make_backup('before-restore', force=True)  # 되돌리기 전 지금 상태도 남김
+                for fname in TABLES.values():
+                    p = os.path.join(src, fname)
+                    if os.path.exists(p):
+                        shutil.copy2(p, os.path.join(DATA, fname))
+            self.send_json({'ok': True})
+            return
         if path == '/api/sync':
             total, rejected = 0, []
             with LOCK:

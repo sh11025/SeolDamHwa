@@ -16,6 +16,10 @@ DATA/images.csv
 # 쿠폰 코드는 돈과 같아서 올리지 않음
 DATA/coupons.csv
 DATA/coupon_history.csv
+# 서버의 디스코드 웹후크·관리자 비밀번호
+DATA/.integrations.json
+DATA/.admin.json
+DATA/*.json.tmp
 DATA/flowers.csv.tmp
 DATA/*.tmp
 # 서버 자동 백업 (개인정보 포함)

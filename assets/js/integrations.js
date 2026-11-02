@@ -1,8 +1,8 @@
 // assets/js/integrations.js
 // 설담화(說談花) 외부 연동: 디스코드 알림 (주문 채널 / 상담 채널)
 // 쇼핑몰(주문·상담 알림)과 관리자(테스트·제작 목록) 모두 이 파일을 씁니다.
-// 지금은 같은 브라우저 저장소의 웹후크 주소를 쓰므로, 같은 컴퓨터에서 들어온 주문만 알림이 갑니다.
-// 서버를 붙일 때는 sendDiscord()만 서버 호출로 바꾸면 됩니다.
+// 서버(server.py)로 열면 주문·상담 알림은 서버가 저장해 둔 웹후크로 대신 보냅니다 (손님 기기 주문도 알림, 주소는 손님에게 안 보임).
+// 서버 없이 열면 예전처럼 이 브라우저에 저장된 웹후크로 바로 보냅니다.
 
 const INTEGRATIONS_STORAGE_KEY = 'seoldamhwa_integrations';
 
@@ -28,6 +28,7 @@ function saveIntegrations(obj) {
   const merged = { ...DEFAULT_INTEGRATIONS, ...obj };
   delete merged.discordWebhook;
   localStorage.setItem(INTEGRATIONS_STORAGE_KEY, JSON.stringify(merged));
+  if (typeof pushIntegrationsToServer === 'function') pushIntegrationsToServer(merged);
   return merged;
 }
 
@@ -41,6 +42,29 @@ function getWebhookFor(channel) {
   const cfg = loadIntegrations();
   if (channel === 'inquiry') return (cfg.inquiryWebhook || cfg.orderWebhook || '').trim();
   return (cfg.orderWebhook || '').trim();
+}
+
+function discordViaServer() {
+  return typeof DataSync !== 'undefined' && DataSync.enabled;
+}
+
+// 주문·상담 알림 보내기: 서버 모드면 서버가 대신, 아니면 이 브라우저의 웹후크로
+async function sendDiscordChannel(payload, channel) {
+  if (discordViaServer()) {
+    try {
+      const res = await fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ channel, payload }) });
+      return await res.json();
+    } catch (e) {
+      return { ok: false, reason: 'network' };
+    }
+  }
+  return sendDiscord(payload, getWebhookFor(channel));
+}
+
+// 관리자가 디스코드 설정을 바꾸면 서버에도 알려 둠 (서버 모드, 관리자 화면에서만)
+function pushIntegrationsToServer(cfg) {
+  if (!discordViaServer() || !DataSync.local) return;
+  fetch('/api/integrations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cfg || loadIntegrations()) }).catch(() => {});
 }
 
 async function sendDiscord(payload, webhookUrl) {
@@ -100,8 +124,8 @@ function discordItemLines(items) {
 function notifyOrderToDiscord(order) {
   const cfg = loadIntegrations();
   const url = getWebhookFor('order');
-  if (!cfg.notifyOrders || !isValidDiscordWebhook(url) || order.isSample) return Promise.resolve({ ok: false, reason: 'off' });
-  return sendDiscord({
+  if (order.isSample || (!discordViaServer() && (!cfg.notifyOrders || !isValidDiscordWebhook(url)))) return Promise.resolve({ ok: false, reason: 'off' });
+  return sendDiscordChannel({
     embeds: [{
       author: { name: '🌸 새 주문이 들어왔어요' },
       title: discordPlain(order.orderNumber, 40),
@@ -120,16 +144,16 @@ function notifyOrderToDiscord(order) {
       footer: { text: '연락처·주소는 관리자 센터 > 주문 관리에서 확인하세요' },
       timestamp: new Date().toISOString()
     }]
-  }, url);
+  }, 'order');
 }
 
 // 새 상담 알림 (전화번호는 보내지 않음)
 function notifyInquiryToDiscord(inq) {
   const cfg = loadIntegrations();
   const url = getWebhookFor('inquiry');
-  if (!cfg.notifyInquiries || !isValidDiscordWebhook(url) || inq.isSample) return Promise.resolve({ ok: false, reason: 'off' });
+  if (inq.isSample || (!discordViaServer() && (!cfg.notifyInquiries || !isValidDiscordWebhook(url)))) return Promise.resolve({ ok: false, reason: 'off' });
   const wanted = /^\d{4}-\d{2}-\d{2}$/.test(String(inq.date)) ? discordDeliveryText(inq.date) : (discordSafe(inq.date, 30) || '미정');
-  return sendDiscord({
+  return sendDiscordChannel({
     embeds: [{
       author: { name: '💬 새 1:1 상담 문의' },
       title: `${discordPlain(inq.name, 40) || '고객'} 님 · ${discordPlain(inq.type, 40) || '상담'}`,
@@ -142,15 +166,15 @@ function notifyInquiryToDiscord(inq) {
       footer: { text: '연락처는 관리자 센터 > 고객 상담 문의에서 확인하고 직접 연락해 주세요' },
       timestamp: new Date().toISOString()
     }]
-  }, url);
+  }, 'inquiry');
 }
 
 // 재입고 알림 신청 알림 (상담 채널, 전화번호는 보내지 않음)
 function notifyRestockToDiscord(req, waitingTotal) {
   const cfg = loadIntegrations();
   const url = getWebhookFor('inquiry');
-  if (!cfg.notifyInquiries || !isValidDiscordWebhook(url) || req.isSample) return Promise.resolve({ ok: false, reason: 'off' });
-  return sendDiscord({
+  if (req.isSample || (!discordViaServer() && (!cfg.notifyInquiries || !isValidDiscordWebhook(url)))) return Promise.resolve({ ok: false, reason: 'off' });
+  return sendDiscordChannel({
     embeds: [{
       author: { name: '🔔 재입고 알림 신청' },
       title: discordPlain(req.productName, 80),
@@ -159,7 +183,7 @@ function notifyRestockToDiscord(req, waitingTotal) {
       footer: { text: '연락처는 관리자 센터 > 고객 상담 문의 > 재입고 알림에서 확인하세요' },
       timestamp: new Date().toISOString()
     }]
-  }, url);
+  }, 'inquiry');
 }
 
 // 특정 배송일의 제작 목록 (디스코드 제작 지시서) - 합계 + 시간대별 주문

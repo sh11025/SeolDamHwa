@@ -455,7 +455,9 @@ function runOrderLookup(e) {
   const num = document.getElementById('lookup-order-number').value.trim().toUpperCase();
   const phone = document.getElementById('lookup-phone').value.replace(/\D/g, '');
   const orders = JSON.parse(localStorage.getItem('seoldamhwa_orders') || '[]');
-  const o = orders.find(x => String(x.orderNumber).toUpperCase() === num && String(x.ordererPhone || x.phone || '').replace(/\D/g, '') === phone);
+  let o = orders.find(x => String(x.orderNumber).toUpperCase() === num && String(x.ordererPhone || x.phone || '').replace(/\D/g, '') === phone);
+  // 서버로 연 손님 기기는 주문 목록을 갖고 있지 않으므로 서버에 한 건만 확인
+  if (!o && typeof DataSync !== 'undefined' && DataSync.enabled && !DataSync.local) o = DataSync.lookupOrder(num, phone);
   const box = document.getElementById('lookup-result');
   box.classList.remove('hidden');
   box.innerHTML = '';

@@ -786,6 +786,30 @@
 
         <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 text-sm">
 
+          <!-- 서버 관리: server.py로 열었을 때만 보임 -->
+          <div id="server-admin-card" class="hidden admin-card p-5 rounded-sm space-y-4 xl:col-span-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h2 class="text-base font-bold text-ink-black">서버 관리 (start-server.bat로 열었을 때)</h2>
+              <button type="button" id="server-logout-btn" onclick="adminLogout()" class="hidden px-3 py-1.5 border border-ink-black/20 bg-white rounded-xs text-xs font-bold cursor-pointer">이 기기 로그아웃</button>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <form onsubmit="saveAdminPassword(event)" class="space-y-2">
+                <p class="font-bold text-ink-black">관리자 비밀번호 <span id="server-pw-state" class="ml-1 text-[11px] font-bold"></span></p>
+                <p class="text-xs text-ink-gray leading-relaxed">매장 와이파이의 태블릿·휴대폰에서 관리자 화면을 쓸 때 필요해요. 이 컴퓨터에서는 묻지 않아요. 바꾸면 다른 기기는 다시 로그인해요.</p>
+                <div class="flex gap-2">
+                  <input type="password" id="server-pw" minlength="8" required autocomplete="new-password" placeholder="8자 이상" aria-label="새 관리자 비밀번호" class="flex-1 min-w-0 bg-white border border-ink-black/20 p-2 rounded-xs">
+                  <button type="submit" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red whitespace-nowrap">저장</button>
+                </div>
+                <p id="server-pw-msg" class="text-xs font-bold"></p>
+              </form>
+              <div class="space-y-2">
+                <p class="font-bold text-ink-black">백업에서 되돌리기</p>
+                <p class="text-xs text-ink-gray leading-relaxed">DATA/backup에 10분마다 남는 복사본이에요. 되돌리기 전에 지금 상태도 따로 백업해 둬요.</p>
+                <div id="server-backup-list" class="max-h-48 overflow-y-auto border border-ink-black/10 rounded-xs divide-y divide-ink-black/5 bg-white text-xs"></div>
+              </div>
+            </div>
+          </div>
+
           <!-- CSV 데이터 폴더 -->
           <div class="admin-card p-5 rounded-sm space-y-3 xl:col-span-2">
             <div class="flex flex-wrap items-center justify-between gap-2">

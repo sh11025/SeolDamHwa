@@ -116,6 +116,8 @@ const DataSync = (() => {
     });
     lastFiles = serverFiles;
     if (local) localStorage.setItem(SYNCED_FLAG, new Date().toISOString());
+    // 관리자 화면: 디스코드 설정을 서버에도 (손님 기기 주문 알림용)
+    if (local && /admin-index\.html/.test(location.pathname) && typeof pushIntegrationsToServer === 'function') pushIntegrationsToServer();
     schedule(50); // 서버에 없던 표 채워 넣기
 
     const original = Storage.prototype.setItem;
@@ -204,7 +206,62 @@ const DataSync = (() => {
     el.style.color = state === 'error' ? '#b91c1c' : state === 'saving' ? '#92400e' : '#065f46';
   }
 
+  // 손님 기기: 주문번호 + 연락처로 서버에서 한 건만 받아 옴
+  function lookupOrder(number, phone) {
+    try {
+      const res = xhrJson('GET', `/api/order-lookup?number=${encodeURIComponent(number)}&phone=${encodeURIComponent(phone)}`);
+      if (!res.ok || !res.orders) return null;
+      const o = csvToTable('orders', res.orders)[0];
+      if (!o) return null;
+      const items = res.items ? csvToTable('order_items', res.items) : [];
+      o.items = items.sort((a, b) => a.lineNo - b.lineNo).map(i => ({
+        product: { id: i.productId, name: i.productName }, sizeLabel: i.sizeLabel || null,
+        price: i.price || 0, optionName: i.optionName || '', optionPrice: i.optionPrice || 0, quantity: i.quantity || 1
+      }));
+      return o;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // 다른 기기(태블릿 등)에서 관리자 화면을 열면 비밀번호로 로그인
+  function showAdminLogin() {
+    if (document.getElementById('admin-login-layer')) return;
+    let hasPassword = true;
+    try { hasPassword = xhrJson('GET', '/api/session').hasPassword; } catch (e) { /* 그대로 */ }
+    const layer = document.createElement('div');
+    layer.id = 'admin-login-layer';
+    layer.className = 'fixed inset-0 z-[100] bg-ink-black/90 flex items-center justify-center p-4';
+    layer.innerHTML = `
+      <form class="bg-hanji w-full max-w-sm rounded-sm p-6 space-y-4 shadow-2xl" autocomplete="on">
+        <div class="flex items-center gap-2"><span class="font-brush text-2xl text-ink-black">설담화</span><span class="text-xs font-bold bg-seal-red text-white px-2 py-0.5 rounded">관리자</span></div>
+        <p class="text-sm text-ink-charcoal leading-relaxed">${hasPassword ? '이 기기에서 관리자 화면을 쓰려면 비밀번호를 넣어 주세요.' : '아직 관리자 비밀번호가 없어요. 매장 컴퓨터의 관리자 화면 [연동·데이터 &gt; 서버 관리]에서 먼저 비밀번호를 정해 주세요.'}</p>
+        ${hasPassword ? '<input type="password" id="admin-login-pw" required autocomplete="current-password" aria-label="관리자 비밀번호" placeholder="관리자 비밀번호" class="w-full bg-white border border-ink-black/20 p-2.5 rounded-xs text-sm"><p id="admin-login-msg" class="hidden text-xs font-bold text-seal-red"></p><button type="submit" class="w-full py-2.5 bg-ink-black text-white text-sm font-bold rounded-xs hover:bg-seal-red cursor-pointer">로그인</button>' : ''}
+        <a href="index.html" class="block text-center text-xs text-ink-gray underline">쇼핑몰로 가기</a>
+      </form>`;
+    document.body.appendChild(layer);
+    const form = layer.querySelector('form');
+    form.addEventListener('submit', async ev => {
+      ev.preventDefault();
+      const msg = document.getElementById('admin-login-msg');
+      try {
+        const r = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: document.getElementById('admin-login-pw').value }) });
+        const res = await r.json();
+        if (res.ok) { location.reload(); return; }
+        msg.textContent = res.error || '로그인하지 못했어요.';
+      } catch (e) {
+        msg.textContent = '서버에 연결하지 못했어요.';
+      }
+      msg.classList.remove('hidden');
+    });
+    const pw = document.getElementById('admin-login-pw');
+    if (pw) pw.focus();
+  }
+
   start();
-  document.addEventListener('DOMContentLoaded', () => { if (enabled) status(status.state || 'saved'); });
-  return { get enabled() { return enabled; }, get local() { return local; }, push, pull };
+  document.addEventListener('DOMContentLoaded', () => {
+    if (enabled) status(status.state || 'saved');
+    if (enabled && !local && document.getElementById('panel-dashboard')) showAdminLogin();
+  });
+  return { get enabled() { return enabled; }, get local() { return local; }, push, pull, lookupOrder };
 })();

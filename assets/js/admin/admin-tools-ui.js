@@ -203,7 +203,7 @@ function switchAdminTab(tabName) {
   if (tabName === 'coupons') { try { renderCouponsAdmin(); } catch (e) { console.error('renderCouponsAdmin error:', e); } }
   if (tabName === 'flowers') { try { renderFlowerDictionary(); } catch (e) { console.error('renderFlowerDictionary error:', e); } }
   if (tabName === 'pages') { try { renderPagesAdmin(); } catch (e) { console.error('renderPagesAdmin error:', e); } }
-  if (tabName === 'integrations') { try { refreshCsvStatus(); } catch (e) {} }
+  if (tabName === 'integrations') { try { refreshCsvStatus(); renderServerAdmin(); } catch (e) {} }
   if (tabName === 'integrations') { try { renderIntegrations(); } catch (e) { console.error('renderIntegrations error:', e); } }
 }
 
@@ -212,3 +212,63 @@ setInterval(() => {
   try { renderProductsTable(); } catch(e){}
 }, 60000);
   
+
+/* ---------- 서버 관리 (server.py로 열었을 때) ---------- */
+async function renderServerAdmin() {
+  const card = document.getElementById('server-admin-card');
+  if (!card) return;
+  if (!window.SDH_SERVER_MODE) { card.classList.add('hidden'); return; }
+  card.classList.remove('hidden');
+  try {
+    const ses = await (await fetch('/api/session', { cache: 'no-store' })).json();
+    const st = document.getElementById('server-pw-state');
+    st.textContent = ses.hasPassword ? '정해져 있음' : '아직 없음';
+    st.className = `ml-1 text-[11px] font-bold ${ses.hasPassword ? 'text-emerald-700' : 'text-amber-700'}`;
+    document.getElementById('server-logout-btn').classList.toggle('hidden', ses.local);
+  } catch (e) { /* 서버가 잠깐 꺼져 있음 */ }
+  const box = document.getElementById('server-backup-list');
+  try {
+    const res = await (await fetch('/api/backups', { cache: 'no-store' })).json();
+    const list = res.backups || [];
+    box.innerHTML = list.length ? '' : '<p class="p-3 text-ink-gray">아직 백업이 없어요.</p>';
+    list.slice(0, 40).forEach(b => {
+      const m = b.name.match(/^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})-?(.*)$/);
+      const label = m ? `${m[1]}-${m[2]}-${m[3]} ${m[4]}:${m[5]}` : b.name;
+      const kind = m ? ({ auto: '자동', 'before-restore': '되돌리기 전', 'browser-before-server': '처음 연결 전 브라우저' }[m[7]] || m[7]) : '';
+      const row = document.createElement('div');
+      row.className = 'flex items-center justify-between gap-2 px-3 py-2';
+      row.innerHTML = `<span><span class="font-bold text-ink-black">${escapeHtml(label)}</span> <span class="text-ink-gray">${escapeHtml(kind)} · 파일 ${b.files}개</span></span>`;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'px-2.5 py-1 border border-ink-black/20 bg-white rounded-xs font-bold hover:border-seal-red hover:text-seal-red cursor-pointer';
+      btn.textContent = '되돌리기';
+      btn.onclick = () => restoreServerBackup(b.name, label);
+      row.appendChild(btn);
+      box.appendChild(row);
+    });
+  } catch (e) {
+    box.innerHTML = '<p class="p-3 text-ink-gray">백업 목록을 불러오지 못했어요.</p>';
+  }
+}
+
+async function saveAdminPassword(e) {
+  e.preventDefault();
+  const input = document.getElementById('server-pw');
+  const msg = document.getElementById('server-pw-msg');
+  const res = await (await fetch('/api/admin-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: input.value }) })).json().catch(() => ({ ok: false }));
+  msg.textContent = res.ok ? '저장했어요. 다른 기기에서는 이 비밀번호로 로그인해요.' : (res.error || '저장하지 못했어요.');
+  msg.className = `text-xs font-bold ${res.ok ? 'text-emerald-700' : 'text-red-700'}`;
+  if (res.ok) { input.value = ''; renderServerAdmin(); }
+}
+
+async function restoreServerBackup(name, label) {
+  if (!confirm(`${label} 백업으로 되돌릴까요?\n지금 데이터는 되돌리기 전에 따로 백업해 둬요. 되돌린 뒤 화면을 새로 불러와요.`)) return;
+  const res = await (await fetch('/api/restore', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ folder: name }) })).json().catch(() => ({ ok: false }));
+  if (!res.ok) { alert(res.error || '되돌리지 못했어요.'); return; }
+  location.reload();
+}
+
+async function adminLogout() {
+  await fetch('/api/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }).catch(() => {});
+  location.reload();
+}
