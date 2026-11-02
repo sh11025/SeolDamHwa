@@ -163,18 +163,32 @@
       #report-sheet .sl-track { text-align: right; font-size: 10px; }
       #report-sheet .sl-warn { text-align: center; font-size: 9px; color: #8B2500; font-weight: 700; border-top: 1px dotted #999; padding-top: 1mm; }
     }
+    /* 휴대폰·태블릿: 손가락으로 누르기 쉽게 */
+    @media (pointer: coarse) {
+      main table button, main .admin-card button, #coupon-batch-table button { min-height: 36px; min-width: 36px; }
+      main input[type="checkbox"], main input[type="radio"] { width: 1.15rem; height: 1.15rem; }
+    }
+    @media (max-width: 1023px) {
+      body.admin-menu-open { overflow: hidden; }
+      /* 좁은 화면: 표는 글자가 세로로 깨지지 않게 옆으로 밀어서 보기 */
+      main .overflow-x-auto > table { min-width: 760px; }
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col selection:bg-seal-red/15 selection:text-seal-red">
   <!-- 1. 관리자 상단 헤더 (Admin Top Bar) -->
-  <header class="bg-ink-black text-hanji px-6 py-3.5 flex items-center justify-between border-b border-black/20 sticky top-0 z-30 shadow-sm">
-    <div class="flex items-center gap-4">
+  <header class="bg-ink-black text-hanji px-4 sm:px-6 py-3.5 flex items-center justify-between border-b border-black/20 sticky top-0 z-30 shadow-sm">
+    <div class="flex items-center gap-3 sm:gap-4">
+      <!-- 휴대폰·태블릿: 왼쪽 메뉴 열기 -->
+      <button type="button" id="admin-menu-btn" onclick="toggleAdminMenu()" aria-controls="admin-sidebar" aria-expanded="false" aria-label="메뉴 열기" class="lg:hidden -ml-1 p-2 rounded-sm hover:bg-white/10 cursor-pointer">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
       <!-- 붉은 낙관 브랜딩 ("설담화 관리자") -->
       <div class="flex items-center gap-2">
         <span class="font-brush text-2xl text-white tracking-wider">설담화</span>
         <img src="assets/images/seal.svg" alt="설담화 낙관" class="w-7 h-7 shrink-0 drop-shadow-xs select-none">
       </div>
-      <span class="text-xs bg-seal-red text-white px-2 py-0.5 rounded font-bold tracking-wider">
+      <span class="hidden sm:inline text-xs bg-seal-red text-white px-2 py-0.5 rounded font-bold tracking-wider">
         전용 관리자 센터
       </span>
 
@@ -187,10 +201,10 @@
     </a>
   </header>
 
-  <div class="flex-1 flex flex-col md:flex-row">
-    
-    <!-- 2. 좌측 사이드바 내비게이션 (Sidebar Navigation) -->
-    <aside class="w-full md:w-64 bg-[#FAF7F2] border-r border-ink-black/10 p-5 shrink-0 flex flex-col justify-between">
+  <div class="flex-1 flex flex-col lg:flex-row">
+    <!-- 2. 좌측 사이드바 내비게이션: PC는 왼쪽에 고정, 휴대폰·태블릿(1024px 미만)은 ☰로 여닫는 서랍 -->
+    <div id="admin-sidebar-backdrop" onclick="toggleAdminMenu(false)" class="hidden lg:hidden fixed inset-0 z-40 bg-black/40"></div>
+    <aside id="admin-sidebar" class="fixed lg:static inset-y-0 left-0 z-50 w-72 lg:w-64 -translate-x-full lg:translate-x-0 transition-transform duration-200 overflow-y-auto bg-[#FAF7F2] border-r border-ink-black/10 p-5 shrink-0 flex flex-col justify-between">
       <div class="space-y-6">
         
         <!-- 사이드바 상단 붉은 직인 배너 -->
@@ -308,7 +322,7 @@
     </aside>
 
     <!-- 3. 메인 콘텐츠 영역 (Main Content Area) -->
-    <main class="flex-1 p-6 md:p-10 overflow-y-auto">
+    <main class="flex-1 min-w-0 p-4 sm:p-6 lg:p-10 overflow-y-auto">
       <div id="sample-data-banner" class="hidden mb-6 px-4 py-3 rounded-sm bg-amber-50 border border-amber-300 text-sm text-amber-900 flex flex-wrap items-center justify-between gap-2">
         <span><strong>예시 데이터가 들어 있어요.</strong> <span id="sample-banner-shop" class="hidden font-bold text-seal-red">예시 상품이 쇼핑몰에도 보이는 중이에요.</span> 실제 운영 전에 꼭 지워 주세요.</span>
         <button type="button" onclick="handleRemoveSampleData()" class="px-3 py-1.5 bg-white border border-amber-400 rounded-xs font-bold cursor-pointer hover:bg-amber-100">예시 데이터 모두 지우기</button>

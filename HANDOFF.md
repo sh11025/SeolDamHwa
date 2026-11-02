@@ -1,6 +1,6 @@
 # 설담화 작업 이어받기 안내 (HANDOFF)
 
-> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-02 [45]
+> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-02 [46]
 
 ## 1. 프로젝트 한눈에
 - `index.html`: 손님 쇼핑몰 / `admin-index.html`: 관리자 센터. 둘 다 Tailwind CDN + 순수 JS, 데이터는 브라우저 `localStorage`(키 `seoldamhwa_*`).
@@ -19,7 +19,7 @@
 
 ## 2. 작업 방식 (꼭 지키기)
 1. 바꾸기 전 `git status` 확인, 끝나면 커밋 (커밋 메시지 끝에 공동 작성자 줄).
-2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[46]**.
+2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[47]**.
 3. 검증: `python -m http.server 5500`로 띄우고 브라우저에서 직접 클릭. 매번 확인할 것
    - 인라인 스크립트 문법(`node --check`), 모든 `getElementById` id 존재
    - 버튼이 부르는 함수가 모두 있는지: 콘솔에서 `[...new Set([...document.documentElement.outerHTML.matchAll(/on\w+="([A-Za-z_]\w*)\(/g)].map(m=>m[1]))].filter(n=>typeof window[n]!=='function')` → `[]` (예외: `if`)
@@ -47,7 +47,7 @@
    - ~~[39] 홈 정리 + 꽃 둘러보기 페이지~~ 완료: 홈 슬라이더(`renderProducts()`→`#product-grid`, `homeProducts()`, 상품 `hideOnHome`·`homeOrder`), 상품 카드 `buildProductCard()`(shop-core.js, ♡ 포함), 맞춤 담화 띠(`#custom-cta`), 꽃 둘러보기 `shop-browse.js`(`#/flowers/<종류>`, 색·상황은 `CURATION_TAGS`/`p.curationTags` 사용). 순서: 홈 순서 → 지금 제철 → 목록 순서.
    - ~~[40] 꽃 사전 + 제철 자동 표시 + 상품 사진 여러 장 관리~~ 완료: 관리자 `admin-flowers.js`(꽃 사전 목록·추가/수정 창, 상품 창의 '사용한 꽃'·사진 갤러리 `p.images` 첫 장=대표=`p.image`), 쇼핑몰 `shop-flowers.js`(`renderProductFlowers`), CSV `flowers.csv` 추가.
    - ~~[41] 사용자 요청 정리~~ 완료: 꽃 둘러보기 거르기 = 맞춤 담화 5문항(`BROWSE_FILTERS`, 예산은 `getProductBudgetTiers`), 추천순 = 홈 순서 → 지금 제철 → 목록 순서. 꽃 사전 쇼핑몰 페이지 `shop-dictionary.js`, 관리자 탭 `panel-flowers`. 배송일은 결제 ②에서만: `getAvailableDeliveryDates()`(shop-core) + 달력 `renderDeliveryCalendar()`(shop-checkout), `#order-delivery-date`는 숨은 칸, 시간대는 `deliveryNeedsTime()`(퀵·픽업만). 관리자 상품 창은 상품 페이지 배치 + 사이즈 편집(`editProdSizes`) + `deleteProductFromModal()`.
-4. **다음 로드맵 (2026-10-30 사용자가 [42]~[46] 모두 진행 요청)** — 추천 순서대로. 관리자는 주로 PC·노트북에서 씀.
+4. **다음 로드맵 (2026-10-30 사용자가 [42]~[46] 모두 진행 요청 → 2026-11-02 모두 완료)** — 추천 순서대로. 관리자는 주로 PC·노트북에서 씀.
    - ~~[42] 화면 다듬기 묶음~~ 완료 (지도 `updateLocationSection()` in shop-settings.js, 안내 사진·영상 `page.media` + `renderPageMediaInto()` in site-pages.js, ♡ 창 `toggleWishPanel()` in shop-product-page.js)
      - 관리자 '매장 정보 및 고객센터 설정': 지금은 `panel-settings` 안의 `max-w-5xl` 때문에 넓은 화면에서 오른쪽이 빔 → 폭 제한을 풀고 2단 배치(왼쪽 연락처·운영시간, 오른쪽 공휴일·임시 휴무·배송 방법).
      - 정성 안내(특히 '전통 보자기 패키징 안내')에 사진·영상: 관리자 '사업자·안내 페이지'에서 페이지마다 사진 여러 장 + 영상 1개. **비율은 1:1 또는 4:3 중에서 고르고(사진 칸 `aspect-square` / `aspect-[4/3]`, 잘리는 부분은 가운데 기준), 휴대폰에서는 한 줄에 1장, PC는 2~3장.** 기본 영상은 `assets/videos/bokjumeoni_packaging.mp4`. 새 영상은 `assets/videos`에 넣고 주소 입력 또는 유튜브 링크(브라우저 저장소 약 5MB라 영상 직접 올리기는 서버 연결 후).
@@ -61,7 +61,7 @@
    - ~~[45] 오프라인 쿠폰~~ 완료: `assets/js/coupons.js`(저장·확인·할인 계산, 두 페이지 공통), 관리자 `admin-coupons.js`(`panel-coupons`, 인쇄는 qrcodejs 1.0.0 cdnjs), 결제 ③ `applyCouponCode()`(shop-checkout.js), 주문에 `couponCode`·`couponDiscount`. 서버 모드에서 손님 기기는 `/api/coupon?code=`로 한 장만 확인하고, 쿠폰을 쓴 주문이 들어오면 서버가 '사용됨' 처리(`mark_coupons_used`). 처음 계획 — [44] 다음(한 번만 쓰기를 확실히 막으려면 서버 저장소 필요)
      - 관리자 '쿠폰' 탭: 쿠폰 묶음 만들기(이름, 할인 금액 또는 %, 최소 주문 금액, 유효 기간, 장수) → 장마다 다른 코드(예: SDH-7K2P-QX) 자동 생성, A4 인쇄용 쿠폰 카드(코드 + QR, QR은 쇼핑몰 주소에 코드가 붙어 결제 때 자동 입력), 묶음별 사용 현황(몇 장 썼는지), 묶음 멈추기.
      - 손님: 결제 ③에서 코드 입력 → 할인 표시, 주문하면 '사용됨'(주문번호 기록). 주문·매출에 할인 금액 따로 기록. 쿠폰에는 손님 정보를 저장하지 않음.
-   - **[46] 관리자 휴대폰·태블릿 화면** (PC·노트북이 기본이라 마지막): 왼쪽 메뉴 → 접는 메뉴, 넓은 표는 카드 목록, 주문 확인·상태 바꾸기·재고 ± 위주로 손가락으로 누르기 쉽게.
+   - ~~[46] 관리자 휴대폰·태블릿 화면~~ 완료: 1024px 미만은 `#admin-sidebar` 서랍 + `toggleAdminMenu()`(admin-tools-ui.js), 표는 최소 폭 760px로 옆으로 스크롤, 터치 기기는 버튼 최소 36px. 처음 계획: 왼쪽 메뉴 → 접는 메뉴, 넓은 표는 카드 목록, 주문 확인·상태 바꾸기·재고 ± 위주로 손가락으로 누르기 쉽게.
    - ~~단골·기념일~~: 손님 개인정보를 더 모으게 되어 하지 않기로 함 (2026-10-30 사용자 결정).
 5. **오픈 준비(나중)**: 서버·DB 연결(현재 load/save 함수만 교체하도록 분리돼 있음), 결제 연결, 관리자 로그인, 실제 후기 기능, 약관 전문가 검토.
 

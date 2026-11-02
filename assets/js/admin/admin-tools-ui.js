@@ -170,7 +170,24 @@ async function sendPurchasePlanToDiscord(btn) {
   alert(r.ok ? '디스코드 주문 채널로 보냈어요.' : '보내지 못했어요. 웹후크 주소를 확인해 주세요.');
 }
 
+// 휴대폰·태블릿: 왼쪽 메뉴 서랍 열고 닫기
+function toggleAdminMenu(open) {
+  const side = document.getElementById('admin-sidebar');
+  if (!side) return;
+  const show = typeof open === 'boolean' ? open : side.classList.contains('-translate-x-full');
+  side.classList.toggle('-translate-x-full', !show);
+  document.getElementById('admin-sidebar-backdrop').classList.toggle('hidden', !show);
+  document.body.classList.toggle('admin-menu-open', show);
+  const btn = document.getElementById('admin-menu-btn');
+  if (btn) btn.setAttribute('aria-expanded', show ? 'true' : 'false');
+}
+
+window.addEventListener('keydown', ev => { if (ev.key === 'Escape') toggleAdminMenu(false); });
+window.addEventListener('resize', () => { if (window.innerWidth >= 1024) toggleAdminMenu(false); });
+
 function switchAdminTab(tabName) {
+  if (window.innerWidth < 1024) toggleAdminMenu(false);
+  window.scrollTo({ top: 0 });
   ['dashboard', 'products', 'flowers', 'orders', 'finance', 'coupons', 'reviews', 'settings', 'popups', 'integrations', 'pages'].forEach(t => {
     document.getElementById(`panel-${t}`).classList.add('hidden');
     document.getElementById(`tab-btn-${t}`).className = 'sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-sm text-ink-gray hover:bg-[#EFECE6] hover:text-ink-black cursor-pointer transition-colors';
