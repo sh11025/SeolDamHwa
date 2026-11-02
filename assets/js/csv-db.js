@@ -101,6 +101,13 @@ const CSV_TABLES = {
     read: () => (typeof loadCoupons === 'function' ? loadCoupons() : []),
     write: rows => localStorage.setItem('seoldamhwa_coupons', JSON.stringify(rows))
   },
+  coupon_history: {
+    file: 'coupon_history.csv',
+    columns: ['id', 'batchName', 'type', 'value', 'minOrder', 'startDate', 'endDate', 'created', 'used', 'usedDates', 'archivedAt'],
+    json: ['usedDates'], num: ['value', 'minOrder', 'created', 'used'],
+    read: () => (typeof loadCouponHistory === 'function' ? loadCouponHistory() : []),
+    write: rows => localStorage.setItem('seoldamhwa_coupon_history', JSON.stringify(rows.map(r => ({ ...r, usedDates: Array.isArray(r.usedDates) ? r.usedDates : [] }))))
+  },
   images: {
     file: 'images.csv',
     columns: ['id', 'name', 'src', 'width', 'height', 'createdAt'],
@@ -186,7 +193,7 @@ function buildAllCsv() {
 function importCsvTables(files) {
   const has = f => typeof files[f] === 'string';
   const result = [];
-  ['products', 'expenses', 'inquiries', 'restock', 'pages', 'flowers', 'coupons', 'images'].forEach(name => {
+  ['products', 'expenses', 'inquiries', 'restock', 'pages', 'flowers', 'coupons', 'coupon_history', 'images'].forEach(name => {
     const f = CSV_TABLES[name].file;
     if (!has(f)) return;
     const rows = csvToTable(name, files[f]);

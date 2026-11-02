@@ -598,6 +598,32 @@
           <p class="text-[11px] text-ink-gray">할인은 상품 금액에만 적용되고 배송비는 그대로예요. 퍼센트 할인은 100원 단위로 버림해요.</p>
         </form>
 
+        <!-- 쿠폰 기록: 몇 장 만들고 몇 장 썼는지, 언제 많이 썼는지 (기간이 끝나 정리된 묶음 포함) -->
+        <div class="admin-card p-5 rounded-sm space-y-4">
+          <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 class="text-base font-bold text-ink-black">쿠폰 기록</h2>
+            <p class="text-[11px] text-ink-gray">기간이 끝난 쿠폰은 관리자 화면을 열 때 코드가 저절로 지워지고, 몇 장 만들고 썼는지만 여기 남아요.</p>
+          </div>
+          <div id="coupon-stats-tiles" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
+          <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+            <div class="xl:col-span-2">
+              <p class="text-xs font-bold text-ink-gray mb-1">최근 30일 하루하루 쓴 쿠폰 수</p>
+              <div class="h-48"><canvas id="coupon-daily-chart" aria-label="최근 30일 쿠폰 사용 수"></canvas></div>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-ink-gray mb-1">요일별 (지금까지 전체)</p>
+              <div class="h-48"><canvas id="coupon-weekday-chart" aria-label="요일별 쿠폰 사용 수"></canvas></div>
+            </div>
+          </div>
+          <p id="coupon-stats-note" class="text-xs text-ink-charcoal"></p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead><tr class="bg-[#EFECE6] text-ink-gray font-bold"><th class="py-2 px-3">쿠폰</th><th class="py-2 px-3">기간</th><th class="py-2 px-3 text-right">만든 수</th><th class="py-2 px-3 text-right">쓴 수</th><th class="py-2 px-3 text-right">사용률</th><th class="py-2 px-3">상태</th></tr></thead>
+              <tbody id="coupon-history-table" class="divide-y divide-ink-black/5"></tbody>
+            </table>
+          </div>
+        </div>
+
         <div class="admin-card rounded-sm overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">

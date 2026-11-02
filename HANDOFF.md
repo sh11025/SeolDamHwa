@@ -1,6 +1,6 @@
 # 설담화 작업 이어받기 안내 (HANDOFF)
 
-> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-02 [46]
+> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-02 [47]
 
 ## 1. 프로젝트 한눈에
 - `index.html`: 손님 쇼핑몰 / `admin-index.html`: 관리자 센터. 둘 다 Tailwind CDN + 순수 JS, 데이터는 브라우저 `localStorage`(키 `seoldamhwa_*`).
@@ -19,7 +19,7 @@
 
 ## 2. 작업 방식 (꼭 지키기)
 1. 바꾸기 전 `git status` 확인, 끝나면 커밋 (커밋 메시지 끝에 공동 작성자 줄).
-2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[47]**.
+2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[48]**.
 3. 검증: `python -m http.server 5500`로 띄우고 브라우저에서 직접 클릭. 매번 확인할 것
    - 인라인 스크립트 문법(`node --check`), 모든 `getElementById` id 존재
    - 버튼이 부르는 함수가 모두 있는지: 콘솔에서 `[...new Set([...document.documentElement.outerHTML.matchAll(/on\w+="([A-Za-z_]\w*)\(/g)].map(m=>m[1]))].filter(n=>typeof window[n]!=='function')` → `[]` (예외: `if`)
@@ -62,6 +62,8 @@
      - 관리자 '쿠폰' 탭: 쿠폰 묶음 만들기(이름, 할인 금액 또는 %, 최소 주문 금액, 유효 기간, 장수) → 장마다 다른 코드(예: SDH-7K2P-QX) 자동 생성, A4 인쇄용 쿠폰 카드(코드 + QR, QR은 쇼핑몰 주소에 코드가 붙어 결제 때 자동 입력), 묶음별 사용 현황(몇 장 썼는지), 묶음 멈추기.
      - 손님: 결제 ③에서 코드 입력 → 할인 표시, 주문하면 '사용됨'(주문번호 기록). 주문·매출에 할인 금액 따로 기록. 쿠폰에는 손님 정보를 저장하지 않음.
    - ~~[46] 관리자 휴대폰·태블릿 화면~~ 완료: 1024px 미만은 `#admin-sidebar` 서랍 + `toggleAdminMenu()`(admin-tools-ui.js), 표는 최소 폭 760px로 옆으로 스크롤, 터치 기기는 버튼 최소 36px. 처음 계획: 왼쪽 메뉴 → 접는 메뉴, 넓은 표는 카드 목록, 주문 확인·상태 바꾸기·재고 ± 위주로 손가락으로 누르기 쉽게.
+   - ~~[47] 사용자 오류·아이디어 묶음~~ 완료: 팝업은 홈에서만(`updatePopupVisibility`, 실제로 보였을 때만 '봤음' 표시), 주소 찾기는 다음 우편번호 `embed`(`#address-search-layer`), 받는 분 = 주문자 실시간 동기화, 꽃 사전 카드 사진+하얀 막(`flowerPhoto`, 꽃 사전 `image` 칸), 꽃으로 거르기 `openFlowersPageWithFlower()`(`browseState.flower`), 홈 맞춤 담화 띠 움직임 `startCtaPicker()`(shop-curation.js), 쿠폰 기간 끝 정리 `cleanupExpiredCoupons()` + 기록 `seoldamhwa_coupon_history`(coupon_history.csv) + 통계 `renderCouponStats()`.
+     - 참고: 휴대폰에 팝업이 안 보인 원인은 팝업 설정이 브라우저마다 따로 저장되기 때문. `start-server.bat`으로 열면 DATA 폴더를 통해 같은 설정을 받음. 지금 저장된 팝업은 '꺼짐' 상태.
    - ~~단골·기념일~~: 손님 개인정보를 더 모으게 되어 하지 않기로 함 (2026-10-30 사용자 결정).
 5. **오픈 준비(나중)**: 서버·DB 연결(현재 load/save 함수만 교체하도록 분리돼 있음), 결제 연결, 관리자 로그인, 실제 후기 기능, 약관 전문가 검토.
 

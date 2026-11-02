@@ -22,6 +22,7 @@ function couponBatchState(b) {
 function renderCouponsAdmin() {
   const tbody = document.getElementById('coupon-batch-table');
   if (!tbody) return;
+  try { renderCouponStats(); } catch (e) { console.error('renderCouponStats error:', e); }
   const batches = couponBatches();
   const badge = document.getElementById('badge-coupon-count');
   if (badge) badge.textContent = batches.filter(b => couponBatchState(b)[0] === '사용 중').length || '';
@@ -187,7 +188,78 @@ function printCouponBatch(batchId) {
   w.document.close();
 }
 
+/* ---------- 쿠폰 기록 (통계) ---------- */
+let couponCharts = {};
+
+function renderCouponStats() {
+  const tiles = document.getElementById('coupon-stats-tiles');
+  if (!tiles) return;
+  const rows = couponStatsRows();
+  const created = rows.reduce((n, r) => n + (Number(r.created) || 0), 0);
+  const used = rows.reduce((n, r) => n + (Number(r.used) || 0), 0);
+  const allDates = rows.flatMap(r => r.usedDates || []);
+  const today = couponToday();
+  const recent = allDates.filter(d => d >= addDaysStr(today, -29)).length;
+  tiles.innerHTML = [
+    ['만든 쿠폰', `${created.toLocaleString()}장`],
+    ['쓴 쿠폰', `${used.toLocaleString()}장`],
+    ['사용률', created ? `${Math.round((used / created) * 100)}%` : '-'],
+    ['최근 30일 사용', `${recent.toLocaleString()}장`]
+  ].map(([k, v]) => `<div class="p-3 bg-[#FAF7F2] border border-ink-black/10 rounded-xs"><p class="text-[11px] font-bold text-ink-gray">${k}</p><p class="text-xl font-extrabold text-ink-black">${v}</p></div>`).join('');
+
+  // 하루하루 (최근 30일)
+  const days = Array.from({ length: 30 }, (_, i) => addDaysStr(today, i - 29));
+  const perDay = days.map(d => allDates.filter(x => x === d).length);
+  // 요일별
+  const wk = [0, 0, 0, 0, 0, 0, 0];
+  allDates.forEach(d => { const [y, m, dd] = d.split('-').map(Number); wk[new Date(y, m - 1, dd).getDay()]++; });
+  const order = [1, 2, 3, 4, 5, 6, 0];
+  const names = ['일', '월', '화', '수', '목', '금', '토'];
+  if (typeof Chart !== 'undefined') {
+    const base = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false } } } };
+    const draw = (key, id, labels, data) => {
+      const canvas = document.getElementById(id);
+      if (!canvas) return;
+      if (couponCharts[key]) couponCharts[key].destroy();
+      couponCharts[key] = new Chart(canvas, { type: 'bar', data: { labels, datasets: [{ data, backgroundColor: '#8B2500', borderRadius: 4, maxBarThickness: 22 }] }, options: base });
+    };
+    draw('daily', 'coupon-daily-chart', days.map(d => `${Number(d.slice(5, 7))}/${Number(d.slice(8))}`), perDay);
+    draw('weekday', 'coupon-weekday-chart', order.map(i => names[i]), order.map(i => wk[i]));
+  }
+  const note = document.getElementById('coupon-stats-note');
+  if (note) {
+    if (!allDates.length) note.textContent = '아직 쓴 쿠폰이 없어요. 손님이 쓰기 시작하면 언제 많이 쓰는지 여기서 보여요.';
+    else {
+      const bestWk = wk.indexOf(Math.max(...wk));
+      const countByDate = {};
+      allDates.forEach(d => { countByDate[d] = (countByDate[d] || 0) + 1; });
+      const [bestDay, bestN] = Object.entries(countByDate).sort((a, b) => b[1] - a[1])[0];
+      note.textContent = `가장 많이 쓴 요일은 ${names[bestWk]}요일(${wk[bestWk]}장), 가장 많이 쓴 날은 ${bestDay}(${bestN}장)이에요.`;
+    }
+  }
+
+  const tbody = document.getElementById('coupon-history-table');
+  if (tbody) {
+    tbody.innerHTML = rows.length ? rows.map(r => `<tr>
+      <td class="py-2 px-3 font-bold text-ink-black">${escapeHtml(r.batchName || '')}<span class="ml-1 font-normal text-ink-gray">${escapeHtml(couponLabel(r))}</span></td>
+      <td class="py-2 px-3 text-ink-gray whitespace-nowrap">${escapeHtml(r.startDate || '')} ~ ${escapeHtml(r.endDate || '')}</td>
+      <td class="py-2 px-3 text-right">${Number(r.created) || 0}</td>
+      <td class="py-2 px-3 text-right font-bold">${Number(r.used) || 0}</td>
+      <td class="py-2 px-3 text-right">${r.created ? Math.round(((Number(r.used) || 0) / r.created) * 100) : 0}%</td>
+      <td class="py-2 px-3">${r.live ? '<span class="text-emerald-700 font-bold">진행 중</span>' : '<span class="text-ink-gray">기간 끝 · 코드 정리됨</span>'}</td>
+    </tr>`).join('') : '<tr><td colspan="6" class="py-6 text-center text-ink-gray">기록이 아직 없어요.</td></tr>';
+  }
+}
+
+function addDaysStr(dateStr, n) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const t = new Date(Date.UTC(y, m - 1, d + n));
+  return t.toISOString().slice(0, 10);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  // 기간이 끝난 쿠폰 정리 (기록은 남김)
+  try { cleanupExpiredCoupons(); } catch (e) { console.error('cleanupExpiredCoupons error:', e); }
   fillCouponFormDefaults();
   renderCouponsAdmin();
 });

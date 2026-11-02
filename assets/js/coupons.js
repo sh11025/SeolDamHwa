@@ -88,3 +88,66 @@ function markCouponUsed(code, orderNumber) {
   saveCoupons(list);
   return true;
 }
+
+/* ---------- 기간이 끝난 쿠폰 정리 + 기록 ----------
+ * 기간이 끝난 묶음은 코드를 지우고, 몇 장 만들고 몇 장 썼는지·쓴 날짜만 'seoldamhwa_coupon_history'에 남김
+ * { id(묶음 id), batchName, type, value, minOrder, startDate, endDate, created, used, usedDates: ['YYYY-MM-DD', ...], archivedAt } */
+const COUPON_HISTORY_KEY = 'seoldamhwa_coupon_history';
+
+function loadCouponHistory() {
+  try {
+    const list = JSON.parse(localStorage.getItem(COUPON_HISTORY_KEY) || '[]');
+    return Array.isArray(list) ? list : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveCouponHistory(list) {
+  localStorage.setItem(COUPON_HISTORY_KEY, JSON.stringify(list));
+}
+
+// 쓴 시각 → 한국 날짜
+function couponUseDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return String(iso).slice(0, 10);
+  return typeof getKoreaTimeParts === 'function' ? getKoreaTimeParts(d).dateStr : d.toISOString().slice(0, 10);
+}
+
+// 끝난 묶음 정리. 정리한 묶음 수를 돌려줌
+function cleanupExpiredCoupons() {
+  const today = couponToday();
+  const list = loadCoupons();
+  const expired = new Map();
+  list.forEach(c => {
+    if (c.endDate && today > c.endDate) {
+      if (!expired.has(c.batchId)) expired.set(c.batchId, []);
+      expired.get(c.batchId).push(c);
+    }
+  });
+  if (!expired.size) return 0;
+  const history = loadCouponHistory();
+  expired.forEach((codes, batchId) => {
+    const b = codes[0];
+    const usedDates = codes.filter(c => c.usedAt).map(c => couponUseDate(c.usedAt)).sort();
+    const prev = history.find(h => h.id === batchId);
+    const rec = { id: batchId, batchName: b.batchName, type: b.type, value: b.value, minOrder: b.minOrder, startDate: b.startDate, endDate: b.endDate, created: codes.length, used: usedDates.length, usedDates, archivedAt: new Date().toISOString() };
+    if (prev) Object.assign(prev, rec); else history.push(rec);
+  });
+  saveCouponHistory(history);
+  saveCoupons(list.filter(c => !expired.has(c.batchId)));
+  return expired.size;
+}
+
+// 지금 묶음 + 정리된 기록을 합친 통계용 목록
+function couponStatsRows() {
+  const live = new Map();
+  loadCoupons().forEach(c => {
+    if (!live.has(c.batchId)) live.set(c.batchId, { id: c.batchId, batchName: c.batchName, type: c.type, value: c.value, minOrder: c.minOrder, startDate: c.startDate, endDate: c.endDate, created: 0, used: 0, usedDates: [], live: true });
+    const r = live.get(c.batchId);
+    r.created++;
+    if (c.usedAt) { r.used++; r.usedDates.push(couponUseDate(c.usedAt)); }
+  });
+  return [...live.values(), ...loadCouponHistory().filter(h => !live.has(h.id)).map(h => ({ ...h, live: false }))];
+}

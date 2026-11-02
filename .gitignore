@@ -15,6 +15,7 @@ DATA/expenses.csv
 DATA/images.csv
 # 쿠폰 코드는 돈과 같아서 올리지 않음
 DATA/coupons.csv
+DATA/coupon_history.csv
 DATA/flowers.csv.tmp
 DATA/*.tmp
 # 서버 자동 백업 (개인정보 포함)

@@ -32,6 +32,7 @@ TABLES = {
     'expenses': 'expenses.csv', 'inquiries': 'inquiries.csv', 'restock': 'restock.csv',
     'popups': 'popups.csv', 'pages': 'pages.csv', 'settings': 'settings.csv',
     'flowers': 'flowers.csv', 'images': 'images.csv', 'coupons': 'coupons.csv',
+    'coupon_history': 'coupon_history.csv',
 }
 PUBLIC_TABLES = {'products', 'popups', 'pages', 'settings', 'flowers'}   # 손님 기기도 읽을 수 있는 표
 REMOTE_INSERT_TABLES = {'orders', 'order_items', 'inquiries', 'restock'}  # 손님 기기는 새 줄 추가만
