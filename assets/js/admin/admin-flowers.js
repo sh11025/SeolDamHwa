@@ -59,12 +59,20 @@ function openFlowerModal(id) {
   const f = id ? loadFlowers().find(x => x.id === id) : null;
   document.getElementById('flower-modal-title').textContent = f ? `꽃 사전 수정 · ${f.name}` : '꽃 사전에 새 꽃 추가';
   document.getElementById('flower-edit-id').value = f ? f.id : '';
-  ['name', 'nameEn', 'nameJa', 'meaning', 'meaningEn', 'meaningJa', 'colors', 'care'].forEach(k => {
+  ['name', 'nameEn', 'nameJa', 'meaning', 'meaningEn', 'meaningJa', 'colors', 'care', 'image'].forEach(k => {
     document.getElementById(`flower-${k}`).value = f ? (f[k] || '') : '';
   });
   renderFlowerMonthButtons(f ? flowerMonths(f) : []);
   document.getElementById('admin-flower-modal').classList.remove('hidden');
+  setFlowerImage(f ? (f.image || '') : '');
   setTimeout(() => document.getElementById('flower-name').focus(), 50);
+}
+
+function setFlowerImage(src) {
+  document.getElementById('flower-image').value = src || '';
+  const img = document.getElementById('flower-image-preview');
+  img.src = src || '';
+  img.classList.toggle('invisible', !src);
 }
 
 function closeFlowerModal() {
@@ -80,7 +88,7 @@ function saveFlower(e) {
   const editId = document.getElementById('flower-edit-id').value;
   if (flowers.some(f => f.name === name && f.id !== editId)) { alert(`'${name}'은(는) 이미 꽃 사전에 있어요.`); return; }
   const months = [...document.querySelectorAll('#flower-months .flower-month:checked')].map(b => Number(b.value));
-  const data = { name, nameEn: val('nameEn'), nameJa: val('nameJa'), meaning: val('meaning'), meaningEn: val('meaningEn'), meaningJa: val('meaningJa'), months, colors: val('colors'), care: val('care') };
+  const data = { name, nameEn: val('nameEn'), nameJa: val('nameJa'), meaning: val('meaning'), meaningEn: val('meaningEn'), meaningJa: val('meaningJa'), months, colors: val('colors'), care: val('care'), image: val('image') };
   if (editId) {
     saveFlowers(flowers.map(f => f.id === editId ? { ...f, ...data } : f));
   } else {

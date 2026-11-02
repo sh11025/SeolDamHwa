@@ -107,68 +107,114 @@ function renderDictionaryGrid() {
   }
   flowers.forEach(f => {
     const ft = flowerText(f, lang);
+    const used = products.filter(p => productFlowerIds(p).includes(f.id));
+    const photo = flowerPhoto(f, used);
     const card = document.createElement('article');
-    card.className = 'bg-white border border-ink-black/10 rounded-xs p-5 space-y-3';
+    card.className = 'relative overflow-hidden rounded-sm border border-ink-black/10 bg-[#FBF9F5] shadow-xs flex flex-col';
+    // 꽃 사진을 하얀 막 뒤에 깔아 글씨가 잘 읽히게
+    if (photo) {
+      const bg = document.createElement('img');
+      bg.src = photo;
+      bg.alt = '';
+      bg.loading = 'lazy';
+      bg.setAttribute('aria-hidden', 'true');
+      bg.className = 'absolute inset-0 w-full h-full object-cover';
+      const veil = document.createElement('div');
+      veil.className = 'absolute inset-0 bg-gradient-to-b from-white/75 via-white/88 to-white/95';
+      card.append(bg, veil);
+    }
+    const body = document.createElement('div');
+    body.className = 'relative z-10 p-5 sm:p-6 flex flex-col gap-3 h-full';
+
     const top = document.createElement('div');
     top.className = 'flex items-start justify-between gap-2';
     const names = document.createElement('div');
     const n = document.createElement('h2');
-    n.className = 'text-lg font-extrabold text-ink-black';
+    n.className = 'text-xl font-extrabold text-ink-black tracking-tight';
     n.textContent = ft.name;
     names.appendChild(n);
     if (lang === 'ko' && f.nameEn) {
       const en = document.createElement('p');
-      en.className = 'text-xs text-ink-gray';
+      en.className = 'text-xs font-semibold text-ink-gray tracking-wide';
       en.textContent = f.nameEn;
       names.appendChild(en);
     }
     top.appendChild(names);
     if (isFlowerInSeason(f, current)) top.appendChild(seasonBadge());
-    card.appendChild(top);
+    body.appendChild(top);
 
     if (ft.meaning) {
       const meaning = document.createElement('p');
-      meaning.className = 'font-serif text-seal-red font-semibold';
+      meaning.className = 'font-serif text-lg leading-snug text-seal-red font-semibold';
       meaning.textContent = `"${ft.meaning}"`;
-      card.appendChild(meaning);
+      body.appendChild(meaning);
     }
 
-    const season = document.createElement('div');
-    season.className = 'space-y-1.5';
-    const sl = document.createElement('p');
-    sl.className = 'text-xs text-ink-gray';
-    sl.textContent = `${flT('flower_season', '제철')} · ${formatFlowerMonths(f, lang)}${f.colors && lang === 'ko' ? ` · ${f.colors}` : ''}`;
-    season.append(sl, monthStrip(f, current));
-    card.appendChild(season);
+    const info = document.createElement('dl');
+    info.className = 'grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm';
+    const addRow = (k, v) => {
+      if (!v) return;
+      const dt = document.createElement('dt');
+      dt.className = 'font-bold text-ink-black whitespace-nowrap';
+      dt.textContent = k;
+      const dd = document.createElement('dd');
+      dd.className = 'text-ink-charcoal';
+      dd.textContent = v;
+      info.append(dt, dd);
+    };
+    addRow(flT('flower_season', '제철'), formatFlowerMonths(f, lang));
+    if (lang === 'ko') addRow(flT('dict_colors', '색'), f.colors);
+    body.appendChild(info);
+    body.appendChild(monthStrip(f, current));
 
     if (lang === 'ko' && f.care) {
       const care = document.createElement('p');
-      care.className = 'text-xs text-ink-gray leading-relaxed';
-      care.textContent = `${flT('flower_care', '관리 팁')}: ${f.care}`;
-      card.appendChild(care);
+      care.className = 'text-[13px] text-ink-charcoal leading-relaxed bg-white/70 border border-ink-black/5 rounded-xs px-3 py-2';
+      care.textContent = `💧 ${f.care}`;
+      body.appendChild(care);
     }
 
-    const used = products.filter(p => productFlowerIds(p).includes(f.id));
+    const foot = document.createElement('div');
+    foot.className = 'mt-auto pt-3 border-t border-ink-black/10 space-y-2';
     if (used.length) {
+      const label = document.createElement('p');
+      label.className = 'text-xs font-bold text-ink-gray';
+      label.textContent = `${flT('dict_products', '이 꽃이 든 상품')} (${used.length})`;
       const links = document.createElement('div');
-      links.className = 'pt-2 border-t border-ink-black/10 flex flex-wrap items-center gap-1.5 text-xs';
-      const label = document.createElement('span');
-      label.className = 'font-bold text-ink-gray mr-1';
-      label.textContent = flT('dict_products', '이 꽃이 든 상품');
-      links.appendChild(label);
-      used.forEach(p => {
+      links.className = 'flex flex-wrap gap-1.5 text-xs';
+      used.slice(0, 4).forEach(p => {
         const tp = typeof tProduct === 'function' ? tProduct(p) : p;
         const a = document.createElement('button');
         a.type = 'button';
-        a.className = 'px-2 py-1 rounded-full bg-[#FAF7F2] border border-ink-black/10 font-bold text-ink-black hover:border-seal-red hover:text-seal-red cursor-pointer';
+        a.className = 'max-w-full truncate px-2.5 py-1 rounded-full bg-white/90 border border-ink-black/10 font-bold text-ink-black hover:border-seal-red hover:text-seal-red cursor-pointer';
         a.textContent = tp.name;
+        a.title = tp.name;
         a.onclick = () => openProductDetail(p.id);
         links.appendChild(a);
       });
-      card.appendChild(links);
+      const go = document.createElement('button');
+      go.type = 'button';
+      go.className = 'w-full py-2 rounded-xs bg-ink-black text-white text-xs font-bold hover:bg-seal-red cursor-pointer';
+      go.textContent = flT('dict_browse_flower', '이 꽃이 든 상품 모두 보기 →');
+      go.onclick = () => openFlowersPageWithFlower(f.id);
+      foot.append(label, links, go);
+    } else {
+      const none = document.createElement('p');
+      none.className = 'text-xs text-ink-gray';
+      none.textContent = flT('dict_no_products', '아직 이 꽃이 든 상품이 없어요. 맞춤 상담으로 문의해 주세요.');
+      foot.appendChild(none);
     }
+    body.appendChild(foot);
+    card.appendChild(body);
     grid.appendChild(card);
   });
+}
+
+// 카드 뒤 사진: 관리자가 정한 꽃 사진 → 없으면 그 꽃이 든 첫 상품 사진
+function flowerPhoto(f, usedProducts) {
+  if (f.image) return f.image;
+  const p = usedProducts[0];
+  return p ? ((Array.isArray(p.images) && p.images[0]) || p.image) : '';
 }
 
 function showDictionaryPage() {

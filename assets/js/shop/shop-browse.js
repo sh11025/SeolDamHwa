@@ -27,7 +27,7 @@ const BROWSE_SORTS = [
 ];
 
 const BROWSE_EMPTY_FILTERS = { recipient: '', occasion: '', feeling: '', color: '', budget: '' };
-let browseState = { category: 'all', ...BROWSE_EMPTY_FILTERS, season: false, sort: 'recommend', shown: BROWSE_PAGE_SIZE };
+let browseState = { category: 'all', ...BROWSE_EMPTY_FILTERS, season: false, flower: '', sort: 'recommend', shown: BROWSE_PAGE_SIZE };
 
 function brT(key, fallback) {
   return typeof t === 'function' ? t(key, fallback) : fallback;
@@ -68,6 +68,7 @@ function browseResults() {
     .map((p, i) => ({ p, i, season: inSeason(p) ? 0 : 1 }))
     .filter(({ p }) => s.category === 'all' || p.category === s.category)
     .filter(({ p }) => BROWSE_FILTERS.every(f => productMatchesFilter(p, f, s[f.field])))
+    .filter(({ p }) => !s.flower || (typeof productFlowerIds === 'function' && productFlowerIds(p).includes(s.flower)))
     .filter(({ season }) => !s.season || season === 0);
   const priceKey = x => (x.p.inquiryOnly ? Infinity : productMinPriceOf(x.p));
   if (s.sort === 'price_asc') list.sort((a, b) => (priceKey(a) - priceKey(b)) || (a.i - b.i));
@@ -163,10 +164,25 @@ function renderFlowersPage() {
   seasonBox.checked = !!s.season;
   seasonBox.onchange = () => { browseState.season = seasonBox.checked; browseState.shown = BROWSE_PAGE_SIZE; renderFlowersPage(); };
   seasonWrap.append(seasonBox, document.createTextNode(brT('browse_season_only', '🌿 지금 제철인 꽃만')));
-  view.appendChild(seasonWrap);
+  const extraRow = document.createElement('div');
+  extraRow.className = 'flex flex-wrap items-center gap-x-4 gap-y-2';
+  extraRow.appendChild(seasonWrap);
+  // 꽃 사전에서 고른 꽃 (예: '장미가 든 꽃만 ✕')
+  const chosen = s.flower && typeof loadFlowers === 'function' ? loadFlowers().find(f => f.id === s.flower) : null;
+  if (chosen) {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.id = 'browse-flower-chip';
+    chip.className = 'mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-seal-red text-white text-xs font-bold cursor-pointer hover:opacity-90';
+    chip.textContent = `${brT('browse_flower_chip', '{name} 들어간 꽃만').replace('{name}', flowerText(chosen).name)} ✕`;
+    chip.setAttribute('aria-label', brT('browse_flower_clear', '꽃 거르기 지우기'));
+    chip.onclick = () => { browseState.flower = ''; browseState.shown = BROWSE_PAGE_SIZE; renderFlowersPage(); };
+    extraRow.appendChild(chip);
+  }
+  view.appendChild(extraRow);
 
   const results = browseResults();
-  const filtered = BROWSE_FILTERS.some(f => s[f.field]) || s.season;
+  const filtered = BROWSE_FILTERS.some(f => s[f.field]) || s.season || s.flower;
 
   const info = document.createElement('div');
   info.className = 'flex items-center justify-between gap-3 py-4 text-sm';
@@ -220,7 +236,7 @@ function renderFlowersPage() {
 }
 
 function resetBrowseFilters() {
-  browseState = { ...browseState, ...BROWSE_EMPTY_FILTERS, season: false, shown: BROWSE_PAGE_SIZE };
+  browseState = { ...browseState, ...BROWSE_EMPTY_FILTERS, season: false, flower: '', shown: BROWSE_PAGE_SIZE };
   renderFlowersPage();
 }
 
@@ -239,6 +255,12 @@ function showFlowersPage(category) {
   if (nav) nav.className = 'nav-btn py-1 text-seal-red font-bold border-b-2 border-seal-red transition-colors';
   document.title = `${brT('browse_title', '꽃 둘러보기')} | 설담화`;
   window.scrollTo({ top: 0 });
+}
+
+// 꽃 사전 → 그 꽃이 든 상품만 보기 (다른 거르기는 지우고 시작)
+function openFlowersPageWithFlower(flowerId) {
+  browseState = { ...browseState, ...BROWSE_EMPTY_FILTERS, season: false, flower: flowerId, category: 'all', shown: BROWSE_PAGE_SIZE };
+  openFlowersPage('all');
 }
 
 function openFlowersPage(category) {

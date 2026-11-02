@@ -1302,6 +1302,17 @@
         <p class="font-bold text-ink-black mb-1">제철 달 <span class="font-normal text-ink-gray">(하나도 안 고르면 '사계절'이고 제철 표시는 안 해요)</span></p>
         <div id="flower-months" class="flex flex-wrap gap-1.5"></div>
       </div>
+      <div class="flex items-center gap-3">
+        <div class="w-16 h-16 rounded-xs bg-[#ECE8E1] border border-ink-black/10 overflow-hidden shrink-0"><img id="flower-image-preview" src="" alt="" class="w-full h-full object-cover"></div>
+        <div class="flex-1 space-y-1">
+          <p class="font-bold text-ink-black">꽃 사진 <span class="font-normal text-ink-gray">(꽃 사전 카드 뒤에 옅게 깔려요. 비우면 이 꽃이 든 첫 상품 사진)</span></p>
+          <div class="flex gap-2">
+            <button type="button" onclick="openImagePicker(src => setFlowerImage(src))" class="px-3 py-1.5 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">사진 고르기</button>
+            <button type="button" onclick="setFlowerImage('')" class="px-3 py-1.5 border border-ink-black/20 bg-white font-bold rounded-xs cursor-pointer">빼기</button>
+          </div>
+          <input type="hidden" id="flower-image">
+        </div>
+      </div>
       <label class="block font-bold text-ink-black">색<input type="text" id="flower-colors" maxlength="60" placeholder="예: 빨강 · 분홍 · 흰색" class="mt-1 w-full bg-white border border-ink-black/20 p-2 rounded-xs font-normal"></label>
       <label class="block font-bold text-ink-black">관리 팁 <span class="font-normal text-ink-gray">(한국어 화면에만 보여요)</span><textarea id="flower-care" rows="2" maxlength="200" class="mt-1 w-full bg-white border border-ink-black/20 p-2 rounded-xs font-normal"></textarea></label>
       <div class="pt-3 border-t border-ink-black/10 flex justify-end gap-2">
