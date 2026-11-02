@@ -147,6 +147,7 @@ function buildProductCard(p) {
       <div class="card-media relative aspect-[3/4] overflow-hidden bg-[#ECE8E1]">
         <img loading="lazy" decoding="async" src="${htmlText(cover)}" alt="${htmlText(tp.name)}" class="${imgClass}">
         ${badgeHtml}
+        ${inSeason ? `<span class="season-badge absolute left-2.5 bottom-2.5 z-[1] inline-flex items-center gap-1 text-xs font-bold text-emerald-800 bg-white/90 border border-emerald-200 px-2 py-0.5 rounded-xs shadow-xs">${seasonText}</span>` : ''}
         <!-- 호버 시 시적 글귀 노출 -->
         <div class="card-hover-overlay absolute inset-0 bg-gradient-to-t from-ink-black/85 via-ink-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5 text-white">
           <p class="font-serif text-base sm:text-lg text-white/95 mb-1.5 leading-snug font-semibold italic line-clamp-2">"${htmlText(tp.poeticLine)}"</p>
@@ -160,7 +161,6 @@ function buildProductCard(p) {
     <!-- 카드 하단 정보 -->
     <div class="mt-3 text-center space-y-1">
       <h3 class="text-sm sm:text-base font-bold text-ink-black tracking-tight group-hover:text-seal-red transition-colors">${htmlText(tp.name)}</h3>
-      ${inSeason ? `<span class="season-badge inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-xs">${seasonText}</span>` : ''}
       <!-- 터치 화면용 시적 글귀 -->
       <p class="touch-poetic-line hidden font-serif text-xs sm:text-sm text-seal-red italic line-clamp-1 px-1">"${htmlText(tp.poeticLine)}"</p>
       <p class="text-sm font-semibold ${stockStatus === 'out_of_stock' ? 'text-ink-light' : 'text-ink-gray'}">${priceDisplay}</p>
@@ -234,6 +234,7 @@ function renderProducts(category) {
   }
   if (typeof refreshFlowersPage === 'function') refreshFlowersPage();
   if (typeof refreshDictionaryPage === 'function') refreshDictionaryPage();
+  updateHeroRecommendButton();
   if (typeof startCtaPicker === 'function' && document.getElementById('cta-picker-row')?.children.length) startCtaPicker();
 }
 
@@ -266,29 +267,25 @@ function filterCategory(cat) {
 }
 
 // 히어로 "이달의 추천" 버튼 핸들러 (B4)
+// 이달의 추천 = 홈 '제철 꽃 컬렉션' 맨 앞 상품 (관리자 홈 순서 → 지금 제철 → 목록 순서)
+function heroRecommendProduct() {
+  return homeProducts('all')[0] || loadProducts().find(p => typeof isProductVisible === 'function' ? isProductVisible(p) : true) || null;
+}
+
 function openHeroRecommendProduct() {
-  const products = loadProducts();
-  let target = products.find(p => p.id === 'bohemian-autumn' && (typeof isProductVisible === 'function' ? isProductVisible(p) : true));
-  if (!target) {
-    target = products.find(p => typeof isProductVisible === 'function' ? isProductVisible(p) : true);
-  }
-  if (target) {
-    openProductDetail(target.id);
-  }
+  const target = heroRecommendProduct();
+  if (target) openProductDetail(target.id);
 }
 
 function updateHeroRecommendButton() {
   const btn = document.getElementById('hero-recommend-btn');
   if (!btn) return;
-  const products = loadProducts();
-  let target = products.find(p => p.id === 'bohemian-autumn' && (typeof isProductVisible === 'function' ? isProductVisible(p) : true));
-  if (!target) {
-    target = products.find(p => typeof isProductVisible === 'function' ? isProductVisible(p) : true);
-  }
-  if (target) {
-    btn.classList.remove('hidden');
-  } else {
-    btn.classList.add('hidden');
+  const target = heroRecommendProduct();
+  btn.classList.toggle('hidden', !target);
+  const label = document.getElementById('hero-recommend-label');
+  if (target && label) {
+    const name = (typeof tProduct === 'function' ? tProduct(target) : target).name;
+    label.textContent = (typeof t === 'function' ? t('hero_btn_recommend_fmt', '이달의 추천 : {name} 보기') : '이달의 추천 : {name} 보기').replace('{name}', name);
   }
 }
 

@@ -157,7 +157,7 @@ function updateInternalTargetProductOptions() {
   if (!select) return;
   const baseOptions = `
     <option value="story">설담화 이야기 (Story)</option>
-    <option value="shop">꽃 둘러보기 (Shop)</option>
+    <option value="shop">꽃 둘러보기</option>
     <option value="custom">맞춤 담화 (큐레이터 & 상담)</option>
   `;
 

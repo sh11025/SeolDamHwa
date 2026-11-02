@@ -297,6 +297,9 @@
     .cta-pick.is-picked { transform: translateY(-14px) scale(1.25); box-shadow: 0 0 0 3px #8B2500, 0 10px 24px rgba(0,0,0,.35); z-index: 3; }
     .cta-pick.is-dim { opacity: .45; filter: grayscale(.6); }
     @media (prefers-reduced-motion: reduce) { .cta-pick { transition: none; } }
+    /* 읽기 편하게: 쇼핑몰의 작은 글씨는 최소 13px (장바구니·찜 숫자 배지 text-[10px]는 그대로) */
+    header .text-xs, main .text-xs, footer .text-xs, aside .text-xs, #cart-drawer .text-xs,
+    header .text-\[11px\], main .text-\[11px\], footer .text-\[11px\], aside .text-\[11px\], #cart-drawer .text-\[11px\] { font-size: 13px; line-height: 1.5; }
     .home-slider { scrollbar-width: none; }
     .home-slider::-webkit-scrollbar { display: none; }
     .info-page-body .page-h { font-weight: 800; font-size: 15px; color: #1A1A1A; margin: 18px 0 6px; }
@@ -330,13 +333,13 @@
           </svg>
         </button>
 
-        <!-- 데스크톱 내비게이션 (순서: 설담화 이야기 -> 꽃 둘러보기 (Shop) -> 맞춤 담화) -->
+        <!-- 데스크톱 내비게이션 (순서: 설담화 이야기 -> 꽃 둘러보기 -> 맞춤 담화) -->
         <nav class="hidden xl:flex items-center space-x-6 text-sm font-semibold tracking-tight">
           <button onclick="switchView('story')" id="nav-story" data-i18n="nav_story" class="nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors">
             설담화 이야기
           </button>
           <button onclick="openFlowersPage()" id="nav-shop" data-i18n="nav_shop" class="nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors">
-            꽃 둘러보기 (Shop)
+            꽃 둘러보기
           </button>
           <button onclick="openDictionaryPage()" id="nav-dictionary" data-i18n="nav_dictionary" class="nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors">
             꽃 사전
@@ -431,7 +434,7 @@
         설담화 이야기
       </button>
       <button onclick="handleMobileNav('flowers')" data-i18n="nav_shop" class="block w-full text-left py-2 text-sm font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-b border-ink-black/5">
-        꽃 둘러보기 (Shop)
+        꽃 둘러보기
       </button>
       <button onclick="handleMobileNav('dictionary')" data-i18n="nav_dictionary" class="block w-full text-left py-2 text-sm font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-b border-ink-black/5">
         꽃 사전
@@ -468,13 +471,10 @@
         <video id="hero-blooming-video" src="assets/videos/blooming_flower.mp4" autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover filter brightness-[1.04] contrast-[1.02]"></video>
 
         <!-- 부드러운 중앙 방사형 한지 글로우 (꽃 영상의 생생함을 살리면서 텍스트 가독성 확보) -->
-        <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(ellipse 65% 55% at 50% 48%, rgba(251, 249, 245, 0.42) 0%, rgba(251, 249, 245, 0.22) 50%, rgba(251, 249, 245, 0) 100%);"></div>
+        <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(ellipse 62% 52% at 50% 48%, rgba(251, 249, 245, 0.66) 0%, rgba(251, 249, 245, 0.38) 50%, rgba(251, 249, 245, 0) 100%);"></div>
 
         <!-- 중앙 정렬 텍스트 영역 -->
         <div class="max-w-4xl mx-auto px-6 relative z-10 space-y-6 pt-4 pb-14">
-          <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-seal-red/30 bg-white/85 shadow-xs text-xs font-bold text-seal-red backdrop-blur-xs">
-            <span>Contemporary Korean Floral Atelier · 2026 Collection</span>
-          </div>
 
           <div class="space-y-4">
             <p id="hero-brush-tagline" data-i18n="hero_tagline" class="font-brush text-3xl sm:text-4xl text-seal-red tracking-wide" style="text-shadow: 0 1px 12px rgba(251, 249, 245, 0.9);">
@@ -485,7 +485,7 @@
               <span class="text-seal-red ink-stroke">2030 감각</span>으로 피어나다
             </h1>
             <div>
-              <p class="inline-block text-base sm:text-lg text-ink-black font-semibold leading-relaxed px-5 py-2 rounded-full border max-w-[calc(100vw-32px)] sm:max-w-xl mx-auto" style="background-color: rgba(251, 249, 245, 0.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-color: rgba(139, 37, 0, 0.12);">
+              <p class="text-base sm:text-lg text-ink-charcoal font-medium leading-relaxed max-w-xl mx-auto break-keep" style="text-shadow: 0 1px 10px rgba(251, 249, 245, 0.95), 0 0 2px rgba(251, 249, 245, 0.9);">
                 <span data-i18n="hero_sub">버려지는 포장 대신, 오래 간직하는 아름다움.<br>
                 설담화의 1:1 맞춤 꽃 선물</span>
               </p>
@@ -495,11 +495,11 @@
           <!-- CTA 버튼 영역 (자개 홀로그램 hover) -->
           <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
             <button type="button" onclick="document.getElementById('gallery-section').scrollIntoView({ behavior: 'smooth' })" class="jakae-btn w-full sm:w-auto px-8 py-3.5 sm:py-4 rounded-sm text-sm tracking-wider font-bold flex items-center justify-center gap-2 cursor-pointer shadow-md">
-              <span data-i18n="hero_btn_shop">꽃 둘러보기 (Shop)</span>
+              <span data-i18n="hero_btn_shop">꽃 둘러보기</span>
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
             </button>
             <button id="hero-recommend-btn" onclick="openHeroRecommendProduct()" class="jakae-light-btn w-full sm:w-auto px-6 py-3.5 sm:py-4 rounded-sm text-sm font-bold cursor-pointer bg-white/90">
-                <span data-i18n="hero_btn_recommend">이달의 추천 : 가을 보헤미안 핸드타이드 보기</span>
+                <span id="hero-recommend-label">이달의 추천</span>
             </button>
           </div>
         </div>
@@ -587,13 +587,13 @@
           <!-- 상단 대형 와이드 비디오 (프로토타입 .film-frame 스타일) -->
           <div class="relative px-2 sm:px-4">
             <div class="film-outline"></div>
-            <div class="film-frame aspect-[16/10] sm:aspect-[16/9] max-h-[700px] w-full bg-[#ECE8E1]">
+            <div class="film-frame aspect-[16/10] sm:aspect-[16/9] max-h-[540px] w-full bg-[#ECE8E1]">
               <video id="packaging-video" src="assets/videos/bokjumeoni_packaging.mp4" muted loop playsinline preload="metadata" class="w-full h-full object-cover"></video>
               <!-- 좌측 텍스트 가독성을 위한 은은한 다크 그라데이션 -->
               <div class="absolute inset-0 bg-gradient-to-r from-black/65 via-black/25 to-transparent pointer-events-none"></div>
               <!-- 비디오 오버레이 캡션 (좌측 중앙) -->
               <div class="film-caption absolute left-6 sm:left-12 lg:left-16 top-1/2 -translate-y-1/2 text-white z-10 pointer-events-none">
-                <span class="text-xs sm:text-sm font-bold tracking-widest text-[#F1DDB3] uppercase block mb-2 sm:mb-3 drop-shadow">ReBloom Packaging</span>
+                <span class="text-xs sm:text-sm font-bold tracking-widest text-[#F1DDB3] uppercase block mb-2 sm:mb-3 drop-shadow" data-i18n="pack_video_tag">다시 피어나는 포장</span>
                 <h3 data-i18n="pack_video_title" class="text-3xl sm:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight font-serif drop-shadow-md">
                   꽃을<br>복주머니에 담다
                 </h3>
@@ -604,68 +604,15 @@
           <!-- 비디오 하단 중앙 정렬 브랜드 카피 (max-w-2xl) -->
           <div class="text-center max-w-2xl mx-auto space-y-4">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-seal-red/30 bg-white text-xs font-bold text-seal-red shadow-xs">
-              <span>ReBloom Packaging</span>
+              <span data-i18n="pack_badge">복주머니 포장</span>
             </div>
             <h2 data-i18n="pack_h2" class="text-2xl sm:text-4xl font-extrabold text-ink-black tracking-tight leading-snug">
               버려지는 포장 대신,<br>오래 간직하는 복주머니
             </h2>
-            <p data-i18n="pack_desc" class="text-sm sm:text-base text-ink-gray font-normal leading-relaxed">
-              설담화가 꿈꾸는 선물은 물건을 건네는 것을 넘어, 버리지 않는 한국의 전통과 가치를
-              함께 나누는 일입니다. 꽃이 시든 뒤에도 남는 보자기와 복주머니처럼, 마음을 감싼
-              그릇까지 오래 곁에 머물도록 고민합니다.
-            </p>
+            <button type="button" onclick="openStoryPackaging()" data-i18n="pack_more" class="px-6 py-2.5 border border-ink-black/25 bg-white text-sm font-bold rounded-xs hover:border-seal-red hover:text-seal-red cursor-pointer">복주머니 포장 이야기 자세히 보기 →</button>
           </div>
 
-          <!-- 하단 3개 가치 카드 (가벼운 스타일: 코너 브라켓 없이 얇은 상단 라인) -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pt-4">
-            <!-- 1. 버리지 않는 포장 -->
-            <div class="pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
-              <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                </svg>
-              </div>
-              <div>
-                <span data-i18n="pack_card1_tag" class="text-[11px] font-bold tracking-wider text-seal-red uppercase">Zero-waste Wrapping</span>
-                <h3 data-i18n="pack_card1_title" class="text-lg font-bold text-ink-black mt-0.5">버리지 않는 포장</h3>
-              </div>
-              <p data-i18n="pack_card1_desc" class="text-xs sm:text-sm text-ink-gray leading-relaxed">
-                한복 원단 보자기와 복주머니로 감싸, 꽃이 진 뒤에도 일상에서 다시 쓰입니다.
-              </p>
-            </div>
 
-            <!-- 2. 1:1 맞춤 꽃 -->
-            <div class="pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
-              <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                </svg>
-              </div>
-              <div>
-                <span data-i18n="pack_card2_tag" class="text-[11px] font-bold tracking-wider text-seal-red uppercase">Made for One</span>
-                <h3 data-i18n="pack_card2_title" class="text-lg font-bold text-ink-black mt-0.5">1:1 맞춤 꽃</h3>
-              </div>
-              <p data-i18n="pack_card2_desc" class="text-xs sm:text-sm text-ink-gray leading-relaxed">
-                받는 분과 날의 의미를 듣고, 꽃과 색, 카드 문구까지 한 사람을 위해 짓습니다.
-              </p>
-            </div>
-
-            <!-- 3. 취향을 읽는 설계 -->
-            <div class="pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
-              <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                </svg>
-              </div>
-              <div>
-                <span data-i18n="pack_card3_tag" class="text-[11px] font-bold tracking-wider text-seal-red uppercase">Taste Analysis</span>
-                <h3 data-i18n="pack_card3_title" class="text-lg font-bold text-ink-black mt-0.5">취향을 읽는 설계</h3>
-              </div>
-              <p data-i18n="pack_card3_desc" class="text-xs sm:text-sm text-ink-gray leading-relaxed">
-                다양한 취향 데이터를 바탕으로, 가장 한국적이면서 마음에 꼭 맞는 구성을 제안합니다.
-              </p>
-            </div>
-          </div>
 
         </div>
       </section>
@@ -727,6 +674,70 @@
           </p>
         </div>
       </div>
+
+      <!-- 복주머니 포장 이야기 (홈에서 옮겨 옴) -->
+      <section id="story-packaging" class="space-y-10 max-w-5xl mx-auto scroll-mt-24">
+        <div class="text-center max-w-2xl mx-auto space-y-4">
+          <h2 data-i18n="pack_h2" class="text-2xl sm:text-4xl font-extrabold text-ink-black tracking-tight leading-snug">
+            버려지는 포장 대신,<br>오래 간직하는 복주머니
+          </h2>
+          <p data-i18n="pack_desc" class="text-sm sm:text-base text-ink-gray font-normal leading-relaxed">
+            설담화가 꿈꾸는 선물은 물건을 건네는 것을 넘어, 버리지 않는 한국의 전통과 가치를
+            함께 나누는 일입니다. 꽃이 시든 뒤에도 남는 보자기와 복주머니처럼, 마음을 감싼
+            그릇까지 오래 곁에 머물도록 고민합니다.
+          </p>
+        </div>
+          <!-- 하단 3개 가치 카드 (가벼운 스타일: 코너 브라켓 없이 얇은 상단 라인) -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pt-4">
+            <!-- 1. 버리지 않는 포장 -->
+            <div class="pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
+              <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+              </div>
+              <div>
+                <span data-i18n="pack_card1_tag" class="text-[11px] font-bold tracking-wider text-seal-red uppercase">다시 쓰는 보자기</span>
+                <h3 data-i18n="pack_card1_title" class="text-lg font-bold text-ink-black mt-0.5">버리지 않는 포장</h3>
+              </div>
+              <p data-i18n="pack_card1_desc" class="text-xs sm:text-sm text-ink-gray leading-relaxed">
+                한복 원단 보자기와 복주머니로 감싸, 꽃이 진 뒤에도 일상에서 다시 쓰입니다.
+              </p>
+            </div>
+
+            <!-- 2. 1:1 맞춤 꽃 -->
+            <div class="pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
+              <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+              </div>
+              <div>
+                <span data-i18n="pack_card2_tag" class="text-[11px] font-bold tracking-wider text-seal-red uppercase">한 사람을 위한 꽃</span>
+                <h3 data-i18n="pack_card2_title" class="text-lg font-bold text-ink-black mt-0.5">1:1 맞춤 꽃</h3>
+              </div>
+              <p data-i18n="pack_card2_desc" class="text-xs sm:text-sm text-ink-gray leading-relaxed">
+                받는 분과 날의 의미를 듣고, 꽃과 색, 카드 문구까지 한 사람을 위해 짓습니다.
+              </p>
+            </div>
+
+            <!-- 3. 취향을 읽는 설계 -->
+            <div class="pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
+              <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+              </div>
+              <div>
+                <span data-i18n="pack_card3_tag" class="text-[11px] font-bold tracking-wider text-seal-red uppercase">취향 큐레이션</span>
+                <h3 data-i18n="pack_card3_title" class="text-lg font-bold text-ink-black mt-0.5">취향을 읽는 설계</h3>
+              </div>
+              <p data-i18n="pack_card3_desc" class="text-xs sm:text-sm text-ink-gray leading-relaxed">
+                다양한 취향 데이터를 바탕으로, 가장 한국적이면서 마음에 꼭 맞는 구성을 제안합니다.
+              </p>
+            </div>
+          </div>
+      </section>
 
       <!-- b) 대형 와이드 이미지 배너 (story_bojagi_gift.jpg - 포장 비디오와 동일한 프레임 스타일) -->
       <div class="space-y-8 max-w-7xl mx-auto">
@@ -1281,7 +1292,7 @@
   <section id="cs-section" class="hidden border-t border-ink-black/10 bg-[#FAF7F2]/60 py-14 md:py-16">
     <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
       <div class="space-y-4">
-        <span class="inline-block text-xs font-bold text-seal-red tracking-wider uppercase">Location & Atelier</span>
+        <span data-i18n="cs_location_tag" class="inline-block text-xs font-bold text-seal-red tracking-wider uppercase">설담화 아틀리에</span>
         <h3 data-i18n="cs_location_title" class="text-2xl sm:text-3xl font-extrabold text-ink-black tracking-tight">설담화 아틀리에 오시는 길</h3>
         <p class="font-bold text-ink-black text-sm sm:text-base">
           <span id="cs-address">서울시 종로구 북촌로 42</span>
@@ -1315,10 +1326,10 @@
           
           <!-- 좌측: '고객센터' 타이틀 + 큰 전화번호 + 시간/점심/휴무 -->
           <div class="space-y-2">
-            <span class="text-xs font-bold text-seal-red tracking-wider uppercase block">Customer Center</span>
+            <span data-i18n="cs_band_tag" class="text-xs font-bold text-seal-red tracking-wider uppercase block">문의·상담</span>
             <div class="flex flex-wrap items-baseline gap-3">
               <h3 data-i18n="cs_band_title" class="text-lg font-extrabold text-ink-black">고객센터</h3>
-              <a id="footer-band-phone" href="tel:02-764-1920" class="text-2xl sm:text-3xl font-extrabold text-ink-black hover:text-seal-red transition-colors font-mono">
+              <a id="footer-band-phone" href="tel:02-764-1920" class="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink-black hover:text-seal-red transition-colors">
                 02-764-1920
               </a>
             </div>
@@ -1357,7 +1368,7 @@
           <!-- 중간: 이메일 문의 -->
           <div class="text-xs space-y-1">
             <span data-i18n="cs_band_email_label" class="text-ink-gray font-medium block">이메일 문의</span>
-            <a id="footer-band-email" href="mailto:contact@seoldamhwa.kr" class="text-sm font-bold text-ink-black hover:text-seal-red transition-colors underline underline-offset-4 decoration-ink-black/20 font-mono">
+            <a id="footer-band-email" href="mailto:contact@seoldamhwa.kr" class="text-sm font-bold text-ink-black hover:text-seal-red transition-colors underline underline-offset-4 decoration-ink-black/20">
               contact@seoldamhwa.kr
             </a>
           </div>
