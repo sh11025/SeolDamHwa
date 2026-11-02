@@ -207,6 +207,24 @@
     .kkotsal { position: absolute; width: 14px; height: 14px; z-index: 2; pointer-events: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cg fill='none' stroke='%238B2500' stroke-width='1.2'%3E%3Ccircle cx='5' cy='2.6' r='2.3'/%3E%3Ccircle cx='2.6' cy='5' r='2.3'/%3E%3Ccircle cx='7.4' cy='5' r='2.3'/%3E%3Ccircle cx='5' cy='7.4' r='2.3'/%3E%3C/g%3E%3Ccircle cx='5' cy='5' r='1' fill='%238B2500'/%3E%3C/svg%3E") no-repeat center / contain; }
     /* 모서리 무늬는 space-y 칸 띄우기의 영향을 받지 않게 (위치가 어긋나던 문제) */
     .kkotsal, .corner-tl, .corner-tr, .corner-bl, .corner-br { margin: 0 !important; }
+    /* 페이지별 모서리 무늬 (.kkotsal 위치·뒤집기를 그대로 쓰고 그림만 바꿈) */
+    .kkotsal[class*="mk-"] { width: 16px; height: 16px; }
+    .kkotsal.mk-cloud { width: 18px; height: 18px; }
+    .kkotsal.mk-ajasal { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M2 18V9h7V2h11' fill='none' stroke='%238B2500' stroke-width='1.4'/%3E%3Cpath d='M6 18v-5h7V6h7' fill='none' stroke='%238B2500' stroke-width='1'/%3E%3C/svg%3E"); }
+    .kkotsal.mk-cloud { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22'%3E%3Cpath d='M3 15V3h12' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Cpath d='M15 3c2.4 0 3.4 1.2 3.4 2.6 0 1.1-.8 1.8-1.7 1.8-.9 0-1.4-.6-1.4-1.3' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3Cpath d='M3 15c0 2.4 1.2 3.4 2.6 3.4 1.1 0 1.8-.8 1.8-1.7 0-.9-.6-1.4-1.3-1.4' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E"); }
+    .kkotsal.mk-gyeop { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M2 17V2h15' fill='none' stroke='%238B2500' stroke-width='1.4'/%3E%3Cpath d='M6 17V6h11' fill='none' stroke='%238B2500' stroke-width='0.9'/%3E%3C/svg%3E"); }
+    .kkotsal.mk-maedeup { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8 3l5 5-5 5-5-5z' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Cpath d='M8 5.5l2.5 2.5L8 10.5 5.5 8z' fill='%238B2500'/%3E%3Cpath d='M13 8h6M8 13v6' stroke='%238B2500' stroke-width='1.1'/%3E%3C/svg%3E"); }
+    .kkotsal.mk-ttisal { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M2 2h16M2 2v16' stroke='%238B2500' stroke-width='1.4'/%3E%3Cpath d='M6 2v8M10 2v5M2 6h8M2 10h5' stroke='%238B2500' stroke-width='0.9'/%3E%3C/svg%3E"); }
+    .kkotsal.mk-lotus { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8 3c3 2 3 7 0 10-3-3-3-8 0-10z' fill='none' stroke='%238B2500' stroke-width='1.2'/%3E%3Cpath d='M8 13c-3 0-6-2-6-5 2 0 4 1 6 5zm0 0c3 0 6-2 6-5-2 0-4 1-6 5z' fill='none' stroke='%238B2500' stroke-width='1'/%3E%3C/svg%3E"); }
+    /* 머리글 C: 글씨 크게, 지금 보는 탭은 밑줄 대신 그 페이지의 무늬 */
+    .nav-btn { position: relative; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-btn.border-b-2 { border-bottom-width: 0 !important; }
+    .nav-btn.border-b-2::after { content: ''; position: absolute; left: 50%; bottom: -15px; width: 14px; height: 14px; transform: translateX(-50%); background: no-repeat center / contain; }
+    #nav-story.border-b-2::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5.5 1.5h5v4h4v5h-4v4h-5v-4h-4v-5h4z' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Crect x='6.5' y='6.5' width='3' height='3' fill='%238B2500'/%3E%3C/svg%3E"); }
+    #nav-shop.border-b-2::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2' y='2' width='12' height='12' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Cpath d='M6 2v12M10 2v12M2 8h12' stroke='%238B2500' stroke-width='0.9'/%3E%3C/svg%3E"); }
+    #nav-dictionary.border-b-2::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cg fill='none' stroke='%238B2500' stroke-width='1.3'%3E%3Ccircle cx='8' cy='5' r='3'/%3E%3Ccircle cx='5' cy='8' r='3'/%3E%3Ccircle cx='11' cy='8' r='3'/%3E%3Ccircle cx='8' cy='11' r='3'/%3E%3C/g%3E%3Ccircle cx='8' cy='8' r='1.2' fill='%238B2500'/%3E%3C/svg%3E"); }
+    #nav-custom.border-b-2::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 10h12' stroke='%238B2500' stroke-width='1.3' stroke-linecap='round'/%3E%3Cpath d='M5 10c-2 0-3-1-3-2.3C2 6.6 2.8 6 3.6 6c.8 0 1.2.6 1.2 1.1' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3Cpath d='M11 10c2 0 3-1 3-2.3 0-1.1-.8-1.7-1.6-1.7-.8 0-1.2.6-1.2 1.1' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3Cpath d='M8 10V5.5c0-1.4 1-2 1.9-2 .8 0 1.4.6 1.4 1.3' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E"); }
+    #nav-guide.border-b-2::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1.5l6.5 6.5L8 14.5 1.5 8z' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Cpath d='M8 5l3 3-3 3-3-3z' fill='%238B2500'/%3E%3C/svg%3E"); }
     .kkotsal.tl { top: 5px; left: 5px; }
     .kkotsal.tr { top: 5px; right: 5px; transform: scaleX(-1); }
     .kkotsal.bl { bottom: 5px; left: 5px; transform: scaleY(-1); }
@@ -336,7 +354,7 @@
         </button>
 
         <!-- 데스크톱 내비게이션 (순서: 설담화 이야기 -> 꽃 둘러보기 -> 맞춤 담화) -->
-        <nav class="hidden xl:flex items-center space-x-6 text-sm font-semibold tracking-tight">
+        <nav class="hidden xl:flex items-center space-x-7 font-semibold tracking-tight">
           <button onclick="switchView('story')" id="nav-story" data-i18n="nav_story" class="nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors">
             설담화 이야기
           </button>
@@ -432,19 +450,19 @@
 
     <!-- 모바일 전체 너비 드롭다운 메뉴 패널 (md 미만 전용) -->
     <div id="mobile-menu-dropdown" class="hidden xl:hidden bg-hanji/98 backdrop-blur-md border-t border-ink-black/10 shadow-lg px-6 py-4 space-y-2">
-      <button onclick="handleMobileNav('story')" data-i18n="nav_story" class="block w-full text-left py-2 text-sm font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-b border-ink-black/5">
+      <button onclick="handleMobileNav('story')" data-i18n="nav_story" class="block w-full text-left py-3 text-base font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-b border-ink-black/5">
         설담화 이야기
       </button>
-      <button onclick="handleMobileNav('flowers')" data-i18n="nav_shop" class="block w-full text-left py-2 text-sm font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-b border-ink-black/5">
+      <button onclick="handleMobileNav('flowers')" data-i18n="nav_shop" class="block w-full text-left py-3 text-base font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-b border-ink-black/5">
         꽃 둘러보기
       </button>
-      <button onclick="handleMobileNav('dictionary')" data-i18n="nav_dictionary" class="block w-full text-left py-2 text-sm font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-b border-ink-black/5">
+      <button onclick="handleMobileNav('dictionary')" data-i18n="nav_dictionary" class="block w-full text-left py-3 text-base font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-b border-ink-black/5">
         꽃 사전
       </button>
-      <button onclick="handleMobileNav('custom')" data-i18n="nav_custom" class="block w-full text-left py-2 text-sm font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-b border-ink-black/5">
+      <button onclick="handleMobileNav('custom')" data-i18n="nav_custom" class="block w-full text-left py-3 text-base font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-b border-ink-black/5">
         맞춤 담화
       </button>
-      <button onclick="handleMobileNav('guide')" data-i18n="nav_guide" class="block w-full text-left py-2 text-sm font-semibold text-ink-charcoal hover:text-seal-red transition-colors">
+      <button onclick="handleMobileNav('guide')" data-i18n="nav_guide" class="block w-full text-left py-3 text-base font-semibold text-ink-charcoal hover:text-seal-red transition-colors">
         정성 안내
       </button>
       <!-- 모바일 언어 선택 -->
@@ -556,7 +574,7 @@
       <section id="custom-cta" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         <!-- 한지 카드: 한지 바탕 + 얇은 인주색 테두리 + 꽃살 모서리 -->
         <div class="relative overflow-hidden rounded-sm bg-[#F6F1E7] text-ink-black border border-seal-red/35 shadow-xs px-6 py-10 sm:px-12 flex flex-col md:flex-row md:items-center justify-between gap-8">
-          <span class="kkotsal tl" aria-hidden="true"></span><span class="kkotsal tr" aria-hidden="true"></span><span class="kkotsal bl" aria-hidden="true"></span><span class="kkotsal br" aria-hidden="true"></span>
+          <span class="kkotsal tl mk-cloud" aria-hidden="true"></span><span class="kkotsal tr mk-cloud" aria-hidden="true"></span><span class="kkotsal bl mk-cloud" aria-hidden="true"></span><span class="kkotsal br mk-cloud" aria-hidden="true"></span>
           <div class="pointer-events-none absolute inset-[7px] border border-seal-red/15 rounded-xs" aria-hidden="true"></div>
           <!-- 왼쪽: 글 + 버튼 / 오른쪽: 꽃 고르는 움직임 -->
           <div class="relative space-y-2 md:w-1/2 min-w-0">
@@ -616,7 +634,8 @@
           <!-- 하단 3개 가치 카드 (가벼운 스타일: 코너 브라켓 없이 얇은 상단 라인) -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pt-4">
             <!-- 1. 버리지 않는 포장 -->
-            <div class="pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
+            <div class="relative pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
+              <span class="kkotsal tl mk-maedeup" aria-hidden="true"></span><span class="kkotsal tr mk-maedeup" aria-hidden="true"></span>
               <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
@@ -632,7 +651,8 @@
             </div>
 
             <!-- 2. 1:1 맞춤 꽃 -->
-            <div class="pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
+            <div class="relative pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
+              <span class="kkotsal tl mk-maedeup" aria-hidden="true"></span><span class="kkotsal tr mk-maedeup" aria-hidden="true"></span>
               <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
@@ -648,7 +668,8 @@
             </div>
 
             <!-- 3. 취향을 읽는 설계 -->
-            <div class="pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
+            <div class="relative pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
+              <span class="kkotsal tl mk-maedeup" aria-hidden="true"></span><span class="kkotsal tr mk-maedeup" aria-hidden="true"></span>
               <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -680,7 +701,7 @@
       </div>
 
       <div class="hanok-card p-8 sm:p-14 max-w-5xl mx-auto">
-        <div class="corner-tl"></div><div class="corner-tr"></div><div class="corner-bl"></div><div class="corner-br"></div>
+        <span class="kkotsal tl mk-ajasal" aria-hidden="true"></span><span class="kkotsal tr mk-ajasal" aria-hidden="true"></span><span class="kkotsal bl mk-ajasal" aria-hidden="true"></span><span class="kkotsal br mk-ajasal" aria-hidden="true"></span>
         <div class="max-w-3xl mx-auto space-y-6 text-ink-charcoal leading-loose text-base sm:text-lg">
           <p data-i18n="story_quote" class="font-bold text-xl text-seal-red font-serif">
             "꽃 화(花), 말씀 설(說), 이야기 담(談)"
@@ -848,7 +869,7 @@
             </button>
           </div>
         </div>
-        <span class="kkotsal tl" aria-hidden="true"></span><span class="kkotsal tr" aria-hidden="true"></span><span class="kkotsal bl" aria-hidden="true"></span><span class="kkotsal br" aria-hidden="true"></span>
+        <span class="kkotsal tl mk-cloud" aria-hidden="true"></span><span class="kkotsal tr mk-cloud" aria-hidden="true"></span><span class="kkotsal bl mk-cloud" aria-hidden="true"></span><span class="kkotsal br mk-cloud" aria-hidden="true"></span>
       </div>
 
       <!-- 상담 카드: 위 질문 카드와 같은 꽃살 모서리 -->
@@ -915,7 +936,7 @@
             </button>
           </div>
         </form>
-        <span class="kkotsal tl" aria-hidden="true"></span><span class="kkotsal tr" aria-hidden="true"></span><span class="kkotsal bl" aria-hidden="true"></span><span class="kkotsal br" aria-hidden="true"></span>
+        <span class="kkotsal tl mk-cloud" aria-hidden="true"></span><span class="kkotsal tr mk-cloud" aria-hidden="true"></span><span class="kkotsal bl mk-cloud" aria-hidden="true"></span><span class="kkotsal br mk-cloud" aria-hidden="true"></span>
       </div>
     </div>
 
@@ -934,7 +955,7 @@
         <button type="button" role="tab" data-guide="location" id="guide-tab-location" onclick="showGuideTab('location')" data-i18n="guide_location" class="guide-tab hidden px-4 py-2 rounded-full border text-sm font-bold cursor-pointer">오시는 길</button>
       </div>
       <article class="relative bg-white/70 border border-ink-black/10 rounded-sm p-6 md:p-10 shadow-xs">
-        <div class="corner-tl"></div><div class="corner-tr"></div><div class="corner-bl"></div><div class="corner-br"></div>
+        <span class="kkotsal tl mk-maedeup" aria-hidden="true"></span><span class="kkotsal tr mk-maedeup" aria-hidden="true"></span><span class="kkotsal bl mk-maedeup" aria-hidden="true"></span><span class="kkotsal br mk-maedeup" aria-hidden="true"></span>
         <h2 id="guide-title" class="text-xl font-extrabold text-ink-black mb-1"></h2>
         <p id="guide-lang-note" class="hidden mb-3 text-xs text-ink-gray"></p>
         <!-- PC: 왼쪽 글 · 오른쪽 사진·영상 / 휴대폰: 사진·영상이 먼저 -->
@@ -1264,6 +1285,7 @@
           <button type="button" onclick="toggleCheckoutModal(false)" data-i18n="co_continue" class="jakae-btn px-5 py-2.5 text-sm font-bold rounded-xs cursor-pointer">쇼핑 계속하기</button>
         </div>
       </div>
+      <span class="kkotsal tl mk-gyeop" aria-hidden="true"></span><span class="kkotsal tr mk-gyeop" aria-hidden="true"></span><span class="kkotsal bl mk-gyeop" aria-hidden="true"></span><span class="kkotsal br mk-gyeop" aria-hidden="true"></span>
     </div>
   </div>
 
@@ -1598,6 +1620,7 @@
   <div id="order-lookup-modal" class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="order-lookup-title">
     <div class="fixed inset-0" onclick="closeOrderLookup()"></div>
     <div class="relative bg-hanji w-full max-w-lg max-h-[88vh] overflow-y-auto rounded-sm shadow-2xl border border-ink-black/10 p-6 space-y-4">
+      <span class="kkotsal tl mk-gyeop" aria-hidden="true"></span><span class="kkotsal tr mk-gyeop" aria-hidden="true"></span><span class="kkotsal bl mk-gyeop" aria-hidden="true"></span><span class="kkotsal br mk-gyeop" aria-hidden="true"></span>
       <div class="flex items-center justify-between">
         <h2 id="order-lookup-title" data-i18n="lookup_title" class="text-lg font-extrabold text-ink-black">주문 조회</h2>
         <button type="button" onclick="closeOrderLookup()" class="text-2xl leading-none text-ink-gray hover:text-seal-red cursor-pointer" aria-label="닫기">×</button>

@@ -218,6 +218,7 @@ function renderProductDetails(p) {
     flowersBox.appendChild(m);
   }
   if (flowersBox.childNodes.length) storyBox.appendChild(flowersBox);
+  addCornerMarks(storyBox, 'lotus');
   story.appendChild(storyBox);
   root.appendChild(story);
 

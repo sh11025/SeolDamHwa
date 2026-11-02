@@ -107,6 +107,7 @@ function buildFlowerGuideSection(p, makeTitle) {
     else body.appendChild(media);
     body.appendChild(text);
     d.append(sm, body);
+    if (typeof addCornerMarks === 'function') addCornerMarks(d, 'lotus', ['tl', 'br']);
     sec.appendChild(d);
   });
   return sec;

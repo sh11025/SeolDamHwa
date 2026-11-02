@@ -396,3 +396,16 @@ function goHomeWithNotice(key, fallback) {
   if (typeof setRouteHash === 'function') setRouteHash('#/', true);
   showToast(typeof t === 'function' ? t(key, fallback) : fallback);
 }
+
+// 모서리 무늬 붙이기: el 안에 꽃살 위치용 span 4개 (mk: ajasal·cloud·gyeop·maedeup·ttisal·lotus, 비우면 꽃살)
+function addCornerMarks(el, mk, which = ['tl', 'tr', 'bl', 'br']) {
+  if (!el) return el;
+  el.classList.add('relative');
+  which.forEach(w => {
+    const s = document.createElement('span');
+    s.className = `kkotsal ${w}${mk ? ' mk-' + mk : ''}`;
+    s.setAttribute('aria-hidden', 'true');
+    el.appendChild(s);
+  });
+  return el;
+}

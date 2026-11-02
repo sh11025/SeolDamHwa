@@ -20,7 +20,7 @@
 ## 2. 작업 방식 (꼭 지키기)
 0. **화면 클래스(Tailwind)를 새로 쓰거나 바꾸면 꼭 `npm run build:css`** (처음 한 번은 `npm install`). 예전 CDN 대신 `assets/css/tailwind.css`를 미리 만들어 쓰므로, 다시 만들지 않으면 새 클래스는 화면에 안 먹어요. 설정은 `tailwind.config.js`, 원본은 `src/tailwind.css`. 고치는 중에는 `npm run watch:css`를 켜 두면 저장할 때마다 자동으로 만들어져요.
 1. 바꾸기 전 `git status` 확인, 끝나면 커밋 (커밋 메시지 끝에 공동 작성자 줄).
-2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[61]**.
+2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[62]**.
 3. 검증: `python -m http.server 5500`로 띄우고 브라우저에서 직접 클릭. 매번 확인할 것
    - 인라인 스크립트 문법(`node --check`), 모든 `getElementById` id 존재
    - 버튼이 부르는 함수가 모두 있는지: 콘솔에서 `[...new Set([...document.documentElement.outerHTML.matchAll(/on\w+="([A-Za-z_]\w*)\(/g)].map(m=>m[1]))].filter(n=>typeof window[n]!=='function')` → `[]` (예외: `if`)
@@ -74,6 +74,7 @@
    - 상품 페이지: 설명 + 쓰인 꽃 칩(`renderProductFlowers`) → '꽃별 관리 안내' 접기 목록 `buildFlowerGuideSection()`(shop-flowers.js, `#pdp-guide-<꽃id>`). 꽃 사전 새 칸 `guideText`·`guideImages`·`guideVideo`(flowers.csv에 추가), 관리자 꽃 사전 창에서 입력. 순서 = 상품 `flowers` 순서, 관리자 상품 창 `#edit-prod-flowers-order` ↑↓(`editProdFlowerOrder`).
    - [58] 관리자 상품 종류 거르기 `currentProductCategory`·`renderProductCategoryFilter()`(`#prod-cat-filter`). 맞춤 담화 띠는 왼쪽 글+버튼 / 오른쪽 꽃(이미지 w-16~w-24). `#curation-stepper-card`에 `.kkotsal`, 추천 결과 카드에 `corner-*`. 한글 줄바꿈 `word-break: keep-all`(src/tailwind.css base, `html:not([lang="ja"])`) + `text-wrap: pretty`.
    - [60] 맞춤 담화 띠: 글 `md:w-1/2` / 꽃 `md:w-1/2`, 이미지 `aspect-square` + 폭(w-16~xl:w-32, 좁으면 줄어듦). 모서리 무늬(`.kkotsal`, `.corner-*`)는 `margin:0 !important`(space-y 칸 띄우기 때문에 어긋났음), 맞춤 담화 두 카드는 모서리를 카드 맨 끝에 두고 둘 다 `.kkotsal`.
+   - [61] 모서리 무늬: `.kkotsal.{tl,tr,bl,br}` + `mk-ajasal|cloud|gyeop|maedeup|ttisal|lotus`(index.html CSS, 데이터 URI). JS는 `addCornerMarks(el, mk, which)`(shop-core.js). 머리글 C: `.nav-btn` 15px, 활성 탭(`border-b-2`)은 밑줄 대신 `::after` 무늬(`#nav-*`별). 구름은 사용자가 C안(ㄱ자+말린 끝) 선택.
 4-00. ~~[59] 디자인 추천 10~13번~~ 완료: ⑩ 휴대폰 `#fab-group`(♡·💬) + `#fab-toggle-btn` / `toggleFabGroup()`(shop-nav.js), 찜 수는 `#fab-toggle-badge` ⑪ 머리글 언어 선택 `hidden sm:block` ⑫ 대시보드 '오늘 할 일' `renderTodayTasks()`·`goTodayTask()`(admin-dashboard.js, `#today-tasks`) ⑬ 왼쪽 메뉴 소제목(판매·주문·상담·매출·매장·연동). 8번 버튼 정리는 하지 않기로 함. 6번(홈 포장 소개)은 원래대로 — 복주머니는 차별점.
 4-0. ~~[49] 꽃 사전 화면~~ 완료: 12폭 병풍 달 고르기(`#dict-folding-screen`, 절기 `SOLAR_TERMS`, 사계절 색 `SEASON_TONES` — 사용자가 4가지로 줄이길 원함), 카드는 `hanok-card` + 꽃살 모서리 `.kkotsal`(index.html CSS). 사용자 결정: 오방색 색 거르기와 두루마리 펼침 상세는 쓰기 불편해서 하지 않음, 족자 모양·둥근 창도 쓰지 않음. [50] 카드 크기를 맞추려고 '이 꽃이 든 상품' 목록(상품 이름 버튼들)은 뺌(카드 `auto-rows-fr`, 관리 팁 두 줄). [51] '이 꽃이 든 상품 모두 보기' 버튼은 사용자 요청으로 다시 넣음 → `openFlowersPageWithFlower()`, 상품 없는 꽃은 안내 문구.
 4-1. ~~[48] 전체 점검 결과 정리~~ 완료 (2026-11-02). 남은 것은 아래 "오픈 준비"의 사용자 결정 항목. 처음 정리:

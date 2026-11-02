@@ -144,13 +144,14 @@ function renderFlowersPage() {
   // 가격대 · 색 · 상황 · 정렬
   const set = (key) => (v) => { browseState[key] = v; browseState.page = 1; renderFlowersPage(); };
   const bar = document.createElement('div');
-  bar.className = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pb-6 border-b border-ink-black/10';
+  bar.className = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 p-4 sm:p-5 bg-white/60 border border-ink-black/10 rounded-xs';
   BROWSE_FILTERS.forEach(f => {
     bar.appendChild(browseSelect(`browse-${f.field}`, brT(f.key, f.label),
       [['', brT('browse_any', '전체')], ...curationOptions(f.field).map(o => [o.label, brT(o.i18nKey, o.label)])],
       s[f.field], set(f.field)));
   });
   bar.appendChild(browseSelect('browse-sort', brT('browse_sort', '정렬'), BROWSE_SORTS.map(x => [x.id, brT(x.key, x.label)]), s.sort, v => { browseState.sort = v; renderFlowersPage(); }));
+  addCornerMarks(bar, 'ttisal');
   view.appendChild(bar);
 
   const seasonWrap = document.createElement('label');
