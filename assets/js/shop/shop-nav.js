@@ -348,12 +348,3 @@ function showView(view) {
 }
 
 // 5단계 맞춤 추천 사유 한국어 맵
-
-// 홈 '복주머니 포장' → 설담화 이야기의 포장 이야기로
-function openStoryPackaging() {
-  switchView('story');
-  setTimeout(() => {
-    const el = document.getElementById('story-packaging');
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 350);
-}

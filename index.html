@@ -587,7 +587,7 @@
           <!-- 상단 대형 와이드 비디오 (프로토타입 .film-frame 스타일) -->
           <div class="relative px-2 sm:px-4">
             <div class="film-outline"></div>
-            <div class="film-frame aspect-[16/10] sm:aspect-[16/9] max-h-[540px] w-full bg-[#ECE8E1]">
+            <div class="film-frame aspect-[16/10] sm:aspect-[16/9] max-h-[700px] w-full bg-[#ECE8E1]">
               <video id="packaging-video" src="assets/videos/bokjumeoni_packaging.mp4" muted loop playsinline preload="metadata" class="w-full h-full object-cover"></video>
               <!-- 좌측 텍스트 가독성을 위한 은은한 다크 그라데이션 -->
               <div class="absolute inset-0 bg-gradient-to-r from-black/65 via-black/25 to-transparent pointer-events-none"></div>
@@ -606,10 +606,66 @@
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-seal-red/30 bg-white text-xs font-bold text-seal-red shadow-xs">
               <span data-i18n="pack_badge">복주머니 포장</span>
             </div>
+
             <h2 data-i18n="pack_h2" class="text-2xl sm:text-4xl font-extrabold text-ink-black tracking-tight leading-snug">
               버려지는 포장 대신,<br>오래 간직하는 복주머니
             </h2>
-            <button type="button" onclick="openStoryPackaging()" data-i18n="pack_more" class="px-6 py-2.5 border border-ink-black/25 bg-white text-sm font-bold rounded-xs hover:border-seal-red hover:text-seal-red cursor-pointer">복주머니 포장 이야기 자세히 보기 →</button>
+            <p data-i18n="pack_desc" class="text-sm sm:text-base text-ink-gray font-normal leading-relaxed">
+              설담화가 꿈꾸는 선물은 물건을 건네는 것을 넘어, 버리지 않는 한국의 전통과 가치를
+              함께 나누는 일입니다. 꽃이 시든 뒤에도 남는 보자기와 복주머니처럼, 마음을 감싼
+              그릇까지 오래 곁에 머물도록 고민합니다.
+            </p>
+          </div>
+
+          <!-- 하단 3개 가치 카드 (가벼운 스타일: 코너 브라켓 없이 얇은 상단 라인) -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pt-4">
+            <!-- 1. 버리지 않는 포장 -->
+            <div class="pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
+              <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+              </div>
+              <div>
+                <span data-i18n="pack_card1_tag" class="text-[11px] font-bold tracking-wider text-seal-red uppercase">다시 쓰는 보자기</span>
+                <h3 data-i18n="pack_card1_title" class="text-lg font-bold text-ink-black mt-0.5">버리지 않는 포장</h3>
+              </div>
+              <p data-i18n="pack_card1_desc" class="text-xs sm:text-sm text-ink-gray leading-relaxed">
+                한복 원단 보자기와 복주머니로 감싸, 꽃이 진 뒤에도 일상에서 다시 쓰입니다.
+              </p>
+            </div>
+
+            <!-- 2. 1:1 맞춤 꽃 -->
+            <div class="pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
+              <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+              </div>
+              <div>
+                <span data-i18n="pack_card2_tag" class="text-[11px] font-bold tracking-wider text-seal-red uppercase">한 사람을 위한 꽃</span>
+                <h3 data-i18n="pack_card2_title" class="text-lg font-bold text-ink-black mt-0.5">1:1 맞춤 꽃</h3>
+              </div>
+              <p data-i18n="pack_card2_desc" class="text-xs sm:text-sm text-ink-gray leading-relaxed">
+                받는 분과 날의 의미를 듣고, 꽃과 색, 카드 문구까지 한 사람을 위해 짓습니다.
+              </p>
+            </div>
+
+            <!-- 3. 취향을 읽는 설계 -->
+            <div class="pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
+              <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+              </div>
+              <div>
+                <span data-i18n="pack_card3_tag" class="text-[11px] font-bold tracking-wider text-seal-red uppercase">취향 큐레이션</span>
+                <h3 data-i18n="pack_card3_title" class="text-lg font-bold text-ink-black mt-0.5">취향을 읽는 설계</h3>
+              </div>
+              <p data-i18n="pack_card3_desc" class="text-xs sm:text-sm text-ink-gray leading-relaxed">
+                다양한 취향 데이터를 바탕으로, 가장 한국적이면서 마음에 꼭 맞는 구성을 제안합니다.
+              </p>
+            </div>
           </div>
 
 
@@ -674,70 +730,6 @@
           </p>
         </div>
       </div>
-
-      <!-- 복주머니 포장 이야기 (홈에서 옮겨 옴) -->
-      <section id="story-packaging" class="space-y-10 max-w-5xl mx-auto scroll-mt-24">
-        <div class="text-center max-w-2xl mx-auto space-y-4">
-          <h2 data-i18n="pack_h2" class="text-2xl sm:text-4xl font-extrabold text-ink-black tracking-tight leading-snug">
-            버려지는 포장 대신,<br>오래 간직하는 복주머니
-          </h2>
-          <p data-i18n="pack_desc" class="text-sm sm:text-base text-ink-gray font-normal leading-relaxed">
-            설담화가 꿈꾸는 선물은 물건을 건네는 것을 넘어, 버리지 않는 한국의 전통과 가치를
-            함께 나누는 일입니다. 꽃이 시든 뒤에도 남는 보자기와 복주머니처럼, 마음을 감싼
-            그릇까지 오래 곁에 머물도록 고민합니다.
-          </p>
-        </div>
-          <!-- 하단 3개 가치 카드 (가벼운 스타일: 코너 브라켓 없이 얇은 상단 라인) -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pt-4">
-            <!-- 1. 버리지 않는 포장 -->
-            <div class="pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
-              <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                </svg>
-              </div>
-              <div>
-                <span data-i18n="pack_card1_tag" class="text-[11px] font-bold tracking-wider text-seal-red uppercase">다시 쓰는 보자기</span>
-                <h3 data-i18n="pack_card1_title" class="text-lg font-bold text-ink-black mt-0.5">버리지 않는 포장</h3>
-              </div>
-              <p data-i18n="pack_card1_desc" class="text-xs sm:text-sm text-ink-gray leading-relaxed">
-                한복 원단 보자기와 복주머니로 감싸, 꽃이 진 뒤에도 일상에서 다시 쓰입니다.
-              </p>
-            </div>
-
-            <!-- 2. 1:1 맞춤 꽃 -->
-            <div class="pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
-              <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                </svg>
-              </div>
-              <div>
-                <span data-i18n="pack_card2_tag" class="text-[11px] font-bold tracking-wider text-seal-red uppercase">한 사람을 위한 꽃</span>
-                <h3 data-i18n="pack_card2_title" class="text-lg font-bold text-ink-black mt-0.5">1:1 맞춤 꽃</h3>
-              </div>
-              <p data-i18n="pack_card2_desc" class="text-xs sm:text-sm text-ink-gray leading-relaxed">
-                받는 분과 날의 의미를 듣고, 꽃과 색, 카드 문구까지 한 사람을 위해 짓습니다.
-              </p>
-            </div>
-
-            <!-- 3. 취향을 읽는 설계 -->
-            <div class="pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
-              <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                </svg>
-              </div>
-              <div>
-                <span data-i18n="pack_card3_tag" class="text-[11px] font-bold tracking-wider text-seal-red uppercase">취향 큐레이션</span>
-                <h3 data-i18n="pack_card3_title" class="text-lg font-bold text-ink-black mt-0.5">취향을 읽는 설계</h3>
-              </div>
-              <p data-i18n="pack_card3_desc" class="text-xs sm:text-sm text-ink-gray leading-relaxed">
-                다양한 취향 데이터를 바탕으로, 가장 한국적이면서 마음에 꼭 맞는 구성을 제안합니다.
-              </p>
-            </div>
-          </div>
-      </section>
 
       <!-- b) 대형 와이드 이미지 배너 (story_bojagi_gift.jpg - 포장 비디오와 동일한 프레임 스타일) -->
       <div class="space-y-8 max-w-7xl mx-auto">
