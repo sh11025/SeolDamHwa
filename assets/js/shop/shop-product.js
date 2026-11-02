@@ -265,6 +265,18 @@ function addToCartFromPDP() {
 
   const basePrice = currentSelectedSize ? currentSelectedSize.price : (currentSelectedProduct.price || 0);
 
+  // 장바구니에 이미 담긴 수량까지 합쳐 재고를 넘지 않게
+  const left = stockLeftFor(currentSelectedProduct.id);
+  if (left <= 0) {
+    alert(typeof t === 'function' ? t('stock_cart_full', '남은 재고만큼 이미 장바구니에 담겨 있어요.') : '남은 재고만큼 이미 장바구니에 담겨 있어요.');
+    toggleCartDrawer(true);
+    return;
+  }
+  if (currentQty > left) {
+    alert((typeof t === 'function' ? t('stock_cart_limited', '남은 재고가 {n}개라 {n}개만 담았어요.') : '남은 재고가 {n}개라 {n}개만 담았어요.').replace(/\{n\}/g, left));
+    currentQty = left;
+  }
+
   cart.push({
     product: currentSelectedProduct,
     sizeLabel: currentSelectedSize ? currentSelectedSize.label : null,
@@ -298,6 +310,8 @@ function buyNowFromPDP() {
     : '기본 단아 한지 포장';
 
   const basePrice = currentSelectedSize ? currentSelectedSize.price : (currentSelectedProduct.price || 0);
+  const stock = currentSelectedProduct.stockQuantity;
+  if (typeof stock === 'number' && currentQty > stock) currentQty = stock;
 
   cart = [{
     product: currentSelectedProduct,

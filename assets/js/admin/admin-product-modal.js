@@ -93,7 +93,7 @@ function deleteProductFromModal() {
   if (!prod) return;
   if (!confirm(`'${prod.name}' 상품을 지울까요?\n쇼핑몰에서 바로 사라지고 되돌릴 수 없어요.\n잠깐 숨기기만 하려면 '비공개'로 바꿔 주세요.`)) return;
   saveProducts(loadProducts().filter(p => p.id !== prodId));
-  closeProductModal();
+  closeProductModal(true);
   renderProductsTable();
   renderDashboard();
 }
@@ -195,9 +195,34 @@ function editProduct(prodId) {
   document.getElementById('admin-product-modal').scrollTop = 0;
 }
 
-function closeProductModal() {
-  document.getElementById('admin-product-modal').classList.add('hidden');
+// 창을 연 직후 모습을 기억해 두고, 닫을 때 달라졌으면 물어봄 (저장·삭제 뒤에는 묻지 않음)
+let productModalSnapshot = '';
+
+function productModalState() {
+  const form = document.querySelector('#admin-product-modal form');
+  if (!form) return '';
+  const vals = [...form.querySelectorAll('input, select, textarea')].map(el => (el.type === 'checkbox' || el.type === 'radio') ? el.checked : el.value);
+  const extra = typeof editProdImages !== 'undefined' ? JSON.stringify(editProdImages) : '';
+  return JSON.stringify(vals) + extra + JSON.stringify(editProdSizes);
 }
+
+function rememberProductModalState() {
+  productModalSnapshot = productModalState();
+}
+
+function closeProductModal(force) {
+  const modal = document.getElementById('admin-product-modal');
+  if (force !== true && !modal.classList.contains('hidden') && productModalSnapshot && productModalState() !== productModalSnapshot) {
+    if (!confirm('고친 내용이 아직 저장되지 않았어요. 저장하지 않고 닫을까요?')) return;
+  }
+  modal.classList.add('hidden');
+}
+
+window.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape' && !document.getElementById('admin-product-modal').classList.contains('hidden')
+    && document.getElementById('image-picker-modal')?.classList.contains('hidden') !== false
+    && document.getElementById('admin-flower-modal')?.classList.contains('hidden') !== false) closeProductModal();
+});
 
 function doSaveProduct() {
   const prodId = document.getElementById('edit-prod-id').value;
@@ -305,7 +330,7 @@ function doSaveProduct() {
 
   const before = prodId ? loadProducts().find(p => p.id === prodId) : null;
   saveProducts(products);
-  closeProductModal();
+  closeProductModal(true);
   renderProductsTable();
   renderDashboard();
   const waitingNow = typeof restockWaitingCount === 'function' && prodId ? restockWaitingCount(prodId) : 0;

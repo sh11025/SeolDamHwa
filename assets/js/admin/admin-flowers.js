@@ -276,12 +276,14 @@ document.addEventListener('DOMContentLoaded', () => {
   openProductModal = function (...args) {
     const r = originalOpen.apply(this, args);
     loadProductEditorExtras(null);
+    if (typeof rememberProductModalState === 'function') rememberProductModalState();
     return r;
   };
   const originalEdit = editProduct;
   editProduct = function (prodId, ...rest) {
     const r = originalEdit.call(this, prodId, ...rest);
     loadProductEditorExtras(loadProducts().find(p => p.id === prodId) || null);
+    if (typeof rememberProductModalState === 'function') rememberProductModalState();
     return r;
   };
   // 대표 이미지 칸과 갤러리 맞추기

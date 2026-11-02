@@ -3,6 +3,7 @@
 // index.html에서 순서대로 불러옵니다 (함수는 전역으로 공유).
 
 function updateCartUI() {
+  saveCart();
   const container = document.getElementById('cart-items-container');
   const badge = document.getElementById('cart-badge');
   const totalEl = document.getElementById('cart-total-amount');
@@ -702,6 +703,23 @@ function submitCustomerOrder(e) {
     return;
   }
   if (document.getElementById('order-same-recipient').checked) toggleSameRecipient();
+
+  // 주문 직전 재고 다시 확인 (다른 손님이 먼저 사 갔을 수 있음)
+  const fresh = loadProducts();
+  const short = [];
+  const need = {};
+  cart.forEach(i => { need[i.product.id] = (need[i.product.id] || 0) + (Number(i.quantity) || 0); });
+  Object.entries(need).forEach(([id, n]) => {
+    const p = fresh.find(x => x.id === id);
+    if (!p) short.push({ name: (cart.find(i => i.product.id === id) || {}).product.name, left: 0 });
+    else if (!p.inquiryOnly && typeof p.stockQuantity === 'number' && p.stockQuantity < n) short.push({ name: p.name, left: p.stockQuantity });
+  });
+  if (short.length) {
+    const lines = short.map(x => `· ${(typeof tProduct === 'function' ? tProduct({ name: x.name }).name : x.name) || x.name}: ${coT('stock_left_n', '남은 수량 {n}개').replace('{n}', x.left)}`).join('\n');
+    alert(`${coT('stock_changed', '주문하는 사이 재고가 줄었어요. 장바구니 수량을 고쳐 주세요.')}\n${lines}`);
+    toggleCartDrawer(true);
+    return;
+  }
 
   const settings = loadSettings();
   const timeVal = document.getElementById('order-delivery-time').value;
