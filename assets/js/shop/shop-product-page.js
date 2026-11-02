@@ -301,9 +301,12 @@ function openProductDetail(productId, isPreview = false, fromRoute = false) {
   window.scrollTo({ top: 0 });
 }
 
-// 상품 페이지에서 나가기: 사이트 안에서 왔으면 뒤로, 아니면 홈
+// 상품 페이지에서 나가기: 사이트 안에서 왔으면 바로 전 화면으로,
+// 바로 들어왔으면(새로고침·공유 링크) 그 상품 종류의 꽃 둘러보기로
 function leaveProductPage() {
-  if (window.__seoldamhwaInternalNav) history.back();
+  if (window.__seoldamhwaInternalNav) { history.back(); return; }
+  const cat = currentSelectedProduct ? currentSelectedProduct.category : 'all';
+  if (typeof openFlowersPage === 'function') openFlowersPage(cat);
   else switchView('shop');
 }
 
