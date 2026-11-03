@@ -12,7 +12,7 @@
 
 | 파일 | 한 줄 = | 주요 칸 | DB로 옮길 때 |
 |---|---|---|---|
-| `products.csv` | 상품 1개 | id, name, category(bouquet/basket/space), price, sizes(JSON), inquiryOnly, stockQuantity, image, visibility(public/private/scheduled), publishAt, curationTags(JSON), hideOnHome(홈에 숨김), homeOrder(홈 순서), images(사진 주소 JSON, 첫 장=대표), flowers(사용한 꽃 id JSON → flowers.id) | 기본 키 `id` |
+| `products.csv` | 상품 1개 | id, name, category(bouquet/basket/vase/dried/space/plant/goods), price, sizes(JSON), inquiryOnly, stockQuantity, image, visibility(public/private/scheduled), publishAt, curationTags(JSON), hideOnHome(홈에 숨김), homeOrder(홈 순서), images(사진 주소 JSON, 첫 장=대표), flowers(사용한 꽃 id JSON → flowers.id) | 기본 키 `id` |
 | `orders.csv` | 주문 1건 | id, orderNumber, createdDate, status(preparing/packaged/delivering/completed/cancelled), ordererName/Phone, recipientName/Phone, zipcode, address, deliveryMethod(quick/parcel/pickup), deliveryFee, itemsTotal, totalAmount(배송비 포함), deliveryDate, message, hideSender, request, courier, trackingNumber, couponCode, couponDiscount(쿠폰 할인 금액, 최종 금액에서 뺀 값) | 기본 키 `id` |
 | `order_items.csv` | 주문 속 상품 1줄 | orderId, lineNo, productId, productName, sizeLabel, price, optionName, optionPrice, quantity | `orderId` → orders.id, (orderId, lineNo) 기본 키 |
 | `expenses.csv` | 지출 1건 | id, date, category, amount, method, memo | 기본 키 `id` |
@@ -21,9 +21,12 @@
 | `popups.csv` | 팝업 슬라이드 1장 | id, active, order, image, title, text, titleEn/Ja, textEn/Ja, buttonLabel, linkType, url, internalTarget, startDate, endDate | 기본 키 `id` |
 | `pages.csv` | 직접 고친 안내 페이지 1개 | id(bojagi/care/delivery/refund/terms/privacy), title, body, updatedAt | 기본 키 `id` |
 | `settings.csv` | 매장 설정 항목 1개 | key, value(JSON) — 예: phone, weeklyHours, closures, business, delivery, `__popupsEnabled` | 키-값 표 |
-| `flowers.csv` | 꽃 사전 1종 | id, name, nameEn, nameJa, meaning(꽃말), meaningEn, meaningJa, months(제철 달 JSON, 예: [3,4,5], 비면 사계절), colors, care(관리 팁) | 기본 키 `id`, products.flowers가 이 id를 가리킴 |
+| `flowers.csv` | 꽃 사전 1종 | id, name, nameEn, nameJa, meaning(꽃말), meaningEn, meaningJa, months(제철 달 JSON, 예: [3,4,5], 비면 사계절), yearRound, colors, care(관리 팁), image, guideText, guideImages(JSON), guideVideo | 기본 키 `id`, products.flowers가 이 id를 가리킴 |
 | `coupons.csv` | 오프라인 쿠폰 1장 | code(SDH-XXXX-XXXX), batchId·batchName(묶음), type(amount/percent), value, minOrder, startDate, endDate, active, createdAt, usedAt, orderNumber(사용한 주문) | 기본 키 `code`, 손님 정보 없음. Git에 올리지 않음 |
+| `coupon_history.csv` | 쿠폰 발행 묶음 1건 | id, batchName, type, value, minOrder, startDate, endDate, created, used, usedDates(JSON), archivedAt | 기본 키 `id` |
 | `images.csv` | 관리자에서 올린 사진 1장 | id, name, src(사진 데이터), width, height, createdAt | 서버에서는 파일 저장소로 옮기고 주소만 저장 |
+
+- 상세한 데이터베이스 테이블 설계와 Supabase 이전 계획은 [docs/database-design.md](../docs/database-design.md)를 참고하세요.
 
 - 참/거짓 칸은 `true` / `false`, 빈 칸은 값 없음이에요.
 - `isSample = true` 인 줄은 [예시 데이터]예요. 실제 운영 전에 관리자에서 지워 주세요.
