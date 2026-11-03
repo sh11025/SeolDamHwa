@@ -152,6 +152,7 @@ const DataSync = (() => {
       changes.forEach(c => { snapshot[c.table] = c.now; });
       if (res.rejected && res.rejected.length) console.warn('DATA 저장에서 빠진 줄:', res.rejected);
       status('saved');
+      return res;
     } catch (e) {
       console.error('DATA 폴더 저장 실패:', e);
       status('error');

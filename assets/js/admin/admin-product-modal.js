@@ -239,9 +239,62 @@ function doSaveProduct() {
   }
   const cat = document.getElementById('edit-prod-cat').value;
   const inquiryOnly = document.getElementById('edit-prod-inquiry').checked;
+
+  const cleanIntStr = v => String(v ?? '').replace(/,/g, '').trim();
+  const isWholeNumber = str => /^-?\d+$/.test(str);
+
+  const priceInput = document.getElementById('edit-prod-price');
+  if (priceInput && priceInput.validity && priceInput.validity.badInput) {
+    alert('가격에 올바른 숫자를 입력해주세요.');
+    return null;
+  }
+  const priceRaw = cleanIntStr(priceInput?.value);
+  if (!inquiryOnly) {
+    if (!priceRaw || !isWholeNumber(priceRaw) || Number(priceRaw) <= 0) {
+      alert('가격은 0원보다 큰 정수로 입력해주세요. (0원은 상담 전용 상품만 가능합니다)');
+      return null;
+    }
+  } else if (priceRaw !== '') {
+    if (!isWholeNumber(priceRaw) || Number(priceRaw) < 0) {
+      alert('가격은 0원 이상의 정수로 입력해주세요.');
+      return null;
+    }
+  }
+
+  const stockInput = document.getElementById('edit-prod-stock-qty');
+  if (stockInput && stockInput.validity && stockInput.validity.badInput) {
+    alert('재고 수량에 올바른 숫자를 입력해주세요.');
+    return null;
+  }
+  const stockRaw = cleanIntStr(stockInput?.value);
+  if (!inquiryOnly) {
+    if (stockRaw === '' || !isWholeNumber(stockRaw) || Number(stockRaw) < 0) {
+      alert('재고 수량은 0 이상의 정수로 입력해주세요.');
+      return null;
+    }
+  } else if (stockRaw !== '') {
+    if (!isWholeNumber(stockRaw) || Number(stockRaw) < 0) {
+      alert('재고 수량은 0 이상의 정수로 입력해주세요.');
+      return null;
+    }
+  }
+
+  if (!inquiryOnly && editProdSizes && editProdSizes.length) {
+    for (let i = 0; i < editProdSizes.length; i++) {
+      const sz = editProdSizes[i];
+      if (sz.label && sz.label.trim()) {
+        const sPriceRaw = cleanIntStr(sz.price);
+        if (!sPriceRaw || !isWholeNumber(sPriceRaw) || Number(sPriceRaw) < 0) {
+          alert(`사이즈 '${sz.label}'의 가격을 0원 이상의 정수로 입력해주세요.`);
+          return null;
+        }
+      }
+    }
+  }
+
   const sizes = inquiryOnly ? [] : collectProductSizes();
-  const price = inquiryOnly ? 0 : (sizes.length ? Math.min(...sizes.map(x => x.price)) : Number(document.getElementById('edit-prod-price').value || 0));
-  const stockQuantity = inquiryOnly ? null : Number(document.getElementById('edit-prod-stock-qty').value || 0);
+  const price = inquiryOnly ? 0 : (sizes.length ? Math.min(...sizes.map(x => x.price)) : Number(priceRaw || 0));
+  const stockQuantity = inquiryOnly ? (stockRaw === '' ? null : Number(stockRaw)) : Number(stockRaw || 0);
   const meaning = document.getElementById('edit-prod-meaning').value.trim();
   const desc = document.getElementById('edit-prod-desc').value.trim();
   const image = document.getElementById('edit-prod-image').value.trim();
@@ -306,7 +359,7 @@ function doSaveProduct() {
     } : p);
   } else {
     // 신규 상품 등록
-    savedId = `prod-${Date.now()}`;
+    savedId = makeId('prod');
     const newP = {
       id: savedId,
       name, 

@@ -88,12 +88,12 @@ function createCouponBatch(e) {
   const msg = document.getElementById('coupon-form-message');
   const fail = text => { msg.textContent = text; msg.className = 'text-xs font-bold text-red-700'; };
   if (!name) return fail('쿠폰 이름을 적어 주세요.');
-  if (!(value > 0) || (type === 'percent' && value > 90)) return fail(type === 'percent' ? '할인율은 1~90% 사이로 적어 주세요.' : '할인 금액을 적어 주세요.');
+  if (!(value > 0) || (type === 'percent' && value > 100)) return fail(type === 'percent' ? '할인율은 1~100% 사이로 적어 주세요.' : '할인 금액을 1원 이상으로 적어 주세요.');
   if (!(count >= 1 && count <= 500)) return fail('장수는 1~500장 사이로 적어 주세요.');
-  if (!startDate || !endDate || endDate < startDate) return fail('기간을 확인해 주세요 (끝나는 날이 시작일보다 뒤여야 해요).');
+  if (!startDate || !endDate || endDate < startDate) return fail('기간을 확인해 주세요 (끝나는 날이 시작일보다 앞설 수 없어요).');
   const list = loadCoupons();
   const taken = new Set(list.map(c => c.code));
-  const batchId = `cb-${Date.now()}`;
+  const batchId = makeId('cb');
   const createdAt = new Date().toISOString();
   for (let i = 0; i < count; i++) {
     list.push({ code: randomCouponCode(taken), batchId, batchName: name, type, value, minOrder, startDate, endDate, active: true, createdAt, usedAt: '', orderNumber: '' });

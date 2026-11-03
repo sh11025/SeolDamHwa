@@ -28,14 +28,20 @@ function resetExpenseForm() {
 function saveExpense(e) {
   e.preventDefault();
   const id = document.getElementById('expense-id').value;
-  const amount = Math.round(Number(document.getElementById('expense-amount').value));
-  if (!amount || amount <= 0) {
-    alert('금액을 1원 이상으로 적어 주세요.');
+  const date = document.getElementById('expense-date').value.trim();
+  if (!date) {
+    alert('날짜를 입력해 주세요.');
+    return;
+  }
+  const amtRaw = String(document.getElementById('expense-amount').value || '').replace(/,/g, '').trim();
+  const amount = Number(amtRaw);
+  if (!amtRaw || isNaN(amount) || !Number.isInteger(amount) || amount <= 0) {
+    alert('금액을 1원 이상의 정수로 적어 주세요.');
     return;
   }
   const entry = {
-    id: id || `exp-${Date.now()}`,
-    date: document.getElementById('expense-date').value,
+    id: id || makeId('exp'),
+    date,
     category: document.getElementById('expense-category').value,
     amount,
     method: document.getElementById('expense-method').value,

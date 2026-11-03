@@ -3,6 +3,50 @@
 
 const DATA_VERSION = 2;
 
+// 고유 식별자 생성기 (crypto.randomUUID 지원, 미지원 시 타임스탬프+랜덤 16진수)
+function makeId(prefix) {
+  const p = prefix ? `${prefix}-` : '';
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `${p}${crypto.randomUUID()}`;
+  }
+  const rand = Math.random().toString(16).slice(2, 10);
+  return `${p}${Date.now().toString(36)}-${rand}`;
+}
+
+// 겹치지 않는 주문 번호 생성기 (SDH-YYMMDD-XXXX)
+function makeOrderNumber() {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Seoul',
+    year: '2-digit',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(new Date());
+  const yy = (parts.find(p => p.type === 'year')?.value || '').slice(-2);
+  const mm = parts.find(p => p.type === 'month')?.value || '';
+  const dd = parts.find(p => p.type === 'day')?.value || '';
+  const yymmdd = `${yy}${mm}${dd}`;
+
+  let existingSet = new Set();
+  try {
+    const orders = (typeof loadOrders === 'function') ? (loadOrders() || []) : JSON.parse(localStorage.getItem('seoldamhwa_orders') || '[]');
+    existingSet = new Set(orders.map(o => String(o.orderNumber || '').toUpperCase()).filter(Boolean));
+  } catch (e) {
+    /* 무시 */
+  }
+
+  let candidate = '';
+  do {
+    let rand = '';
+    for (let i = 0; i < 4; i++) {
+      rand += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    candidate = `SDH-${yymmdd}-${rand}`;
+  } while (existingSet.has(candidate));
+
+  return candidate;
+}
+
 // 상품 종류 (꽃 둘러보기 탭·홈 거르기·관리자 선택·상품 페이지 표시가 모두 이 목록을 씀)
 // goods: 꽃이 아닌 굿즈(디자인 화분·영양제·씨앗 등) → 제철·꽃 사전 없음, 택배로만
 const PRODUCT_CATEGORIES = [

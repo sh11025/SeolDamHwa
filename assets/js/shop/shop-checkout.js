@@ -635,13 +635,19 @@ function goCheckoutStep(n) {
   if (page && !page.classList.contains('hidden')) window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function isValidCheckoutPhone(v) {
+  const c = String(v || '').replace(/[-\s]/g, '');
+  return (c.length === 10 || c.length === 11) && (c.startsWith('01') || c.startsWith('0')) && /^\d+$/.test(c);
+}
+
 function validateCheckoutStep2() {
   const sec = document.querySelector('#checkout-form [data-co-step="2"]');
   if (!sec) return true;
   for (const el of sec.querySelectorAll('input, select, textarea')) {
     if (!el.checkValidity()) { el.reportValidity(); return false; }
   }
-  if (!selectedDeliveryMethod()) { alert(coT('co_method_required', '배송 방법을 골라 주세요.')); return false; }
+  const method = selectedDeliveryMethod();
+  if (!method) { alert(coT('co_method_required', '배송 방법을 골라 주세요.')); return false; }
   const pickedDate = document.getElementById('order-delivery-date').value;
   if (pickedDate && !getAvailableDeliveryDates().some(d => d.value === pickedDate)) {
     // 예: 당일 퀵 마감 시각이 지나 버림
@@ -655,8 +661,20 @@ function validateCheckoutStep2() {
     document.getElementById('delivery-calendar').scrollIntoView({ block: 'center' });
     return false;
   }
-  const phoneOk = v => String(v || '').replace(/\D/g, '').length >= 9;
-  if (!phoneOk(document.getElementById('order-orderer-phone').value) || !phoneOk(document.getElementById('order-phone').value)) {
+  const val = id => (document.getElementById(id) || {}).value?.trim() || '';
+  if (!val('order-orderer-name')) {
+    alert('주문하시는 분 이름을 적어 주세요.');
+    return false;
+  }
+  if (!val('order-name')) {
+    alert('받으시는 분 이름을 적어 주세요.');
+    return false;
+  }
+  if (method !== 'pickup' && !val('order-address')) {
+    alert('배송 주소를 입력해 주세요.');
+    return false;
+  }
+  if (!isValidCheckoutPhone(val('order-orderer-phone')) || !isValidCheckoutPhone(val('order-phone'))) {
     alert(coT('co_phone_invalid', '연락처를 숫자 9자리 이상으로 적어 주세요.'));
     return false;
   }
@@ -698,145 +716,200 @@ function renderCheckoutReview() {
   });
 }
 
+let orderSubmitting = false;
+
 // 주문 제출 -> localStorage 'seoldamhwa_orders'에 저장 및 실시간 재고 차감!
-function submitCustomerOrder(e) {
+async function submitCustomerOrder(e) {
   e.preventDefault();
-  const dateVal = document.getElementById('order-delivery-date').value;
-  if (dateVal && !getAvailableDeliveryDates().some(d => d.value === dateVal)) {
-    document.getElementById('order-delivery-date').value = '';
-    renderDeliveryCalendar();
-    goCheckoutStep(2);
-    alert(coT('co_date_expired', '고른 날짜는 이제 받을 수 없어요. 달력에서 다시 골라 주세요.'));
-    return;
-  }
-  if (!dateVal) {
-    alert(coT('co_date_required', '달력에서 날짜를 골라 주세요.'));
-    return;
-  }
-  const method = selectedDeliveryMethod();
-  if (!method) {
-    alert(coT('co_method_required', '배송 방법을 골라 주세요.'));
-    return;
-  }
-  if (!checkAddressArea()) {
-    document.getElementById('address-area-warning').scrollIntoView({ block: 'center' });
-    return;
-  }
-  const val = id => document.getElementById(id).value.trim();
-  const phoneOk = v => v.replace(/\D/g, '').length >= 9;
-  if (!phoneOk(val('order-orderer-phone')) || !phoneOk(val('order-phone'))) {
-    alert(coT('co_phone_invalid', '연락처를 숫자 9자리 이상으로 적어 주세요.'));
-    return;
-  }
-  if (document.getElementById('order-same-recipient').checked) toggleSameRecipient();
+  if (orderSubmitting) return;
+  orderSubmitting = true;
 
-  // 주문 직전 재고 다시 확인 (다른 손님이 먼저 사 갔을 수 있음)
-  const fresh = loadProducts();
-  const short = [];
-  const need = {};
-  cart.forEach(i => { need[i.product.id] = (need[i.product.id] || 0) + (Number(i.quantity) || 0); });
-  Object.entries(need).forEach(([id, n]) => {
-    const p = fresh.find(x => x.id === id);
-    if (!p) short.push({ name: (cart.find(i => i.product.id === id) || {}).product.name, left: 0 });
-    else if (!p.inquiryOnly && typeof p.stockQuantity === 'number' && p.stockQuantity < n) short.push({ name: p.name, left: p.stockQuantity });
-  });
-  if (short.length) {
-    const lines = short.map(x => `· ${(typeof tProduct === 'function' ? tProduct({ name: x.name }).name : x.name) || x.name}: ${coT('stock_left_n', '남은 수량 {n}개').replace('{n}', x.left)}`).join('\n');
-    alert(`${coT('stock_changed', '주문하는 사이 재고가 줄었어요. 장바구니 수량을 고쳐 주세요.')}\n${lines}`);
-    toggleCartDrawer(true);
-    return;
+  const submitBtn = document.querySelector('#checkout-form button[type="submit"]');
+  const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = coT('co_placing_order', '주문 접수 중…');
   }
 
-  const settings = loadSettings();
-  const timeVal = document.getElementById('order-delivery-time').value;
-  const deliveryDate = deliveryNeedsTime(method) ? `${dateVal} ${timeVal}` : dateVal;
-  const orderNumber = `SDH-${Date.now().toString().slice(-8)}`;
-  const itemsTotal = cart.reduce((sum, i) => sum + (i.price + i.optionPrice) * i.quantity, 0);
-  const deliveryFee = calcDeliveryFee(method, itemsTotal, settings);
-  // 쿠폰: 주문 직전에 한 번 더 확인 (그 사이 다른 곳에서 썼을 수 있음)
-  let couponCode = '';
-  let couponDiscountAmount = 0;
-  if (appliedCoupon) {
-    const fresh = findCoupon(appliedCoupon.code);
-    const r = checkCoupon(fresh, itemsTotal);
-    if (!r.ok) {
-      couponMessage(couponReasonText(r.reason, fresh), false);
-      appliedCoupon = null;
-      syncCouponButtons();
-      recalcCheckout();
-      alert(couponReasonText(r.reason, fresh));
+  function resetSubmitState() {
+    orderSubmitting = false;
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnHtml || coT('co_submit', '주문하기');
+    }
+  }
+
+  try {
+    if (!cart || cart.length === 0) {
       return;
     }
-    couponCode = fresh.code;
-    couponDiscountAmount = r.discount;
-  }
-  const isToday = typeof getKoreaTimeParts === 'function' && dateVal === getKoreaTimeParts(new Date()).dateStr;
-  const methodLabels = { quick: isToday ? '퀵 당일 배송' : '퀵 배송', parcel: '택배', pickup: '매장 픽업' };
-  const isPickup = method === 'pickup';
-  const address = isPickup ? '매장 픽업' : [val('order-address'), val('order-address-detail')].filter(Boolean).join(', ');
-
-  const now = new Date();
-  const createdDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  const createdAt = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-
-  // 저장 데이터는 UI 언어와 상관없이 한국어 원본으로 (관리자 화면 호환)
-  const newOrder = {
-    id: `ord-${Date.now()}`,
-    orderNumber,
-    // 주문하신 분
-    ordererName: val('order-orderer-name'),
-    ordererPhone: val('order-orderer-phone'),
-    // 받으시는 분
-    recipientName: val('order-name'),
-    recipientPhone: val('order-phone'),
-    // 예전 화면 호환: customerName/phone은 주문하신 분
-    customerName: val('order-orderer-name'),
-    phone: val('order-orderer-phone'),
-    zipcode: isPickup ? '' : val('order-zipcode'),
-    address,
-    deliveryMethod: method,
-    deliveryMethodLabel: methodLabels[method],
-    deliveryFee,
-    itemsTotal,
-    deliveryDate,
-    message: val('order-message'),
-    hideSender: document.getElementById('order-hide-sender').checked,
-    request: val('order-request'),
-    items: cart.map(i => ({ ...i, product: { ...i.product, name: i.product.name } })),
-    ...(couponCode ? { couponCode, couponDiscount: couponDiscountAmount } : {}),
-    totalAmount: itemsTotal + deliveryFee - couponDiscountAmount,
-    status: 'preparing',
-    createdAt,
-    createdDate
-  };
-
-  const existingOrders = JSON.parse(localStorage.getItem('seoldamhwa_orders') || '[]');
-  existingOrders.unshift(newOrder);
-  localStorage.setItem('seoldamhwa_orders', JSON.stringify(existingOrders));
-  try { if (typeof notifyOrderToDiscord === 'function') notifyOrderToDiscord(newOrder); } catch (err) { console.error('discord notify error:', err); }
-
-  // 재고 줄이기
-  const currentProducts = loadProducts();
-  cart.forEach(item => {
-    const prod = currentProducts.find(p => p.id === item.product.id);
-    if (prod && typeof prod.stockQuantity === 'number' && !prod.inquiryOnly) {
-      prod.stockQuantity = Math.max(0, prod.stockQuantity - item.quantity);
+    const dateVal = document.getElementById('order-delivery-date').value;
+    if (dateVal && !getAvailableDeliveryDates().some(d => d.value === dateVal)) {
+      document.getElementById('order-delivery-date').value = '';
+      renderDeliveryCalendar();
+      goCheckoutStep(2);
+      alert(coT('co_date_expired', '고른 날짜는 이제 받을 수 없어요. 달력에서 다시 골라 주세요.'));
+      return;
     }
-  });
-  saveProducts(currentProducts);
-  renderProducts(currentCategory);
-  if (couponCode) {
-    markCouponUsed(couponCode, orderNumber);
-    try { sessionStorage.removeItem('sdh_coupon_pending'); } catch (e) { /* 무시 */ }
-    appliedCoupon = null;
-    document.getElementById('coupon-code').value = '';
-    couponMessage('', true);
-    syncCouponButtons();
-  }
+    if (!dateVal) {
+      alert(coT('co_date_required', '달력에서 날짜를 골라 주세요.'));
+      return;
+    }
+    const method = selectedDeliveryMethod();
+    if (!method) {
+      alert(coT('co_method_required', '배송 방법을 골라 주세요.'));
+      return;
+    }
+    if (!checkAddressArea()) {
+      document.getElementById('address-area-warning').scrollIntoView({ block: 'center' });
+      return;
+    }
+    const val = id => (document.getElementById(id) || {}).value?.trim() || '';
+    if (!val('order-orderer-name')) {
+      alert('주문하시는 분 이름을 적어 주세요.');
+      return;
+    }
+    if (!val('order-name')) {
+      alert('받으시는 분 이름을 적어 주세요.');
+      return;
+    }
+    if (method !== 'pickup' && !val('order-address')) {
+      alert('배송 주소를 입력해 주세요.');
+      return;
+    }
+    if (!isValidCheckoutPhone(val('order-orderer-phone')) || !isValidCheckoutPhone(val('order-phone'))) {
+      alert(coT('co_phone_invalid', '연락처를 숫자 9자리 이상으로 적어 주세요.'));
+      return;
+    }
+    if (document.getElementById('order-same-recipient').checked) toggleSameRecipient();
 
-  cart = [];
-  updateCartUI();
-  showOrderComplete({ ...newOrder, deliveryMethodLabel: coT(`co_method_${method}`, methodLabels[method]) });
+    // 주문 직전 재고 다시 확인 (다른 손님이 먼저 사 갔을 수 있음)
+    const fresh = loadProducts();
+    const short = [];
+    const need = {};
+    cart.forEach(i => { need[i.product.id] = (need[i.product.id] || 0) + (Number(i.quantity) || 0); });
+    Object.entries(need).forEach(([id, n]) => {
+      const p = fresh.find(x => x.id === id);
+      if (!p) short.push({ name: (cart.find(i => i.product.id === id) || {}).product.name, left: 0 });
+      else if (!p.inquiryOnly && typeof p.stockQuantity === 'number' && p.stockQuantity < n) short.push({ name: p.name, left: p.stockQuantity });
+    });
+    if (short.length) {
+      const lines = short.map(x => `· ${(typeof tProduct === 'function' ? tProduct({ name: x.name }).name : x.name) || x.name}: ${coT('stock_left_n', '남은 수량 {n}개').replace('{n}', x.left)}`).join('\n');
+      alert(`${coT('stock_changed', '주문하는 사이 재고가 줄었어요. 장바구니 수량을 고쳐 주세요.')}\n${lines}`);
+      toggleCartDrawer(true);
+      return;
+    }
+
+    const settings = loadSettings();
+    const timeVal = document.getElementById('order-delivery-time').value;
+    const deliveryDate = deliveryNeedsTime(method) ? `${dateVal} ${timeVal}` : dateVal;
+    const orderNumber = makeOrderNumber();
+    const itemsTotal = cart.reduce((sum, i) => sum + (i.price + i.optionPrice) * i.quantity, 0);
+    const deliveryFee = calcDeliveryFee(method, itemsTotal, settings);
+    // 쿠폰: 주문 직전에 한 번 더 확인 (그 사이 다른 곳에서 썼을 수 있음)
+    let couponCode = '';
+    let couponDiscountAmount = 0;
+    if (appliedCoupon) {
+      const fresh = findCoupon(appliedCoupon.code);
+      const r = checkCoupon(fresh, itemsTotal);
+      if (!r.ok) {
+        couponMessage(couponReasonText(r.reason, fresh), false);
+        appliedCoupon = null;
+        syncCouponButtons();
+        recalcCheckout();
+        alert(couponReasonText(r.reason, fresh));
+        return;
+      }
+      couponCode = fresh.code;
+      couponDiscountAmount = r.discount;
+    }
+    const isToday = typeof getKoreaTimeParts === 'function' && dateVal === getKoreaTimeParts(new Date()).dateStr;
+    const methodLabels = { quick: isToday ? '퀵 당일 배송' : '퀵 배송', parcel: '택배', pickup: '매장 픽업' };
+    const isPickup = method === 'pickup';
+    const address = isPickup ? '매장 픽업' : [val('order-address'), val('order-address-detail')].filter(Boolean).join(', ');
+
+    const now = new Date();
+    const createdDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const createdAt = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+
+    // 저장 데이터는 UI 언어와 상관없이 한국어 원본으로 (관리자 화면 호환)
+    const newOrder = {
+      id: makeId('ord'),
+      orderNumber,
+      // 주문하신 분
+      ordererName: val('order-orderer-name'),
+      ordererPhone: val('order-orderer-phone'),
+      // 받으시는 분
+      recipientName: val('order-name'),
+      recipientPhone: val('order-phone'),
+      // 예전 화면 호환: customerName/phone은 주문하신 분
+      customerName: val('order-orderer-name'),
+      phone: val('order-orderer-phone'),
+      zipcode: isPickup ? '' : val('order-zipcode'),
+      address,
+      deliveryMethod: method,
+      deliveryMethodLabel: methodLabels[method],
+      deliveryFee,
+      itemsTotal,
+      deliveryDate,
+      message: val('order-message'),
+      hideSender: document.getElementById('order-hide-sender').checked,
+      request: val('order-request'),
+      items: cart.map(i => ({ ...i, product: { ...i.product, name: i.product.name } })),
+      ...(couponCode ? { couponCode, couponDiscount: couponDiscountAmount } : {}),
+      totalAmount: itemsTotal + deliveryFee - couponDiscountAmount,
+      status: 'preparing',
+      createdAt,
+      createdDate
+    };
+
+    const existingOrders = JSON.parse(localStorage.getItem('seoldamhwa_orders') || '[]');
+    existingOrders.unshift(newOrder);
+    localStorage.setItem('seoldamhwa_orders', JSON.stringify(existingOrders));
+
+    // 서버 모드(손님 기기): 서버 동기화 시도 및 중복/유효성 거절 확인
+    if (typeof DataSync !== 'undefined' && DataSync.enabled && !DataSync.local) {
+      try {
+        const syncRes = await DataSync.push();
+        if (syncRes && syncRes.rejected && syncRes.rejected.some(r => r.startsWith('orders:'))) {
+          // 서버에서 거절된 경우 로컬 롤백
+          const rolledBack = JSON.parse(localStorage.getItem('seoldamhwa_orders') || '[]').filter(o => o.orderNumber !== orderNumber);
+          localStorage.setItem('seoldamhwa_orders', JSON.stringify(rolledBack));
+          alert(coT('co_order_failed', '주문을 접수하지 못했어요. 입력 정보나 주문 번호를 확인해 주세요.'));
+          return;
+        }
+      } catch (err) {
+        console.warn('주문 서버 동기화 중 오류:', err);
+      }
+    }
+
+    try { if (typeof notifyOrderToDiscord === 'function') notifyOrderToDiscord(newOrder); } catch (err) { console.error('discord notify error:', err); }
+
+    // 재고 줄이기
+    const currentProducts = loadProducts();
+    cart.forEach(item => {
+      const prod = currentProducts.find(p => p.id === item.product.id);
+      if (prod && typeof prod.stockQuantity === 'number' && !prod.inquiryOnly) {
+        prod.stockQuantity = Math.max(0, prod.stockQuantity - item.quantity);
+      }
+    });
+    saveProducts(currentProducts);
+    renderProducts(currentCategory);
+    if (couponCode) {
+      markCouponUsed(couponCode, orderNumber);
+      try { sessionStorage.removeItem('sdh_coupon_pending'); } catch (e) { /* 무시 */ }
+      appliedCoupon = null;
+      document.getElementById('coupon-code').value = '';
+      couponMessage('', true);
+      syncCouponButtons();
+    }
+
+    cart = [];
+    updateCartUI();
+    showOrderComplete({ ...newOrder, deliveryMethodLabel: coT(`co_method_${method}`, methodLabels[method]) });
+  } finally {
+    resetSubmitState();
+  }
 }
 
 

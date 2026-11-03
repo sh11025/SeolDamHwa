@@ -196,6 +196,12 @@ def apply_change(change, local):
     index = {key_of(table, r): r for r in rows}
     order = [key_of(table, r) for r in rows]
     applied, rejected = 0, []
+    existing_order_numbers = set()
+    if table == 'orders':
+        for r in rows:
+            onum = str(r.get('orderNumber') or '').strip().upper()
+            if onum:
+                existing_order_numbers.add(onum)
     for row in change.get('upserts') or []:
         row = {k: ('' if v is None else str(v)) for k, v in row.items()}
         k = key_of(table, row)
@@ -212,6 +218,33 @@ def apply_change(change, local):
                 except ValueError:
                     pass
                 continue
+            if table == 'orders':
+                # 1. orderNumber 중복 검사
+                onum = str(row.get('orderNumber') or '').strip().upper()
+                if onum and onum in existing_order_numbers:
+                    rejected.append(f'orders:{onum} 이미 접수된 주문번호입니다')
+                    continue
+                # 2. ordererName, ordererPhone 비어있는지 검사
+                name = str(row.get('ordererName') or row.get('customerName') or '').strip()
+                phone = str(row.get('ordererPhone') or row.get('phone') or '').strip()
+                if not name or not phone:
+                    rejected.append('orders: 주문자 이름 또는 연락처가 비어 있습니다')
+                    continue
+                # 3. totalAmount, itemsTotal, deliveryFee 음수 또는 비숫자 검사
+                invalid_money = False
+                for mf in ('totalAmount', 'itemsTotal', 'deliveryFee'):
+                    val_str = str(row.get(mf, '')).strip()
+                    try:
+                        v = float(val_str)
+                        if v < 0:
+                            invalid_money = True
+                            break
+                    except (ValueError, TypeError):
+                        invalid_money = True
+                        break
+                if invalid_money:
+                    rejected.append('orders: 금액 항목(totalAmount, itemsTotal, deliveryFee)은 0 이상의 숫자여야 합니다')
+                    continue
             if k in index:
                 rejected.append(f'{table}:{k} 이미 있음')
                 continue
@@ -220,6 +253,10 @@ def apply_change(change, local):
         else:
             index[k] = row
             order.append(k)
+            if table == 'orders':
+                onum = str(row.get('orderNumber') or '').strip().upper()
+                if onum:
+                    existing_order_numbers.add(onum)
         applied += 1
     deletes = change.get('deletes') or []
     if deletes and not local:

@@ -29,7 +29,7 @@ function addRestockRequest({ productId, productName, phone, name }) {
   if (dup) return { ok: true, duplicate: true, request: dup };
   const now = new Date();
   const request = {
-    id: `rs-${now.getTime()}`,
+    id: makeId('rs'),
     productId,
     productName,
     name: String(name || '').trim().slice(0, 20),

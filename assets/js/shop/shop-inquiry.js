@@ -104,7 +104,7 @@ function submitCustomInquiry(e) {
   const createdDate = `${year}-${month}-${day}`;
 
   const inquiry = {
-    id: `inq-${Date.now()}`,
+    id: makeId('inq'),
     name: name,
     phone: phone,
     date: date,

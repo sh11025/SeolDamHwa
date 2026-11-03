@@ -57,7 +57,7 @@ function submitChatInquiry(e) {
   const now = new Date();
   const productName = document.getElementById('chat-product').dataset.productName || '';
   const inquiry = {
-    id: `inq-${now.getTime()}`,
+    id: makeId('inq'),
     name: document.getElementById('chat-name').value.trim(),
     phone,
     date: '미정',
