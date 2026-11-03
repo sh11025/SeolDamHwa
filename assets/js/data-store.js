@@ -50,7 +50,7 @@ const DataStore = (() => {
       localStorage.setItem(key, JSON.stringify(value));
       return true;
     } catch (e) {
-      return false;
+      throw e;
     }
   }
 
@@ -77,7 +77,7 @@ const DataStore = (() => {
       localStorage.setItem(key, String(string));
       return true;
     } catch (e) {
-      return false;
+      throw e;
     }
   }
 

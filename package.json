@@ -4,7 +4,8 @@
   "description": "설담화 쇼핑몰 - 화면 스타일(Tailwind)을 미리 만들어 두는 도구만 씁니다",
   "scripts": {
     "build:css": "tailwindcss -c tailwind.config.js -i src/tailwind.css -o assets/css/tailwind.css --minify",
-    "watch:css": "tailwindcss -c tailwind.config.js -i src/tailwind.css -o assets/css/tailwind.css --watch"
+    "watch:css": "tailwindcss -c tailwind.config.js -i src/tailwind.css -o assets/css/tailwind.css --watch",
+    "bump": "node scripts/bump-version.js"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.19"
