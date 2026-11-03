@@ -114,6 +114,13 @@ const CSV_TABLES = {
     num: ['width', 'height'],
     read: () => (typeof loadImageLibrary === 'function' ? loadImageLibrary() : DataStore.read(DataStore.KEYS.images, [])),
     write: rows => (typeof saveImageLibrary === 'function' ? saveImageLibrary(rows) : DataStore.write(DataStore.KEYS.images, rows))
+  },
+  reviews: {
+    file: 'reviews.csv',
+    columns: ['id', 'orderId', 'orderNumber', 'productId', 'productName', 'rating', 'text', 'photos', 'video', 'status', 'adminReply', 'replyAt', 'createdAt', 'isSample'],
+    json: ['photos'], num: ['rating'], bool: ['isSample'],
+    read: () => (typeof loadReviews === 'function' ? loadReviews() : []),
+    write: rows => (typeof saveReviews === 'function' ? saveReviews(rows) : DataStore.write(DataStore.KEYS.reviews, rows))
   }
 };
 
@@ -173,10 +180,10 @@ function csvToTable(name, text) {
     header.forEach((h, idx) => {
       if (!def.columns.includes(h)) return;
       let v = cells[idx] ?? '';
-      if ((def.json || []).includes(h)) { try { v = v === '' ? (h === 'sizes' || h === 'replies' ? [] : undefined) : JSON.parse(v); } catch (e) { v = undefined; } }
+      if ((def.json || []).includes(h)) { try { v = v === '' ? (h === 'sizes' || h === 'replies' || h === 'photos' ? [] : undefined) : JSON.parse(v); } catch (e) { v = undefined; } }
       else if ((def.bool || []).includes(h)) v = v === 'true';
       else if ((def.num || []).includes(h)) v = v === '' ? null : Number(v);
-      if (v !== undefined && !(v === '' && h !== 'message' && h !== 'memo')) obj[h] = v;
+      if (v !== undefined && !(v === '' && h !== 'message' && h !== 'memo' && h !== 'text' && h !== 'adminReply' && h !== 'video')) obj[h] = v;
     });
     return obj;
   });

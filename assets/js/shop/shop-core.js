@@ -78,6 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
   try { initFloatingControls(); } catch (e) { console.error('initFloatingControls error:', e); }
   try { updateHeroRecommendButton(); } catch (e) {}
   try { initPopupSlider(); } catch (e) { console.error('initPopupSlider error:', e); }
+  try { renderHomeReviewsSlider(); } catch (e) { console.error('renderHomeReviewsSlider error:', e); }
 
   // URL 미리보기 파라미터 확인 (?preview=<productId>)
   try {
@@ -404,4 +405,277 @@ function addCornerMarks(el, mk, which = ['tl', 'tr', 'bl', 'br']) {
     el.appendChild(s);
   });
   return el;
+}
+
+// ----------------------------------------------------
+// 홈 화면 고객 후기 슬라이더 & 리뷰 탭 로직
+// ----------------------------------------------------
+let currentReviewFilter = 'all'; // all, media, 5, 4, 3, 2, 1
+let currentReviewSort = 'latest'; // latest, high, low
+let currentReviewPage = 1;
+const REVIEWS_PER_PAGE = 12;
+
+function scrollHomeReviews(direction) {
+  const track = document.getElementById('home-reviews-track');
+  if (track) {
+    track.scrollBy({ left: direction * 330, behavior: 'smooth' });
+  }
+}
+
+function renderHomeReviewsSlider() {
+  const sec = document.getElementById('home-reviews-section');
+  const track = document.getElementById('home-reviews-track');
+  if (!sec || !track) return;
+
+  const allRevs = typeof loadReviews === 'function' ? loadReviews() : [];
+  const approved = allRevs.filter(r => r.status === 'approved');
+
+  const isPreview = (typeof isPreviewMode !== 'undefined' && isPreviewMode) ||
+                    (new URLSearchParams(window.location.search).get('preview') === '1');
+
+  // 승인된 후기가 없거나, 모두 예시 후기인데 미리보기가 아니면 섹션 숨김
+  const realCount = approved.filter(r => !r.isSample).length;
+  if (approved.length === 0 || (!isPreview && realCount === 0 && approved.every(r => r.isSample))) {
+    sec.classList.add('hidden');
+    return;
+  }
+  sec.classList.remove('hidden');
+
+  // 최신순 10개
+  const list = approved.slice().sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).slice(0, 10);
+  track.innerHTML = '';
+
+  list.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'w-[280px] sm:w-[320px] shrink-0 bg-[#FAF7F2] border border-ink-black/10 rounded-sm p-4 space-y-3 cursor-pointer hover:border-seal-red/40 transition-colors flex flex-col justify-between';
+    card.onclick = () => {
+      if (typeof switchView === 'function') switchView('reviews');
+    };
+
+    let photoArr = [];
+    try { photoArr = Array.isArray(r.photos) ? r.photos : JSON.parse(r.photos || '[]'); } catch (e) {}
+
+    const starStr = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
+    const dateStr = r.createdAt ? r.createdAt.slice(0, 10).replace(/-/g, '.') : '';
+
+    card.innerHTML = `
+      <div class="space-y-2">
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-amber-500 font-bold">${starStr}</span>
+          <span class="text-ink-gray text-[11px]">${dateStr}</span>
+        </div>
+        <p class="text-xs font-bold text-ink-black truncate">${htmlText(r.productName || '설담화 꽃')}</p>
+        <p class="text-xs text-ink-charcoal line-clamp-3 leading-relaxed">${htmlText(r.text || '')}</p>
+      </div>
+      <div class="pt-2 border-t border-ink-black/5 flex items-center justify-between text-[11px] text-ink-gray">
+        <div class="flex items-center gap-1.5">
+          ${photoArr.length > 0 ? `<span class="inline-flex items-center gap-0.5">📷 ${photoArr.length}</span>` : ''}
+          ${r.video ? `<span>🎬 영상</span>` : ''}
+        </div>
+        ${r.adminReply ? `<span class="text-seal-red font-medium">답글 도착</span>` : ''}
+      </div>
+    `;
+    track.appendChild(card);
+  });
+}
+
+function setReviewFilter(filter) {
+  currentReviewFilter = filter;
+  currentReviewPage = 1;
+
+  document.querySelectorAll('.review-filter-btn').forEach(btn => {
+    const match = btn.dataset.filter === filter;
+    btn.className = `review-filter-btn px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer transition-colors ${
+      match ? 'bg-ink-black text-white' : 'bg-white border border-ink-black/15 text-ink-charcoal hover:bg-hanji'
+    }`;
+  });
+
+  renderReviewsList();
+}
+
+function changeReviewSort(sort) {
+  currentReviewSort = sort;
+  currentReviewPage = 1;
+  renderReviewsList();
+}
+
+function renderReviewsPage() {
+  const allRevs = typeof loadReviews === 'function' ? loadReviews() : [];
+  const approved = allRevs.filter(r => r.status === 'approved');
+
+  // 통계 계산
+  const total = approved.length;
+  const avg = total > 0 ? (approved.reduce((s, r) => s + (Number(r.rating) || 5), 0) / total).toFixed(1) : '0.0';
+
+  const avgRatingEl = document.getElementById('reviews-avg-rating');
+  if (avgRatingEl) avgRatingEl.textContent = avg;
+
+  const totalCountEl = document.getElementById('reviews-total-count');
+  if (totalCountEl) totalCountEl.textContent = `${total}개의 후기`;
+
+  const avgStarsEl = document.getElementById('reviews-avg-stars');
+  if (avgStarsEl) {
+    const rounded = Math.round(Number(avg) || 0);
+    avgStarsEl.textContent = '★'.repeat(rounded) + '☆'.repeat(5 - rounded);
+  }
+
+  // 5~1점 바 차트
+  const barsWrap = document.getElementById('reviews-rating-bars') || document.getElementById('reviews-star-bars');
+  if (barsWrap) {
+    barsWrap.innerHTML = '';
+    [5, 4, 3, 2, 1].forEach(star => {
+      const count = approved.filter(r => (Number(r.rating) || 5) === star).length;
+      const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+
+      const row = document.createElement('div');
+      row.className = 'flex items-center gap-2 text-xs';
+      row.innerHTML = `
+        <span class="w-7 text-right text-ink-gray font-medium">${star}점</span>
+        <div class="flex-1 h-2 bg-ink-black/10 rounded-full overflow-hidden">
+          <div class="h-full bg-amber-400 rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+        </div>
+        <span class="w-8 text-ink-gray text-[11px]">${count}건</span>
+      `;
+      barsWrap.appendChild(row);
+    });
+  }
+
+  renderReviewsList();
+}
+
+function renderReviewsList() {
+  const grid = document.getElementById('reviews-grid');
+  const emptyState = document.getElementById('reviews-empty-state') || document.getElementById('reviews-empty');
+  const pagesWrap = document.getElementById('reviews-pages');
+  if (!grid) return;
+
+  const allRevs = typeof loadReviews === 'function' ? loadReviews() : [];
+  let list = allRevs.filter(r => r.status === 'approved');
+
+  // 필터 적용
+  if (currentReviewFilter === 'media') {
+    list = list.filter(r => {
+      let p = [];
+      try { p = Array.isArray(r.photos) ? r.photos : JSON.parse(r.photos || '[]'); } catch (e) {}
+      return p.length > 0 || !!r.video;
+    });
+  } else if (['1', '2', '3', '4', '5'].includes(currentReviewFilter)) {
+    const star = Number(currentReviewFilter);
+    list = list.filter(r => (Number(r.rating) || 5) === star);
+  }
+
+  // 정렬 적용
+  if (currentReviewSort === 'high' || currentReviewSort === 'rating_high') {
+    list.sort((a, b) => (Number(b.rating) || 5) - (Number(a.rating) || 5));
+  } else if (currentReviewSort === 'low' || currentReviewSort === 'rating_low') {
+    list.sort((a, b) => (Number(a.rating) || 5) - (Number(b.rating) || 5));
+  } else {
+    // 최신순
+    list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  }
+
+  if (list.length === 0) {
+    grid.innerHTML = '';
+    if (emptyState) emptyState.classList.remove('hidden');
+    if (pagesWrap) pagesWrap.innerHTML = '';
+    return;
+  }
+  if (emptyState) emptyState.classList.add('hidden');
+
+  // 페이지네이션
+  const totalPages = Math.ceil(list.length / REVIEWS_PER_PAGE);
+  if (currentReviewPage > totalPages) currentReviewPage = 1;
+  const startIdx = (currentReviewPage - 1) * REVIEWS_PER_PAGE;
+  const pageItems = list.slice(startIdx, startIdx + REVIEWS_PER_PAGE);
+
+  grid.innerHTML = '';
+  pageItems.forEach(r => {
+    const card = document.createElement('article');
+    card.className = 'relative bg-[#FAF7F2] border border-ink-black/10 rounded-sm p-5 md:p-6 space-y-4 shadow-xs flex flex-col justify-between';
+    addCornerMarks(card, 'lotus');
+
+    let photoArr = [];
+    try { photoArr = Array.isArray(r.photos) ? r.photos : JSON.parse(r.photos || '[]'); } catch (e) {}
+
+    const starStr = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
+    const dateStr = r.createdAt ? r.createdAt.slice(0, 10).replace(/-/g, '.') : '';
+
+    // 사진 썸네일 HTML
+    let photosHtml = '';
+    if (photoArr.length > 0) {
+      photosHtml = `
+        <div class="flex gap-2 pt-2 flex-wrap">
+          ${photoArr.map(src => `
+            <img src="${src}" alt="후기 사진" class="w-20 h-20 md:w-24 md:h-24 object-cover rounded-xs border border-ink-black/10 cursor-pointer hover:opacity-90" onclick="openReviewPhotoModal('${src}')" />
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // 동영상 플레이어 HTML
+    let videoHtml = '';
+    if (r.video) {
+      videoHtml = `
+        <div class="pt-2">
+          <video src="${r.video}" controls playsinline preload="metadata" class="w-full max-h-60 rounded-xs bg-black"></video>
+        </div>
+      `;
+    }
+
+    // 사장님 답글 HTML
+    let replyHtml = '';
+    if (r.adminReply) {
+      const repDate = r.replyAt ? r.replyAt.slice(0, 10).replace(/-/g, '.') : '';
+      replyHtml = `
+        <div class="mt-4 p-3.5 bg-hanji/90 border-l-2 border-seal-red rounded-xs space-y-1.5 text-xs">
+          <div class="flex items-center justify-between font-bold text-ink-black">
+            <span class="flex items-center gap-1.5 text-seal-red">
+              <span class="text-sm">🌸</span> 설담화의 답글
+            </span>
+            <span class="text-[11px] font-normal text-ink-gray">${repDate}</span>
+          </div>
+          <p class="text-ink-charcoal leading-relaxed whitespace-pre-wrap">${htmlText(r.adminReply)}</p>
+        </div>
+      `;
+    }
+
+    card.innerHTML = `
+      <div class="space-y-3">
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-amber-500 font-bold text-base tracking-wide">${starStr}</span>
+          <span class="text-ink-gray text-xs">${dateStr}</span>
+        </div>
+        <div class="text-xs font-bold text-ink-gray">
+          <span>구매 상품: </span>
+          <button type="button" class="underline text-ink-black hover:text-seal-red cursor-pointer" onclick="openProductDetail('${r.productId}')">${htmlText(r.productName || '설담화 꽃')}</button>
+        </div>
+        <p class="text-sm text-ink-black leading-relaxed whitespace-pre-wrap">${htmlText(r.text || '')}</p>
+        ${photosHtml}
+        ${videoHtml}
+      </div>
+      ${replyHtml}
+    `;
+    grid.appendChild(card);
+  });
+
+  // 페이지네이션 번호 버튼
+  if (pagesWrap) {
+    pagesWrap.innerHTML = '';
+    if (totalPages > 1) {
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `w-8 h-8 rounded-xs text-xs font-bold cursor-pointer transition-colors ${
+          i === currentReviewPage ? 'bg-ink-black text-white' : 'bg-white border border-ink-black/15 text-ink-charcoal hover:bg-hanji'
+        }`;
+        btn.textContent = i;
+        btn.onclick = () => {
+          currentReviewPage = i;
+          renderReviewsList();
+          window.scrollTo({ top: 300, behavior: 'smooth' });
+        };
+        pagesWrap.appendChild(btn);
+      }
+    }
+  }
 }

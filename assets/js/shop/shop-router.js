@@ -3,7 +3,7 @@
 // 주소 예: #/ (홈), #/story, #/custom, #/guide/care, #/flowers, #/flower/<상품 id>, #/checkout
 // 화면 바꾸기는 기존처럼 switchView('shop' | 'story' | 'custom' | 'guide')를 부르면 주소도 함께 바뀝니다.
 
-const ROUTE_HASHES = { shop: '#/', story: '#/story', custom: '#/custom', guide: '#/guide' };
+const ROUTE_HASHES = { shop: '#/', story: '#/story', custom: '#/custom', guide: '#/guide', reviews: '#/reviews' };
 // 다른 화면(상품 상세·결제·꽃 둘러보기)은 각 파일에서 SHOP_ROUTES에 등록
 const SHOP_ROUTES = {};
 let routerSkipHash = null;
@@ -43,7 +43,7 @@ function applyRoute() {
     showView('guide');
     return;
   }
-  if (name === 'story' || name === 'custom') { showView(name); return; }
+  if (name === 'story' || name === 'custom' || name === 'reviews') { showView(name); return; }
   if (name) { goHomeWithNotice('route_unknown', '없는 페이지라 홈으로 왔어요.'); return; }
   showView('shop');
 }

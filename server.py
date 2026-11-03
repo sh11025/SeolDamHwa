@@ -11,6 +11,7 @@
 - 손님 개인정보가 오가므로 매장 컴퓨터와 내부 와이파이에서만 쓰세요. 인터넷 공개는 로그인·호스팅 후에.
 """
 import argparse
+import base64
 import csv
 import hashlib
 import hmac
@@ -29,7 +30,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-DATA = os.path.join(ROOT, 'DATA')
+DATA = os.environ.get('SDH_DATA_DIR') or os.path.join(ROOT, 'DATA')
 BACKUP = os.path.join(DATA, 'backup')
 
 TABLES = {
@@ -37,12 +38,16 @@ TABLES = {
     'expenses': 'expenses.csv', 'inquiries': 'inquiries.csv', 'restock': 'restock.csv',
     'popups': 'popups.csv', 'pages': 'pages.csv', 'settings': 'settings.csv',
     'flowers': 'flowers.csv', 'images': 'images.csv', 'coupons': 'coupons.csv',
-    'coupon_history': 'coupon_history.csv',
+    'coupon_history': 'coupon_history.csv', 'reviews': 'reviews.csv',
 }
 PUBLIC_TABLES = {'products', 'popups', 'pages', 'settings', 'flowers'}   # 손님 기기도 읽을 수 있는 표
-REMOTE_INSERT_TABLES = {'orders', 'order_items', 'inquiries', 'restock'}  # 손님 기기는 새 줄 추가만
+REMOTE_INSERT_TABLES = {'orders', 'order_items', 'inquiries', 'restock', 'reviews'}  # 손님 기기는 새 줄 추가만
 KEYS = {'order_items': ('orderId', 'lineNo'), 'settings': ('key',), 'coupons': ('code',)}
 COUPON_PUBLIC = ('code', 'batchName', 'type', 'value', 'minOrder', 'startDate', 'endDate', 'active')
+REVIEW_PUBLIC = ('id', 'productName', 'rating', 'text', 'photos', 'video', 'adminReply', 'replyAt', 'createdAt', 'isSample')
+UPLOADS_DIR = os.path.join(DATA, 'uploads')
+REVIEW_UPLOADS_DIR = os.path.join(UPLOADS_DIR, 'reviews')
+_review_media_counts = {}  # (orderNumber, YYYY-MM-DD) -> 업로드 횟수
 MAX_BODY = 60 * 1024 * 1024
 BACKUP_EVERY = 600  # 초
 BACKUP_KEEP = 40
@@ -193,6 +198,8 @@ def apply_change(change, local):
     for c in change.get('columns') or []:
         if c not in header:
             header.append(c)
+    if not header and (change.get('upserts') or []):
+        header = list((change.get('upserts')[0]).keys())
     index = {key_of(table, r): r for r in rows}
     order = [key_of(table, r) for r in rows]
     applied, rejected = 0, []
@@ -245,6 +252,70 @@ def apply_change(change, local):
                 if invalid_money:
                     rejected.append('orders: 금액 항목(totalAmount, itemsTotal, deliveryFee)은 0 이상의 숫자여야 합니다')
                     continue
+            if table == 'reviews':
+                row['status'] = 'pending'
+                row['adminReply'] = ''
+                row['replyAt'] = ''
+                row['isSample'] = 'false'
+                rev_order_num = str(row.get('orderNumber') or '').strip().upper()
+                rev_order_id = str(row.get('orderId') or '').strip()
+                rev_prod_id = str(row.get('productId') or '').strip()
+                orders_data = read_table('orders')
+                matching_order = None
+                if orders_data:
+                    for o in orders_data[1]:
+                        if str(o.get('orderNumber') or '').strip().upper() == rev_order_num:
+                            matching_order = o
+                            break
+                if not matching_order or matching_order.get('status') != 'completed' or matching_order.get('id') != rev_order_id:
+                    rejected.append('reviews: 배송 완료된 주문만 후기를 작성할 수 있습니다')
+                    continue
+                items_data = read_table('order_items')
+                item_found = False
+                if items_data:
+                    for it in items_data[1]:
+                        if str(it.get('orderId') or '').strip() == rev_order_id and str(it.get('productId') or '').strip() == rev_prod_id:
+                            item_found = True
+                            break
+                if not item_found:
+                    rejected.append('reviews: 주문에 포함된 상품만 후기를 작성할 수 있습니다')
+                    continue
+                dup_review = False
+                for existing_r in index.values():
+                    if str(existing_r.get('orderId') or '').strip() == rev_order_id and str(existing_r.get('productId') or '').strip() == rev_prod_id:
+                        dup_review = True
+                        break
+                if dup_review:
+                    rejected.append('reviews: 이미 작성된 후기가 있습니다')
+                    continue
+                try:
+                    r_val = int(row.get('rating') or 0)
+                    if not (1 <= r_val <= 5):
+                        rejected.append('reviews: 별점은 1~5점이어야 합니다')
+                        continue
+                except (ValueError, TypeError):
+                    rejected.append('reviews: 별점 형식이 올바르지 않습니다')
+                    continue
+                txt = str(row.get('text') or '').strip()
+                if len(txt) < 10 or len(txt) > 500:
+                    rejected.append('reviews: 후기 내용은 10자 이상 500자 이하여야 합니다')
+                    continue
+                photos_raw = row.get('photos') or '[]'
+                try:
+                    photos_list = json.loads(photos_raw) if isinstance(photos_raw, str) else (photos_raw if isinstance(photos_raw, list) else [])
+                    invalid_photo = False
+                    for p in photos_list:
+                        p_str = str(p or '').strip()
+                        if not p_str.startswith('reviews/') or '..' in p_str or not re.match(r'^reviews/[\w.-]+$', p_str):
+                            invalid_photo = True
+                            break
+                    if invalid_photo:
+                        rejected.append('reviews: 사진 경로가 올바르지 않습니다')
+                        continue
+                except Exception:
+                    rejected.append('reviews: 사진 목록 형식이 올바르지 않습니다')
+                    continue
+                    continue
             if k in index:
                 rejected.append(f'{table}:{k} 이미 있음')
                 continue
@@ -263,6 +334,24 @@ def apply_change(change, local):
         rejected.append(f'{table}: 이 기기에서는 지울 수 없음')
     elif deletes:
         gone = set(str(d) for d in deletes)
+        if table == 'reviews' and local:
+            for d in gone:
+                r_item = index.get(d)
+                if r_item:
+                    try:
+                        p_list = json.loads(r_item.get('photos') or '[]')
+                        for pf in p_list:
+                            fp = os.path.join(DATA, 'uploads', str(pf).strip())
+                            if os.path.exists(fp):
+                                try: os.remove(fp)
+                                except OSError: pass
+                    except Exception: pass
+                    vf = str(r_item.get('video') or '').strip()
+                    if vf:
+                        fp = os.path.join(DATA, 'uploads', vf)
+                        if os.path.exists(fp):
+                            try: os.remove(fp)
+                            except OSError: pass
         applied += len([k for k in order if k in gone])
         order = [k for k in order if k not in gone]
     write_table(table, header, [index[k] for k in order])
@@ -304,6 +393,8 @@ class Handler(SimpleHTTPRequestHandler):
 
     def is_admin(self):
         """이 컴퓨터이거나, 다른 기기에서 관리자 비밀번호로 로그인한 경우"""
+        if (self.headers.get('X-Role') or '').strip().lower() == 'anon':
+            return False
         if self.is_local():
             return True
         tok = self.session_token()
@@ -337,6 +428,62 @@ class Handler(SimpleHTTPRequestHandler):
         # 개인정보 CSV·Git·서버 파일은 주소로 직접 못 열게
         if lower.startswith(('/data/', '/.git', '/.claude')) or lower in ('/server.py', '/data'):
             self.send_error(404)
+            return
+        if path.startswith('/api/review-media/'):
+            subpath = path[len('/api/review-media/'):].lstrip('/')
+            if not subpath or '..' in subpath:
+                self.send_error(404)
+                return
+            full_path = os.path.normpath(os.path.join(DATA, 'uploads', subpath))
+            if not full_path.startswith(os.path.normpath(os.path.join(DATA, 'uploads'))):
+                self.send_error(404)
+                return
+            if not os.path.exists(full_path) or not os.path.isfile(full_path):
+                self.send_error(404)
+                return
+            is_authed_admin = False
+            tok = self.session_token()
+            if tok and SESSIONS.get(tok) and SESSIONS[tok] > time.time():
+                is_authed_admin = True
+
+            if not is_authed_admin:
+                ref_target = subpath.replace('\\', '/')
+                with LOCK:
+                    rev_data = read_table('reviews')
+                referenced = False
+                if rev_data:
+                    for r in rev_data[1]:
+                        if r.get('status') == 'approved':
+                            try:
+                                photos = json.loads(r.get('photos') or '[]')
+                                if any(ref_target in p or os.path.basename(ref_target) == os.path.basename(p) for p in photos):
+                                    referenced = True
+                                    break
+                            except Exception: pass
+                            v_path = str(r.get('video') or '').strip().replace('\\', '/')
+                            if v_path and (v_path == ref_target or os.path.basename(ref_target) == os.path.basename(v_path)):
+                                referenced = True
+                                break
+                if not referenced:
+                    self.send_error(404)
+                    return
+            ctype = 'application/octet-stream'
+            lower_f = full_path.lower()
+            if lower_f.endswith(('.jpg', '.jpeg')): ctype = 'image/jpeg'
+            elif lower_f.endswith('.png'): ctype = 'image/png'
+            elif lower_f.endswith('.mp4'): ctype = 'video/mp4'
+            elif lower_f.endswith('.webm'): ctype = 'video/webm'
+            elif lower_f.endswith(('.mov', '.qt')): ctype = 'video/quicktime'
+            try:
+                with open(full_path, 'rb') as f:
+                    content = f.read()
+                self.send_response(200)
+                self.send_header('Content-Type', ctype)
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except OSError:
+                self.send_error(500)
             return
         if path == '/api/coupon':
             # 쿠폰 한 장만 확인 (손님 기기는 쿠폰 목록 전체를 못 받음)
@@ -391,10 +538,24 @@ class Handler(SimpleHTTPRequestHandler):
             return
         if path == '/api/csv':
             local = self.is_admin()
-            readable = [t for t in TABLES if local or t in PUBLIC_TABLES]
+            readable = [t for t in TABLES if local or t in PUBLIC_TABLES or t == 'reviews']
             files = {}
             with LOCK:
                 for t in readable:
+                    if t == 'reviews' and not local:
+                        r_data = read_table('reviews')
+                        if r_data:
+                            r_header, r_rows = r_data
+                            buf = io.StringIO()
+                            w = csv.writer(buf, lineterminator='\r\n')
+                            w.writerow(REVIEW_PUBLIC)
+                            for r in r_rows:
+                                if r.get('status') == 'approved':
+                                    w.writerow([r.get(c, '') for c in REVIEW_PUBLIC])
+                            files[TABLES[t]] = buf.getvalue()
+                        else:
+                            files[TABLES[t]] = ','.join(REVIEW_PUBLIC) + '\r\n'
+                        continue
                     p = table_path(t)
                     if os.path.exists(p):
                         with open(p, encoding='utf-8-sig', newline='') as f:
@@ -412,6 +573,66 @@ class Handler(SimpleHTTPRequestHandler):
             return
         local = self.is_admin()
         ip = self.client_address[0]
+        if path == '/api/review-media':
+            order_num = str(body.get('orderNumber') or '').strip().upper()
+            phone = re.sub(r'\D', '', str(body.get('phone') or ''))
+            filename = str(body.get('filename') or '').strip()
+            data_b64 = str(body.get('data') or '').strip()
+            if not order_num or len(phone) < 9 or not data_b64:
+                self.send_json({'ok': False, 'error': '주문번호, 연락처, 파일 데이터가 필요합니다.'}, 400)
+                return
+            with LOCK:
+                orders_data = read_table('orders')
+            target_order = None
+            if orders_data:
+                for o in orders_data[1]:
+                    if str(o.get('orderNumber') or '').strip().upper() == order_num:
+                        o_phone = re.sub(r'\D', '', str(o.get('ordererPhone') or o.get('phone') or ''))
+                        if phone and (phone == o_phone or phone in o_phone or o_phone in phone):
+                            target_order = o
+                            break
+            if not target_order:
+                self.send_json({'ok': False, 'error': '일치하는 주문을 찾을 수 없습니다.'}, 404)
+                return
+            if target_order.get('status') != 'completed':
+                self.send_json({'ok': False, 'error': '배송 완료된 주문만 사진/영상을 올릴 수 있습니다.'}, 400)
+                return
+            today_str = datetime.now().strftime('%Y-%m-%d')
+            cnt_key = (order_num, today_str)
+            curr_cnt = _review_media_counts.get(cnt_key, 0)
+            if curr_cnt >= 4:
+                self.send_json({'ok': False, 'error': '주문당 하루 최대 4개까지만 올릴 수 있습니다.'}, 429)
+                return
+            try:
+                if ',' in data_b64:
+                    data_b64 = data_b64.split(',', 1)[1]
+                file_bytes = base64.b64decode(data_b64)
+            except Exception:
+                self.send_json({'ok': False, 'error': '파일 데이터 인코딩이 올바르지 않습니다.'}, 400)
+                return
+            ext = os.path.splitext(filename)[1].lower()
+            if not ext:
+                ext = '.jpg'
+            is_img = ext in ('.jpg', '.jpeg')
+            is_vid = ext in ('.mp4', '.webm', '.mov', '.qt')
+            if not is_img and not is_vid:
+                self.send_json({'ok': False, 'error': '지원하지 않는 파일 형식입니다. (JPEG 이미지 또는 MP4/WebM/MOV 동영상)'}, 400)
+                return
+            if is_img and len(file_bytes) > 300 * 1024:
+                self.send_json({'ok': False, 'error': '사진 용량이 300KB를 초과합니다.'}, 400)
+                return
+            if is_vid and len(file_bytes) > 20 * 1024 * 1024:
+                self.send_json({'ok': False, 'error': '동영상 용량이 20MB를 초과합니다.'}, 400)
+                return
+            os.makedirs(REVIEW_UPLOADS_DIR, exist_ok=True)
+            out_name = f'rev-{secrets.token_hex(12)}{ext}'
+            out_path = os.path.join(REVIEW_UPLOADS_DIR, out_name)
+            with open(out_path, 'wb') as f:
+                f.write(file_bytes)
+            _review_media_counts[cnt_key] = curr_cnt + 1
+            rel_path = f'reviews/{out_name}'
+            self.send_json({'ok': True, 'path': rel_path})
+            return
         if path == '/api/login':
             if too_many(ip, 'login', 5):
                 self.send_json({'ok': False, 'error': '너무 여러 번 틀렸어요. 1분 뒤에 다시 해 주세요.'}, 429)

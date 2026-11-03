@@ -225,6 +225,7 @@
     #nav-dictionary.border-b-2::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cg fill='none' stroke='%238B2500' stroke-width='1.3'%3E%3Ccircle cx='8' cy='5' r='3'/%3E%3Ccircle cx='5' cy='8' r='3'/%3E%3Ccircle cx='11' cy='8' r='3'/%3E%3Ccircle cx='8' cy='11' r='3'/%3E%3C/g%3E%3Ccircle cx='8' cy='8' r='1.2' fill='%238B2500'/%3E%3C/svg%3E"); }
     #nav-custom.border-b-2::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 10h12' stroke='%238B2500' stroke-width='1.3' stroke-linecap='round'/%3E%3Cpath d='M5 10c-2 0-3-1-3-2.3C2 6.6 2.8 6 3.6 6c.8 0 1.2.6 1.2 1.1' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3Cpath d='M11 10c2 0 3-1 3-2.3 0-1.1-.8-1.7-1.6-1.7-.8 0-1.2.6-1.2 1.1' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3Cpath d='M8 10V5.5c0-1.4 1-2 1.9-2 .8 0 1.4.6 1.4 1.3' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E"); }
     #nav-guide.border-b-2::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1.5l6.5 6.5L8 14.5 1.5 8z' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Cpath d='M8 5l3 3-3 3-3-3z' fill='%238B2500'/%3E%3C/svg%3E"); }
+    #nav-reviews.border-b-2::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8 3c3 2 3 7 0 10-3-3-3-8 0-10z' fill='none' stroke='%238B2500' stroke-width='1.2'/%3E%3Cpath d='M8 13c-3 0-6-2-6-5 2 0 4 1 6 5zm0 0c3 0 6-2 6-5-2 0-4 1-6 5z' fill='none' stroke='%238B2500' stroke-width='1'/%3E%3C/svg%3E"); }
     .kkotsal.tl { top: 5px; left: 5px; }
     .kkotsal.tr { top: 5px; right: 5px; transform: scaleX(-1); }
     .kkotsal.bl { bottom: 5px; left: 5px; transform: scaleY(-1); }
@@ -329,7 +330,7 @@
     .info-page-body .page-ul li { margin: 3px 0; }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=66">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=68">
 </head>
 <body class="selection:bg-seal-red/15 selection:text-seal-red min-h-screen flex flex-col">
   <!-- 상품 미리보기 모드 상단 고정 배너 -->
@@ -369,6 +370,9 @@
           </button>
           <button onclick="switchView('guide')" id="nav-guide" data-i18n="nav_guide" class="nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors">
             정성 안내
+          </button>
+          <button onclick="switchView('reviews')" id="nav-reviews" data-i18n="nav_reviews" class="nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors">
+            리뷰
           </button>
         </nav>
       </div>
@@ -464,6 +468,9 @@
       </button>
       <button onclick="handleMobileNav('guide')" data-i18n="nav_guide" class="block w-full text-left py-3 text-base font-semibold text-ink-charcoal hover:text-seal-red transition-colors">
         정성 안내
+      </button>
+      <button onclick="handleMobileNav('reviews')" data-i18n="nav_reviews" class="block w-full text-left py-3 text-base font-semibold text-ink-charcoal hover:text-seal-red transition-colors border-t border-ink-black/5">
+        리뷰
       </button>
       <!-- 모바일 언어 선택 -->
       <div class="pt-3 mt-1 border-t border-ink-black/10 flex items-center justify-between text-xs px-1">
@@ -591,6 +598,33 @@
             <div id="cta-picker-row" class="w-full flex items-end justify-center -space-x-3 lg:-space-x-5 pt-6"></div>
             <p id="cta-picker-caption" class="h-6 text-sm font-bold text-seal-red tracking-wide transition-opacity duration-300" aria-live="off"></p>
           </button>
+        </div>
+      </section>
+
+      <!-- 손님 후기 슬라이더 (승인된 후기가 있을 때만 표시) -->
+      <section id="home-reviews-section" class="hidden py-16 md:py-24 border-t border-ink-black/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div class="flex items-end justify-between">
+            <div class="space-y-1">
+              <p class="text-xs font-bold tracking-[0.2em] text-seal-red uppercase" data-i18n="home_reviews_tag">CUSTOMER REVIEWS</p>
+              <h2 class="text-2xl md:text-3xl font-extrabold text-ink-black font-serif" data-i18n="home_reviews_title">손님들의 이야기</h2>
+              <p class="text-xs md:text-sm text-ink-gray" data-i18n="home_reviews_sub">설담화 꽃과 함께 피어난 정성스러운 후기입니다.</p>
+            </div>
+            <a href="#/reviews" class="text-xs md:text-sm font-bold text-seal-red hover:underline flex items-center gap-1" data-i18n="home_reviews_more">
+              후기 모두 보기 →
+            </a>
+          </div>
+          <div class="relative">
+            <div id="home-reviews-slider" class="home-slider flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth no-scrollbar" style="scroll-padding-left: 1rem;">
+              <!-- 동적 렌더링 -->
+            </div>
+            <button type="button" onclick="scrollHomeReviews(-1)" aria-label="이전 후기" class="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 border border-ink-black/10 shadow-md items-center justify-center text-ink-black hover:bg-white hover:text-seal-red cursor-pointer z-10 transition-colors">
+              ‹
+            </button>
+            <button type="button" onclick="scrollHomeReviews(1)" aria-label="다음 후기" class="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 border border-ink-black/10 shadow-md items-center justify-center text-ink-black hover:bg-white hover:text-seal-red cursor-pointer z-10 transition-colors">
+              ›
+            </button>
+          </div>
         </div>
       </section>
 
@@ -966,6 +1000,137 @@
       </article>
       <div class="text-center">
         <button type="button" onclick="goToCustomInquiry('')" data-i18n="guide_cta" class="jakae-btn px-8 py-3 text-sm font-bold rounded-sm cursor-pointer">더 궁금한 점은 1:1 상담으로 물어보세요</button>
+      </div>
+    </div>
+
+    <!-- 손님 후기 탭 (#/reviews) -->
+    <div id="view-reviews" class="hidden py-16 md:py-24 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+      <div class="text-center space-y-2">
+        <p class="text-xs font-bold tracking-[0.2em] text-seal-red uppercase" data-i18n="reviews_tag">CUSTOMER REVIEWS</p>
+        <h1 data-i18n="reviews_title" class="text-3xl md:text-4xl font-extrabold text-ink-black font-serif">손님 후기</h1>
+        <p data-i18n="reviews_subtitle" class="text-sm text-ink-gray">설담화 꽃과 함께해 주신 소중한 마음들을 모았습니다.</p>
+      </div>
+
+      <!-- 후기 통계 요약 박스 -->
+      <div id="reviews-summary-card" class="relative bg-white/80 border border-ink-black/10 rounded-sm p-6 md:p-8 shadow-xs flex flex-col md:flex-row items-center gap-8 justify-between">
+        <div class="text-center md:text-left space-y-1">
+          <div class="flex items-center justify-center md:justify-start gap-3">
+            <span id="reviews-avg-rating" class="text-4xl md:text-5xl font-black text-seal-red font-serif">0.0</span>
+            <div class="space-y-0.5">
+              <div id="reviews-avg-stars" class="text-amber-500 text-lg flex">★★★★★</div>
+              <p class="text-xs text-ink-gray"><span id="reviews-total-count">0</span>개의 정성스러운 후기</p>
+            </div>
+          </div>
+        </div>
+        <div id="reviews-star-bars" class="w-full md:w-64 space-y-1.5 text-xs text-ink-gray"></div>
+      </div>
+
+      <!-- 필터 및 정렬 바 -->
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-ink-black/10 pb-4">
+        <div class="flex gap-2">
+          <button type="button" id="filter-review-all" onclick="setReviewFilter('all')" class="review-filter-btn px-3 py-1.5 rounded-full text-xs font-bold border border-seal-red bg-seal-red text-white cursor-pointer transition-colors" data-i18n="reviews_filter_all">전체</button>
+          <button type="button" id="filter-review-media" onclick="setReviewFilter('media')" class="review-filter-btn px-3 py-1.5 rounded-full text-xs font-bold border border-ink-black/10 bg-white text-ink-charcoal hover:border-seal-red cursor-pointer transition-colors" data-i18n="reviews_filter_media">사진·영상 후기</button>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-ink-gray" data-i18n="reviews_sort_label">정렬:</span>
+          <select id="review-sort-select" onchange="changeReviewSort(this.value)" class="bg-white border border-ink-black/15 rounded-xs px-2.5 py-1 text-xs text-ink-black font-medium focus:border-seal-red outline-none cursor-pointer">
+            <option value="latest">최신순</option>
+            <option value="rating_high">별점 높은순</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 후기 목록 컨테이너 -->
+      <div id="reviews-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+
+      <!-- 빈 화면 -->
+      <div id="reviews-empty" class="hidden text-center py-16 space-y-3">
+        <p class="text-base font-bold text-ink-gray" data-i18n="reviews_empty">아직 게시된 후기가 없어요.</p>
+        <p class="text-xs text-ink-light">배송 완료 후 주문 조회 화면에서 첫 후기를 남겨 보세요.</p>
+      </div>
+
+      <!-- 페이지네이션 (#browse-pages 스타일) -->
+      <div id="reviews-pages" class="flex justify-center items-center gap-1.5 pt-6 pb-4"></div>
+    </div>
+
+    <!-- 후기 작성 모달 (주문 조회 화면에서 호출) -->
+    <div id="modal-review" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+      <div class="relative bg-hanji border border-ink-black/10 rounded-sm w-full max-w-lg p-6 md:p-8 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <button type="button" onclick="closeReviewModal()" aria-label="닫기" class="absolute top-4 right-4 text-ink-gray hover:text-ink-black text-xl font-bold p-1 cursor-pointer">✕</button>
+        <div class="border-b border-ink-black/10 pb-3 space-y-1">
+          <p class="text-[11px] font-bold tracking-widest text-seal-red uppercase">WRITE A REVIEW</p>
+          <h2 class="text-xl font-extrabold text-ink-black font-serif">꽃 후기 작성하기</h2>
+          <p id="review-modal-product-name" class="text-xs text-ink-gray"></p>
+        </div>
+
+        <form id="review-form" onsubmit="submitCustomerReview(event)" class="space-y-5 text-sm">
+          <input type="hidden" id="review-order-id" />
+          <input type="hidden" id="review-order-number" />
+          <input type="hidden" id="review-orderer-phone" />
+          <input type="hidden" id="review-product-id" />
+          <input type="hidden" id="review-product-name" />
+
+          <!-- 별점 선택 -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-ink-charcoal">별점을 골라 주세요 <span class="text-seal-red">*</span></label>
+            <div id="review-rating-stars" class="flex gap-2 text-2xl text-amber-400 cursor-pointer select-none">
+              <button type="button" onclick="setReviewRating(1)" class="star-btn hover:scale-110 transition-transform">★</button>
+              <button type="button" onclick="setReviewRating(2)" class="star-btn hover:scale-110 transition-transform">★</button>
+              <button type="button" onclick="setReviewRating(3)" class="star-btn hover:scale-110 transition-transform">★</button>
+              <button type="button" onclick="setReviewRating(4)" class="star-btn hover:scale-110 transition-transform">★</button>
+              <button type="button" onclick="setReviewRating(5)" class="star-btn hover:scale-110 transition-transform">★</button>
+            </div>
+            <input type="hidden" id="review-rating-val" value="5" />
+          </div>
+
+          <!-- 후기 글 본문 -->
+          <div class="space-y-1.5">
+            <div class="flex justify-between items-center text-xs">
+              <label for="review-text" class="font-bold text-ink-charcoal">후기 내용 <span class="text-seal-red">*</span></label>
+              <span id="review-text-counter" class="text-ink-gray">0 / 500</span>
+            </div>
+            <textarea id="review-text" oninput="updateReviewCharCount()" rows="4" maxlength="500" placeholder="꽃을 받으신 느낌이나 소감을 10자 이상 500자 이하로 편안하게 들려주세요." class="w-full bg-white border border-ink-black/15 rounded-xs p-3 text-sm text-ink-black focus:border-seal-red outline-none resize-none" required></textarea>
+          </div>
+
+          <!-- 사진 및 영상 업로드 (서버 모드에서만 활성화) -->
+          <div id="review-media-upload-section" class="space-y-3 pt-2 border-t border-ink-black/10">
+            <div class="space-y-1.5">
+              <label class="block text-xs font-bold text-ink-charcoal">사진 첨부 (최대 3장, 장당 300KB 이하)</label>
+              <input type="file" id="review-photo-input" accept="image/jpeg,image/jpg" multiple onchange="handleReviewPhotoSelect(this)" class="block w-full text-xs text-ink-gray file:mr-3 file:py-1.5 file:px-3 file:rounded-xs file:border file:border-ink-black/15 file:text-xs file:font-bold file:bg-white file:text-ink-charcoal hover:file:bg-hanji cursor-pointer" />
+              <div id="review-photo-previews" class="flex gap-2 pt-1 flex-wrap"></div>
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block text-xs font-bold text-ink-charcoal">동영상 첨부 (최대 1개, 30초 이내, 20MB 이하)</label>
+              <input type="file" id="review-video-input" accept="video/mp4,video/webm,video/quicktime" onchange="handleReviewVideoSelect(this)" class="block w-full text-xs text-ink-gray file:mr-3 file:py-1.5 file:px-3 file:rounded-xs file:border file:border-ink-black/15 file:text-xs file:font-bold file:bg-white file:text-ink-charcoal hover:file:bg-hanji cursor-pointer" />
+              <div id="review-video-preview" class="pt-1 text-xs text-ink-gray"></div>
+            </div>
+          </div>
+          <div id="review-media-offline-notice" class="hidden text-xs text-ink-gray bg-white/60 p-3 rounded-xs border border-ink-black/10">
+            사진·영상은 매장 서버로 열었을 때 올릴 수 있어요.
+          </div>
+
+          <!-- 필수 동의 체크박스 -->
+          <div class="pt-2">
+            <label class="flex items-start gap-2 text-xs text-ink-charcoal cursor-pointer">
+              <input type="checkbox" id="review-consent" required class="mt-0.5 accent-seal-red cursor-pointer" />
+              <span>[필수] 별점·글·사진·영상이 쇼핑몰에 게시되는 것에 동의합니다. (이름은 표시되지 않아요)</span>
+            </label>
+          </div>
+
+          <div class="pt-3 flex gap-2">
+            <button type="button" onclick="closeReviewModal()" class="w-1/3 py-2.5 rounded-xs border border-ink-black/15 bg-white text-xs font-bold text-ink-charcoal hover:bg-hanji cursor-pointer">취소</button>
+            <button type="submit" id="btn-submit-review" class="w-2/3 py-2.5 rounded-xs bg-seal-red text-white text-xs font-bold hover:bg-seal-red/90 cursor-pointer shadow-sm">후기 등록하기</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 사진 크게 보기 모달 -->
+    <div id="modal-review-photo" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs" onclick="closeReviewPhotoModal()">
+      <div class="relative max-w-3xl max-h-[90vh]" onclick="event.stopPropagation()">
+        <button type="button" onclick="closeReviewPhotoModal()" class="absolute -top-10 right-0 text-white text-2xl font-bold cursor-pointer">✕</button>
+        <img id="review-photo-full" src="" alt="후기 사진 확대" class="max-w-full max-h-[85vh] object-contain rounded-xs shadow-2xl" />
       </div>
     </div>
 
@@ -1665,34 +1830,34 @@
   </div>
 
   <!-- 상품 데이터 및 공통 스토리지 스크립트 -->
-  <script src="assets/js/data-store.js?v=66"></script>
-  <script src="assets/js/products-data.js?v=66"></script>
-  <script src="assets/js/flowers-data.js?v=66"></script>
-  <script src="assets/js/i18n.js?v=66"></script>
-  <script src="assets/js/site-settings.js?v=66"></script>
-  <script src="assets/js/popups.js?v=66"></script>
-  <script src="assets/js/integrations.js?v=66"></script>
-  <script src="assets/js/site-pages.js?v=66"></script>
-  <script src="assets/js/restock.js?v=66"></script>
-  <script src="assets/js/csv-db.js?v=66"></script>
-  <script src="assets/js/data-sync.js?v=66"></script>
-  <script src="assets/js/coupons.js?v=66"></script>
+  <script src="assets/js/data-store.js?v=68"></script>
+  <script src="assets/js/products-data.js?v=68"></script>
+  <script src="assets/js/flowers-data.js?v=68"></script>
+  <script src="assets/js/i18n.js?v=68"></script>
+  <script src="assets/js/site-settings.js?v=68"></script>
+  <script src="assets/js/popups.js?v=68"></script>
+  <script src="assets/js/integrations.js?v=68"></script>
+  <script src="assets/js/site-pages.js?v=68"></script>
+  <script src="assets/js/restock.js?v=68"></script>
+  <script src="assets/js/csv-db.js?v=68"></script>
+  <script src="assets/js/data-sync.js?v=68"></script>
+  <script src="assets/js/coupons.js?v=68"></script>
 
   <!-- JavaScript: 쇼핑몰 동작 & 인터랙션 로직 -->
   <!-- 쇼핑몰 화면 동작 (화면별 파일, 순서 중요) -->
-  <script src="assets/js/shop/shop-core.js?v=66"></script>
-  <script src="assets/js/shop/shop-product.js?v=66"></script>
-  <script src="assets/js/shop/shop-product-page.js?v=66"></script>
-  <script src="assets/js/shop/shop-checkout.js?v=66"></script>
-  <script src="assets/js/shop/shop-nav.js?v=66"></script>
-  <script src="assets/js/shop/shop-curation.js?v=66"></script>
-  <script src="assets/js/shop/shop-inquiry.js?v=66"></script>
-  <script src="assets/js/shop/shop-guide.js?v=66"></script>
-  <script src="assets/js/shop/shop-settings.js?v=66"></script>
-  <script src="assets/js/shop/shop-browse.js?v=66"></script>
-  <script src="assets/js/shop/shop-flowers.js?v=66"></script>
-  <script src="assets/js/shop/shop-dictionary.js?v=66"></script>
-  <script src="assets/js/shop/shop-router.js?v=66"></script>
-  <script src="assets/js/shop/shop-chat.js?v=66"></script>
+  <script src="assets/js/shop/shop-core.js?v=68"></script>
+  <script src="assets/js/shop/shop-product.js?v=68"></script>
+  <script src="assets/js/shop/shop-product-page.js?v=68"></script>
+  <script src="assets/js/shop/shop-checkout.js?v=68"></script>
+  <script src="assets/js/shop/shop-nav.js?v=68"></script>
+  <script src="assets/js/shop/shop-curation.js?v=68"></script>
+  <script src="assets/js/shop/shop-inquiry.js?v=68"></script>
+  <script src="assets/js/shop/shop-guide.js?v=68"></script>
+  <script src="assets/js/shop/shop-settings.js?v=68"></script>
+  <script src="assets/js/shop/shop-browse.js?v=68"></script>
+  <script src="assets/js/shop/shop-flowers.js?v=68"></script>
+  <script src="assets/js/shop/shop-dictionary.js?v=68"></script>
+  <script src="assets/js/shop/shop-router.js?v=68"></script>
+  <script src="assets/js/shop/shop-chat.js?v=68"></script>
 </body>
 </html>

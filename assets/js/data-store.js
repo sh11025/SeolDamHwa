@@ -25,6 +25,7 @@ const DataStore = (() => {
     cart: 'seoldamhwa_cart',
     wishlist: 'seoldamhwa_wishlist',
     recent: 'seoldamhwa_recent',
+    reviews: 'seoldamhwa_reviews',
     lang: 'seoldamhwa_lang',
     dataVersion: 'seoldamhwa_data_version',
     csvAutosave: 'seoldamhwa_csv_autosave',
@@ -142,6 +143,7 @@ var COUPONS_KEY = DataStore.KEYS.coupons;
 var COUPON_HISTORY_KEY = DataStore.KEYS.couponHistory;
 var IMAGE_LIBRARY_KEY = DataStore.KEYS.images;
 var AI_SETTINGS_KEY = DataStore.KEYS.aiSettings;
+var REVIEWS_STORAGE_KEY = DataStore.KEYS.reviews;
 
 // 예전에 관리자 화면에 미리 들어 있던 예시 주문 (실제 판매하지 않는 상품) - 자동으로 정리
 const SAMPLE_ORDER_NUMBERS = ['SDH-261029-01', 'SDH-261028-09', 'SDH-261028-04', 'SDH-261027-12'];
@@ -175,6 +177,20 @@ function loadInquiries() {
 
 function saveInquiries(list) {
   DataStore.write(DataStore.KEYS.inquiries, list);
+}
+
+// 양쪽 페이지 공통 상품 후기 데이터 함수
+function loadReviews() {
+  try {
+    const list = DataStore.read(DataStore.KEYS.reviews, []);
+    return Array.isArray(list) ? list : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveReviews(list) {
+  DataStore.write(DataStore.KEYS.reviews, list);
 }
 
 // 브라우저 저장 공간(약 5MB)이 가득 차서 저장이 안 될 때 알려 줌 (products-data.js에서 이동)

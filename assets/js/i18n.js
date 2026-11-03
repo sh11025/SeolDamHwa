@@ -449,7 +449,16 @@ const I18N = {
 
     // 검색 모달
     search_placeholder: "꽃 이름, 꽃말, 이야기 키워드를 검색하세요.",
-    search_no_results: "검색 결과가 없습니다."
+    search_no_results: "검색 결과가 없습니다.",
+
+    // 손님 후기
+    nav_reviews: "리뷰",
+    reviews_tag: "CUSTOMER REVIEWS",
+    reviews_title: "손님 후기",
+    reviews_subtitle: "설담화 꽃과 함께해 주신 소중한 마음들을 모았습니다.",
+    home_reviews_tag: "CUSTOMER REVIEWS",
+    home_reviews_title: "손님들이 남겨주신 정성스러운 후기",
+    home_reviews_view_all: "전체 후기 보기"
   },
 
   en: {
@@ -899,7 +908,16 @@ const I18N = {
 
     // Search
     search_placeholder: "Search by flower name, meaning, or story keyword...",
-    search_no_results: "No matched products found."
+    search_no_results: "No matched products found.",
+
+    // Reviews
+    nav_reviews: "Reviews",
+    reviews_tag: "CUSTOMER REVIEWS",
+    reviews_title: "Customer Reviews",
+    reviews_subtitle: "Heartfelt stories and reviews from our valued customers.",
+    home_reviews_tag: "CUSTOMER REVIEWS",
+    home_reviews_title: "Heartfelt Customer Reviews",
+    home_reviews_view_all: "View all reviews"
   },
 
   ja: {
@@ -1349,7 +1367,16 @@ const I18N = {
 
     // 検索
     search_placeholder: "花の名前、花言葉、物語のキーワードで検索...",
-    search_no_results: "該当する商品が見つかりませんでした。"
+    search_no_results: "該当する商品が見つかりませんでした。",
+
+    // Reviews
+    nav_reviews: "レビュー",
+    reviews_tag: "CUSTOMER REVIEWS",
+    reviews_title: "お客様レビュー",
+    reviews_subtitle: "雪潭花の花と過ごした温かいお声を集めました。",
+    home_reviews_tag: "CUSTOMER REVIEWS",
+    home_reviews_title: "お客様から届いた温かいレビュー",
+    home_reviews_view_all: "すべてのレビューを見る"
   }
 };
 
@@ -1700,4 +1727,3 @@ function tHoliday(name, lang) {
   }
   return name;
 }
-

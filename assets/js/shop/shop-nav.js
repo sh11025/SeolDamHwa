@@ -317,6 +317,8 @@ function showView(view) {
   document.getElementById('view-story').classList.add('hidden');
   document.getElementById('view-custom').classList.add('hidden');
   document.getElementById('view-guide').classList.add('hidden');
+  const viewRevEl = document.getElementById('view-reviews');
+  if (viewRevEl) viewRevEl.classList.add('hidden');
 
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.className = 'nav-btn py-1 text-ink-charcoal hover:text-seal-red transition-colors';
@@ -336,9 +338,14 @@ function showView(view) {
     document.getElementById('view-guide').classList.remove('hidden');
     document.getElementById('nav-guide').className = 'nav-btn py-1 text-seal-red font-bold border-b-2 border-seal-red transition-colors';
     showGuideTab(currentGuideTab);
+  } else if (view === 'reviews') {
+    if (viewRevEl) viewRevEl.classList.remove('hidden');
+    const navRev = document.getElementById('nav-reviews');
+    if (navRev) navRev.className = 'nav-btn py-1 text-seal-red font-bold border-b-2 border-seal-red transition-colors';
+    if (typeof renderReviewsPage === 'function') renderReviewsPage();
   }
   // 브라우저 탭 제목
-  const titleKey = { story: ['nav_story', '설담화 이야기'], custom: ['nav_custom', '맞춤 담화'], guide: ['nav_guide', '정성 안내'] }[view];
+  const titleKey = { story: ['nav_story', '설담화 이야기'], custom: ['nav_custom', '맞춤 담화'], guide: ['nav_guide', '정성 안내'], reviews: ['nav_reviews', '리뷰'] }[view];
   if (titleKey) document.title = `${typeof t === 'function' ? t(titleKey[0], titleKey[1]) : titleKey[1]} | 설담화`;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }

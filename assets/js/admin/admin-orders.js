@@ -289,7 +289,7 @@ function restoreOrder(ordId) {
 
 /* ---------- 새 주문·상담 알림 (관리자 화면을 켜 둔 동안) ----------
  * 쇼핑몰 탭이나 다른 기기(서버 모드)에서 새 주문·상담이 들어오면 소리 + 화면 알림 + 탭 제목에 숫자 */
-const adminSeen = { orders: null, inquiries: null };
+const adminSeen = { orders: null, inquiries: null, reviews: null };
 let adminUnread = 0;
 let adminAudio = null;
 const ADMIN_BASE_TITLE = document.title;
@@ -358,23 +358,35 @@ function clearAdminUnread() {
 }
 
 function checkNewOrdersAndInquiries() {
-  const now = { orders: adminIds('seoldamhwa_orders'), inquiries: adminIds('seoldamhwa_inquiries') };
-  if (adminSeen.orders === null) { adminSeen.orders = now.orders; adminSeen.inquiries = now.inquiries; return; }
+  const now = {
+    orders: adminIds('seoldamhwa_orders'),
+    inquiries: adminIds('seoldamhwa_inquiries'),
+    reviews: adminIds('seoldamhwa_reviews')
+  };
+  if (adminSeen.orders === null) {
+    adminSeen.orders = now.orders;
+    adminSeen.inquiries = now.inquiries;
+    adminSeen.reviews = now.reviews;
+    return;
+  }
   const newOrders = [...now.orders].filter(id => !adminSeen.orders.has(id));
   const newInq = [...now.inquiries].filter(id => !adminSeen.inquiries.has(id));
+  const newRevs = [...now.reviews].filter(id => !adminSeen.reviews.has(id));
   adminSeen.orders = now.orders;
   adminSeen.inquiries = now.inquiries;
-  if (!newOrders.length && !newInq.length) return;
+  adminSeen.reviews = now.reviews;
+  if (!newOrders.length && !newInq.length && !newRevs.length) return;
   const orders = typeof loadOrders === 'function' ? loadOrders() : DataStore.read(DataStore.KEYS.orders, []);
   newOrders.forEach(id => {
     const o = orders.find(x => x.id === id) || {};
     showAdminNotice(`🌸 새 주문 ${o.orderNumber || ''} · ${o.deliveryDate || ''} · ${formatWon(o.totalAmount || 0)}`, 'orders');
   });
   if (newInq.length) showAdminNotice(`💬 새 상담 문의 ${newInq.length}건`, 'reviews');
-  adminUnread += newOrders.length + newInq.length;
+  if (newRevs.length) showAdminNotice(`🌸 새 손님 후기 ${newRevs.length}건`, 'reviews-admin');
+  adminUnread += newOrders.length + newInq.length + newRevs.length;
   document.title = `(${adminUnread}) 새 소식 · ${ADMIN_BASE_TITLE}`;
   playAdminChime();
-  ['renderDashboard', 'renderOrdersList', 'renderInquiriesList'].forEach(fn => { try { if (typeof window[fn] === 'function') window[fn](); } catch (e) { /* 그 화면이 없으면 건너뜀 */ } });
+  ['renderDashboard', 'renderOrdersList', 'renderInquiriesList', 'renderReviewsAdmin'].forEach(fn => { try { if (typeof window[fn] === 'function') window[fn](); } catch (e) { /* 그 화면이 없으면 건너뜀 */ } });
 }
 
 function toggleAdminSound() {
@@ -394,7 +406,7 @@ function renderAdminSoundButton() {
 document.addEventListener('DOMContentLoaded', () => {
   checkNewOrdersAndInquiries();
   setInterval(checkNewOrdersAndInquiries, 5000);
-  window.addEventListener('storage', e => { if (e.key === 'seoldamhwa_orders' || e.key === 'seoldamhwa_inquiries') checkNewOrdersAndInquiries(); });
+  window.addEventListener('storage', e => { if (e.key === 'seoldamhwa_orders' || e.key === 'seoldamhwa_inquiries' || e.key === 'seoldamhwa_reviews') checkNewOrdersAndInquiries(); });
   window.addEventListener('focus', () => { if (adminUnread) setTimeout(clearAdminUnread, 1500); });
   // 브라우저는 한 번 누른 뒤에야 소리를 낼 수 있어서, 처음 클릭 때 소리 장치를 준비
   document.addEventListener('click', () => { try { adminAudio = adminAudio || new (window.AudioContext || window.webkitAudioContext)(); adminAudio.resume(); } catch (e) { /* 무시 */ } }, { once: true });

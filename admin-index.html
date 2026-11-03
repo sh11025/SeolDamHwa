@@ -11,20 +11,20 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
   
-  <script src="assets/js/data-store.js?v=66"></script>
-  <script src="assets/js/products-data.js?v=66"></script>
-  <script src="assets/js/flowers-data.js?v=66"></script>
-  <script src="assets/js/site-settings.js?v=66"></script>
-  <script src="assets/js/popups.js?v=66"></script>
-  <script src="assets/js/finance-data.js?v=66"></script>
-  <script src="assets/js/integrations.js?v=66"></script>
-  <script src="assets/js/admin-tools.js?v=66"></script>
-  <script src="assets/js/site-pages.js?v=66"></script>
-  <script src="assets/js/image-library.js?v=66"></script>
-  <script src="assets/js/restock.js?v=66"></script>
-  <script src="assets/js/csv-db.js?v=66"></script>
-  <script src="assets/js/data-sync.js?v=66"></script>
-  <script src="assets/js/coupons.js?v=66"></script>
+  <script src="assets/js/data-store.js?v=68"></script>
+  <script src="assets/js/products-data.js?v=68"></script>
+  <script src="assets/js/flowers-data.js?v=68"></script>
+  <script src="assets/js/site-settings.js?v=68"></script>
+  <script src="assets/js/popups.js?v=68"></script>
+  <script src="assets/js/finance-data.js?v=68"></script>
+  <script src="assets/js/integrations.js?v=68"></script>
+  <script src="assets/js/admin-tools.js?v=68"></script>
+  <script src="assets/js/site-pages.js?v=68"></script>
+  <script src="assets/js/image-library.js?v=68"></script>
+  <script src="assets/js/restock.js?v=68"></script>
+  <script src="assets/js/csv-db.js?v=68"></script>
+  <script src="assets/js/data-sync.js?v=68"></script>
+  <script src="assets/js/coupons.js?v=68"></script>
   <!-- 운송장 바코드: JsBarcode -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
   <!-- 차트: Chart.js -->
@@ -169,7 +169,7 @@
     }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=66">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=68">
 </head>
 <body class="min-h-screen flex flex-col selection:bg-seal-red/15 selection:text-seal-red">
   <!-- 1. 관리자 상단 헤더 (Admin Top Bar) -->
@@ -262,6 +262,13 @@
               <span>고객 상담 문의</span>
             </div>
             <span id="badge-inquiry-count" class="text-xs bg-black/10 text-ink-gray px-1.5 py-0.5 rounded">0</span>
+          </button>
+          <button onclick="switchAdminTab('reviews-admin')" id="tab-btn-reviews-admin" class="sidebar-btn">
+            <div class="flex items-center gap-2.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+              <span>손님 후기 관리</span>
+            </div>
+            <span id="badge-review-admin-count" class="hidden text-xs bg-seal-red text-white px-1.5 py-0.5 rounded font-bold">0</span>
           </button>
           <p class="sidebar-group">매출</p>
           <button onclick="switchAdminTab('finance')" id="tab-btn-finance" class="sidebar-btn">
@@ -1035,7 +1042,39 @@
 
       </section>
 
-      <!-- 5. 매장 정보 설정 패널 -->
+      <!-- 손님 후기 관리 패널 (Reviews Admin) -->
+      <section id="panel-reviews-admin" class="space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-extrabold text-ink-black tracking-tight">손님 후기 관리</h1>
+            <p class="text-xs text-ink-gray mt-1">
+              배송이 완료된 손님이 남긴 후기입니다. 사장님 확인 후 게시할 수 있으며, 소중한 답글을 남길 수 있습니다.
+            </p>
+          </div>
+        </div>
+
+        <!-- 필터 탭 바 -->
+        <div class="flex items-center gap-2 border-b border-ink-black/10 pb-2">
+          <button type="button" onclick="filterReviewsAdmin('pending')" id="rev-admin-tab-pending" class="rev-admin-tab px-3 py-1.5 rounded text-xs font-bold bg-ink-black text-white cursor-pointer">
+            확인 대기 <span id="rev-admin-count-pending" class="ml-1 px-1.5 py-0.2 bg-seal-red text-white text-[10px] rounded-full">0</span>
+          </button>
+          <button type="button" onclick="filterReviewsAdmin('approved')" id="rev-admin-tab-approved" class="rev-admin-tab px-3 py-1.5 rounded text-xs font-bold bg-white text-ink-gray border border-ink-black/15 hover:bg-hanji cursor-pointer">
+            게시됨 <span id="rev-admin-count-approved" class="ml-1 text-[11px] text-ink-gray font-normal">0</span>
+          </button>
+          <button type="button" onclick="filterReviewsAdmin('hidden')" id="rev-admin-tab-hidden" class="rev-admin-tab px-3 py-1.5 rounded text-xs font-bold bg-white text-ink-gray border border-ink-black/15 hover:bg-hanji cursor-pointer">
+            숨김 <span id="rev-admin-count-hidden" class="ml-1 text-[11px] text-ink-gray font-normal">0</span>
+          </button>
+          <button type="button" onclick="filterReviewsAdmin('all')" id="rev-admin-tab-all" class="rev-admin-tab px-3 py-1.5 rounded text-xs font-bold bg-white text-ink-gray border border-ink-black/15 hover:bg-hanji cursor-pointer">
+            전체 <span id="rev-admin-count-all" class="ml-1 text-[11px] text-ink-gray font-normal">0</span>
+          </button>
+        </div>
+
+        <!-- 후기 카드 목록 -->
+        <div id="admin-reviews-list" class="space-y-4"></div>
+        <div id="admin-reviews-empty" class="hidden text-center py-12 text-sm text-ink-gray bg-white border border-ink-black/10 rounded-sm">
+          해당 상태의 후기가 없습니다.
+        </div>
+      </section>
       <section id="panel-settings" class="space-y-6 hidden">
         <div>
           <h1 class="text-2xl font-extrabold text-ink-black tracking-tight">매장 정보 및 고객센터 설정</h1>
@@ -1563,19 +1602,19 @@
 
   <!-- JavaScript: Admin 로직 & 쇼핑몰 데이터 양방향 실시간 동기화 -->
   <!-- 관리자 화면 동작 (화면별 파일, 순서 중요) -->
-  <script src="assets/js/admin/admin-dashboard.js?v=66"></script>
-  <script src="assets/js/admin/admin-products.js?v=66"></script>
-  <script src="assets/js/admin/admin-orders.js?v=66"></script>
-  <script src="assets/js/admin/admin-inquiries.js?v=66"></script>
-  <script src="assets/js/admin/admin-product-modal.js?v=66"></script>
-  <script src="assets/js/admin/admin-flowers.js?v=66"></script>
-  <script src="assets/js/admin/admin-coupons.js?v=66"></script>
-  <script src="assets/js/admin/admin-settings.js?v=66"></script>
-  <script src="assets/js/admin/admin-popups.js?v=66"></script>
-  <script src="assets/js/admin/admin-finance.js?v=66"></script>
-  <script src="assets/js/admin/admin-integrations.js?v=66"></script>
-  <script src="assets/js/admin/admin-pages.js?v=66"></script>
-  <script src="assets/js/admin/admin-tools-ui.js?v=66"></script>
+  <script src="assets/js/admin/admin-dashboard.js?v=68"></script>
+  <script src="assets/js/admin/admin-products.js?v=68"></script>
+  <script src="assets/js/admin/admin-orders.js?v=68"></script>
+  <script src="assets/js/admin/admin-inquiries.js?v=68"></script>
+  <script src="assets/js/admin/admin-product-modal.js?v=68"></script>
+  <script src="assets/js/admin/admin-flowers.js?v=68"></script>
+  <script src="assets/js/admin/admin-coupons.js?v=68"></script>
+  <script src="assets/js/admin/admin-settings.js?v=68"></script>
+  <script src="assets/js/admin/admin-popups.js?v=68"></script>
+  <script src="assets/js/admin/admin-finance.js?v=68"></script>
+  <script src="assets/js/admin/admin-integrations.js?v=68"></script>
+  <script src="assets/js/admin/admin-pages.js?v=68"></script>
+  <script src="assets/js/admin/admin-tools-ui.js?v=68"></script>
 
   <!-- 슬라이드 편집 모달 -->
   <div id="slide-edit-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-black/60 hidden">

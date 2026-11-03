@@ -188,22 +188,29 @@ window.addEventListener('resize', () => { if (window.innerWidth >= 1024) toggleA
 function switchAdminTab(tabName) {
   if (window.innerWidth < 1024) toggleAdminMenu(false);
   window.scrollTo({ top: 0 });
-  ['dashboard', 'products', 'flowers', 'orders', 'finance', 'coupons', 'reviews', 'settings', 'popups', 'integrations', 'pages'].forEach(t => {
-    document.getElementById(`panel-${t}`).classList.add('hidden');
+  ['dashboard', 'products', 'flowers', 'orders', 'finance', 'coupons', 'reviews', 'reviews-admin', 'settings', 'popups', 'integrations', 'pages'].forEach(t => {
+    const p = document.getElementById(`panel-${t}`);
+    if (p) p.classList.add('hidden');
     const b = document.getElementById(`tab-btn-${t}`);
-    b.classList.remove('is-active');
-    b.removeAttribute('aria-current');
+    if (b) {
+      b.classList.remove('is-active');
+      b.removeAttribute('aria-current');
+    }
   });
 
-  document.getElementById(`panel-${tabName}`).classList.remove('hidden');
+  const targetPanel = document.getElementById(`panel-${tabName}`);
+  if (targetPanel) targetPanel.classList.remove('hidden');
   const active = document.getElementById(`tab-btn-${tabName}`);
-  active.classList.add('is-active');
-  active.setAttribute('aria-current', 'page');
+  if (active) {
+    active.classList.add('is-active');
+    active.setAttribute('aria-current', 'page');
+  }
   if (tabName === 'popups') { try { initPopupsAdmin(); } catch (e) { console.error('initPopupsAdmin error:', e); } }
   if (tabName === 'dashboard') { try { renderDashboard(); } catch (e) { console.error('renderDashboard error:', e); } }
   if (tabName === 'finance') { try { renderFinance(); } catch (e) { console.error('renderFinance error:', e); } }
   if (tabName === 'settings') { try { renderDeliverySettings(); } catch (e) { console.error('renderDeliverySettings error:', e); } }
   if (tabName === 'reviews') { try { renderRestockList(); } catch (e) { console.error('renderRestockList error:', e); } }
+  if (tabName === 'reviews-admin') { try { renderReviewsAdmin(); } catch (e) { console.error('renderReviewsAdmin error:', e); } }
   if (tabName === 'coupons') { try { renderCouponsAdmin(); } catch (e) { console.error('renderCouponsAdmin error:', e); } }
   if (tabName === 'flowers') { try { renderFlowerDictionary(); } catch (e) { console.error('renderFlowerDictionary error:', e); } }
   if (tabName === 'pages') { try { renderPagesAdmin(); } catch (e) { console.error('renderPagesAdmin error:', e); } }
@@ -275,4 +282,226 @@ async function restoreServerBackup(name, label) {
 async function adminLogout() {
   await fetch('/api/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }).catch(() => {});
   location.reload();
+}
+
+/* ---------- 손님 후기 관리 (Admin Reviews) ---------- */
+let currentAdminReviewTab = 'pending';
+
+function filterReviewsAdmin(tab) {
+  currentAdminReviewTab = tab;
+  ['pending', 'approved', 'hidden', 'all'].forEach(t => {
+    const btn = document.getElementById(`rev-admin-tab-${t}`);
+    if (btn) {
+      if (t === tab) {
+        btn.className = 'rev-admin-tab px-3 py-1.5 rounded text-xs font-bold bg-ink-black text-white cursor-pointer';
+      } else {
+        btn.className = 'rev-admin-tab px-3 py-1.5 rounded text-xs font-bold bg-white text-ink-gray border border-ink-black/15 hover:bg-hanji cursor-pointer';
+      }
+    }
+  });
+  renderReviewsAdmin();
+}
+
+function renderReviewsAdmin() {
+  const listEl = document.getElementById('admin-reviews-list');
+  const emptyEl = document.getElementById('admin-reviews-empty');
+  if (!listEl) return;
+
+  const allRevs = typeof loadReviews === 'function' ? loadReviews() : [];
+
+  // 카운트 집계
+  const counts = {
+    pending: allRevs.filter(r => r.status === 'pending').length,
+    approved: allRevs.filter(r => r.status === 'approved').length,
+    hidden: allRevs.filter(r => r.status === 'hidden').length,
+    all: allRevs.length
+  };
+
+  ['pending', 'approved', 'hidden', 'all'].forEach(t => {
+    const cEl = document.getElementById(`rev-admin-count-${t}`);
+    if (cEl) cEl.textContent = counts[t];
+  });
+
+  // 사이드바 배지
+  const sideBadge = document.getElementById('badge-review-admin-count');
+  if (sideBadge) {
+    if (counts.pending > 0) {
+      sideBadge.textContent = counts.pending;
+      sideBadge.classList.remove('hidden');
+    } else {
+      sideBadge.classList.add('hidden');
+    }
+  }
+
+  // 필터링
+  let filtered = allRevs;
+  if (currentAdminReviewTab !== 'all') {
+    filtered = allRevs.filter(r => r.status === currentAdminReviewTab);
+  }
+  // 최신순 정렬
+  filtered.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = '';
+    if (emptyEl) emptyEl.classList.remove('hidden');
+    return;
+  }
+  if (emptyEl) emptyEl.classList.add('hidden');
+
+  listEl.innerHTML = '';
+  filtered.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'bg-white border border-ink-black/10 rounded-sm p-5 space-y-4 shadow-xs';
+
+    const starStr = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
+    const dateStr = r.createdAt ? r.createdAt.slice(0, 16).replace('T', ' ') : '';
+
+    let photoArr = [];
+    try { photoArr = Array.isArray(r.photos) ? r.photos : JSON.parse(r.photos || '[]'); } catch (e) {}
+
+    const statusBadge = {
+      pending: '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800">확인 대기</span>',
+      approved: '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800">게시됨</span>',
+      hidden: '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-gray-100 text-gray-700">숨김</span>'
+    }[r.status] || `<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-gray-100 text-gray-700">${escapeHtml(r.status)}</span>`;
+
+    let mediaHtml = '';
+    if (photoArr.length > 0) {
+      mediaHtml += `
+        <div class="flex gap-2 pt-1 flex-wrap">
+          ${photoArr.map(src => `
+            <img src="${src}" alt="후기 사진" class="w-16 h-16 object-cover rounded-xs border border-ink-black/10 cursor-pointer hover:opacity-80" onclick="window.open('${src}', '_blank')" />
+          `).join('')}
+        </div>
+      `;
+    }
+    if (r.video) {
+      mediaHtml += `
+        <div class="pt-2 max-w-sm">
+          <video src="${r.video}" controls playsinline preload="metadata" class="w-full max-h-48 rounded-xs bg-black"></video>
+        </div>
+      `;
+    }
+
+    card.innerHTML = `
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-ink-black/5 pb-3">
+        <div class="flex items-center gap-2.5">
+          ${statusBadge}
+          <span class="text-amber-500 font-bold">${starStr}</span>
+          <span class="text-xs text-ink-gray">${dateStr}</span>
+        </div>
+        <div class="text-xs text-ink-gray font-mono">
+          주문번호: <span class="font-bold text-ink-black">${escapeHtml(r.orderNumber || '-')}</span>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <div class="text-xs font-bold text-seal-red">
+          꽃 상품: ${escapeHtml(r.productName || '설담화 꽃')}
+        </div>
+        <p class="text-sm text-ink-charcoal leading-relaxed whitespace-pre-wrap">${escapeHtml(r.text || '')}</p>
+        ${mediaHtml}
+      </div>
+
+      <!-- 사장님 답글 영역 -->
+      <div class="pt-3 border-t border-ink-black/5 space-y-2 bg-[#FAF7F2] p-3 rounded-xs">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-ink-black flex items-center gap-1">🌸 설담화 사장님 답글</span>
+          ${r.replyAt ? `<span class="text-[11px] text-ink-gray">${r.replyAt.slice(0, 10)}</span>` : ''}
+        </div>
+        <div id="reply-box-${r.id}">
+          ${r.adminReply ? `
+            <p class="text-xs text-ink-charcoal leading-relaxed whitespace-pre-wrap">${escapeHtml(r.adminReply)}</p>
+            <div class="pt-2 text-right">
+              <button type="button" onclick="showReplyEditForm('${r.id}')" class="text-xs text-ink-gray hover:text-seal-red underline cursor-pointer">답글 수정</button>
+            </div>
+          ` : `
+            <div class="flex gap-2">
+              <input type="text" id="reply-input-${r.id}" placeholder="손님께 남길 정성스러운 답글을 입력해 주세요." class="flex-1 bg-white border border-ink-black/20 p-2 text-xs rounded-xs outline-none focus:border-seal-red" />
+              <button type="button" onclick="handleReplySubmit('${r.id}')" class="px-3 py-1.5 bg-ink-black text-white text-xs font-bold rounded-xs hover:bg-seal-red cursor-pointer">답글 등록</button>
+            </div>
+          `}
+        </div>
+      </div>
+
+      <!-- 관리자 액션 버튼 -->
+      <div class="flex items-center justify-end gap-2 pt-2">
+        ${r.status !== 'approved' ? `
+          <button type="button" onclick="updateReviewStatus('${r.id}', 'approved')" class="px-3 py-1.5 bg-emerald-700 text-white text-xs font-bold rounded-xs hover:bg-emerald-800 cursor-pointer shadow-xs">
+            게시 승인
+          </button>
+        ` : `
+          <button type="button" onclick="updateReviewStatus('${r.id}', 'hidden')" class="px-3 py-1.5 bg-gray-600 text-white text-xs font-bold rounded-xs hover:bg-gray-700 cursor-pointer">
+            숨기기
+          </button>
+        `}
+        <button type="button" onclick="deleteReview('${r.id}')" class="px-3 py-1.5 border border-red-300 text-red-700 bg-white text-xs font-bold rounded-xs hover:bg-red-50 cursor-pointer">
+          삭제
+        </button>
+      </div>
+    `;
+
+    listEl.appendChild(card);
+  });
+}
+
+function showReplyEditForm(id) {
+  const box = document.getElementById(`reply-box-${id}`);
+  if (!box) return;
+  const allRevs = typeof loadReviews === 'function' ? loadReviews() : [];
+  const target = allRevs.find(r => r.id === id);
+  const currentReply = target ? (target.adminReply || '') : '';
+
+  box.innerHTML = `
+    <div class="space-y-2">
+      <textarea id="reply-input-${id}" rows="2" class="w-full bg-white border border-ink-black/20 p-2 text-xs rounded-xs outline-none focus:border-seal-red">${escapeHtml(currentReply)}</textarea>
+      <div class="flex justify-end gap-2">
+        <button type="button" onclick="renderReviewsAdmin()" class="px-2.5 py-1 text-xs border border-ink-black/20 rounded-xs bg-white text-ink-gray hover:bg-hanji cursor-pointer">취소</button>
+        <button type="button" onclick="handleReplySubmit('${id}')" class="px-3 py-1 text-xs font-bold rounded-xs bg-ink-black text-white hover:bg-seal-red cursor-pointer">수정 저장</button>
+      </div>
+    </div>
+  `;
+}
+
+async function handleReplySubmit(id) {
+  const input = document.getElementById(`reply-input-${id}`);
+  if (!input) return;
+  const text = input.value.trim();
+  await saveAdminReply(id, text);
+}
+
+async function updateReviewStatus(id, newStatus) {
+  const list = typeof loadReviews === 'function' ? loadReviews() : [];
+  const target = list.find(r => r.id === id);
+  if (!target) return;
+  target.status = newStatus;
+  if (typeof saveReviews === 'function') saveReviews(list);
+  if (typeof DataSync !== 'undefined' && DataSync.enabled) {
+    try { await DataSync.sync(); } catch (e) { console.warn('리뷰 상태 동기화 실패:', e); }
+  }
+  renderReviewsAdmin();
+}
+
+async function deleteReview(id) {
+  if (!confirm('이 후기를 삭제할까요? 등록된 사진·동영상도 함께 삭제됩니다.')) return;
+  const list = typeof loadReviews === 'function' ? loadReviews() : [];
+  const filtered = list.filter(r => r.id !== id);
+  if (typeof saveReviews === 'function') saveReviews(filtered);
+  if (typeof DataSync !== 'undefined' && DataSync.enabled) {
+    try { await DataSync.sync(); } catch (e) { console.warn('리뷰 삭제 동기화 실패:', e); }
+  }
+  renderReviewsAdmin();
+}
+
+async function saveAdminReply(id, replyText) {
+  const list = typeof loadReviews === 'function' ? loadReviews() : [];
+  const target = list.find(r => r.id === id);
+  if (!target) return;
+  target.adminReply = replyText;
+  target.replyAt = new Date().toISOString();
+  if (typeof saveReviews === 'function') saveReviews(list);
+  if (typeof DataSync !== 'undefined' && DataSync.enabled) {
+    try { await DataSync.sync(); } catch (e) { console.warn('리뷰 답글 동기화 실패:', e); }
+  }
+  renderReviewsAdmin();
 }

@@ -147,11 +147,13 @@ function renderTodayTasks(orders, products, inquiries, today) {
   const making = orders.filter(o => o.status === 'preparing').length;
   const newInq = inquiries.filter(i => i.status === 'new').length;
   const restock = typeof restockWaitingCount === 'function' ? restockWaitingCount() : 0;
+  const pendingReviews = (typeof loadReviews === 'function' ? loadReviews() : []).filter(r => r.status === 'pending').length;
   const low = products.filter(p => !p.inquiryOnly && getStockStatus(p.stockQuantity) === 'low_stock').length;
   const tasks = [
     { label: '오늘 배송', n: todayDeliv, unit: '건', go: () => goTodayTask('orders', 'today') },
     { label: '제작 중', n: making, unit: '건', go: () => goTodayTask('orders', 'preparing') },
     { label: '새 상담', n: newInq, unit: '건', go: () => goTodayTask('reviews') },
+    { label: '새 후기', n: pendingReviews, unit: '건', go: () => goTodayTask('reviews-admin') },
     { label: '재입고 알림 대기', n: restock, unit: '명', go: () => goTodayTask('restock') },
     { label: '품절 임박', n: low, unit: '개', go: () => goTodayTask('low') }
   ];
@@ -180,6 +182,8 @@ function goTodayTask(kind, arg) {
     if (typeof setOrderStatusFilter === 'function') setOrderStatusFilter(arg === 'preparing' ? 'preparing' : 'all');
   } else if (kind === 'reviews') {
     switchAdminTab('reviews');
+  } else if (kind === 'reviews-admin') {
+    switchAdminTab('reviews-admin');
   } else if (kind === 'restock') {
     switchAdminTab('reviews');
     const el = document.getElementById('admin-restock-list');
@@ -226,6 +230,13 @@ function renderDashboard() {
   if (inqBadge) {
     inqBadge.innerText = newInquiries;
     inqBadge.className = newInquiries > 0 ? 'text-xs bg-seal-red text-white px-1.5 py-0.5 rounded font-bold' : 'text-xs bg-black/10 text-ink-gray px-1.5 py-0.5 rounded';
+  }
+  const revBadge = document.getElementById('badge-review-admin-count');
+  if (revBadge) {
+    const pendingRevs = (typeof loadReviews === 'function' ? loadReviews() : []).filter(r => r.status === 'pending').length;
+    revBadge.innerText = pendingRevs;
+    if (pendingRevs > 0) revBadge.classList.remove('hidden');
+    else revBadge.classList.add('hidden');
   }
 
   // 2) 차트 (대시보드가 보일 때만 그리기)

@@ -517,6 +517,57 @@ function runOrderLookup(e) {
     row.append(a, b);
     card.appendChild(row);
   });
+
+  // 배송 완료 주문인 경우 품목별 후기 작성 영역 추가
+  if (o.status === 'completed') {
+    const revSection = document.createElement('div');
+    revSection.className = 'mt-4 pt-3 border-t border-ink-black/10 space-y-2';
+    const revTitle = document.createElement('div');
+    revTitle.className = 'font-bold text-xs text-ink-black flex items-center justify-between';
+    revTitle.innerHTML = '<span>꽃 후기 남기기</span><span class="text-[11px] font-normal text-ink-gray">배송 완료 후기를 남겨주세요</span>';
+    revSection.appendChild(revTitle);
+
+    const allRevs = typeof loadReviews === 'function' ? loadReviews() : [];
+    const itemsList = o.items || [];
+    itemsList.forEach((item, itemIdx) => {
+      const pid = (item.product && item.product.id) || item.productId || item.id || `prod_${itemIdx}`;
+      const pname = (typeof tProduct === 'function' && item.product ? tProduct(item.product).name : (item.product && item.product.name) || item.productName || item.name || '주문 상품');
+
+      const itemRow = document.createElement('div');
+      itemRow.className = 'flex items-center justify-between p-2.5 bg-[#FAF7F2] rounded-xs text-xs';
+
+      const itemInfo = document.createElement('div');
+      itemInfo.className = 'font-medium text-ink-black pr-2';
+      itemInfo.textContent = pname + (item.sizeLabel ? ` (${item.sizeLabel})` : '');
+      itemRow.appendChild(itemInfo);
+
+      const existing = allRevs.find(r =>
+        (String(r.orderId) === String(o.id) || String(r.orderNumber) === String(o.orderNumber)) &&
+        (String(r.productId) === String(pid) || String(r.productName) === String(pname))
+      );
+
+      const actionWrap = document.createElement('div');
+      actionWrap.className = 'shrink-0';
+      if (existing) {
+        if (existing.status === 'approved') {
+          actionWrap.innerHTML = '<span class="text-xs font-bold text-forest-green">후기를 남기셨어요 (게시됨)</span>';
+        } else {
+          actionWrap.innerHTML = '<span class="text-xs font-bold text-ink-gray">후기를 남기셨어요 (확인 중)</span>';
+        }
+      } else {
+        const revBtn = document.createElement('button');
+        revBtn.type = 'button';
+        revBtn.className = 'px-3 py-1 bg-seal-red text-white text-xs font-bold rounded-xs hover:bg-seal-red/90 cursor-pointer shadow-xs';
+        revBtn.textContent = '후기 쓰기';
+        revBtn.onclick = () => openReviewModal(o, item);
+        actionWrap.appendChild(revBtn);
+      }
+      itemRow.appendChild(actionWrap);
+      revSection.appendChild(itemRow);
+    });
+    card.appendChild(revSection);
+  }
+
   box.appendChild(card);
 }
 
@@ -909,5 +960,378 @@ async function submitCustomerOrder(e) {
 
 
 // 1:1 상담 문의 핸들러는 하단 단일 정의로 통합 관리
+
+// ----------------------------------------------------
+// 고객 후기 작성 및 미디어 처리 (Customer Reviews)
+// ----------------------------------------------------
+let reviewSelectedPhotos = []; // { blob, name, previewUrl }
+let reviewSelectedVideo = null; // { file, name }
+
+function openReviewModal(order, item) {
+  const modal = document.getElementById('modal-review');
+  if (!modal) return;
+  const pid = (item.product && item.product.id) || item.productId || item.id || '';
+  const pname = (typeof tProduct === 'function' && item.product ? tProduct(item.product).name : (item.product && item.product.name) || item.productName || item.name || '주문 상품');
+  const pphone = order.ordererPhone || order.phone || '';
+
+  document.getElementById('review-order-id').value = order.id || '';
+  document.getElementById('review-order-number').value = order.orderNumber || '';
+  document.getElementById('review-orderer-phone').value = pphone;
+  document.getElementById('review-product-id').value = pid;
+  document.getElementById('review-product-name').value = pname;
+
+  const prodNameEl = document.getElementById('review-modal-product-name');
+  if (prodNameEl) prodNameEl.textContent = pname + (item.sizeLabel ? ` (${item.sizeLabel})` : '');
+
+  // 초기화
+  setReviewRating(5);
+  const textEl = document.getElementById('review-text');
+  if (textEl) textEl.value = '';
+  updateReviewCharCount();
+
+  const consentEl = document.getElementById('review-consent');
+  if (consentEl) consentEl.checked = false;
+
+  reviewSelectedPhotos = [];
+  reviewSelectedVideo = null;
+  const photoInput = document.getElementById('review-photo-input');
+  if (photoInput) photoInput.value = '';
+  const videoInput = document.getElementById('review-video-input');
+  if (videoInput) videoInput.value = '';
+  renderReviewPhotoPreviews();
+  renderReviewVideoPreview();
+
+  modal.classList.remove('hidden');
+}
+
+function closeReviewModal() {
+  const modal = document.getElementById('modal-review');
+  if (modal) modal.classList.add('hidden');
+  reviewSelectedPhotos.forEach(p => { if (p.previewUrl) URL.revokeObjectURL(p.previewUrl); });
+  reviewSelectedPhotos = [];
+  reviewSelectedVideo = null;
+}
+
+function setReviewRating(rating) {
+  const val = Math.max(1, Math.min(5, Number(rating) || 5));
+  const hiddenInput = document.getElementById('review-rating-val');
+  if (hiddenInput) hiddenInput.value = val;
+  const starBtns = document.querySelectorAll('#review-rating-stars .star-btn');
+  starBtns.forEach((btn, idx) => {
+    btn.textContent = idx < val ? '★' : '☆';
+    btn.className = `star-btn hover:scale-110 transition-transform ${idx < val ? 'text-amber-400' : 'text-ink-black/20'}`;
+  });
+}
+
+function updateReviewCharCount() {
+  const textEl = document.getElementById('review-text');
+  const countEl = document.getElementById('review-text-counter');
+  if (!textEl || !countEl) return;
+  const len = textEl.value.trim().length;
+  countEl.textContent = `${len} / 500`;
+  if (len > 0 && len < 10) {
+    countEl.className = 'text-seal-red text-xs font-bold';
+  } else {
+    countEl.className = 'text-ink-gray text-xs';
+  }
+}
+
+async function handleReviewPhotoSelect(input) {
+  if (!input.files || input.files.length === 0) return;
+  const newFiles = Array.from(input.files);
+  input.value = '';
+
+  if (reviewSelectedPhotos.length + newFiles.length > 3) {
+    alert('사진은 최대 3장까지만 첨부할 수 있어요.');
+    return;
+  }
+
+  for (const file of newFiles) {
+    try {
+      const resizedBlob = await resizeImageToBlob(file);
+      const previewUrl = URL.createObjectURL(resizedBlob);
+      reviewSelectedPhotos.push({
+        blob: resizedBlob,
+        name: file.name.replace(/\.[^/.]+$/, '') + '.jpg',
+        previewUrl
+      });
+    } catch (err) {
+      alert(err.message || '사진을 처리할 수 없어요.');
+    }
+  }
+  renderReviewPhotoPreviews();
+}
+
+function renderReviewPhotoPreviews() {
+  const box = document.getElementById('review-photo-previews');
+  if (!box) return;
+  box.innerHTML = '';
+  reviewSelectedPhotos.forEach((item, idx) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'relative w-16 h-16 rounded-xs border border-ink-black/15 overflow-hidden group';
+    wrap.innerHTML = `
+      <img src="${item.previewUrl}" alt="첨부 사진" class="w-full h-full object-cover cursor-pointer" onclick="openReviewPhotoModal('${item.previewUrl}')" />
+      <button type="button" class="absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] leading-none hover:bg-seal-red" onclick="removeReviewPhoto(${idx})">×</button>
+    `;
+    box.appendChild(wrap);
+  });
+}
+
+function removeReviewPhoto(idx) {
+  if (reviewSelectedPhotos[idx] && reviewSelectedPhotos[idx].previewUrl) {
+    URL.revokeObjectURL(reviewSelectedPhotos[idx].previewUrl);
+  }
+  reviewSelectedPhotos.splice(idx, 1);
+  renderReviewPhotoPreviews();
+}
+
+function resizeImageToBlob(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const maxSide = 1000;
+        let w = img.width;
+        let h = img.height;
+        if (w > maxSide || h > maxSide) {
+          if (w > h) {
+            h = Math.round((h * maxSide) / w);
+            w = maxSide;
+          } else {
+            w = Math.round((w * maxSide) / h);
+            h = maxSide;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        canvas.toBlob(blob => {
+          if (!blob) return reject(new Error('사진 변환에 실패했어요.'));
+          if (blob.size > 300 * 1024) {
+            canvas.toBlob(blob2 => {
+              if (blob2 && blob2.size <= 300 * 1024) resolve(blob2);
+              else reject(new Error('사진 크기가 300KB를 넘어요. 더 작은 사진을 올려주세요.'));
+            }, 'image/jpeg', 0.65);
+          } else {
+            resolve(blob);
+          }
+        }, 'image/jpeg', 0.82);
+      };
+      img.onerror = () => reject(new Error('사진 파일을 읽을 수 없어요.'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('파일 읽기 오류'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleReviewVideoSelect(input) {
+  if (!input.files || input.files.length === 0) return;
+  const file = input.files[0];
+  input.value = '';
+
+  try {
+    await checkVideoMetadata(file);
+    reviewSelectedVideo = { file, name: file.name };
+    renderReviewVideoPreview();
+  } catch (err) {
+    alert(err.message || '동영상을 첨부할 수 없어요.');
+  }
+}
+
+function checkVideoMetadata(file) {
+  return new Promise((resolve, reject) => {
+    if (file.size > 20 * 1024 * 1024) {
+      return reject(new Error('동영상 용량은 20MB 이하여야 해요.'));
+    }
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    const validExts = ['mp4', 'webm', 'mov'];
+    if (!validExts.includes(ext) && !file.type.startsWith('video/')) {
+      return reject(new Error('동영상은 mp4, webm, mov 파일만 첨부할 수 있어요.'));
+    }
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    const url = URL.createObjectURL(file);
+    video.onloadedmetadata = () => {
+      URL.revokeObjectURL(url);
+      if (video.duration > 30.5) {
+        reject(new Error(`동영상 길이는 30초 이하여야 해요 (현재: ${Math.round(video.duration)}초).`));
+      } else {
+        resolve(true);
+      }
+    };
+    video.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('동영상 재생 시간을 확인할 수 없어요.'));
+    };
+    video.src = url;
+  });
+}
+
+function renderReviewVideoPreview() {
+  const box = document.getElementById('review-video-preview');
+  if (!box) return;
+  if (!reviewSelectedVideo) {
+    box.innerHTML = '';
+    return;
+  }
+  box.innerHTML = `
+    <div class="inline-flex items-center gap-2 px-2.5 py-1.5 bg-[#FAF7F2] border border-ink-black/15 rounded-xs text-xs text-ink-black">
+      <span class="truncate max-w-[200px]">🎬 ${htmlText(reviewSelectedVideo.name)}</span>
+      <button type="button" class="text-ink-gray hover:text-seal-red font-bold text-sm leading-none" onclick="removeReviewVideo()">✕</button>
+    </div>
+  `;
+}
+
+function removeReviewVideo() {
+  reviewSelectedVideo = null;
+  renderReviewVideoPreview();
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const b64 = (reader.result || '').split(',')[1] || '';
+      resolve(b64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function uploadReviewMedia(orderNumber, phone, filename, blob) {
+  const base64 = await blobToBase64(blob);
+  const res = await fetch('/api/review-media', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orderNumber, phone, filename, data: base64 })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || '미디어 업로드 실패');
+  }
+  const data = await res.json();
+  return data.path;
+}
+
+async function submitCustomerReview(e) {
+  e.preventDefault();
+  const orderId = document.getElementById('review-order-id').value;
+  const orderNumber = document.getElementById('review-order-number').value;
+  const phone = document.getElementById('review-orderer-phone').value;
+  const productId = document.getElementById('review-product-id').value;
+  const productName = document.getElementById('review-product-name').value;
+  const rating = Number(document.getElementById('review-rating-val').value) || 5;
+  const text = (document.getElementById('review-text').value || '').trim();
+
+  if (rating < 1 || rating > 5) {
+    alert('별점을 1~5점 중에서 골라 주세요.');
+    return;
+  }
+  if (text.length < 10 || text.length > 500) {
+    alert('후기 내용은 10자 이상 500자 이하로 적어 주세요.');
+    return;
+  }
+  const consent = document.getElementById('review-consent').checked;
+  if (!consent) {
+    alert('후기 게시 동의에 체크해 주세요.');
+    return;
+  }
+
+  const submitBtn = document.getElementById('btn-submit-review');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = '등록 중...';
+  }
+
+  try {
+    const photoPaths = [];
+    let videoPath = '';
+
+    const isServerMode = typeof DataSync !== 'undefined' && DataSync.enabled && !DataSync.local;
+
+    // 미디어 업로드
+    for (const p of reviewSelectedPhotos) {
+      if (isServerMode) {
+        const path = await uploadReviewMedia(orderNumber, phone, p.name, p.blob);
+        photoPaths.push(path);
+      } else {
+        // 로컬 오프라인 모드에서는 base64 URL 보존
+        const b64 = await blobToBase64(p.blob);
+        photoPaths.push(`data:image/jpeg;base64,${b64}`);
+      }
+    }
+
+    if (reviewSelectedVideo) {
+      if (isServerMode) {
+        videoPath = await uploadReviewMedia(orderNumber, phone, reviewSelectedVideo.name, reviewSelectedVideo.file);
+      } else {
+        videoPath = reviewSelectedVideo.name;
+      }
+    }
+
+    const newRev = {
+      id: 'rev_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      orderId,
+      orderNumber,
+      productId,
+      productName,
+      rating,
+      text,
+      photos: JSON.stringify(photoPaths),
+      video: videoPath,
+      status: 'pending', // 사장님 승인 대기
+      adminReply: '',
+      replyAt: '',
+      createdAt: new Date().toISOString(),
+      isSample: false
+    };
+
+    const currentRevs = typeof loadReviews === 'function' ? loadReviews() : [];
+    currentRevs.push(newRev);
+    if (typeof saveReviews === 'function') saveReviews(currentRevs);
+
+    // 서버에 동기화
+    if (typeof DataSync !== 'undefined' && DataSync.enabled) {
+      await DataSync.sync();
+    }
+
+    alert('소중한 후기가 접수되었어요. 사장님 확인 후 게시됩니다.');
+    closeReviewModal();
+
+    // 주문 조회 결과 새로고침
+    const lookupEvt = new Event('submit', { cancelable: true });
+    runOrderLookup(lookupEvt);
+
+  } catch (err) {
+    console.error('후기 등록 실패:', err);
+    alert(err.message || '후기를 등록하지 못했어요. 다시 시도해 주세요.');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '후기 등록하기';
+    }
+  }
+}
+
+function openReviewPhotoModal(src) {
+  const modal = document.getElementById('modal-review-photo');
+  const img = document.getElementById('review-photo-full');
+  if (!modal || !img) return;
+  img.src = src;
+  modal.classList.remove('hidden');
+}
+
+function closeReviewPhotoModal() {
+  const modal = document.getElementById('modal-review-photo');
+  const img = document.getElementById('review-photo-full');
+  if (modal) modal.classList.add('hidden');
+  if (img) img.src = '';
+}
+
 
 // 5. 뷰 전환 및 모바일 메뉴 제어
