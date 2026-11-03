@@ -3,7 +3,7 @@
 // 올린 사진은 크기를 줄여(가로·세로 최대 1200px, JPG) 이 브라우저에 저장합니다.
 // 서버를 붙이면 saveUploadedImage()만 서버 업로드로 바꾸면 됩니다.
 
-const IMAGE_LIBRARY_KEY = 'seoldamhwa_images';
+var IMAGE_LIBRARY_KEY = DataStore.KEYS.images;
 const IMAGE_MAX_SIDE = 1200;
 const IMAGE_QUALITY = 0.82;
 
@@ -22,26 +22,17 @@ const SITE_IMAGES = [
 ];
 
 function loadImageLibrary() {
-  try {
-    const list = JSON.parse(localStorage.getItem(IMAGE_LIBRARY_KEY) || '[]');
-    return Array.isArray(list) ? list : [];
-  } catch (e) {
-    return [];
-  }
+  const list = DataStore.read(IMAGE_LIBRARY_KEY, []);
+  return Array.isArray(list) ? list : [];
 }
 
 function saveImageLibrary(list) {
-  localStorage.setItem(IMAGE_LIBRARY_KEY, JSON.stringify(list));
+  DataStore.write(IMAGE_LIBRARY_KEY, list);
 }
 
 // 브라우저 저장 공간 사용량 (대략, MB)
 function storageUsedMB() {
-  let total = 0;
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    total += (k.length + (localStorage.getItem(k) || '').length) * 2;
-  }
-  return total / 1024 / 1024;
+  return (typeof DataStore !== 'undefined' && DataStore.approximateSize ? DataStore.approximateSize() : 0) / 1024 / 1024;
 }
 
 // 파일 → 줄인 JPG dataURL

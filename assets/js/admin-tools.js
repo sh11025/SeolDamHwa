@@ -148,7 +148,7 @@ function hasSampleData() {
   return products.some(p => String(p.id).startsWith(SAMPLE_PRODUCT_PREFIX))
     || loadOrders().some(o => o.isSample)
     || loadExpenses().some(e => e.isSample)
-    || JSON.parse(localStorage.getItem('seoldamhwa_inquiries') || '[]').some(i => i.isSample);
+    || loadInquiries().some(i => i.isSample);
 }
 
 function sampleProductsVisible() {
@@ -241,14 +241,14 @@ function addSampleData({ showInShop = true } = {}) {
   saveExpenses(expenses);
 
   // 상담 문의
-  const inquiries = JSON.parse(localStorage.getItem('seoldamhwa_inquiries') || '[]');
+  const inquiries = loadInquiries();
   inquiries.unshift(
     { id: 'inq-sample-1', name: '[예시] 오지현', phone: '010-0000-0000', date: addDays(today, 10), type: '웨딩·행사·공간 연출', productName: '', message: '작은 야외 결혼식 테이블 센터피스 6개를 상담하고 싶어요. 예산은 60만원 정도입니다.', createdDate: today, status: 'new', isSample: true },
     { id: 'inq-sample-3', name: '[예시] 장하린', phone: '010-0000-0000', date: addDays(today, 5), type: '기업·단체 주문', productName: '', message: '회사 창립 기념일에 사무실 6곳에 놓을 꽃바구니를 주문하고 싶어요.', createdDate: addDays(today, -2), status: 'new', isSample: true },
     { id: 'inq-sample-2', name: '[예시] 문태오', phone: '010-0000-0000', date: addDays(today, 3), type: '특정 상품 문의', productName: '노리개 꽃바구니', message: '어머니 칠순 선물로 노리개 꽃바구니를 생각 중인데 색감을 조금 더 밝게 할 수 있을까요?', createdDate: addDays(today, -4), status: 'done', isSample: true,
       replies: [{ text: '문의 감사합니다. 칠순을 축하드려요. 노리개 꽃바구니는 노란 소국과 크림 장미를 더해 한층 밝게 지어 드릴 수 있어요. 원하시는 날짜에 맞춰 준비해 두겠습니다.', at: `${addDays(today, -3)}T11:20:00` }] }
   );
-  localStorage.setItem('seoldamhwa_inquiries', JSON.stringify(inquiries));
+  saveInquiries(inquiries);
 
   // 재입고 알림 신청 (품절 예시 상품)
   if (typeof saveRestock === 'function') {
@@ -267,8 +267,7 @@ function removeSampleData() {
   saveProducts(loadProducts().filter(p => !String(p.id).startsWith(SAMPLE_PRODUCT_PREFIX)));
   saveOrders(loadOrders().filter(o => !o.isSample));
   saveExpenses(loadExpenses().filter(e => !e.isSample));
-  const inquiries = JSON.parse(localStorage.getItem('seoldamhwa_inquiries') || '[]');
-  localStorage.setItem('seoldamhwa_inquiries', JSON.stringify(inquiries.filter(i => !i.isSample)));
+  saveInquiries(loadInquiries().filter(i => !i.isSample));
   if (typeof saveRestock === 'function') saveRestock(loadRestock().filter(r => !r.isSample));
 }
 
@@ -278,13 +277,7 @@ function removeSampleData() {
 const BACKUP_EXCLUDED_KEYS = ['seoldamhwa_ai_key', 'seoldamhwa_ai_settings', 'seoldamhwa_csv_autosave', 'seoldamhwa_integrations', 'seoldamhwa_lang', 'seoldamhwa_popup_dismissed_date', 'seoldamhwa_cart'];
 
 function collectBackupData() {
-  const data = {};
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && key.startsWith('seoldamhwa_') && !BACKUP_EXCLUDED_KEYS.includes(key)) {
-      data[key] = localStorage.getItem(key);
-    }
-  }
+  const data = DataStore.dump(k => k.startsWith('seoldamhwa_') && !BACKUP_EXCLUDED_KEYS.includes(k));
   return { app: 'seoldamhwa', version: 1, createdAt: new Date().toISOString(), data };
 }
 
@@ -313,13 +306,13 @@ function parseBackupText(text) {
 }
 
 function applyBackup(parsed, keys) {
-  keys.forEach(k => localStorage.setItem(k, parsed.data[k]));
+  DataStore.restoreRaw(parsed.data, keys);
 }
 
 /* ------------------------------------------------------------------
  * 3) AI 초안 (Claude · GPT · Gemini) - 관리자 컴퓨터에서만, 키는 이 브라우저에만 저장
  * ------------------------------------------------------------------ */
-const AI_SETTINGS_KEY = 'seoldamhwa_ai_settings';
+var AI_SETTINGS_KEY = DataStore.KEYS.aiSettings;
 const AI_PROVIDERS = {
   claude: { label: 'Claude', keyHint: 'sk-ant-', keyPattern: /^sk-ant-/, defaultModel: 'claude-opus-5-5', consoleName: 'Anthropic 콘솔' },
   openai: { label: 'GPT', keyHint: 'sk-', keyPattern: /^sk-/, defaultModel: 'gpt-5', consoleName: 'OpenAI 플랫폼' },
@@ -328,16 +321,15 @@ const AI_PROVIDERS = {
 let anthropicClientPromise = null;
 
 function loadAiSettings() {
-  let s = {};
-  try { s = JSON.parse(localStorage.getItem(AI_SETTINGS_KEY) || '{}') || {}; } catch (e) { s = {}; }
+  let s = DataStore.read(AI_SETTINGS_KEY, {}) || {};
   // 예전 Claude 키 하나만 저장하던 방식에서 옮기기
   try {
-    const legacy = localStorage.getItem('seoldamhwa_ai_key');
+    const legacy = DataStore.readRaw('seoldamhwa_ai_key');
     if (legacy && !(s.keys && s.keys.claude)) {
       s.keys = { ...(s.keys || {}), claude: legacy };
-      localStorage.setItem(AI_SETTINGS_KEY, JSON.stringify(s));
+      DataStore.write(AI_SETTINGS_KEY, s);
     }
-    if (legacy) localStorage.removeItem('seoldamhwa_ai_key');
+    if (legacy) DataStore.remove('seoldamhwa_ai_key');
   } catch (e) {}
   return {
     provider: AI_PROVIDERS[s.provider] ? s.provider : 'claude',
@@ -347,7 +339,7 @@ function loadAiSettings() {
 }
 
 function storeAiSettings(next) {
-  localStorage.setItem(AI_SETTINGS_KEY, JSON.stringify(next));
+  DataStore.write(AI_SETTINGS_KEY, next);
   anthropicClientPromise = null;
 }
 

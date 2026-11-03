@@ -1457,7 +1457,7 @@ const PRODUCT_I18N = {
 
 // 현재 언어 조회 (기본값 'ko')
 function getCurrentLang() {
-  const saved = localStorage.getItem('seoldamhwa_lang');
+  const saved = DataStore.readRaw(DataStore.KEYS.lang);
   return (saved === 'en' || saved === 'ja') ? saved : 'ko';
 }
 
@@ -1537,7 +1537,7 @@ document.addEventListener('click', (e) => {
 // 언어 변경 핸들러
 function changeLanguage(lang) {
   if (!['ko', 'en', 'ja'].includes(lang)) lang = 'ko';
-  localStorage.setItem('seoldamhwa_lang', lang);
+  DataStore.writeRaw(DataStore.KEYS.lang, lang);
 
   const dropdown = document.getElementById('lang-dropdown');
   if (dropdown) dropdown.classList.add('hidden');

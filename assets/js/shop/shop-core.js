@@ -7,23 +7,19 @@ let cart = loadSavedCart();
 
 // 장바구니는 이 기기에만 저장 (새로고침해도 남게, 서버·백업에는 안 보냄)
 function loadSavedCart() {
-  try {
-    const list = JSON.parse(localStorage.getItem('seoldamhwa_cart') || '[]');
-    if (!Array.isArray(list)) return [];
-    // 그사이 지워졌거나 숨긴 상품은 빼고, 상품 정보는 지금 것으로
-    const products = typeof loadProducts === 'function' ? loadProducts() : [];
-    return list.filter(i => i && i.product && Number(i.quantity) > 0).map(i => {
-      const p = products.find(x => x.id === i.product.id);
-      if (!p || p.inquiryOnly || (typeof isProductVisible === 'function' && !isProductVisible(p))) return null;
-      return { ...i, product: p };
-    }).filter(Boolean);
-  } catch (e) {
-    return [];
-  }
+  const list = DataStore.read(DataStore.KEYS.cart, []);
+  if (!Array.isArray(list)) return [];
+  // 그사이 지워졌거나 숨긴 상품은 빼고, 상품 정보는 지금 것으로
+  const products = typeof loadProducts === 'function' ? loadProducts() : [];
+  return list.filter(i => i && i.product && Number(i.quantity) > 0).map(i => {
+    const p = products.find(x => x.id === i.product.id);
+    if (!p || p.inquiryOnly || (typeof isProductVisible === 'function' && !isProductVisible(p))) return null;
+    return { ...i, product: p };
+  }).filter(Boolean);
 }
 
 function saveCart() {
-  try { localStorage.setItem('seoldamhwa_cart', JSON.stringify(cart)); } catch (e) { /* 저장 공간이 없으면 이번 화면에서만 */ }
+  DataStore.write(DataStore.KEYS.cart, cart);
 }
 
 // 지금 재고 기준으로 이 상품을 몇 개 더 담을 수 있는지 (견적 상품·재고 미설정은 제한 없음)

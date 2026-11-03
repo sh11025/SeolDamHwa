@@ -147,8 +147,8 @@ function deleteFlower(id) {
 
 function resetFlowerDictionary() {
   if (!confirm(`꽃 사전을 처음 들어 있던 기본 목록(${DEFAULT_FLOWERS.length}종)으로 되돌릴까요? 직접 추가하거나 고친 꽃은 사라져요.`)) return;
-  localStorage.removeItem(FLOWERS_KEY);
-  localStorage.removeItem('seoldamhwa_flowers_version');
+  DataStore.remove(FLOWERS_KEY);
+  DataStore.remove(DataStore.KEYS.flowersVersion);
   renderFlowerDictionary();
 }
 

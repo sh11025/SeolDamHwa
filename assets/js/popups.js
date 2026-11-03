@@ -3,7 +3,7 @@
  * 로컬 스토리지 키: seoldamhwa_popups
  */
 
-const POPUPS_STORAGE_KEY = 'seoldamhwa_popups';
+var POPUPS_STORAGE_KEY = DataStore.KEYS.popups;
 
 // 기본 팝업 설정 데이터 (마스터 스위치 OFF, 샘플 슬라이드 1개 미활성)
 const DEFAULT_POPUPS_DATA = {
@@ -35,10 +35,8 @@ const DEFAULT_POPUPS_DATA = {
  */
 function loadPopups() {
   try {
-    const raw = localStorage.getItem(POPUPS_STORAGE_KEY);
-    if (!raw) return JSON.parse(JSON.stringify(DEFAULT_POPUPS_DATA));
-    const parsed = JSON.parse(raw);
-    if (typeof parsed !== 'object' || parsed === null) {
+    const parsed = DataStore.read(POPUPS_STORAGE_KEY);
+    if (!parsed || typeof parsed !== 'object') {
       return JSON.parse(JSON.stringify(DEFAULT_POPUPS_DATA));
     }
     return {
@@ -60,7 +58,7 @@ function savePopups(data) {
       enabled: !!data.enabled,
       slides: Array.isArray(data.slides) ? data.slides : []
     };
-    localStorage.setItem(POPUPS_STORAGE_KEY, JSON.stringify(safeData));
+    DataStore.write(POPUPS_STORAGE_KEY, safeData);
     window.dispatchEvent(new CustomEvent('seoldamhwa_popups_updated', { detail: safeData }));
     return true;
   } catch (e) {

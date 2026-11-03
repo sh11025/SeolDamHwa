@@ -15,7 +15,7 @@ const CSV_TABLES = {
     file: 'orders.csv',
     columns: ['id', 'orderNumber', 'createdDate', 'createdAt', 'status', 'ordererName', 'ordererPhone', 'recipientName', 'recipientPhone', 'customerName', 'phone', 'zipcode', 'address', 'deliveryMethod', 'deliveryMethodLabel', 'deliveryFee', 'itemsTotal', 'totalAmount', 'deliveryDate', 'message', 'hideSender', 'request', 'courier', 'trackingNumber', 'statusBeforeCancel', 'isSample', 'couponCode', 'couponDiscount'],
     bool: ['hideSender', 'isSample'], num: ['deliveryFee', 'itemsTotal', 'totalAmount', 'couponDiscount'],
-    read: () => JSON.parse(localStorage.getItem('seoldamhwa_orders') || '[]'),
+    read: () => loadOrders(),
     write: null // order_items와 합쳐서 저장 (아래 importCsvTables)
   },
   order_items: {
@@ -24,7 +24,7 @@ const CSV_TABLES = {
     num: ['lineNo', 'price', 'optionPrice', 'quantity'],
     read: () => {
       const rows = [];
-      JSON.parse(localStorage.getItem('seoldamhwa_orders') || '[]').forEach(o => (o.items || []).forEach((i, idx) => rows.push({
+      loadOrders().forEach(o => (o.items || []).forEach((i, idx) => rows.push({
         orderId: o.id, lineNo: idx + 1, productId: i.product && i.product.id, productName: i.product && i.product.name,
         sizeLabel: i.sizeLabel, price: i.price, optionName: i.optionName, optionPrice: i.optionPrice, quantity: i.quantity
       })));
@@ -36,22 +36,22 @@ const CSV_TABLES = {
     file: 'expenses.csv',
     columns: ['id', 'date', 'category', 'amount', 'method', 'memo', 'isSample'],
     bool: ['isSample'], num: ['amount'],
-    read: () => JSON.parse(localStorage.getItem('seoldamhwa_expenses') || '[]'),
-    write: rows => localStorage.setItem('seoldamhwa_expenses', JSON.stringify(rows))
+    read: () => (typeof loadExpenses === 'function' ? loadExpenses() : DataStore.read(DataStore.KEYS.expenses, [])),
+    write: rows => (typeof saveExpenses === 'function' ? saveExpenses(rows) : DataStore.write(DataStore.KEYS.expenses, rows))
   },
   inquiries: {
     file: 'inquiries.csv',
     columns: ['id', 'createdDate', 'status', 'name', 'phone', 'date', 'type', 'productName', 'message', 'memo', 'contactedAt', 'replies', 'isSample'],
     json: ['replies'], bool: ['isSample'],
-    read: () => JSON.parse(localStorage.getItem('seoldamhwa_inquiries') || '[]'),
-    write: rows => localStorage.setItem('seoldamhwa_inquiries', JSON.stringify(rows))
+    read: () => (typeof loadInquiries === 'function' ? loadInquiries() : DataStore.read(DataStore.KEYS.inquiries, [])),
+    write: rows => (typeof saveInquiries === 'function' ? saveInquiries(rows) : DataStore.write(DataStore.KEYS.inquiries, rows))
   },
   restock: {
     file: 'restock.csv',
     columns: ['id', 'productId', 'productName', 'name', 'phone', 'createdDate', 'status', 'isSample'],
     bool: ['isSample'],
-    read: () => JSON.parse(localStorage.getItem('seoldamhwa_restock') || '[]'),
-    write: rows => localStorage.setItem('seoldamhwa_restock', JSON.stringify(rows))
+    read: () => (typeof loadRestock === 'function' ? loadRestock() : DataStore.read(DataStore.KEYS.restock, [])),
+    write: rows => (typeof saveRestock === 'function' ? saveRestock(rows) : DataStore.write(DataStore.KEYS.restock, rows))
   },
   popups: {
     file: 'popups.csv',
@@ -66,13 +66,13 @@ const CSV_TABLES = {
     json: ['media'],
     read: () => {
       let stored = {};
-      try { stored = JSON.parse(localStorage.getItem('seoldamhwa_pages') || '{}') || {}; } catch (e) { stored = {}; }
+      try { stored = DataStore.read(DataStore.KEYS.pages, {}) || {}; } catch (e) { stored = {}; }
       return Object.entries(stored).map(([id, v]) => ({ id, ...v }));
     },
     write: rows => {
       const obj = {};
       rows.forEach(r => { if (r.id) obj[r.id] = { title: r.title, body: r.body, updatedAt: r.updatedAt, ...(r.media ? { media: r.media } : {}) }; });
-      localStorage.setItem('seoldamhwa_pages', JSON.stringify(obj));
+      DataStore.write(DataStore.KEYS.pages, obj);
     }
   },
   settings: {
@@ -80,7 +80,7 @@ const CSV_TABLES = {
     columns: ['key', 'value'],
     // 매장 설정은 항목 하나 = 한 줄 (값은 JSON)
     read: () => {
-      const s = JSON.parse(localStorage.getItem('seoldamhwa_settings') || 'null') || (typeof loadSettings === 'function' ? loadSettings() : {});
+      const s = DataStore.read(DataStore.KEYS.settings, null) || (typeof loadSettings === 'function' ? loadSettings() : {});
       const rows = Object.entries(s).map(([key, value]) => ({ key, value: JSON.stringify(value) }));
       if (typeof loadPopups === 'function') rows.push({ key: '__popupsEnabled', value: JSON.stringify(!!loadPopups().enabled) });
       return rows;
@@ -92,28 +92,28 @@ const CSV_TABLES = {
     columns: ['id', 'name', 'nameEn', 'nameJa', 'meaning', 'meaningEn', 'meaningJa', 'months', 'yearRound', 'colors', 'care', 'image', 'guideText', 'guideImages', 'guideVideo'],
     json: ['months', 'guideImages'], bool: ['yearRound'],
     read: () => (typeof loadFlowers === 'function' ? loadFlowers() : []),
-    write: rows => localStorage.setItem('seoldamhwa_flowers', JSON.stringify(rows.map(r => ({ ...r, months: Array.isArray(r.months) ? r.months : [] }))))
+    write: rows => (typeof saveFlowers === 'function' ? saveFlowers(rows.map(r => ({ ...r, months: Array.isArray(r.months) ? r.months : [] }))) : DataStore.write(DataStore.KEYS.flowers, rows.map(r => ({ ...r, months: Array.isArray(r.months) ? r.months : [] }))))
   },
   coupons: {
     file: 'coupons.csv',
     columns: ['code', 'batchId', 'batchName', 'type', 'value', 'minOrder', 'startDate', 'endDate', 'active', 'createdAt', 'usedAt', 'orderNumber'],
     bool: ['active'], num: ['value', 'minOrder'],
     read: () => (typeof loadCoupons === 'function' ? loadCoupons() : []),
-    write: rows => localStorage.setItem('seoldamhwa_coupons', JSON.stringify(rows))
+    write: rows => (typeof saveCoupons === 'function' ? saveCoupons(rows) : DataStore.write(DataStore.KEYS.coupons, rows))
   },
   coupon_history: {
     file: 'coupon_history.csv',
     columns: ['id', 'batchName', 'type', 'value', 'minOrder', 'startDate', 'endDate', 'created', 'used', 'usedDates', 'archivedAt'],
     json: ['usedDates'], num: ['value', 'minOrder', 'created', 'used'],
     read: () => (typeof loadCouponHistory === 'function' ? loadCouponHistory() : []),
-    write: rows => localStorage.setItem('seoldamhwa_coupon_history', JSON.stringify(rows.map(r => ({ ...r, usedDates: Array.isArray(r.usedDates) ? r.usedDates : [] }))))
+    write: rows => (typeof saveCouponHistory === 'function' ? saveCouponHistory(rows.map(r => ({ ...r, usedDates: Array.isArray(r.usedDates) ? r.usedDates : [] }))) : DataStore.write(DataStore.KEYS.couponHistory, rows.map(r => ({ ...r, usedDates: Array.isArray(r.usedDates) ? r.usedDates : [] }))))
   },
   images: {
     file: 'images.csv',
     columns: ['id', 'name', 'src', 'width', 'height', 'createdAt'],
     num: ['width', 'height'],
-    read: () => JSON.parse(localStorage.getItem('seoldamhwa_images') || '[]'),
-    write: rows => localStorage.setItem('seoldamhwa_images', JSON.stringify(rows))
+    read: () => (typeof loadImageLibrary === 'function' ? loadImageLibrary() : DataStore.read(DataStore.KEYS.images, [])),
+    write: rows => (typeof saveImageLibrary === 'function' ? saveImageLibrary(rows) : DataStore.write(DataStore.KEYS.images, rows))
   }
 };
 
@@ -209,7 +209,7 @@ function importCsvTables(files) {
         price: i.price || 0, optionName: i.optionName || '', optionPrice: i.optionPrice || 0, quantity: i.quantity || 1
       }));
     });
-    localStorage.setItem('seoldamhwa_orders', JSON.stringify(orders));
+    saveOrders(orders);
     result.push(`orders.csv ${orders.length}줄`);
   }
   if (has('settings.csv')) {
@@ -222,7 +222,10 @@ function importCsvTables(files) {
         if (r.key === '__popupsEnabled') popupsEnabled = !!v; else s[r.key] = v;
       } catch (e) { /* 깨진 줄은 건너뜀 */ }
     });
-    if (Object.keys(s).length) localStorage.setItem('seoldamhwa_settings', JSON.stringify(s));
+    if (Object.keys(s).length) {
+      if (typeof saveSettings === 'function') saveSettings(s);
+      else DataStore.write(DataStore.KEYS.settings, s);
+    }
     if (has('popups.csv') && typeof savePopups === 'function') {
       const slides = csvToTable('popups', files['popups.csv']);
       savePopups({ enabled: popupsEnabled === null ? loadPopups().enabled : popupsEnabled, slides });

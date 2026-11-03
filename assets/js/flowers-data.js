@@ -2,7 +2,7 @@
 // 설담화(說談花) 꽃 사전 - 꽃 이름·꽃말·제철 달·색·관리법을 한 번 등록해 두고 상품에서 '사용한 꽃'으로 골라 씁니다.
 // 저장: localStorage 'seoldamhwa_flowers' (CSV는 DATA/flowers.csv). 제철 달(months)이 비어 있으면 '사계절'로 보고 제철 표시는 하지 않아요.
 
-const FLOWERS_KEY = 'seoldamhwa_flowers';
+var FLOWERS_KEY = DataStore.KEYS.flowers;
 
 const DEFAULT_FLOWERS = [
   { id: 'rose', name: '장미', nameEn: 'Rose', nameJa: 'バラ', meaning: '사랑, 열정, 기쁨', meaningEn: 'Love, passion, joy', meaningJa: '愛、情熱、喜び', months: [5, 6], yearRound: true, colors: '빨강 · 분홍 · 흰색 · 노랑 · 주황 · 보라', care: '줄기 끝을 사선으로 1~2cm 자르고, 물은 매일 갈아 주세요.' },
@@ -83,22 +83,17 @@ const DEFAULT_PRODUCT_FLOWERS = {
 };
 
 function loadFlowers() {
-  try {
-    const raw = localStorage.getItem(FLOWERS_KEY);
-    if (!raw) return JSON.parse(JSON.stringify(DEFAULT_FLOWERS));
-    const list = JSON.parse(raw);
-    return Array.isArray(list) ? upgradeSavedFlowers(list) : JSON.parse(JSON.stringify(DEFAULT_FLOWERS));
-  } catch (e) {
-    return JSON.parse(JSON.stringify(DEFAULT_FLOWERS));
-  }
+  const list = DataStore.read(FLOWERS_KEY);
+  if (!list) return JSON.parse(JSON.stringify(DEFAULT_FLOWERS));
+  return Array.isArray(list) ? upgradeSavedFlowers(list) : JSON.parse(JSON.stringify(DEFAULT_FLOWERS));
 }
 
 // 이미 저장된 꽃 사전을 새 기본 목록에 맞춤 (한 번만): 없는 꽃은 더하고,
 // 사장님이 고치지 않은 꽃만 새 꽃말·색·제철로 바꿈. 직접 고치거나 추가한 꽃은 그대로
 function upgradeSavedFlowers(list) {
-  const KEY = 'seoldamhwa_flowers_version';
+  const KEY = DataStore.KEYS.flowersVersion;
   let ver = 1;
-  try { ver = Number(localStorage.getItem(KEY)) || 1; } catch (e) { /* 무시 */ }
+  try { ver = Number(DataStore.readRaw(KEY)) || 1; } catch (e) { /* 무시 */ }
   if (ver >= FLOWER_DEFAULTS_VERSION) return list;
   const sameMonths = (a, b) => JSON.stringify((a || []).map(Number)) === JSON.stringify((b || []).map(Number));
   const out = list.map(f => {
@@ -113,14 +108,14 @@ function upgradeSavedFlowers(list) {
     if (!out.some(f => f.id === d.id || f.name === d.name)) out.push(JSON.parse(JSON.stringify(d)));
   });
   try {
-    localStorage.setItem(FLOWERS_KEY, JSON.stringify(out));
-    localStorage.setItem(KEY, String(FLOWER_DEFAULTS_VERSION));
+    DataStore.write(FLOWERS_KEY, out);
+    DataStore.writeRaw(KEY, String(FLOWER_DEFAULTS_VERSION));
   } catch (e) { /* 저장 공간이 없으면 이번 화면에서만 */ }
   return out;
 }
 
 function saveFlowers(list) {
-  localStorage.setItem(FLOWERS_KEY, JSON.stringify(list));
+  DataStore.write(FLOWERS_KEY, list);
 }
 
 // 한국 시간 기준 이번 달 (1~12)

@@ -23,7 +23,7 @@ async function refreshCsvStatus() {
   status.innerText = csvFolderHandle ? (granted ? `연결됨 · ${csvFolderHandle.name} 폴더` : `${csvFolderHandle.name} 폴더 (다시 허락 필요)`) : '연결 안 됨';
   status.className = `text-xs font-bold px-2 py-0.5 rounded ${granted ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-700'}`;
   const auto = document.getElementById('csv-autosave');
-  if (auto) auto.checked = localStorage.getItem('seoldamhwa_csv_autosave') === '1';
+  if (auto) auto.checked = DataStore.readRaw(DataStore.KEYS.csvAutosave) === '1';
 }
 
 async function handleConnectDataFolder() {
@@ -87,7 +87,7 @@ function handleLoadCsvFiles(input) {
 }
 
 function toggleCsvAutosave(on) {
-  localStorage.setItem('seoldamhwa_csv_autosave', on ? '1' : '0');
+  DataStore.writeRaw(DataStore.KEYS.csvAutosave, on ? '1' : '0');
   if (on) handleSaveCsv();
 }
 
@@ -95,7 +95,7 @@ function toggleCsvAutosave(on) {
 function scheduleCsvAutoSave(key) {
   if (!key || !key.startsWith('seoldamhwa_') || /_(lang|csv_autosave|popup_dismissed_date|ai_settings|ai_key|integrations)$/.test(key)) return;
   if (window.SDH_SERVER_MODE) return; // server.py로 열면 data-sync.js가 DATA 폴더에 바로 저장
-  if (localStorage.getItem('seoldamhwa_csv_autosave') !== '1' || !csvFolderSupported()) return;
+  if (DataStore.readRaw(DataStore.KEYS.csvAutosave) !== '1' || !csvFolderSupported()) return;
   clearTimeout(csvAutoSaveTimer);
   csvAutoSaveTimer = setTimeout(() => handleSaveCsv(true), 2000);
 }

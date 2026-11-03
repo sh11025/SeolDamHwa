@@ -462,7 +462,7 @@ function runOrderLookup(e) {
   e.preventDefault();
   const num = document.getElementById('lookup-order-number').value.trim().toUpperCase();
   const phone = document.getElementById('lookup-phone').value.replace(/\D/g, '');
-  const orders = JSON.parse(localStorage.getItem('seoldamhwa_orders') || '[]');
+  const orders = loadOrders();
   let o = orders.find(x => String(x.orderNumber).toUpperCase() === num && String(x.ordererPhone || x.phone || '').replace(/\D/g, '') === phone);
   // 서버로 연 손님 기기는 주문 목록을 갖고 있지 않으므로 서버에 한 건만 확인
   if (!o && typeof DataSync !== 'undefined' && DataSync.enabled && !DataSync.local) o = DataSync.lookupOrder(num, phone);
@@ -858,9 +858,9 @@ async function submitCustomerOrder(e) {
       createdDate
     };
 
-    const existingOrders = JSON.parse(localStorage.getItem('seoldamhwa_orders') || '[]');
+    const existingOrders = loadOrders();
     existingOrders.unshift(newOrder);
-    localStorage.setItem('seoldamhwa_orders', JSON.stringify(existingOrders));
+    saveOrders(existingOrders);
 
     // 서버 모드(손님 기기): 서버 동기화 시도 및 중복/유효성 거절 확인
     if (typeof DataSync !== 'undefined' && DataSync.enabled && !DataSync.local) {
@@ -868,8 +868,8 @@ async function submitCustomerOrder(e) {
         const syncRes = await DataSync.push();
         if (syncRes && syncRes.rejected && syncRes.rejected.some(r => r.startsWith('orders:'))) {
           // 서버에서 거절된 경우 로컬 롤백
-          const rolledBack = JSON.parse(localStorage.getItem('seoldamhwa_orders') || '[]').filter(o => o.orderNumber !== orderNumber);
-          localStorage.setItem('seoldamhwa_orders', JSON.stringify(rolledBack));
+          const rolledBack = loadOrders().filter(o => o.orderNumber !== orderNumber);
+          saveOrders(rolledBack);
           alert(coT('co_order_failed', '주문을 접수하지 못했어요. 입력 정보나 주문 번호를 확인해 주세요.'));
           return;
         }

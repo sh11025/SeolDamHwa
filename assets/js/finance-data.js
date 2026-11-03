@@ -1,9 +1,8 @@
 // assets/js/finance-data.js
 // 설담화(說談花) 매출·지출 데이터 모듈 (관리자 전용)
-// 지금은 브라우저 저장소(localStorage)를 쓰고, 나중에 서버로 바꿀 때는 이 파일의 load/save 함수만 교체하면 됩니다.
 
-const EXPENSES_STORAGE_KEY = 'seoldamhwa_expenses';
-const ORDERS_STORAGE_KEY = 'seoldamhwa_orders';
+var EXPENSES_STORAGE_KEY = DataStore.KEYS.expenses;
+var ORDERS_STORAGE_KEY = DataStore.KEYS.orders;
 
 const EXPENSE_CATEGORIES = ['꽃 사입', '포장재', '배송·퀵', '임대·공과금', '인건비', '기타'];
 const EXPENSE_METHODS = ['카드', '현금', '계좌이체'];
@@ -16,36 +15,13 @@ const ORDER_STATUS_LABELS = {
   cancelled: '주문 취소'
 };
 
-// 예전에 관리자 화면에 미리 들어 있던 예시 주문 (실제 판매하지 않는 상품) - 자동으로 정리합니다.
-const SAMPLE_ORDER_NUMBERS = ['SDH-261029-01', 'SDH-261028-09', 'SDH-261028-04', 'SDH-261027-12'];
-
-function loadOrders() {
-  try {
-    const list = JSON.parse(localStorage.getItem(ORDERS_STORAGE_KEY) || '[]');
-    if (!Array.isArray(list)) return [];
-    const cleaned = list.filter(o => !SAMPLE_ORDER_NUMBERS.includes(o.orderNumber));
-    if (cleaned.length !== list.length) saveOrders(cleaned);
-    return cleaned;
-  } catch (e) {
-    return [];
-  }
-}
-
-function saveOrders(list) {
-  localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(list));
-}
-
 function loadExpenses() {
-  try {
-    const list = JSON.parse(localStorage.getItem(EXPENSES_STORAGE_KEY) || '[]');
-    return Array.isArray(list) ? list : [];
-  } catch (e) {
-    return [];
-  }
+  const list = DataStore.read(EXPENSES_STORAGE_KEY, []);
+  return Array.isArray(list) ? list : [];
 }
 
 function saveExpenses(list) {
-  localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(list));
+  DataStore.write(EXPENSES_STORAGE_KEY, list);
 }
 
 // 'YYYY-MM-DD' (한국 시간)

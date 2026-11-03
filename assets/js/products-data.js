@@ -35,7 +35,7 @@ function makeOrderNumber() {
 
   let existingSet = new Set();
   try {
-    const orders = (typeof loadOrders === 'function') ? (loadOrders() || []) : JSON.parse(localStorage.getItem('seoldamhwa_orders') || '[]');
+    const orders = (typeof loadOrders === 'function') ? (loadOrders() || []) : DataStore.read(DataStore.KEYS.orders, []);
     existingSet = new Set(orders.map(o => String(o.orderNumber || '').toUpperCase()).filter(Boolean));
   } catch (e) {
     /* 무시 */
@@ -222,27 +222,23 @@ function getStockStatus(qty) {
 
 // 상품 데이터 로드 함수 (DATA_VERSION 검증하여 자동 동기화)
 function loadProducts() {
-  const currentVersion = localStorage.getItem('seoldamhwa_data_version');
+  const currentVersion = DataStore.readRaw(DataStore.KEYS.dataVersion);
   if (currentVersion !== String(DATA_VERSION)) {
     saveProducts(DEFAULT_PRODUCTS);
-    localStorage.setItem('seoldamhwa_data_version', String(DATA_VERSION));
+    DataStore.writeRaw(DataStore.KEYS.dataVersion, String(DATA_VERSION));
     return JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
   }
-  const stored = localStorage.getItem('seoldamhwa_products');
+  const stored = DataStore.read(DataStore.KEYS.products);
   if (!stored) {
     saveProducts(DEFAULT_PRODUCTS);
     return JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
   }
-  try {
-    return JSON.parse(stored);
-  } catch (e) {
-    return JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
-  }
+  return stored;
 }
 
 // 상품 데이터 저장 함수
 function saveProducts(list) {
-  localStorage.setItem('seoldamhwa_products', JSON.stringify(list));
+  DataStore.write(DataStore.KEYS.products, list);
 }
 
 // 맞춤 담화 5단계 큐레이션 매칭 태그 (색상 및 가격 기반)
@@ -307,21 +303,3 @@ if (typeof document !== 'undefined') {
 function htmlText(value) {
   return String(value === undefined || value === null ? '' : value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 }
-
-// 브라우저 저장 공간(약 5MB)이 가득 차서 저장이 안 될 때 알려 줌 (사진을 많이 올렸을 때 등)
-(function guardStorageQuota() {
-  if (typeof Storage === 'undefined') return;
-  const original = Storage.prototype.setItem;
-  let lastAlert = 0;
-  Storage.prototype.setItem = function (key, value) {
-    try {
-      return original.call(this, key, value);
-    } catch (e) {
-      if (e && (e.name === 'QuotaExceededError' || e.code === 22) && Date.now() - lastAlert > 10000) {
-        lastAlert = Date.now();
-        alert('브라우저 저장 공간이 가득 차서 저장하지 못했어요.\n관리자 > 상품 사진 고르기 창에서 안 쓰는 사진을 지우거나, 사진 대신 이미지 주소(https://...)를 써 주세요.');
-      }
-      throw e;
-    }
-  };
-})();

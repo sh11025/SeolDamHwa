@@ -105,12 +105,11 @@ function getKoreaTimeParts(date = new Date()) {
  * 저장된 매장 설정 불러오기 (기본값과 병합 및 마이그레이션)
  */
 function loadSettings() {
-  const stored = localStorage.getItem('seoldamhwa_settings');
-  if (!stored) {
+  const parsed = DataStore.read(DataStore.KEYS.settings);
+  if (!parsed || typeof parsed !== 'object') {
     return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
   }
   try {
-    const parsed = JSON.parse(stored);
     const merged = { ...DEFAULT_SETTINGS, ...parsed };
 
     // 마이그레이션: weeklyHours가 없거나 형식이 맞지 않으면 기본값 부여
@@ -153,7 +152,7 @@ function loadSettings() {
 function saveSettings(obj) {
   const current = loadSettings();
   const merged = { ...current, ...obj };
-  localStorage.setItem('seoldamhwa_settings', JSON.stringify(merged));
+  DataStore.write(DataStore.KEYS.settings, merged);
   window.dispatchEvent(new CustomEvent('seoldamhwa_settings_updated', { detail: merged }));
   return merged;
 }

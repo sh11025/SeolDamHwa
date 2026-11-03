@@ -2,24 +2,20 @@
 // 설담화 쇼핑몰: 상품 상세 페이지(#/flower/<id>) · 사진 여러 장 · 자세한 설명 · 비슷한 꽃 · 최근 본 꽃 · 찜하기
 // 상품 정보·구매 칸 그리기는 shop-product.js의 renderProductPage()가 하고, 이 파일은 페이지 이동과 아래쪽 내용을 맡습니다.
 
-const WISHLIST_KEY = 'seoldamhwa_wishlist';
-const RECENT_KEY = 'seoldamhwa_recent';
+const WISHLIST_KEY = DataStore.KEYS.wishlist;
+const RECENT_KEY = DataStore.KEYS.recent;
 
 function ppT(key, fallback) {
   return typeof t === 'function' ? t(key, fallback) : fallback;
 }
 
 function readIdList(key) {
-  try {
-    const v = JSON.parse(localStorage.getItem(key) || '[]');
-    return Array.isArray(v) ? v.filter(x => typeof x === 'string') : [];
-  } catch (e) {
-    return [];
-  }
+  const v = DataStore.read(key, []);
+  return Array.isArray(v) ? v.filter(x => typeof x === 'string') : [];
 }
 
 function writeIdList(key, list) {
-  try { localStorage.setItem(key, JSON.stringify(list)); } catch (e) { /* 저장 공간이 없으면 무시 */ }
+  DataStore.write(key, list);
 }
 
 function isWished(id) {

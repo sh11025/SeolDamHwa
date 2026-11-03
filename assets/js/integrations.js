@@ -4,7 +4,7 @@
 // 서버(server.py)로 열면 주문·상담 알림은 서버가 저장해 둔 웹후크로 대신 보냅니다 (손님 기기 주문도 알림, 주소는 손님에게 안 보임).
 // 서버 없이 열면 예전처럼 이 브라우저에 저장된 웹후크로 바로 보냅니다.
 
-const INTEGRATIONS_STORAGE_KEY = 'seoldamhwa_integrations';
+var INTEGRATIONS_STORAGE_KEY = DataStore.KEYS.integrations;
 
 const DEFAULT_INTEGRATIONS = {
   orderWebhook: '',     // 주문 알림·제작 목록 채널
@@ -16,8 +16,7 @@ const DEFAULT_INTEGRATIONS = {
 const DISCORD_COLORS = { order: 0xA8401A, inquiry: 0x1F7FA3, production: 0x4C8A3B, slot: 0xC9850F };
 
 function loadIntegrations() {
-  let parsed = {};
-  try { parsed = JSON.parse(localStorage.getItem(INTEGRATIONS_STORAGE_KEY) || '{}') || {}; } catch (e) { parsed = {}; }
+  const parsed = DataStore.read(INTEGRATIONS_STORAGE_KEY, {}) || {};
   // 예전 설정(웹후크 하나)은 주문 채널로 옮김
   if (parsed.discordWebhook && !parsed.orderWebhook) parsed.orderWebhook = parsed.discordWebhook;
   delete parsed.discordWebhook;
@@ -27,7 +26,7 @@ function loadIntegrations() {
 function saveIntegrations(obj) {
   const merged = { ...DEFAULT_INTEGRATIONS, ...obj };
   delete merged.discordWebhook;
-  localStorage.setItem(INTEGRATIONS_STORAGE_KEY, JSON.stringify(merged));
+  DataStore.write(INTEGRATIONS_STORAGE_KEY, merged);
   if (typeof pushIntegrationsToServer === 'function') pushIntegrationsToServer(merged);
   return merged;
 }
@@ -45,7 +44,7 @@ function getWebhookFor(channel) {
 }
 
 function discordViaServer() {
-  return typeof DataSync !== 'undefined' && DataSync.enabled;
+  return typeof window !== 'undefined' && typeof window.DataSync !== 'undefined' && window.DataSync && window.DataSync.enabled;
 }
 
 // 주문·상담 알림 보내기: 서버 모드면 서버가 대신, 아니면 이 브라우저의 웹후크로
@@ -63,7 +62,7 @@ async function sendDiscordChannel(payload, channel) {
 
 // 관리자가 디스코드 설정을 바꾸면 서버에도 알려 둠 (서버 모드, 관리자 화면에서만)
 function pushIntegrationsToServer(cfg) {
-  if (!discordViaServer() || !DataSync.local) return;
+  if (!discordViaServer() || !(window.DataSync && window.DataSync.local)) return;
   fetch('/api/integrations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cfg || loadIntegrations()) }).catch(() => {});
 }
 

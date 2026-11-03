@@ -322,7 +322,7 @@ function saveStoreSettings(e) {
   if (typeof saveSettings === 'function') {
     saveSettings(newSettings);
   } else {
-    localStorage.setItem('seoldamhwa_settings', JSON.stringify(newSettings));
+    DataStore.write(DataStore.KEYS.settings, newSettings);
   }
 
   alert('저장되었습니다. 쇼핑몰에 바로 반영됩니다.');

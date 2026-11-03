@@ -52,10 +52,8 @@ function initPopupSlider() {
 
     // "오늘 그만 보기" 체크 (미리보기 모드 제외)
     if (!isPopupPreview) {
-      try {
-        const dismissedDate = localStorage.getItem('seoldamhwa_popup_dismissed_date');
-        if (dismissedDate === todayStr) return;
-      } catch (e) {}
+      const dismissedDate = DataStore.readRaw(DataStore.KEYS.popupDismissedDate);
+      if (dismissedDate === todayStr) return;
 
       // 첫 페이지 뷰에서만 노출 (세션 스토리지 체크)
       try {
@@ -224,10 +222,8 @@ function handlePopupSlideClick() {
 }
 
 function closePopupToday() {
-  try {
-    const kp = typeof getKoreaTimeParts === 'function' ? getKoreaTimeParts() : { dateStr: new Date().toISOString().slice(0, 10) };
-    localStorage.setItem('seoldamhwa_popup_dismissed_date', kp.dateStr);
-  } catch (e) {}
+  const kp = typeof getKoreaTimeParts === 'function' ? getKoreaTimeParts() : { dateStr: new Date().toISOString().slice(0, 10) };
+  DataStore.writeRaw(DataStore.KEYS.popupDismissedDate, kp.dateStr);
   closePopupNow();
 }
 

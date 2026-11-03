@@ -2,19 +2,15 @@
 // 설담화(說談花) 재입고 알림 신청 - 품절 상품에 손님이 연락처를 남기면 관리자 '고객 상담 문의'에 모임
 // 서버를 붙일 때는 loadRestock/saveRestock만 서버 호출로 바꾸면 됩니다.
 
-const RESTOCK_STORAGE_KEY = 'seoldamhwa_restock';
+var RESTOCK_STORAGE_KEY = DataStore.KEYS.restock;
 
 function loadRestock() {
-  try {
-    const list = JSON.parse(localStorage.getItem(RESTOCK_STORAGE_KEY) || '[]');
-    return Array.isArray(list) ? list : [];
-  } catch (e) {
-    return [];
-  }
+  const list = DataStore.read(RESTOCK_STORAGE_KEY, []);
+  return Array.isArray(list) ? list : [];
 }
 
 function saveRestock(list) {
-  localStorage.setItem(RESTOCK_STORAGE_KEY, JSON.stringify(list));
+  DataStore.write(RESTOCK_STORAGE_KEY, list);
 }
 
 function normalizePhone(phone) {

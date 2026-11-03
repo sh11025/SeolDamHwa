@@ -119,9 +119,9 @@ function submitCustomInquiry(e) {
     status: 'new'
   };
 
-  const inquiries = JSON.parse(localStorage.getItem('seoldamhwa_inquiries') || '[]');
+  const inquiries = loadInquiries();
   inquiries.unshift(inquiry);
-  localStorage.setItem('seoldamhwa_inquiries', JSON.stringify(inquiries));
+  saveInquiries(inquiries);
   try { if (typeof notifyInquiryToDiscord === 'function') notifyInquiryToDiscord(inquiry); } catch (e) { console.error('discord notify error:', e); }
 
   alert(`[상담 신청 완료] ${name} 님의 맞춤 상담 문의가 정상 접수되었습니다!

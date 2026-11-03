@@ -68,9 +68,9 @@ function submitChatInquiry(e) {
     status: 'new',
     source: 'chat'
   };
-  const inquiries = JSON.parse(localStorage.getItem('seoldamhwa_inquiries') || '[]');
+  const inquiries = loadInquiries();
   inquiries.unshift(inquiry);
-  localStorage.setItem('seoldamhwa_inquiries', JSON.stringify(inquiries));
+  saveInquiries(inquiries);
   try { if (typeof notifyInquiryToDiscord === 'function') notifyInquiryToDiscord(inquiry); } catch (err) { console.error('discord notify error:', err); }
   document.getElementById('chat-message').value = '';
   document.getElementById('chat-consent').checked = false;

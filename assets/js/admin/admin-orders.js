@@ -295,7 +295,7 @@ let adminAudio = null;
 const ADMIN_BASE_TITLE = document.title;
 
 function adminSoundOn() {
-  return localStorage.getItem('seoldamhwa_admin_sound') !== 'off';
+  return DataStore.readRaw(DataStore.KEYS.adminSound) !== 'off';
 }
 
 function playAdminChime() {
@@ -319,7 +319,7 @@ function playAdminChime() {
 }
 
 function adminIds(key) {
-  try { return new Set(JSON.parse(localStorage.getItem(key) || '[]').filter(x => !x.isSample).map(x => x.id)); } catch (e) { return new Set(); }
+  try { return new Set((DataStore.read(key, [])).filter(x => !x.isSample).map(x => x.id)); } catch (e) { return new Set(); }
 }
 
 function showAdminNotice(text, tab) {
@@ -365,7 +365,7 @@ function checkNewOrdersAndInquiries() {
   adminSeen.orders = now.orders;
   adminSeen.inquiries = now.inquiries;
   if (!newOrders.length && !newInq.length) return;
-  const orders = JSON.parse(localStorage.getItem('seoldamhwa_orders') || '[]');
+  const orders = typeof loadOrders === 'function' ? loadOrders() : DataStore.read(DataStore.KEYS.orders, []);
   newOrders.forEach(id => {
     const o = orders.find(x => x.id === id) || {};
     showAdminNotice(`🌸 새 주문 ${o.orderNumber || ''} · ${o.deliveryDate || ''} · ${formatWon(o.totalAmount || 0)}`, 'orders');
@@ -378,7 +378,7 @@ function checkNewOrdersAndInquiries() {
 }
 
 function toggleAdminSound() {
-  localStorage.setItem('seoldamhwa_admin_sound', adminSoundOn() ? 'off' : 'on');
+  DataStore.writeRaw(DataStore.KEYS.adminSound, adminSoundOn() ? 'off' : 'on');
   renderAdminSoundButton();
   if (adminSoundOn()) playAdminChime();
 }

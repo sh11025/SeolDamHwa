@@ -3,7 +3,7 @@
 // 본문 쓰는 법: "## 제목" 은 소제목, "- 내용" 은 목록, 빈 줄은 문단 나눔.
 // {상호} {대표자} {사업자등록번호} {통신판매업신고번호} {주소} {전화} {이메일} {개인정보보호책임자} 는 사업자 정보로 자동으로 바뀜.
 
-const PAGES_STORAGE_KEY = 'seoldamhwa_pages';
+var PAGES_STORAGE_KEY = DataStore.KEYS.pages;
 
 const PAGE_ORDER = ['bojagi', 'care', 'delivery', 'refund', 'terms', 'privacy'];
 
@@ -168,8 +168,7 @@ function normalizePageMedia(m, id) {
 }
 
 function loadPages() {
-  let stored = {};
-  try { stored = JSON.parse(localStorage.getItem(PAGES_STORAGE_KEY) || '{}') || {}; } catch (e) { stored = {}; }
+  const stored = DataStore.read(PAGES_STORAGE_KEY, {}) || {};
   const pages = {};
   PAGE_ORDER.forEach(id => {
     const s = stored[id] || {};
@@ -186,18 +185,16 @@ function loadPages() {
 }
 
 function savePage(id, title, body, media) {
-  let stored = {};
-  try { stored = JSON.parse(localStorage.getItem(PAGES_STORAGE_KEY) || '{}') || {}; } catch (e) { stored = {}; }
+  const stored = DataStore.read(PAGES_STORAGE_KEY, {}) || {};
   const keepMedia = media || (stored[id] && stored[id].media);
   stored[id] = { title, body, updatedAt: new Date().toISOString(), ...(keepMedia ? { media: normalizePageMedia(keepMedia, id) } : {}) };
-  localStorage.setItem(PAGES_STORAGE_KEY, JSON.stringify(stored));
+  DataStore.write(PAGES_STORAGE_KEY, stored);
 }
 
 function resetPage(id) {
-  let stored = {};
-  try { stored = JSON.parse(localStorage.getItem(PAGES_STORAGE_KEY) || '{}') || {}; } catch (e) { stored = {}; }
+  const stored = DataStore.read(PAGES_STORAGE_KEY, {}) || {};
   delete stored[id];
-  localStorage.setItem(PAGES_STORAGE_KEY, JSON.stringify(stored));
+  DataStore.write(PAGES_STORAGE_KEY, stored);
 }
 
 // 사업자 정보로 {자리표시} 바꾸기

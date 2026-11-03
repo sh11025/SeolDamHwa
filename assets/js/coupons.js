@@ -4,20 +4,16 @@
 //   { code, batchId, batchName, type: 'amount'|'percent', value, minOrder, startDate, endDate, active, createdAt, usedAt, orderNumber }
 // 쿠폰에는 손님 정보를 저장하지 않아요 (사용한 주문번호만).
 
-const COUPONS_KEY = 'seoldamhwa_coupons';
+var COUPONS_KEY = DataStore.KEYS.coupons;
 const COUPON_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 헷갈리는 0·O·1·I 뺌
 
 function loadCoupons() {
-  try {
-    const list = JSON.parse(localStorage.getItem(COUPONS_KEY) || '[]');
-    return Array.isArray(list) ? list : [];
-  } catch (e) {
-    return [];
-  }
+  const list = DataStore.read(COUPONS_KEY, []);
+  return Array.isArray(list) ? list : [];
 }
 
 function saveCoupons(list) {
-  localStorage.setItem(COUPONS_KEY, JSON.stringify(list));
+  DataStore.write(COUPONS_KEY, list);
 }
 
 function normalizeCouponCode(code) {
@@ -92,19 +88,15 @@ function markCouponUsed(code, orderNumber) {
 /* ---------- 기간이 끝난 쿠폰 정리 + 기록 ----------
  * 기간이 끝난 묶음은 코드를 지우고, 몇 장 만들고 몇 장 썼는지·쓴 날짜만 'seoldamhwa_coupon_history'에 남김
  * { id(묶음 id), batchName, type, value, minOrder, startDate, endDate, created, used, usedDates: ['YYYY-MM-DD', ...], archivedAt } */
-const COUPON_HISTORY_KEY = 'seoldamhwa_coupon_history';
+var COUPON_HISTORY_KEY = DataStore.KEYS.couponHistory;
 
 function loadCouponHistory() {
-  try {
-    const list = JSON.parse(localStorage.getItem(COUPON_HISTORY_KEY) || '[]');
-    return Array.isArray(list) ? list : [];
-  } catch (e) {
-    return [];
-  }
+  const list = DataStore.read(COUPON_HISTORY_KEY, []);
+  return Array.isArray(list) ? list : [];
 }
 
 function saveCouponHistory(list) {
-  localStorage.setItem(COUPON_HISTORY_KEY, JSON.stringify(list));
+  DataStore.write(COUPON_HISTORY_KEY, list);
 }
 
 // 쓴 시각 → 한국 날짜

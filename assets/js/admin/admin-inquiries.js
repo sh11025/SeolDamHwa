@@ -4,13 +4,7 @@
 
 // 4. 맞춤 담화 1:1 상담 문의 관리
 function loadAdminInquiries() {
-  const stored = localStorage.getItem('seoldamhwa_inquiries');
-  if (!stored) return [];
-  try {
-    return JSON.parse(stored);
-  } catch (e) {
-    return [];
-  }
+  return typeof loadInquiries === 'function' ? loadInquiries() : (DataStore.read(DataStore.KEYS.inquiries, []));
 }
 
 function renderInquiriesList() {
@@ -69,7 +63,7 @@ function renderInquiriesList() {
 
 function updateInquiry(inquiryId, patch) {
   const inquiries = loadAdminInquiries().map(inq => inq.id === inquiryId ? { ...inq, ...patch } : inq);
-  localStorage.setItem('seoldamhwa_inquiries', JSON.stringify(inquiries));
+  saveInquiries(inquiries);
 }
 
 function copyInquiryPhone(inquiryId, btn) {
@@ -99,7 +93,7 @@ function markInquiryDone(inquiryId) {
   const now = new Date();
   const contactedAt = `${toDateStr(now)}T${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   inquiries = inquiries.map(inq => inq.id === inquiryId ? { ...inq, status: 'done', contactedAt } : inq);
-  localStorage.setItem('seoldamhwa_inquiries', JSON.stringify(inquiries));
+  saveInquiries(inquiries);
   renderInquiriesList();
   renderDashboard();
 }
