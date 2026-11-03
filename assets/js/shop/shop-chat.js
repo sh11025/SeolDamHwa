@@ -50,8 +50,8 @@ function toggleChatPanel(open) {
 function submitChatInquiry(e) {
   e.preventDefault();
   const phone = document.getElementById('chat-phone').value.trim();
-  if (phone.replace(/\D/g, '').length < 9) {
-    alert(chatT('co_phone_invalid', '연락처를 숫자 9자리 이상으로 적어 주세요.'));
+  if (!isValidPhone(phone)) {
+    alert(chatT('co_phone_invalid', '연락처를 숫자 10~11자리로 적어 주세요. (예: 010-1234-5678)'));
     return;
   }
   const now = new Date();

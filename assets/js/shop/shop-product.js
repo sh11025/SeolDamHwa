@@ -152,8 +152,8 @@ function submitRestockRequest(e) {
   e.preventDefault();
   if (!currentSelectedProduct || typeof addRestockRequest !== 'function') return;
   const phone = document.getElementById('restock-phone').value.trim();
-  if (normalizePhone(phone).length < 9) {
-    alert(typeof t === 'function' ? t('co_phone_invalid', '연락처를 숫자 9자리 이상으로 적어 주세요.') : '연락처를 숫자 9자리 이상으로 적어 주세요.');
+  if (!isValidPhone(phone)) {
+    alert(typeof t === 'function' ? t('co_phone_invalid', '연락처를 숫자 10~11자리로 적어 주세요. (예: 010-1234-5678)') : '연락처를 숫자 10~11자리로 적어 주세요. (예: 010-1234-5678)');
     return;
   }
   const result = addRestockRequest({

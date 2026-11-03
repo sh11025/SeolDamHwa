@@ -3,6 +3,12 @@
 
 const DATA_VERSION = 2;
 
+// 전화번호 유효성 검사 (공백·하이픈 제거 후 0으로 시작하는 10~11자리 또는 02 9자리 유선번호)
+function isValidPhone(v) {
+  const c = String(v || '').replace(/[-\s]/g, '');
+  return /^0\d{9,10}$/.test(c) || /^02\d{7}$/.test(c);
+}
+
 // 고유 식별자 생성기 (crypto.randomUUID 지원, 미지원 시 타임스탬프+랜덤 16진수)
 function makeId(prefix) {
   const p = prefix ? `${prefix}-` : '';

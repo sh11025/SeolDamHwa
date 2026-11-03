@@ -635,11 +635,6 @@ function goCheckoutStep(n) {
   if (page && !page.classList.contains('hidden')) window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function isValidCheckoutPhone(v) {
-  const c = String(v || '').replace(/[-\s]/g, '');
-  return (c.length === 10 || c.length === 11) && (c.startsWith('01') || c.startsWith('0')) && /^\d+$/.test(c);
-}
-
 function validateCheckoutStep2() {
   const sec = document.querySelector('#checkout-form [data-co-step="2"]');
   if (!sec) return true;
@@ -674,8 +669,8 @@ function validateCheckoutStep2() {
     alert('배송 주소를 입력해 주세요.');
     return false;
   }
-  if (!isValidCheckoutPhone(val('order-orderer-phone')) || !isValidCheckoutPhone(val('order-phone'))) {
-    alert(coT('co_phone_invalid', '연락처를 숫자 9자리 이상으로 적어 주세요.'));
+  if (!isValidPhone(val('order-orderer-phone')) || !isValidPhone(val('order-phone'))) {
+    alert(coT('co_phone_invalid', '연락처를 숫자 10~11자리로 적어 주세요. (예: 010-1234-5678)'));
     return false;
   }
   if (!checkAddressArea()) { document.getElementById('address-area-warning').scrollIntoView({ block: 'center' }); return false; }
@@ -777,8 +772,8 @@ async function submitCustomerOrder(e) {
       alert('배송 주소를 입력해 주세요.');
       return;
     }
-    if (!isValidCheckoutPhone(val('order-orderer-phone')) || !isValidCheckoutPhone(val('order-phone'))) {
-      alert(coT('co_phone_invalid', '연락처를 숫자 9자리 이상으로 적어 주세요.'));
+    if (!isValidPhone(val('order-orderer-phone')) || !isValidPhone(val('order-phone'))) {
+      alert(coT('co_phone_invalid', '연락처를 숫자 10~11자리로 적어 주세요. (예: 010-1234-5678)'));
       return;
     }
     if (document.getElementById('order-same-recipient').checked) toggleSameRecipient();

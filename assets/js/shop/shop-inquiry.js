@@ -83,6 +83,10 @@ function submitCustomInquiry(e) {
   e.preventDefault();
   const name = document.getElementById('inquiry-name').value.trim();
   const phone = document.getElementById('inquiry-phone').value.trim();
+  if (!isValidPhone(phone)) {
+    alert(typeof t === 'function' ? t('co_phone_invalid', '연락처를 숫자 10~11자리로 적어 주세요. (예: 010-1234-5678)') : '연락처를 숫자 10~11자리로 적어 주세요. (예: 010-1234-5678)');
+    return;
+  }
   const date = document.getElementById('inquiry-date').value || '미정';
   const typeSelect = document.getElementById('inquiry-type');
   const type = typeSelect ? typeSelect.value : '맞춤 꽃다발·꽃바구니 제작';
