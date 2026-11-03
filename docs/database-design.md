@@ -1,7 +1,7 @@
 # 설담화(說談花) 데이터베이스 설계서 (Supabase / PostgreSQL)
 
 > 이 문서는 설담화 쇼핑몰의 데이터를 파일(CSV)과 웹 브라우저에서 인터넷 데이터베이스(Supabase PostgreSQL)로 옮길 때 사용하는 공식 설계서입니다.
-> 현재 운영 중인 `assets/js/csv-db.js`의 13개 표 구조와 새로 추가될 1개 표(후기)의 실제 데이터 형태를 빠짐없이 담았습니다.
+> 현재 운영 중인 `assets/js/csv-db.js`의 13개 표 구조와 새로 추가된 1개 표(후기)의 실제 데이터 형태를 빠짐없이 담았습니다.
 > `docs/supabase-schema.sql`과 내용 및 정책이 100% 동일하게 유지됩니다.
 
 ---
@@ -17,15 +17,15 @@
   손님의 소중한 이름·전화번호·배송지 주소는 **주문(`orders`)**, **1:1 상담(`inquiries`)**, **재입고 알림(`restock`)** 단 3곳에만 저장됩니다. 나머지 표에는 개인정보가 일절 들어가지 않습니다.
 
 - **누가 보고 고칠 수 있나요? (3단계 보안 원칙)**  
-  1. **손님(방문자)**: 꽃 상품·꽃 사전·안내 글·공지 팝업은 누구나 자유롭게 볼 수 있습니다. 주문서 작성·1:1 상담 신청·재입고 알림 신청은 손님이 '새로 등록'만 할 수 있고, 남의 정보는 절대 볼 수 없습니다. (본인 주문은 주문번호와 연락처가 정확히 맞을 때 전용 조회 함수를 통해서만 1건씩 안전하게 조회됩니다.)  
-  2. **사장님(관리자 로그인)**: 모든 표의 데이터를 열람하고 수정할 수 있으며, 지출 내역이나 전체 주문 관리, 팝업 및 상품 수정 등 가게 운영에 필요한 모든 권한을 갖습니다.  
-  3. **쿠폰 직접 수정 금지 (보안 트리거)**: 손님 기기는 쿠폰 표를 직접 바꿀 수 있는 권한이 전혀 없습니다. 손님이 쿠폰을 사용해 주문을 넣으면, 시스템(데이터베이스 함수/트리거)이 사장님 금고 안에서 자동으로 쿠폰을 '사용됨'으로 체크합니다.
+  1. **손님(방문자)**: 꽃 상품·꽃 사전·안내 글·공지 팝업·승인된 후기는 누구나 자유롭게 볼 수 있습니다. 주문서 작성·1:1 상담 신청·재입고 알림 신청은 손님이 '새로 등록'만 할 수 있고, 남의 정보는 절대 볼 수 없습니다. (본인 주문은 주문번호와 연락처가 정확히 맞을 때 전용 조회 함수를 통해서만 마스킹된 안전한 정보 1건씩만 조회됩니다.)  
+  2. **사장님(관리자 로그인)**: 모든 표의 데이터를 열람하고 수정할 수 있으며, 지출 내역이나 전체 주문 관리, 팝업 및 상품 수정, 후기 승인/답글 등 가게 운영에 필요한 모든 권한을 갖습니다.  
+  3. **쿠폰 직접 수정 금지 (서버 트랜잭션 보장)**: 손님 기기는 쿠폰 표를 직접 바꿀 수 있는 권한이 전혀 없습니다. 손님이 주문을 제출하면, 서버 함수(`submit_order_transaction`)가 가격·배송비·쿠폰 유효성을 엄격히 재검증한 뒤 사장님 금고 안에서 안전하게 주문 등록과 쿠폰 사용을 한 번에 처리합니다.
 
 - **사장님 계정은 어떻게 관리자 표시를 받나요?**  
   Supabase 시스템에서는 일반 로그인 토큰(`role`)에 무조건 'authenticated'(인증된 사용자)라는 이름만 붙고 'admin'이라는 이름은 자동으로 붙지 않습니다. 따라서 사장님 계정에는 관리자 표시를 별도로 달아주어야 합니다.  
   1. Supabase 관리 화면(대시보드)의 왼쪽 메뉴에서 **[Authentication] → [Users]**로 들어갑니다.  
   2. 가입된 사장님의 이메일 계정을 클릭합니다.  
-  3. **[App Metadata]**(또는 User Metadata) 항목에 `{"role": "admin"}`을 적고 저장합니다.  
+  3. **[App Metadata]** 항목에 `{"role": "admin"}`을 적고 저장합니다. (User Metadata에 넣으면 안 됨 — 손님이 직접 고칠 수 있는 칸)  
   *(또는 SQL 에디터에서 `UPDATE auth.users SET raw_app_meta_data = raw_app_meta_data || '{"role": "admin"}'::jsonb WHERE email = '사장님이메일';` 을 한 번만 실행하면 됩니다.)*  
   이렇게 해 두면 데이터베이스의 `is_admin()` 함수가 사장님임을 알아채고 모든 관리 권한을 열어줍니다.
 
@@ -39,7 +39,7 @@
    - 따라서 데이터베이스의 모든 ID 컬럼은 숫자가 아닌 **`text` 타입**을 사용하며, 이전 과정에서 이름을 바꾸지 않습니다.
 
 2. **신규 생성 식별자**  
-   - 새로 생성되는 레코드는 `makeId(prefix)`를 통해 접두사와 고유값이 결합된 형태(`ord-xxxx`, `inq-xxxx`, `exp-xxxx` 등)로 생성됩니다.
+   - 새로 생성되는 레코드는 `makeId(prefix)`를 통해 접두사와 고유값이 결합된 형태(`ord-xxxx`, `inq-xxxx`, `exp-xxxx`, `rev-xxxx` 등)로 생성됩니다.
 
 3. **손님용 주문번호 (`orderNumber`)**  
    - 내부 관리용 식별자(`id`)와 별개로, 손님이 조회하거나 사장님이 송장에 적는 주문번호는 **`SDH-YYMMDD-XXXX`** 형태(날짜와 영문·숫자 조합)를 유지합니다.
@@ -60,7 +60,7 @@
      │                             ▲
      │ (order_items.productId,     │ (reviews.orderId, 삭제 시 SET NULL)
      │  삭제 시 SET NULL)           │
-[ order_items ] >───── [ orders ] ─┴─── (쿠폰 코드 조회 RPC / 보안 트리거) ───> [ coupons ]
+[ order_items ] >───── [ orders ] ─┴─── (쿠폰 코드 조회 RPC / 서버 트랜잭션) ───> [ coupons ]
  (주문 상품 목록)         (주문서)                                                ▲
                                                                                   │ (batchId 묶음 연결)
                                                                                   │
@@ -71,9 +71,9 @@
 - **상품과 재입고 알림**: 하나의 상품(`products`)에 여러 명의 손님이 재입고 알림(`restock`)을 신청할 수 있습니다. (`1 : N`)  
   *상품이 삭제되어도 손님의 신청 내역이 조용히 삭제되지 않도록 외래키는 `ON DELETE SET NULL`을 적용합니다.*
 - **상품과 꽃 사전**: 상품의 `flowers` 컬럼에 꽃 사전(`flowers`)의 `id`들이 배열로 기록됩니다.
-- **주문과 쿠폰**: 손님 기기는 쿠폰을 직접 바꿀 수 없으며, 주문 생성 시 데이터베이스 트리거 또는 트랜잭션 함수가 쿠폰의 `usedAt`과 `orderNumber`를 기록합니다.
+- **주문과 쿠폰**: 손님 기기는 쿠폰을 직접 바꿀 수 없으며, 주문 생성 RPC(`submit_order_transaction`)가 가격 검증과 함께 쿠폰의 `usedAt`과 `orderNumber`를 일괄 원자적으로 기록합니다.
 - **쿠폰과 쿠폰 이력**: 오프라인 배포 묶음(`coupons.batchId`)은 `coupon_history`에서 일괄 통계로 관리됩니다.
-- **주문과 후기**: 배송 또는 수령이 완료된 주문에 한하여 1건의 후기(`reviews`)를 작성할 수 있습니다.
+- **주문과 후기**: 배송 완료(`status = 'completed'`)된 주문에 한하여 품목당 1건의 후기(`reviews`)를 작성할 수 있습니다.
 
 ---
 
@@ -95,6 +95,9 @@
    - `homeOrder`는 빈 값일 때 관리자에서 '자동 순서'로 처리되므로 999로 채우지 않고 `NULL`을 허용합니다.
    - 방문 수령(픽업) 주문 등 주소가 없는 주문이 있으므로 `orders.address`는 `NOT NULL`을 강제하지 않습니다.
    - 과거 주문 호환을 위해 `recipientName`, `ordererName` 등도 빈 문자열을 허용합니다.
+4. **보안 린터(Linter) 규칙 및 최소 권한 준수**  
+   - 모든 `SECURITY DEFINER` 함수는 `SET search_path = public`을 명시하여 검색 경로 가로채기 취약점을 차단합니다.
+   - `REVOKE EXECUTE ... FROM PUBLIC`을 통해 기본 공개 실행을 차단하고, `anon`에게는 외부에 개방된 전용 RPC(`check_coupon`, `lookup_order`, `submit_order_transaction`)만 명시적으로 `GRANT`합니다.
 
 ---
 
@@ -112,7 +115,7 @@
   | `"englishName"` | `text` | - | `''` | 상품 영문명 | - |
   | `category` | `text` | NOT NULL | `'bouquet'` | 분류 (`bouquet`, `basket`, `vase`, `dried`, `space`, `plant`, `goods`) | - |
   | `price` | `numeric(12,0)` | NOT NULL | `0` | 기본 판매 가격 (원) | - |
-  | `sizes` | `jsonb` | NOT NULL | `'[]'::jsonb` | 사이즈별 추가 옵션 목록 (`[{ name, price, stockQuantity }]`) | - |
+  | `sizes` | `jsonb` | NOT NULL | `'[]'::jsonb` | 사이즈별 추가 옵션 목록 (`[{ label, price, recommended }]`) | - |
   | `"inquiryOnly"` | `boolean` | NOT NULL | `false` | 가격 상담 전용 상품 여부 | - |
   | `"poeticLine"` | `text` | - | `''` | 상품을 나타내는 시적인 한 줄 문구 | - |
   | `"flowerMeaning"` | `text` | - | `''` | 꽃말 및 상징 요약 | - |
@@ -244,7 +247,6 @@
 
 ### 6) 재입고 알림 신청 (`restock`)
 - **목적**: 품절 상품에 대해 손님이 재입고 시 문자/연락을 받기 위해 등록한 알림 신청
-- **외래키 변경 안내**: 상품이 삭제되더라도 손님의 신청 내역이 보존되도록 `ON DELETE CASCADE` 대신 `ON DELETE SET NULL`을 적용합니다 (`productId`는 NULL 허용).
 - **컬럼 목록**:
   | 컬럼명 | PostgreSQL 타입 | NOT NULL | 기본값 | 설명 및 의미 | 개인정보 |
   |---|---|---|---|---|---|
@@ -344,7 +346,7 @@
 
 ### 11) 오프라인 쿠폰 (`coupons`)
 - **목적**: 인쇄물로 손님께 전달되어 결제 시 1회 사용되는 할인 쿠폰 코드
-- **보안 규칙**: 손님 기기는 이 테이블에 대한 직접 수정(UPDATE) 권한이 없습니다. 쿠폰 조회는 `check_coupon` RPC로만 가능하며, 사용 처리는 주문 등록 시 DB 내부 함수/트리거가 안전하게 처리합니다.
+- **보안 규칙**: 손님 기기는 이 테이블에 대한 직접 수정(UPDATE) 권한이 전혀 없습니다. 쿠폰 조회는 `check_coupon` RPC로만 가능하며, 사용 처리는 주문 등록 시 `submit_order_transaction` 함수가 안전하게 검증 및 단일 트랜잭션으로 처리합니다.
 - **컬럼 목록**:
   | 컬럼명 | PostgreSQL 타입 | NOT NULL | 기본값 | 설명 및 의미 | 개인정보 |
   |---|---|---|---|---|---|
@@ -404,22 +406,26 @@
 
 ### 14) 상품 후기 (`reviews` — 신규 계획 테이블)
 - **목적**: 배송 완료 손님이 남겨주신 정성스러운 포토/텍스트 후기와 사장님의 답글
+- **보안 및 개인정보**:
+  - 작성자 이름 컬럼(`name`)은 일절 존재하지 않으며(익명성 보장), 화면에도 표시하지 않습니다.
+  - `photos`는 저장된 사진 파일 경로 배열(`jsonb`), `video`는 저장된 영상 파일 경로(`text`)입니다.
+  - 승인된(`status = 'approved'`) 후기만 일반에 공개되며, 승인 대기 중(`pending`)인 후기의 사진 및 영상 파일은 anon 사용자가 절대 열람할 수 없습니다 (Private Storage 유지).
 - **컬럼 목록**:
   | 컬럼명 | PostgreSQL 타입 | NOT NULL | 기본값 | 설명 및 의미 | 개인정보 |
   |---|---|---|---|---|---|
   | `id` | `text` | NOT NULL | - | 후기 고유 식별자 (`rev-...`) | - |
   | `"orderId"` | `text` | - | NULL | 주문 식별자 (주문 삭제 시 NULL) | - |
-  | `"orderNumber"` | `text` | NOT NULL | - | 주문번호 (검증용) | - |
+  | `"orderNumber"` | `text` | NOT NULL | - | 주문번호 (완료 주문 검증용) | - |
   | `"productId"` | `text` | - | NULL | 후기 대상 상품 식별자 (상품 삭제 시 NULL) | - |
   | `"productName"` | `text` | NOT NULL | - | 후기 대상 상품명 | - |
   | `rating` | `integer` | NOT NULL | `5` | 별점 (1~5점) | - |
-  | `text` | `text` | NOT NULL | - | 손님이 쓴 후기 글 본문 | - |
-  | `photos` | `jsonb` | NOT NULL | `'[]'::jsonb` | 첨부 사진 Storage URL 배열 (최대 3장) | - |
-  | `video` | `text` | - | `''` | 첨부 영상 Storage URL (1개) | - |
-  | `status` | `text` | NOT NULL | `'pending'` | 승인 상태 (`pending`: 승인대기, `approved`: 공개승인, `hidden`: 숨김) | - |
+  | `text` | `text` | NOT NULL | - | 손님이 쓴 후기 글 본문 (10~500자) | - |
+  | `photos` | `jsonb` | NOT NULL | `'[]'::jsonb` | 첨부 사진 저장 경로 배열 (최대 3장) | - |
+  | `video` | `text` | - | `''` | 첨부 영상 저장 경로 (최대 1개) | - |
+  | `status` | `text` | NOT NULL | `'pending'` | 승인 상태 (`pending`: 대기, `approved`: 공개, `hidden`: 숨김) | - |
   | `"adminReply"` | `text` | - | `''` | 사장님 답글 본문 | - |
   | `"replyAt"` | `text` | - | NULL | 사장님 답글 등록 일시 | - |
-  | `"createdAt"` | `text` | NOT NULL | `''` | 후기 작성 일시 | - |
+  | `"createdAt"` | `text` | NOT NULL | `''` | 후기 작성 일시 (ISO 문자열) | - |
   | `"isSample"` | `boolean` | NOT NULL | `false` | 예시 데이터 여부 | - |
 - **기본키(PK)**: `id`
 - **외래키(FK)**:
@@ -440,39 +446,53 @@
 | 대상 테이블 | 익명 방문자 (anon) | 주문 손님 (anon) | 관리자 (`is_admin()` / 사장님) |
 |---|---|---|---|
 | `products` | **읽기 전용** (`visibility='public'` 또는 예약시간 도래 건) | 읽기 전용 | 전체 읽기 / 쓰기 / 삭제 |
-| `orders` | 직접 접근 불가 (조회는 `lookup_order` RPC 함수로만) | **새 주문 등록(INSERT)만 가능** | 전체 읽기 / 수정 / 관리 |
-| `order_items` | 직접 접근 불가 | **새 주문 품목 등록(INSERT)만 가능** | 전체 읽기 / 수정 / 관리 |
+| `orders` | 직접 접근 불가 (조회는 `lookup_order` RPC 함수로만) | 직접 접근 불가 (`submit_order_transaction` 함수로 접수) | 전체 읽기 / 수정 / 관리 |
+| `order_items` | 직접 접근 불가 | 직접 접근 불가 (`submit_order_transaction` 함수로 접수) | 전체 읽기 / 수정 / 관리 |
 | `inquiries` | 직접 접근 불가 | **새 상담 등록(INSERT)만 가능** | 전체 읽기 / 수정 / 답변 관리 |
 | `restock` | 직접 접근 불가 | **새 알림 등록(INSERT)만 가능** | 전체 읽기 / 수정 / 관리 |
 | `popups` | **읽기 전용** (`active=true` 이고 기간 내인 슬라이드) | 읽기 전용 | 전체 읽기 / 쓰기 / 순서 변경 |
 | `pages` | **읽기 전용** (누구나 조회 가능) | 읽기 전용 | 전체 읽기 / 수정 |
 | `settings` | **읽기 전용** (내부 비밀번호 키 제외) | 읽기 전용 | 전체 읽기 / 수정 |
 | `flowers` | **읽기 전용** (꽃 사전 도감 누구나 조회) | 읽기 전용 | 전체 읽기 / 쓰기 / 삭제 |
-| `coupons` | 직접 접근 불가 (확인은 `check_coupon` RPC 함수로만) | **직접 수정 불가 (트리거/함수 자동 처리)** | 전체 쿠폰 발행 / 폐기 / 내역 조회 |
+| `coupons` | 직접 접근 불가 (확인은 `check_coupon` RPC 함수로만) | **직접 수정 불가 (트랜잭션 함수 자동 처리)** | 전체 쿠폰 발행 / 폐기 / 내역 조회 |
 | `coupon_history` | 접근 불가 | 접근 불가 | 전체 읽기 / 등록 |
 | `expenses` | **접근 불가 (철저한 보안)** | 접근 불가 | 전체 읽기 / 등록 / 삭제 |
 | `images` | **읽기 전용** (공개 사진 주소 조회) | 읽기 전용 | 사진 등록 / 삭제 |
-| `reviews` | **읽기 전용** (`status='approved'` 건만 노출) | **완료 주문 건에 한해 등록(INSERT)** | 승인/반려/답글 달기 전체 권한 |
+| `reviews` | **읽기 전용** (`status='approved'` 승인 건만 노출) | **완료 주문 건에 한해 등록(INSERT)** | 승인/반려/답글 달기 전체 권한 |
 
 ---
 
-### 2) 핵심 보안 RPC 함수 및 트리거 상세
+### 2) 핵심 보안 RPC 함수 상세 및 보안 원칙
 
 1. **관리자 판별 함수 (`is_admin`)**
-   - 사장님 로그인 세션의 JWT 메타데이터(`auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'`)를 판별하여 안전하게 관리자 여부를 반환합니다.
+   - 사장님 로그인 세션의 JWT 메타데이터(`auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'`)를 판별하여 안전하게 관리자 여부를 반환합니다. `SET search_path = public` 적용.
 2. **손님용 쿠폰 확인 함수 (`check_coupon(p_code)`)**
    - `server.py`의 `COUPON_PUBLIC` 원칙과 동일하게 코드 일치 시 `code`, `batchName`, `type`, `value`, `minOrder`, `startDate`, `endDate`, `active`, `used` 만 반환하여 쿠폰 테이블의 전체 내역이 외부에 노출되지 않도록 방어합니다.
-3. **쿠폰 사용 자동 처리 트리거 (`trg_mark_coupon_used`)**
-   - 새 주문이 삽입될 때 `SECURITY DEFINER` 권한으로 자동 실행되어 주문에 포함된 `couponCode`에 대해 `usedAt`과 `orderNumber`를 업데이트합니다. 손님 기기에는 쿠폰 테이블에 대한 UPDATE 권한을 주지 않아 쿠폰 조작을 원천 차단합니다.
-4. **손님용 단건 주문 조회 함수 (`lookup_order(p_order_number, p_phone)`)**
+3. **손님용 단건 주문 조회 함수 (`lookup_order(p_order_number, p_phone)`)**
    - 손님이 주문번호와 주문자 연락처(숫자만 비교)를 정확히 입력했을 때만 해당 주문 1건과 소속 품목 목록(`order_items`)을 안전하게 돌려줍니다.
-5. **주문 통합 접수 단일 트랜잭션 함수 (`submit_order_transaction(p_order, p_items)`)**
-   - **원자적 일괄 처리**: "재고 확인 및 차감(`stockQuantity` 차감) → 주문서 등록(`orders` INSERT) → 주문 품목 등록(`order_items` INSERT) → 쿠폰 사용 처리(`coupons` UPDATE)"를 하나의 데이터베이스 트랜잭션으로 묶어 처리합니다.
-   - 중간에 재고가 부족하거나 쿠폰 사용 충돌 등 오류가 발생하면 전체 작업이 즉시 롤백되어 데이터 불일치(결제 후 재고 미차감 등)를 원천 차단합니다.
+   - **개인정보 보호**: 쇼핑몰 주문 조회 화면에 필요한 필드(`orderNumber`, `createdDate`, `status`, `deliveryMethodLabel`, `deliveryDate`, `itemsTotal`, `deliveryFee`, `couponDiscount`, `totalAmount`, `courier`, `trackingNumber`)만 반환하며, 받는 분 성함은 `김*희` 형태로 마스킹 처리합니다. 손님의 전화번호, 배송지 상세 주소, 관리자 메모 등은 절대 반환하지 않습니다.
+4. **주문 통합 접수 단일 트랜잭션 함수 (`submit_order_transaction(p_order, p_items)`)**
+   - **금액 불신뢰 원칙**: 손님 기기에서 전달된 단가, 합계, 배송비, 할인금액, 총액을 일절 신뢰하지 않고 DB 내부에서 직접 재계산합니다.
+   - **상품 및 가격 검증**: 각 품목의 `productId`로 상품을 조회하고 비공개/예약공개 미도래 건은 즉시 주문을 거부합니다. 품목의 `sizeLabel`이 일치하면 해당 사이즈 단가를, 없으면 기본 단가를 적용합니다.
+   - **배송비 재계산**: `settings`의 `delivery` 설정을 읽어 무료배송 기준(`freeOver`)과 배송방식별 요금을 엄격히 계산하며 음수 값은 거부합니다.
+   - **쿠폰 유효성 엄격 검증**: 쿠폰 코드가 제공된 경우 존재 여부, 활성 상태, 유효기간, 최소 주문금액, 기사용 여부를 검증하며 위반 시 **주문 전체를 즉시 롤백 및 거부**합니다. 유효한 경우에만 할인금액을 계산(퍼센트는 100원 단위 절사)하고 즉시 `usedAt`을 기록합니다.
+   - **원자적 일괄 처리 및 중복 방지**: 중복 주문번호를 거부하고, `status='preparing'`, `isSample=false`를 강제 적용하며, "재고 차감 → 주문서 등록 → 주문 품목 등록 → 쿠폰 사용 처리"를 단일 트랜잭션으로 원자적으로 처리합니다.
+   - **쿠폰 업데이트 방식**: 함수 내부에서 유효성 검증과 함께 단일 트랜잭션으로 쿠폰을 사용 처리하므로, 중복 실행을 막기 위해 별도의 주문 INSERT 트리거는 사용하지 않고 함수 내부 업데이트 방식을 유지합니다.
 
 ---
 
-## 7. 데이터 이전 시 특별 주의사항 및 향후 정리 과제
+## 7. 파일 및 이미지 저장소 (Supabase Storage) 계획
+
+1. **저장소 버킷(Bucket) 구성**
+   - `product-photos`: 상품 대표 사진 및 갤러리 상세 사진 (공개 읽기 허용)
+   - `page-media`: 보자기 포장 영상, 매장 안내 사진 등 (공개 읽기 허용)
+   - `review-media`: 손님이 올리는 후기 사진 및 짧은 영상
+     - **보안 규칙**: 사장님이 후기를 승인(`status = 'approved'`)하기 전까지는 **비공개(Private)** 상태로 보관되며, 승인된 후기의 미디어만 일반 손님에게 공개됩니다.
+     - 파일 제한: 사진 최대 3장 (장당 300KB 이하 JPEG, 긴 축 1000px 이하로 브라우저 압축), 영상 최대 1개 (30초 이내, 20MB 이하, mp4/webm/mov).
+
+---
+
+## 8. 데이터 이전 시 특별 주의사항 및 향후 정리 과제
 
 ### 1) 외래키 충돌 방지 및 안전한 데이터 이전 (Migration)
 - 기존 CSV(`order_items.csv`, `restock.csv`)에는 테스트용 예시 상품이나 과거 삭제된 상품을 참조하는 레코드가 존재할 수 있습니다.
@@ -497,7 +517,7 @@
 
 ---
 
-## 8. 단계별 이전 로드맵 (Migration Steps)
+## 9. 단계별 이전 로드맵 (Migration Steps)
 
 ```text
 [1단계] CSV 최신본 수집 ──> [2단계] Supabase 스키마 생성 ──> [3단계] 의존성 순서 데이터 입력
@@ -523,6 +543,6 @@
 6. **6단계: 데이터 건수 및 기능 검증**  
    - 이전 전 CSV 줄 수와 데이터베이스 테이블 행 수가 정확히 일치하는지 확인하고 결제, 주문 조회, 쿠폰 적용을 테스트합니다.
 7. **7단계: 일회성 데이터 정돈**  
-   - 섹션 7-2의 계획에 따라 `orders.deliveryDate`, `orders.createdAt` 등의 컬럼을 정식 타입으로 분리 및 변환합니다.
+   - 섹션 8-2의 계획에 따라 `orders.deliveryDate`, `orders.createdAt` 등의 컬럼을 정식 타입으로 분리 및 변환합니다.
 8. **8단계: 최종 CSV 백업 보관**  
    - 만약의 상황에 대비해 이전 직전의 CSV 파일들을 안전한 별도 보관소에 영구 보관합니다.
