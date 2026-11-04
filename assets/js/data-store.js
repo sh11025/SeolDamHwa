@@ -33,7 +33,8 @@ const DataStore = (() => {
     adminSound: 'seoldamhwa_admin_sound',
     popupDismissedDate: 'seoldamhwa_popup_dismissed_date',
     popupViewedSession: 'seoldamhwa_popup_viewed_session',
-    serverSynced: 'seoldamhwa_server_synced'
+    serverSynced: 'seoldamhwa_server_synced',
+    lastFullBackup: 'seoldamhwa_last_full_backup'
   });
 
   function read(key, fallback = null) {

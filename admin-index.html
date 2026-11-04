@@ -11,20 +11,20 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
   
-  <script src="assets/js/data-store.js?v=71"></script>
-  <script src="assets/js/products-data.js?v=71"></script>
-  <script src="assets/js/flowers-data.js?v=71"></script>
-  <script src="assets/js/site-settings.js?v=71"></script>
-  <script src="assets/js/popups.js?v=71"></script>
-  <script src="assets/js/finance-data.js?v=71"></script>
-  <script src="assets/js/integrations.js?v=71"></script>
-  <script src="assets/js/admin-tools.js?v=71"></script>
-  <script src="assets/js/site-pages.js?v=71"></script>
-  <script src="assets/js/image-library.js?v=71"></script>
-  <script src="assets/js/restock.js?v=71"></script>
-  <script src="assets/js/csv-db.js?v=71"></script>
-  <script src="assets/js/data-sync.js?v=71"></script>
-  <script src="assets/js/coupons.js?v=71"></script>
+  <script src="assets/js/data-store.js?v=72"></script>
+  <script src="assets/js/products-data.js?v=72"></script>
+  <script src="assets/js/flowers-data.js?v=72"></script>
+  <script src="assets/js/site-settings.js?v=72"></script>
+  <script src="assets/js/popups.js?v=72"></script>
+  <script src="assets/js/finance-data.js?v=72"></script>
+  <script src="assets/js/integrations.js?v=72"></script>
+  <script src="assets/js/admin-tools.js?v=72"></script>
+  <script src="assets/js/site-pages.js?v=72"></script>
+  <script src="assets/js/image-library.js?v=72"></script>
+  <script src="assets/js/restock.js?v=72"></script>
+  <script src="assets/js/csv-db.js?v=72"></script>
+  <script src="assets/js/data-sync.js?v=72"></script>
+  <script src="assets/js/coupons.js?v=72"></script>
   <!-- 운송장 바코드: JsBarcode -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
   <!-- 차트: Chart.js -->
@@ -169,7 +169,7 @@
     }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=71">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=72">
 </head>
 <body class="min-h-screen flex flex-col selection:bg-seal-red/15 selection:text-seal-red">
   <!-- 1. 관리자 상단 헤더 (Admin Top Bar) -->
@@ -360,6 +360,7 @@
             <p id="today-tasks-date" class="text-xs text-ink-gray"></p>
           </div>
           <div id="today-tasks" class="grid grid-cols-2 md:grid-cols-5 gap-2"></div>
+          <p id="today-tasks-backup-hint" class="hidden text-xs text-seal-red font-medium mt-3 pt-2.5 border-t border-ink-black/5 leading-relaxed"></p>
         </div>
 
         <!-- 기간 직접 고르기 -->
@@ -821,6 +822,26 @@
                 <p class="text-xs text-ink-gray leading-relaxed">DATA/backup에 10분마다 남는 복사본이에요. 되돌리기 전에 지금 상태도 따로 백업해 둬요.</p>
                 <div id="server-backup-list" class="max-h-48 overflow-y-auto border border-ink-black/10 rounded-xs divide-y divide-ink-black/5 bg-white text-xs"></div>
               </div>
+            </div>
+          </div>
+
+          <!-- 전체 백업 내려받기 (CSV + 후기 사진·영상) -->
+          <div id="full-backup-card" class="admin-card p-5 rounded-sm space-y-3 xl:col-span-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h2 class="text-base font-bold text-ink-black flex items-center gap-2">
+                전체 백업 내려받기 (CSV + 후기 사진·영상)
+                <span id="full-backup-mode-badge" class="text-xs px-2 py-0.5 rounded font-bold bg-gray-100 text-gray-700">확인 중</span>
+              </h2>
+              <span id="full-backup-last-time" class="text-xs text-ink-gray"></span>
+            </div>
+            <p id="full-backup-desc" class="text-xs text-ink-gray leading-relaxed">
+              모든 데이터(CSV 표 전체)와 손님이 올린 후기 사진·영상을 하나의 압축 파일(.zip)로 내려받습니다. USB나 다른 안전한 곳에 정기적으로 보관하세요.
+            </p>
+            <div class="flex flex-wrap items-center gap-3">
+              <button type="button" id="btn-full-backup" onclick="downloadFullBackup()" class="px-4 py-2 bg-seal-red text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red/90 disabled:opacity-50 disabled:cursor-not-allowed">
+                전체 백업 내려받기 (.zip)
+              </button>
+              <p id="full-backup-note" class="text-xs text-ink-light"></p>
             </div>
           </div>
 
@@ -1602,19 +1623,19 @@
 
   <!-- JavaScript: Admin 로직 & 쇼핑몰 데이터 양방향 실시간 동기화 -->
   <!-- 관리자 화면 동작 (화면별 파일, 순서 중요) -->
-  <script src="assets/js/admin/admin-dashboard.js?v=71"></script>
-  <script src="assets/js/admin/admin-products.js?v=71"></script>
-  <script src="assets/js/admin/admin-orders.js?v=71"></script>
-  <script src="assets/js/admin/admin-inquiries.js?v=71"></script>
-  <script src="assets/js/admin/admin-product-modal.js?v=71"></script>
-  <script src="assets/js/admin/admin-flowers.js?v=71"></script>
-  <script src="assets/js/admin/admin-coupons.js?v=71"></script>
-  <script src="assets/js/admin/admin-settings.js?v=71"></script>
-  <script src="assets/js/admin/admin-popups.js?v=71"></script>
-  <script src="assets/js/admin/admin-finance.js?v=71"></script>
-  <script src="assets/js/admin/admin-integrations.js?v=71"></script>
-  <script src="assets/js/admin/admin-pages.js?v=71"></script>
-  <script src="assets/js/admin/admin-tools-ui.js?v=71"></script>
+  <script src="assets/js/admin/admin-dashboard.js?v=72"></script>
+  <script src="assets/js/admin/admin-products.js?v=72"></script>
+  <script src="assets/js/admin/admin-orders.js?v=72"></script>
+  <script src="assets/js/admin/admin-inquiries.js?v=72"></script>
+  <script src="assets/js/admin/admin-product-modal.js?v=72"></script>
+  <script src="assets/js/admin/admin-flowers.js?v=72"></script>
+  <script src="assets/js/admin/admin-coupons.js?v=72"></script>
+  <script src="assets/js/admin/admin-settings.js?v=72"></script>
+  <script src="assets/js/admin/admin-popups.js?v=72"></script>
+  <script src="assets/js/admin/admin-finance.js?v=72"></script>
+  <script src="assets/js/admin/admin-integrations.js?v=72"></script>
+  <script src="assets/js/admin/admin-pages.js?v=72"></script>
+  <script src="assets/js/admin/admin-tools-ui.js?v=72"></script>
 
   <!-- 슬라이드 편집 모달 -->
   <div id="slide-edit-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-black/60 hidden">

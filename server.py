@@ -25,6 +25,7 @@ import socket
 import threading
 import time
 import urllib.request
+import zipfile
 from datetime import datetime
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
@@ -559,6 +560,37 @@ class Handler(SimpleHTTPRequestHandler):
                 return buf.getvalue()
             item_rows = [r for r in (items[1] if items else []) if r.get('orderId') == row.get('id')]
             self.send_json({'ok': True, 'orders': as_csv(orders[0], [row]), 'items': as_csv(items[0], item_rows) if items else ''})
+            return
+        if path == '/api/full-backup':
+            if not self.is_admin():
+                self.send_json({'ok': False, 'error': '관리자만'}, 403)
+                return
+            buf = io.BytesIO()
+            now_str = datetime.now().strftime('%Y%m%d')
+            filename = f'seoldamhwa-backup-{now_str}.zip'
+            with LOCK:
+                with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+                    if os.path.isdir(DATA):
+                        for name in sorted(os.listdir(DATA)):
+                            p = os.path.join(DATA, name)
+                            if os.path.isfile(p) and name.lower().endswith('.csv') and not name.startswith('.'):
+                                zf.write(p, arcname=name)
+                        uploads_dir = os.path.join(DATA, 'uploads')
+                        if os.path.isdir(uploads_dir):
+                            for root, dirs, files in os.walk(uploads_dir):
+                                for f in sorted(files):
+                                    if f.startswith('.') or f.endswith('.tmp'):
+                                        continue
+                                    full_f = os.path.join(root, f)
+                                    rel_f = os.path.relpath(full_f, DATA)
+                                    zf.write(full_f, arcname=rel_f.replace('\\', '/'))
+            content = buf.getvalue()
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/zip')
+            self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+            self.send_header('Content-Length', str(len(content)))
+            self.end_headers()
+            self.wfile.write(content)
             return
         if path == '/api/backups':
             if not self.is_admin():

@@ -214,7 +214,7 @@ function switchAdminTab(tabName) {
   if (tabName === 'coupons') { try { renderCouponsAdmin(); } catch (e) { console.error('renderCouponsAdmin error:', e); } }
   if (tabName === 'flowers') { try { renderFlowerDictionary(); } catch (e) { console.error('renderFlowerDictionary error:', e); } }
   if (tabName === 'pages') { try { renderPagesAdmin(); } catch (e) { console.error('renderPagesAdmin error:', e); } }
-  if (tabName === 'integrations') { try { refreshCsvStatus(); renderServerAdmin(); } catch (e) {} }
+  if (tabName === 'integrations') { try { refreshCsvStatus(); renderServerAdmin(); renderFullBackupUI(); } catch (e) {} }
   if (tabName === 'integrations') { try { renderIntegrations(); } catch (e) { console.error('renderIntegrations error:', e); } }
 }
 
@@ -282,6 +282,68 @@ async function restoreServerBackup(name, label) {
 async function adminLogout() {
   await fetch('/api/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }).catch(() => {});
   location.reload();
+}
+
+/* ---------- 전체 백업 내려받기 (CSV + 후기 미디어) ---------- */
+function renderFullBackupUI() {
+  const badge = document.getElementById('full-backup-mode-badge');
+  const btn = document.getElementById('btn-full-backup');
+  const lastTime = document.getElementById('full-backup-last-time');
+  const note = document.getElementById('full-backup-note');
+  if (!btn) return;
+
+  const isServer = !!window.SDH_SERVER_MODE;
+  if (badge) {
+    badge.textContent = isServer ? '서버 모드' : '오프라인 (서버 꺼짐)';
+    badge.className = `text-xs px-2 py-0.5 rounded font-bold ${isServer ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`;
+  }
+
+  const lastIso = typeof DataStore !== 'undefined' ? DataStore.read(DataStore.KEYS.lastFullBackup, '') : '';
+  if (lastTime) {
+    if (lastIso) {
+      try {
+        const d = new Date(lastIso);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        lastTime.textContent = `마지막 내려받기: ${y}-${m}-${day} ${hh}:${mm}`;
+      } catch (e) {
+        lastTime.textContent = '내려받은 기록 있음';
+      }
+    } else {
+      lastTime.textContent = '아직 내려받은 기록이 없어요';
+    }
+  }
+
+  if (note) {
+    note.textContent = isServer
+      ? '※ USB나 외장 드라이브 등 안전한 다른 곳에 정기적으로 보관하세요.'
+      : '※ 전체 백업(CSV + 사진·영상)은 서버 모드(python server.py)에서만 내려받을 수 있어요.';
+  }
+
+  btn.disabled = !isServer;
+}
+
+function downloadFullBackup() {
+  if (!window.SDH_SERVER_MODE) {
+    alert('전체 백업은 서버 모드(python server.py)에서만 내려받을 수 있어요.');
+    return;
+  }
+  try {
+    if (typeof DataStore !== 'undefined') {
+      DataStore.write(DataStore.KEYS.lastFullBackup, new Date().toISOString());
+    }
+    renderFullBackupUI();
+    if (typeof renderTodayTasks === 'function' && typeof loadOrders === 'function') {
+      try {
+        const today = typeof getTodayString === 'function' ? getTodayString() : new Date().toISOString().slice(0, 10);
+        renderTodayTasks(loadOrders(), loadProducts(), loadInquiries(), today);
+      } catch (e) {}
+    }
+  } catch (e) {}
+  window.location.href = '/api/full-backup';
 }
 
 /* ---------- 손님 후기 관리 (Admin Reviews) ---------- */
