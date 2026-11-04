@@ -102,6 +102,27 @@ function getKoreaTimeParts(date = new Date()) {
 }
 
 /**
+ * UTC ISO 시간 문자열을 한국 표준시(Asia/Seoul) 기준 날짜/시간 문자열로 변환하는 헬퍼
+ * @param {string|Date} isoStr - UTC ISO 문자열 또는 Date 객체
+ * @param {object} [options]
+ * @param {boolean} [options.time=false] - 시각(HH:mm) 포함 여부
+ * @param {string} [options.delimiter='-'] - 날짜 구분자 ('-' 또는 '.')
+ * @returns {string} 변환된 문자열 (예: "2026-11-04 12:09" 또는 "2026.11.04")
+ */
+function formatKoreaTime(isoStr, { time = false, delimiter = '-' } = {}) {
+  if (!isoStr) return '';
+  try {
+    const d = new Date(isoStr);
+    if (isNaN(d.getTime())) return String(isoStr);
+    const kp = getKoreaTimeParts(d);
+    const ymd = `${kp.year}${delimiter}${String(kp.month).padStart(2, '0')}${delimiter}${String(kp.date).padStart(2, '0')}`;
+    return time ? `${ymd} ${kp.timeStr}` : ymd;
+  } catch (e) {
+    return String(isoStr || '');
+  }
+}
+
+/**
  * 저장된 매장 설정 불러오기 (기본값과 병합 및 마이그레이션)
  */
 function loadSettings() {

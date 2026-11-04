@@ -330,7 +330,7 @@
     .info-page-body .page-ul li { margin: 3px 0; }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=69">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=70">
 </head>
 <body class="selection:bg-seal-red/15 selection:text-seal-red min-h-screen flex flex-col">
   <!-- 상품 미리보기 모드 상단 고정 배너 -->
@@ -614,14 +614,14 @@
               후기 모두 보기 →
             </a>
           </div>
-          <div class="relative">
-            <div id="home-reviews-track" class="home-slider flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth no-scrollbar" style="scroll-padding-left: 1rem;">
+          <div class="relative px-0 md:px-12">
+            <div id="home-reviews-track" class="home-slider flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth no-scrollbar">
               <!-- 동적 렌더링 -->
             </div>
-            <button type="button" onclick="scrollHomeReviews(-1)" aria-label="이전 후기" class="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 border border-ink-black/10 shadow-md items-center justify-center text-ink-black hover:bg-white hover:text-seal-red cursor-pointer z-10 transition-colors">
+            <button type="button" onclick="scrollHomeReviews(-1)" aria-label="이전 후기" class="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 border border-ink-black/10 shadow-md items-center justify-center text-ink-black hover:bg-white hover:text-seal-red cursor-pointer z-10 transition-colors">
               ‹
             </button>
-            <button type="button" onclick="scrollHomeReviews(1)" aria-label="다음 후기" class="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 border border-ink-black/10 shadow-md items-center justify-center text-ink-black hover:bg-white hover:text-seal-red cursor-pointer z-10 transition-colors">
+            <button type="button" onclick="scrollHomeReviews(1)" aria-label="다음 후기" class="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 border border-ink-black/10 shadow-md items-center justify-center text-ink-black hover:bg-white hover:text-seal-red cursor-pointer z-10 transition-colors">
               ›
             </button>
           </div>
@@ -761,7 +761,7 @@
         <div class="lg:col-span-5 flex justify-center">
           <div class="jar-wrap w-full">
             <div class="jar">
-              <img src="assets/images/story_bojagi_bouquet.jpg" alt="리블룸 보자기 꽃다발" loading="lazy">
+              <img src="assets/images/story_bojagi_bouquet.jpg" alt="리블룸 보자기 꽃다발" loading="lazy" decoding="async">
             </div>
           </div>
         </div>
@@ -796,7 +796,7 @@
         <div class="relative px-2 sm:px-4">
           <div class="film-outline"></div>
           <div class="film-frame aspect-[3/2] md:aspect-[21/9] w-full bg-[#ECE8E1]">
-            <img src="assets/images/story_bojagi_gift.jpg" alt="리블룸 공예 선물 패키지" loading="lazy" class="w-full h-full object-cover">
+            <img src="assets/images/story_bojagi_gift.jpg" alt="리블룸 공예 선물 패키지" loading="lazy" decoding="async" class="w-full h-full object-cover">
           </div>
         </div>
       </div>
@@ -1830,34 +1830,34 @@
   </div>
 
   <!-- 상품 데이터 및 공통 스토리지 스크립트 -->
-  <script src="assets/js/data-store.js?v=69"></script>
-  <script src="assets/js/products-data.js?v=69"></script>
-  <script src="assets/js/flowers-data.js?v=69"></script>
-  <script src="assets/js/i18n.js?v=69"></script>
-  <script src="assets/js/site-settings.js?v=69"></script>
-  <script src="assets/js/popups.js?v=69"></script>
-  <script src="assets/js/integrations.js?v=69"></script>
-  <script src="assets/js/site-pages.js?v=69"></script>
-  <script src="assets/js/restock.js?v=69"></script>
-  <script src="assets/js/csv-db.js?v=69"></script>
-  <script src="assets/js/data-sync.js?v=69"></script>
-  <script src="assets/js/coupons.js?v=69"></script>
+  <script src="assets/js/data-store.js?v=70"></script>
+  <script src="assets/js/products-data.js?v=70"></script>
+  <script src="assets/js/flowers-data.js?v=70"></script>
+  <script src="assets/js/i18n.js?v=70"></script>
+  <script src="assets/js/site-settings.js?v=70"></script>
+  <script src="assets/js/popups.js?v=70"></script>
+  <script src="assets/js/integrations.js?v=70"></script>
+  <script src="assets/js/site-pages.js?v=70"></script>
+  <script src="assets/js/restock.js?v=70"></script>
+  <script src="assets/js/csv-db.js?v=70"></script>
+  <script src="assets/js/data-sync.js?v=70"></script>
+  <script src="assets/js/coupons.js?v=70"></script>
 
   <!-- JavaScript: 쇼핑몰 동작 & 인터랙션 로직 -->
   <!-- 쇼핑몰 화면 동작 (화면별 파일, 순서 중요) -->
-  <script src="assets/js/shop/shop-core.js?v=69"></script>
-  <script src="assets/js/shop/shop-product.js?v=69"></script>
-  <script src="assets/js/shop/shop-product-page.js?v=69"></script>
-  <script src="assets/js/shop/shop-checkout.js?v=69"></script>
-  <script src="assets/js/shop/shop-nav.js?v=69"></script>
-  <script src="assets/js/shop/shop-curation.js?v=69"></script>
-  <script src="assets/js/shop/shop-inquiry.js?v=69"></script>
-  <script src="assets/js/shop/shop-guide.js?v=69"></script>
-  <script src="assets/js/shop/shop-settings.js?v=69"></script>
-  <script src="assets/js/shop/shop-browse.js?v=69"></script>
-  <script src="assets/js/shop/shop-flowers.js?v=69"></script>
-  <script src="assets/js/shop/shop-dictionary.js?v=69"></script>
-  <script src="assets/js/shop/shop-router.js?v=69"></script>
-  <script src="assets/js/shop/shop-chat.js?v=69"></script>
+  <script src="assets/js/shop/shop-core.js?v=70"></script>
+  <script src="assets/js/shop/shop-product.js?v=70"></script>
+  <script src="assets/js/shop/shop-product-page.js?v=70"></script>
+  <script src="assets/js/shop/shop-checkout.js?v=70"></script>
+  <script src="assets/js/shop/shop-nav.js?v=70"></script>
+  <script src="assets/js/shop/shop-curation.js?v=70"></script>
+  <script src="assets/js/shop/shop-inquiry.js?v=70"></script>
+  <script src="assets/js/shop/shop-guide.js?v=70"></script>
+  <script src="assets/js/shop/shop-settings.js?v=70"></script>
+  <script src="assets/js/shop/shop-browse.js?v=70"></script>
+  <script src="assets/js/shop/shop-flowers.js?v=70"></script>
+  <script src="assets/js/shop/shop-dictionary.js?v=70"></script>
+  <script src="assets/js/shop/shop-router.js?v=70"></script>
+  <script src="assets/js/shop/shop-chat.js?v=70"></script>
 </body>
 </html>

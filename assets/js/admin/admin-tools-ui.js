@@ -357,7 +357,7 @@ function renderReviewsAdmin() {
     card.className = 'bg-white border border-ink-black/10 rounded-sm p-5 space-y-4 shadow-xs';
 
     const starStr = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
-    const dateStr = r.createdAt ? r.createdAt.slice(0, 16).replace('T', ' ') : '';
+    const dateStr = r.createdAt ? (typeof formatKoreaTime === 'function' ? formatKoreaTime(r.createdAt, { time: true }) : r.createdAt.slice(0, 16).replace('T', ' ')) : '';
 
     let photoArr = [];
     try { photoArr = Array.isArray(r.photos) ? r.photos : JSON.parse(r.photos || '[]'); } catch (e) {}
@@ -375,7 +375,7 @@ function renderReviewsAdmin() {
           ${photoArr.map(src => {
             const url = typeof reviewMediaUrl === 'function' ? reviewMediaUrl(src) : src;
             return `
-              <img src="${url}" alt="후기 사진" class="w-16 h-16 object-cover rounded-xs border border-ink-black/10 cursor-pointer hover:opacity-80" onclick="window.open('${url}', '_blank')" />
+              <img loading="lazy" decoding="async" src="${url}" alt="후기 사진" class="w-16 h-16 object-cover rounded-xs border border-ink-black/10 cursor-pointer hover:opacity-80" onclick="window.open('${url}', '_blank')" />
             `;
           }).join('')}
         </div>
@@ -414,7 +414,7 @@ function renderReviewsAdmin() {
       <div class="pt-3 border-t border-ink-black/5 space-y-2 bg-[#FAF7F2] p-3 rounded-xs">
         <div class="flex items-center justify-between">
           <span class="text-xs font-bold text-ink-black flex items-center gap-1">🌸 설담화 사장님 답글</span>
-          ${r.replyAt ? `<span class="text-[11px] text-ink-gray">${r.replyAt.slice(0, 10)}</span>` : ''}
+          ${r.replyAt ? `<span class="text-[11px] text-ink-gray">${typeof formatKoreaTime === 'function' ? formatKoreaTime(r.replyAt) : r.replyAt.slice(0, 10)}</span>` : ''}
         </div>
         <div id="reply-box-${r.id}">
           ${r.adminReply ? `

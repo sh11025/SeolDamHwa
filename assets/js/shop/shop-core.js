@@ -456,7 +456,7 @@ function renderHomeReviewsSlider() {
     try { photoArr = Array.isArray(r.photos) ? r.photos : JSON.parse(r.photos || '[]'); } catch (e) {}
 
     const starStr = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
-    const dateStr = r.createdAt ? r.createdAt.slice(0, 10).replace(/-/g, '.') : '';
+    const dateStr = r.createdAt ? (typeof formatKoreaTime === 'function' ? formatKoreaTime(r.createdAt, { delimiter: '.' }) : r.createdAt.slice(0, 10).replace(/-/g, '.')) : '';
 
     card.innerHTML = `
       <div class="space-y-2">
@@ -598,7 +598,7 @@ function renderReviewsList() {
     try { photoArr = Array.isArray(r.photos) ? r.photos : JSON.parse(r.photos || '[]'); } catch (e) {}
 
     const starStr = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
-    const dateStr = r.createdAt ? r.createdAt.slice(0, 10).replace(/-/g, '.') : '';
+    const dateStr = r.createdAt ? (typeof formatKoreaTime === 'function' ? formatKoreaTime(r.createdAt, { delimiter: '.' }) : r.createdAt.slice(0, 10).replace(/-/g, '.')) : '';
 
     // 사진 썸네일 HTML
     let photosHtml = '';
@@ -606,7 +606,7 @@ function renderReviewsList() {
       photosHtml = `
         <div class="flex gap-2 pt-2 flex-wrap">
           ${photoArr.map(src => `
-            <img src="${typeof reviewMediaUrl === 'function' ? reviewMediaUrl(src) : src}" alt="후기 사진" class="w-20 h-20 md:w-24 md:h-24 object-cover rounded-xs border border-ink-black/10 cursor-pointer hover:opacity-90" onclick="openReviewPhotoModal('${src}')" />
+            <img loading="lazy" decoding="async" src="${typeof reviewMediaUrl === 'function' ? reviewMediaUrl(src) : src}" alt="후기 사진" class="w-20 h-20 md:w-24 md:h-24 object-cover rounded-xs border border-ink-black/10 cursor-pointer hover:opacity-90" onclick="openReviewPhotoModal('${src}')" />
           `).join('')}
         </div>
       `;
@@ -626,7 +626,7 @@ function renderReviewsList() {
     // 사장님 답글 HTML
     let replyHtml = '';
     if (r.adminReply) {
-      const repDate = r.replyAt ? r.replyAt.slice(0, 10).replace(/-/g, '.') : '';
+      const repDate = r.replyAt ? (typeof formatKoreaTime === 'function' ? formatKoreaTime(r.replyAt, { delimiter: '.' }) : r.replyAt.slice(0, 10).replace(/-/g, '.')) : '';
       replyHtml = `
         <div class="mt-4 p-3.5 bg-hanji/90 border-l-2 border-seal-red rounded-xs space-y-1.5 text-xs">
           <div class="flex items-center justify-between font-bold text-ink-black">

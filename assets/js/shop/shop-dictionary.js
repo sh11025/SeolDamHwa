@@ -186,6 +186,7 @@ function renderDictionaryGrid() {
       bg.src = photo;
       bg.alt = '';
       bg.loading = 'lazy';
+      bg.decoding = 'async';
       bg.setAttribute('aria-hidden', 'true');
       bg.className = 'absolute inset-0 w-full h-full object-cover';
       const veil = document.createElement('div');

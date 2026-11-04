@@ -97,6 +97,7 @@ function miniProductCard(p) {
   img.src = (Array.isArray(p.images) && p.images[0]) || p.image;
   img.alt = tp.name;
   img.loading = 'lazy';
+  img.decoding = 'async';
   img.className = 'w-full h-full object-cover group-hover:scale-105 transition-transform duration-500';
   imgWrap.appendChild(img);
   if (!p.inquiryOnly && typeof p.stockQuantity === 'number' && p.stockQuantity <= 0) {
@@ -139,6 +140,7 @@ function renderThumbs(p) {
     img.src = src;
     img.alt = '';
     img.loading = 'lazy';
+    img.decoding = 'async';
     img.className = 'w-full h-full object-cover';
     b.appendChild(img);
     b.onclick = () => {
@@ -425,6 +427,7 @@ function renderWishPanel() {
         img.src = (Array.isArray(p.images) && p.images[0]) || p.image;
         img.alt = tp.name;
         img.loading = 'lazy';
+        img.decoding = 'async';
         img.className = 'w-20 h-24 object-cover rounded-xs border border-ink-black/10 bg-[#ECE8E1] group-hover:border-seal-red';
         const n = document.createElement('span');
         n.className = 'block mt-1 text-[11px] font-bold text-ink-black line-clamp-1 group-hover:text-seal-red';
