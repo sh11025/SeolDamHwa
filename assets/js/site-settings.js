@@ -48,7 +48,8 @@ const DEFAULT_SETTINGS = {
   address: '서울시 종로구 북촌로 42',
   addressDetail: '(임시 주소)',
   directions: '',          // 예: "안국역 2번 출구 도보 7분"
-  kakaoChannelUrl: '',     // 예: "https://pf.kakao.com/_xxxx"
+  kakaoChannelUrl: '',
+  shopUrl: '',             // 후기 요청 링크용 쇼핑몰 주소     // 예: "https://pf.kakao.com/_xxxx"
   showLocation: false,     // 오프라인 아틀리에 오시는 길 공개 여부 (기본 false: 비공개)
   business: { companyName: '설담화', ceo: '', bizNumber: '', mailOrderNumber: '', bizAddress: '', privacyOfficer: '' }, // 사업자 정보 (맨 아래·약관에 표시)
   // 배송 방법·배송비 (관리자 > 매장 정보 설정에서 수정)
@@ -479,4 +480,30 @@ function calcDeliveryFee(methodId, itemsTotal, settings = loadSettings()) {
   if (!m || methodId === 'pickup') return 0;
   if (d.freeOver > 0 && itemsTotal >= d.freeOver) return 0;
   return Number(m.fee) || 0;
+}
+
+/**
+ * 택배사별 공식 배송조회 URL 생성 (CJ대한통운, 우체국, 한진, 롯데, 로젠)
+ */
+function getCourierTrackingUrl(courier, trackingNumber) {
+  if (!trackingNumber) return '';
+  const num = String(trackingNumber).replace(/\D/g, '');
+  if (!num) return '';
+  const c = String(courier || '').toLowerCase().trim();
+  if (c.includes('cj') || c.includes('대한통운')) {
+    return `https://trace.cjlogistics.com/web/detail.jsp?slipno=${num}`;
+  }
+  if (c.includes('우체국') || c.includes('epost') || c.includes('post')) {
+    return `https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=${num}`;
+  }
+  if (c.includes('한진') || c.includes('hanjin')) {
+    return `https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillResult.do?mCode=MN038&wblnum=${num}`;
+  }
+  if (c.includes('롯데') || c.includes('lotte')) {
+    return `https://www.lotteglogis.com/home/reservation/tracking/linkView?InvNo=${num}`;
+  }
+  if (c.includes('로젠') || c.includes('logen')) {
+    return `https://www.ilogen.com/web/personal/trace/${num}`;
+  }
+  return `https://search.naver.com/search.naver?query=${encodeURIComponent((courier || '택배') + ' ' + num)}`;
 }

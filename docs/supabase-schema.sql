@@ -193,7 +193,8 @@ CREATE TABLE IF NOT EXISTS public.orders (
     "statusBeforeCancel" text DEFAULT '',
     "isSample" boolean NOT NULL DEFAULT false,
     "couponCode" text DEFAULT '',
-    "couponDiscount" numeric(12,0) NOT NULL DEFAULT 0
+    "couponDiscount" numeric(12,0) NOT NULL DEFAULT 0,
+    "reviewRequestedAt" text DEFAULT ''
 );
 
 CREATE INDEX IF NOT EXISTS idx_orders_status ON public.orders (status);

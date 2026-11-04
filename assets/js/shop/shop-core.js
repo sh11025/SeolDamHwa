@@ -449,32 +449,52 @@ function renderHomeReviewsSlider() {
 
   list.forEach(r => {
     const card = document.createElement('div');
-    card.className = 'w-[280px] sm:w-[320px] shrink-0 bg-[#FAF7F2] border border-ink-black/10 rounded-sm p-4 space-y-3 cursor-pointer hover:border-seal-red/40 transition-colors flex flex-col justify-between';
+    let photoArr = [];
+    try { photoArr = Array.isArray(r.photos) ? r.photos : JSON.parse(r.photos || '[]'); } catch (e) {}
+
+    const hasPhoto = photoArr.length > 0;
+    const hasVideo = !!r.video;
+
+    let mediaHeaderHtml = '';
+    if (hasPhoto) {
+      const firstPhotoUrl = typeof reviewMediaUrl === 'function' ? reviewMediaUrl(photoArr[0]) : photoArr[0];
+      mediaHeaderHtml = `
+        <div class="relative w-full aspect-[4/3] bg-ink-black/5 overflow-hidden">
+          <img src="${firstPhotoUrl}" alt="${htmlText(r.productName || '후기 사진')}" loading="lazy" decoding="async" class="w-full h-full object-cover">
+          ${hasVideo ? '<span class="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">🎬 영상</span>' : ''}
+        </div>
+      `;
+    }
+
+    card.className = 'w-[280px] sm:w-[320px] shrink-0 bg-[#FAF7F2] border border-ink-black/10 rounded-sm overflow-hidden cursor-pointer hover:border-seal-red/40 transition-colors flex flex-col justify-between self-stretch';
     card.onclick = () => {
       if (typeof switchView === 'function') switchView('reviews');
     };
-
-    let photoArr = [];
-    try { photoArr = Array.isArray(r.photos) ? r.photos : JSON.parse(r.photos || '[]'); } catch (e) {}
 
     const starStr = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
     const dateStr = r.createdAt ? (typeof formatKoreaTime === 'function' ? formatKoreaTime(r.createdAt, { delimiter: '.' }) : r.createdAt.slice(0, 10).replace(/-/g, '.')) : '';
 
     card.innerHTML = `
-      <div class="space-y-2">
-        <div class="flex items-center justify-between text-xs">
-          <span class="text-amber-500 font-bold">${starStr}</span>
-          <span class="text-ink-gray text-[11px]">${dateStr}</span>
+      ${mediaHeaderHtml}
+      <div class="p-4 space-y-3 flex-1 flex flex-col justify-between">
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-amber-500 font-bold">${starStr}</span>
+            <div class="flex items-center gap-1.5">
+              ${!hasPhoto && hasVideo ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-ink-black/5 text-ink-black">🎬 영상</span>' : ''}
+              <span class="text-ink-gray text-[11px]">${dateStr}</span>
+            </div>
+          </div>
+          <p class="text-xs font-bold text-ink-black truncate">${htmlText(r.productName || '설담화 꽃')}</p>
+          <p class="text-xs text-ink-charcoal line-clamp-3 leading-relaxed">${htmlText(r.text || '')}</p>
         </div>
-        <p class="text-xs font-bold text-ink-black truncate">${htmlText(r.productName || '설담화 꽃')}</p>
-        <p class="text-xs text-ink-charcoal line-clamp-3 leading-relaxed">${htmlText(r.text || '')}</p>
-      </div>
-      <div class="pt-2 border-t border-ink-black/5 flex items-center justify-between text-[11px] text-ink-gray">
-        <div class="flex items-center gap-1.5">
-          ${photoArr.length > 0 ? `<span class="inline-flex items-center gap-0.5">📷 ${photoArr.length}</span>` : ''}
-          ${r.video ? `<span>🎬 영상</span>` : ''}
+        <div class="pt-2 border-t border-ink-black/5 flex items-center justify-between text-[11px] text-ink-gray">
+          <div class="flex items-center gap-1.5">
+            ${photoArr.length > 0 ? `<span class="inline-flex items-center gap-0.5">📷 ${photoArr.length}</span>` : ''}
+            ${r.video ? `<span>🎬 영상</span>` : ''}
+          </div>
+          ${r.adminReply ? `<span class="text-seal-red font-medium">답글 도착</span>` : ''}
         </div>
-        ${r.adminReply ? `<span class="text-seal-red font-medium">답글 도착</span>` : ''}
       </div>
     `;
     track.appendChild(card);

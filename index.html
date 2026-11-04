@@ -26,36 +26,45 @@
   
   <script>
 
-    // 8. 동영상 제어 초기화 (항상 음소거, 1.4배속 재생 및 스크롤 시 재생/정지)
+    // 8. 동영상 제어 초기화 (항상 음소거, 1.4배속 재생 및 스크롤 시 재생/정지, prefers-reduced-motion 대응)
     function initVideoControls() {
       const heroVideo = document.getElementById('hero-blooming-video');
+      const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (heroVideo) {
         heroVideo.muted = true;
-        heroVideo.playbackRate = 1.4;
-        heroVideo.addEventListener('loadedmetadata', () => {
+        if (prefersReducedMotion) {
+          heroVideo.pause();
+        } else {
           heroVideo.playbackRate = 1.4;
-        });
+          heroVideo.addEventListener('loadedmetadata', () => {
+            heroVideo.playbackRate = 1.4;
+          });
+        }
       }
 
       const packagingVideo = document.getElementById('packaging-video');
       if (packagingVideo) {
         packagingVideo.muted = true;
-        packagingVideo.playbackRate = 1.4;
-        packagingVideo.addEventListener('loadedmetadata', () => {
+        if (prefersReducedMotion) {
+          packagingVideo.pause();
+        } else {
           packagingVideo.playbackRate = 1.4;
-        });
+          packagingVideo.addEventListener('loadedmetadata', () => {
+            packagingVideo.playbackRate = 1.4;
+          });
 
-        if ('IntersectionObserver' in window) {
-          const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-              if (entry.isIntersecting) {
-                packagingVideo.play().catch(() => {});
-              } else {
-                packagingVideo.pause();
-              }
-            });
-          }, { threshold: 0.25 });
-          observer.observe(packagingVideo);
+          if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver((entries) => {
+              entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                  packagingVideo.play().catch(() => {});
+                } else {
+                  packagingVideo.pause();
+                }
+              });
+            }, { threshold: 0.25 });
+            observer.observe(packagingVideo);
+          }
         }
       }
     }
@@ -330,7 +339,7 @@
     .info-page-body .page-ul li { margin: 3px 0; }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=73">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=74">
 </head>
 <body class="selection:bg-seal-red/15 selection:text-seal-red min-h-screen flex flex-col">
   <!-- 상품 미리보기 모드 상단 고정 배너 -->
@@ -495,7 +504,7 @@
       <!-- Hero Section: 전체 화면 개화 영상 배경 + 처마 곡선 + 중앙 정렬 텍스트 -->
       <section class="relative overflow-hidden h-[calc(100vh-5rem)] min-h-[560px] flex items-center justify-center text-center">
         <!-- 배경 비디오 (Full-bleed Background Video) -->
-        <video id="hero-blooming-video" src="assets/videos/blooming_flower.mp4" autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover filter brightness-[1.04] contrast-[1.02]"></video>
+        <video id="hero-blooming-video" src="assets/videos/blooming_flower.mp4" poster="assets/images/hero-poster.jpg" autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover filter brightness-[1.04] contrast-[1.02]"></video>
 
         <!-- 부드러운 중앙 방사형 한지 글로우 (꽃 영상의 생생함을 살리면서 텍스트 가독성 확보) -->
         <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(ellipse 62% 52% at 50% 48%, rgba(251, 249, 245, 0.66) 0%, rgba(251, 249, 245, 0.38) 50%, rgba(251, 249, 245, 0) 100%);"></div>
@@ -615,7 +624,7 @@
             </a>
           </div>
           <div class="relative px-0 md:px-12">
-            <div id="home-reviews-track" class="home-slider flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth no-scrollbar">
+            <div id="home-reviews-track" class="home-slider flex gap-4 items-stretch overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth no-scrollbar">
               <!-- 동적 렌더링 -->
             </div>
             <button type="button" onclick="scrollHomeReviews(-1)" aria-label="이전 후기" class="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 border border-ink-black/10 shadow-md items-center justify-center text-ink-black hover:bg-white hover:text-seal-red cursor-pointer z-10 transition-colors">
@@ -1126,11 +1135,19 @@
       </div>
     </div>
 
-    <!-- 사진 크게 보기 모달 -->
-    <div id="modal-review-photo" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs" onclick="closeReviewPhotoModal()">
-      <div class="relative max-w-3xl max-h-[90vh]" onclick="event.stopPropagation()">
-        <button type="button" onclick="closeReviewPhotoModal()" class="absolute -top-10 right-0 text-white text-2xl font-bold cursor-pointer">✕</button>
-        <img id="review-photo-full" src="" alt="후기 사진 확대" class="max-w-full max-h-[85vh] object-contain rounded-xs shadow-2xl" />
+    <!-- 사진 크게 보기 모달 (상품 사진 및 후기 사진 확대 공용 뷰어) -->
+    <div id="modal-review-photo" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xs select-none" onclick="closeReviewPhotoModal()">
+      <div class="relative max-w-4xl max-h-[90vh] flex flex-col items-center justify-center" onclick="event.stopPropagation()">
+        <!-- 상단 컨트롤 (카운터 & 닫기 버튼) -->
+        <div class="absolute -top-10 left-0 right-0 flex items-center justify-between text-white text-xs">
+          <span id="review-photo-counter" class="hidden font-mono px-2 py-0.5 rounded bg-black/40">1 / 1</span>
+          <button type="button" onclick="closeReviewPhotoModal()" aria-label="닫기" class="ml-auto text-2xl font-bold hover:text-seal-red cursor-pointer leading-none">✕</button>
+        </div>
+        <!-- 메인 확대 이미지 -->
+        <img id="review-photo-full" src="" alt="사진 확대" style="touch-action: pinch-zoom;" class="max-w-full max-h-[82vh] object-contain rounded-xs shadow-2xl" />
+        <!-- 이전/다음 탐색 버튼 -->
+        <button type="button" id="review-photo-prev" onclick="movePhotoViewer(-1)" aria-label="이전 사진" class="hidden absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 text-white text-xl font-bold flex items-center justify-center hover:bg-black/75 cursor-pointer">‹</button>
+        <button type="button" id="review-photo-next" onclick="movePhotoViewer(1)" aria-label="다음 사진" class="hidden absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 text-white text-xl font-bold flex items-center justify-center hover:bg-black/75 cursor-pointer">›</button>
       </div>
     </div>
 
@@ -1830,34 +1847,34 @@
   </div>
 
   <!-- 상품 데이터 및 공통 스토리지 스크립트 -->
-  <script src="assets/js/data-store.js?v=73"></script>
-  <script src="assets/js/products-data.js?v=73"></script>
-  <script src="assets/js/flowers-data.js?v=73"></script>
-  <script src="assets/js/i18n.js?v=73"></script>
-  <script src="assets/js/site-settings.js?v=73"></script>
-  <script src="assets/js/popups.js?v=73"></script>
-  <script src="assets/js/integrations.js?v=73"></script>
-  <script src="assets/js/site-pages.js?v=73"></script>
-  <script src="assets/js/restock.js?v=73"></script>
-  <script src="assets/js/csv-db.js?v=73"></script>
-  <script src="assets/js/data-sync.js?v=73"></script>
-  <script src="assets/js/coupons.js?v=73"></script>
+  <script src="assets/js/data-store.js?v=74"></script>
+  <script src="assets/js/products-data.js?v=74"></script>
+  <script src="assets/js/flowers-data.js?v=74"></script>
+  <script src="assets/js/i18n.js?v=74"></script>
+  <script src="assets/js/site-settings.js?v=74"></script>
+  <script src="assets/js/popups.js?v=74"></script>
+  <script src="assets/js/integrations.js?v=74"></script>
+  <script src="assets/js/site-pages.js?v=74"></script>
+  <script src="assets/js/restock.js?v=74"></script>
+  <script src="assets/js/csv-db.js?v=74"></script>
+  <script src="assets/js/data-sync.js?v=74"></script>
+  <script src="assets/js/coupons.js?v=74"></script>
 
   <!-- JavaScript: 쇼핑몰 동작 & 인터랙션 로직 -->
   <!-- 쇼핑몰 화면 동작 (화면별 파일, 순서 중요) -->
-  <script src="assets/js/shop/shop-core.js?v=73"></script>
-  <script src="assets/js/shop/shop-product.js?v=73"></script>
-  <script src="assets/js/shop/shop-product-page.js?v=73"></script>
-  <script src="assets/js/shop/shop-checkout.js?v=73"></script>
-  <script src="assets/js/shop/shop-nav.js?v=73"></script>
-  <script src="assets/js/shop/shop-curation.js?v=73"></script>
-  <script src="assets/js/shop/shop-inquiry.js?v=73"></script>
-  <script src="assets/js/shop/shop-guide.js?v=73"></script>
-  <script src="assets/js/shop/shop-settings.js?v=73"></script>
-  <script src="assets/js/shop/shop-browse.js?v=73"></script>
-  <script src="assets/js/shop/shop-flowers.js?v=73"></script>
-  <script src="assets/js/shop/shop-dictionary.js?v=73"></script>
-  <script src="assets/js/shop/shop-router.js?v=73"></script>
-  <script src="assets/js/shop/shop-chat.js?v=73"></script>
+  <script src="assets/js/shop/shop-core.js?v=74"></script>
+  <script src="assets/js/shop/shop-product.js?v=74"></script>
+  <script src="assets/js/shop/shop-product-page.js?v=74"></script>
+  <script src="assets/js/shop/shop-checkout.js?v=74"></script>
+  <script src="assets/js/shop/shop-nav.js?v=74"></script>
+  <script src="assets/js/shop/shop-curation.js?v=74"></script>
+  <script src="assets/js/shop/shop-inquiry.js?v=74"></script>
+  <script src="assets/js/shop/shop-guide.js?v=74"></script>
+  <script src="assets/js/shop/shop-settings.js?v=74"></script>
+  <script src="assets/js/shop/shop-browse.js?v=74"></script>
+  <script src="assets/js/shop/shop-flowers.js?v=74"></script>
+  <script src="assets/js/shop/shop-dictionary.js?v=74"></script>
+  <script src="assets/js/shop/shop-router.js?v=74"></script>
+  <script src="assets/js/shop/shop-chat.js?v=74"></script>
 </body>
 </html>

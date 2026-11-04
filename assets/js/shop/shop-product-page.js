@@ -128,7 +128,13 @@ function renderThumbs(p) {
   const main = document.getElementById('pdp-image');
   if (!box || !main) return;
   const imgs = productImages(p);
+  let curIndex = 0;
   main.src = imgs[0];
+  main.style.cursor = 'zoom-in';
+  main.setAttribute('title', '사진 크게 보기');
+  main.onclick = () => {
+    if (typeof openPhotoViewer === 'function') openPhotoViewer(imgs, curIndex);
+  };
   box.innerHTML = '';
   box.classList.toggle('hidden', imgs.length < 2);
   imgs.forEach((src, i) => {
@@ -144,6 +150,7 @@ function renderThumbs(p) {
     img.className = 'w-full h-full object-cover';
     b.appendChild(img);
     b.onclick = () => {
+      curIndex = i;
       main.src = src;
       box.querySelectorAll('button').forEach(x => x.className = x.className.replace('border-seal-red', 'border-transparent'));
       b.className = b.className.replace('border-transparent', 'border-seal-red');

@@ -9,6 +9,7 @@ let orderStatusFilter = 'all';
 let orderShowCount = ORDER_PAGE_SIZE;
 const expandedOrders = new Set();
 const checkedOrders = new Set();
+const orderMsgPanels = new Map(); // orderId -> 'shipping' | 'review'
 
 function setOrderStatusFilter(st) {
   orderStatusFilter = st;
@@ -88,6 +89,7 @@ function renderOrdersList() {
   const shown = list.slice(0, orderShowCount);
   const today = financeToday();
   const tomorrow = addDays(today, 1);
+  const settings = typeof loadSettings === 'function' ? loadSettings() : {};
   document.getElementById('order-list-count').innerText = list.length ? `${list.length}건 중 ${shown.length}건 표시` : '';
   document.getElementById('order-more-btn').classList.toggle('hidden', shown.length >= list.length);
   document.getElementById('order-check-all').checked = shown.length > 0 && shown.every(o => checkedOrders.has(o.id));
@@ -118,15 +120,51 @@ function renderOrdersList() {
           ${soon ? `<span class="px-1.5 py-0.5 mr-1 rounded text-[11px] font-bold bg-amber-200 text-amber-900">${soon}</span>` : ''}<span class="font-bold text-ink-black">${escapeHtml(d ? shortDate(d) + ' (' + weekdayLabel(d) + ')' : o.deliveryDate)}</span>
           <span class="block text-[11px] text-ink-gray">${escapeHtml(time)}</span>
         </td>
-        <td class="py-2 px-2 cursor-pointer" onclick="toggleOrderExpand('${o.id}')"><span class="font-mono text-xs ${isCancelled ? 'line-through' : ''}">${escapeHtml(o.orderNumber)}</span><span class="block text-[11px] text-ink-gray">${escapeHtml(getOrderDate(o))} 접수</span></td>
+        <td class="py-2 px-2 cursor-pointer" onclick="toggleOrderExpand('${o.id}')">
+          <span class="font-mono text-xs ${isCancelled ? 'line-through' : ''}">${escapeHtml(o.orderNumber)}</span>
+          <span class="block text-[11px] text-ink-gray">${escapeHtml(getOrderDate(o))} 접수</span>
+          ${o.reviewRequestedAt ? `<span class="inline-block mt-0.5 px-1 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800" title="후기 요청: ${escapeHtml(o.reviewRequestedAt)}">후기 요청함</span>` : ''}
+        </td>
         <td class="py-2 px-2 font-bold text-ink-black cursor-pointer" onclick="toggleOrderExpand('${o.id}')">${escapeHtml(orderRecipient(o).name)}${o.deliveryMethod === 'pickup' ? ' <span class="text-[10px] font-bold px-1 rounded bg-blue-100 text-blue-800">픽업</span>' : ''}</td>
         <td class="py-2 px-2 text-ink-black cursor-pointer max-w-[220px] truncate" onclick="toggleOrderExpand('${o.id}')" title="${escapeHtml(items.map(i => i.product && i.product.name).join(', '))}">${escapeHtml(first)}${items.length > 1 ? ` <span class="text-ink-gray">외 ${items.length - 1}</span>` : ''}</td>
         <td class="py-2 px-2 text-right font-bold whitespace-nowrap">${isCancelled ? `<s>${formatWon(o.totalAmount)}</s>` : formatWon(o.totalAmount)}</td>
         <td class="py-2 px-2">${statusSelect}</td>
-        <td class="py-2 px-2 text-xs whitespace-nowrap">${o.trackingNumber ? `<span class="text-ink-black">${escapeHtml(o.courier || '')}</span><span class="block font-mono text-ink-gray">${escapeHtml(o.trackingNumber)}</span>` : o.courier ? escapeHtml(o.courier) : '<span class="text-ink-light">-</span>'}</td>
+        <td class="py-2 px-2 text-xs whitespace-nowrap">${(() => {
+          if (!o.trackingNumber) return o.courier ? escapeHtml(o.courier) : '<span class="text-ink-light">-</span>';
+          const trkUrl = typeof getCourierTrackingUrl === 'function' ? getCourierTrackingUrl(o.courier, o.trackingNumber) : '';
+          return `<span class="text-ink-black">${escapeHtml(o.courier || '')}</span>
+            <span class="block font-mono text-ink-gray">${trkUrl ? `<a href="${trkUrl}" target="_blank" rel="noopener noreferrer" class="hover:underline hover:text-seal-red inline-flex items-center gap-0.5">${escapeHtml(o.trackingNumber)} <span class="text-[9px]">↗</span></a>` : escapeHtml(o.trackingNumber)}</span>`;
+        })()}</td>
         <td class="py-2 px-2 text-center"><button type="button" onclick="toggleOrderExpand('${o.id}')" class="text-ink-gray hover:text-seal-red cursor-pointer" aria-label="자세히" aria-expanded="${open}">${open ? '▴' : '▾'}</button></td>
       </tr>`;
     if (!open) return row;
+
+    const ordererPhone = getOrdererPhone(o);
+    const canSendShipping = !isCancelled && (o.status === 'delivering' || (o.deliveryMethod === 'parcel' && o.trackingNumber) || (o.courier && o.courier.includes('택배') && o.trackingNumber));
+    const canSendReview = !isCancelled && o.status === 'completed';
+    const msgPanelType = orderMsgPanels.get(o.id);
+
+    let msgPanelHtml = '';
+    if (msgPanelType === 'shipping' || msgPanelType === 'review') {
+      const isReview = msgPanelType === 'review';
+      const msgText = isReview ? buildReviewMessage(o, settings) : buildShippingMessage(o, settings);
+      const smsBodyEncoded = encodeURIComponent(msgText);
+      const cleanPhone = ordererPhone.replace(/\D/g, '');
+      msgPanelHtml = `
+        <div id="order-msg-panel-${o.id}" class="mt-2 p-3 bg-white border border-ink-black/15 rounded-xs space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-ink-black">${isReview ? '💬 후기 요청 안내 문구' : '🚚 배송 출발 안내 문구'}</span>
+            <span class="text-[11px] text-ink-gray">수신: ${escapeHtml(cleanPhone || '전화번호 없음')}</span>
+          </div>
+          <pre class="w-full text-xs p-2 bg-[#FAF7F2] border border-ink-black/10 rounded font-sans whitespace-pre-wrap leading-relaxed select-all">${escapeHtml(msgText)}</pre>
+          <div class="flex flex-wrap items-center gap-2 pt-1 text-xs">
+            <button type="button" onclick="copyOrderMessage(${JSON.stringify(msgText).replace(/"/g, '&quot;')}, '${o.id}', ${isReview})" class="px-3 py-1 bg-ink-black text-white font-bold rounded-xs hover:bg-seal-red cursor-pointer">문구 복사</button>
+            ${cleanPhone ? `<a href="sms:${escapeHtml(cleanPhone)}?body=${smsBodyEncoded}" onclick="if (${isReview}) markReviewRequested('${o.id}')" class="px-3 py-1 border border-ink-black/20 text-ink-black font-bold rounded-xs hover:border-ink-black bg-white inline-block">문자 앱 열기</a>` : '<span class="text-[11px] text-ink-light">주문자 번호 없음</span>'}
+            <button type="button" onclick="toggleOrderMsgPanel('${o.id}', '')" class="ml-auto text-ink-gray hover:text-seal-red cursor-pointer">닫기</button>
+          </div>
+        </div>`;
+    }
+
     return row + `
       <tr class="bg-[#FAF7F2] border-b border-ink-black/10">
         <td></td>
@@ -149,7 +187,7 @@ function renderOrdersList() {
               <p class="pt-1 text-ink-gray">접수 ${escapeHtml(getOrderDate(o))} ${escapeHtml(o.createdAt || '')}</p>
             </div>
             <div class="space-y-2">
-              <p class="font-bold text-ink-gray">운송장</p>
+              <p class="font-bold text-ink-gray">운송장 및 안내</p>
               <div class="flex gap-1.5">
                 <select id="courier-${o.id}" class="bg-white border border-ink-black/20 p-1.5 rounded-xs text-xs" aria-label="택배사">
                   ${COURIERS.map(c => `<option ${o.courier === c ? 'selected' : ''}>${c}</option>`).join('')}
@@ -160,6 +198,15 @@ function renderOrdersList() {
               <div class="flex flex-wrap gap-1.5">
                 <button type="button" onclick="printLabels(['${o.id}'])" class="px-3 py-1.5 border border-ink-black/20 bg-white rounded-xs font-bold cursor-pointer hover:border-ink-black">🏷 운송장 출력</button>
                 <button type="button" onclick="${isCancelled ? `restoreOrder('${o.id}')` : `cancelOrder('${o.id}')`}" class="px-3 py-1.5 border rounded-xs font-bold cursor-pointer ${isCancelled ? 'border-ink-black/20 bg-white text-ink-black' : 'border-seal-red/30 text-seal-red bg-white hover:bg-seal-red/10'}">${isCancelled ? '취소 되돌리기' : '주문 취소'}</button>
+              </div>
+              <!-- 배송 출발 안내 / 후기 요청 버튼 -->
+              <div class="pt-2 border-t border-ink-black/10 space-y-1.5">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  ${canSendShipping ? `<button type="button" onclick="toggleOrderMsgPanel('${o.id}', 'shipping')" class="px-2.5 py-1 rounded-xs text-xs font-bold border border-ink-black/25 bg-white hover:bg-ink-black hover:text-white cursor-pointer ${msgPanelType === 'shipping' ? 'bg-ink-black text-white' : ''}">🚚 배송 출발 안내</button>` : ''}
+                  ${canSendReview ? `<button type="button" onclick="toggleOrderMsgPanel('${o.id}', 'review')" class="px-2.5 py-1 rounded-xs text-xs font-bold border border-seal-red/30 text-seal-red bg-white hover:bg-seal-red hover:text-white cursor-pointer ${msgPanelType === 'review' ? 'bg-seal-red text-white' : ''}">💬 후기 요청</button>` : ''}
+                  ${o.reviewRequestedAt ? `<span class="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">후기 요청 보냄 (${escapeHtml(o.reviewRequestedAt)})</span>` : ''}
+                </div>
+                ${msgPanelHtml}
               </div>
             </div>
           </div>
@@ -412,3 +459,76 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', () => { try { adminAudio = adminAudio || new (window.AudioContext || window.webkitAudioContext)(); adminAudio.resume(); } catch (e) { /* 무시 */ } }, { once: true });
   renderAdminSoundButton();
 });
+
+// ---- 주문 안내 메시지 (배송 출발 및 후기 요청) ----
+function getOrdererPhone(o) {
+  const p = o.ordererPhone || o.phone || (typeof orderRecipient === 'function' && orderRecipient(o) && orderRecipient(o).phone) || '';
+  return String(p).replace(/\D/g, '');
+}
+
+function toggleOrderMsgPanel(ordId, type) {
+  if (orderMsgPanels.get(ordId) === type) {
+    orderMsgPanels.delete(ordId);
+  } else {
+    orderMsgPanels.set(ordId, type);
+  }
+  renderOrdersList();
+}
+
+function buildReviewMessage(o, settings) {
+  const shopUrl = (settings.shopUrl || '').trim().replace(/\/+$/, '');
+  const linkText = shopUrl ? `${shopUrl}/#/review/${o.orderNumber}` : '쇼핑몰 주문 조회에서 쓸 수 있어요';
+  return `[설담화] ${o.ordererName || '고객'}님, 설담화를 찾아주셔서 진심으로 감사드립니다.\n소중한 순간을 함께할 수 있어 기뻤습니다. 받아보신 꽃은 어떠셨나요?\n\n• 주문번호: ${o.orderNumber}\n• 후기 작성: ${linkText}\n\n정성 어린 후기를 남겨주시면 다음 꽃을 준비하는 데 큰 힘이 됩니다. 감사합니다.`;
+}
+
+function buildShippingMessage(o, settings) {
+  const d = typeof getDeliveryDate === 'function' ? getDeliveryDate(o) : '';
+  const dateStr = d ? `${typeof shortDate === 'function' ? shortDate(d) : d} (${typeof weekdayLabel === 'function' ? weekdayLabel(d) : ''})` : (o.deliveryDate || '');
+  const courierInfo = o.courier && o.trackingNumber ? `\n• 택배사: ${o.courier}\n• 운송장번호: ${o.trackingNumber}` : (o.courier ? `\n• 배송방법: ${o.courier}` : '');
+  return `[설담화] ${o.ordererName || '고객'}님의 소중한 꽃이 정성껏 포장되어 배송을 시작했습니다.\n\n• 주문번호: ${o.orderNumber}${courierInfo}\n• 배송 예정일: ${dateStr}\n\n신선하고 안전하게 전달해 드리겠습니다. 감사합니다.`;
+}
+
+function markReviewRequested(ordId) {
+  const all = typeof loadAdminOrders === 'function' ? loadAdminOrders() : [];
+  const o = all.find(x => x.id === ordId);
+  if (!o) return;
+  const now = new Date();
+  const kst = new Date(now.getTime() + (9 * 60 + now.getTimezoneOffset()) * 60000);
+  const pad = n => String(n).padStart(2, '0');
+  const nowStr = `${kst.getFullYear()}-${pad(kst.getMonth() + 1)}-${pad(kst.getDate())} ${pad(kst.getHours())}:${pad(kst.getMinutes())}`;
+  o.reviewRequestedAt = nowStr;
+  DataStore.write(DataStore.KEYS.orders, all);
+  if (typeof DataSync !== 'undefined' && DataSync.enabled && !DataSync.local) {
+    if (typeof DataSync.push === 'function') DataSync.push();
+  }
+  renderOrdersList();
+}
+
+function copyOrderMessage(text, ordId, isReview) {
+  const onDone = () => {
+    alert('메시지 문구가 복사되었습니다.');
+    if (isReview && ordId) markReviewRequested(ordId);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(onDone).catch(() => fallbackCopyMessage(text, onDone));
+  } else {
+    fallbackCopyMessage(text, onDone);
+  }
+}
+
+function fallbackCopyMessage(text, done) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    done();
+  } catch (e) {
+    alert('복사하지 못했습니다. 문구를 직접 선택해 복사해 주세요.');
+  } finally {
+    if (ta.parentNode) ta.parentNode.removeChild(ta);
+  }
+}

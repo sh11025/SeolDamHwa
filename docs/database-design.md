@@ -170,6 +170,7 @@
   | `"isSample"` | `boolean` | NOT NULL | `false` | 테스트용 예시 데이터 여부 | - |
   | `"couponCode"` | `text` | - | `''` | 사용된 할인 쿠폰 코드 | - |
   | `"couponDiscount"` | `numeric(12,0)` | NOT NULL | `0` | 쿠폰 할인 적용 금액 (원) | - |
+  | `"reviewRequestedAt"` | `text` | - | `''` | 후기 작성 요청 시각 ("YYYY-MM-DD HH:mm" 또는 ISO) | - |
 - **기본키(PK)**: `id`
 - **고유키(UNIQUE)**: `"orderNumber"` (별도의 인덱스 생성 불필요)
 - **인덱스**:

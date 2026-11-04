@@ -538,7 +538,16 @@ function runOrderLookup(e) {
     a.textContent = k;
     const b = document.createElement('span');
     b.className = 'font-bold text-ink-black text-right';
-    b.textContent = v;
+    if (k === coT('lookup_tracking', '운송장') && o.trackingNumber && typeof getCourierTrackingUrl === 'function') {
+      const trackUrl = getCourierTrackingUrl(o.courier, o.trackingNumber);
+      if (trackUrl) {
+        b.innerHTML = `<a href="${trackUrl}" target="_blank" rel="noopener noreferrer" class="text-seal-red hover:underline inline-flex items-center gap-1">${typeof escapeHtml === 'function' ? escapeHtml(v) : v} <span class="text-[10px] font-normal underline">배송조회 ↗</span></a>`;
+      } else {
+        b.textContent = v;
+      }
+    } else {
+      b.textContent = v;
+    }
     row.append(a, b);
     card.appendChild(row);
   });
@@ -1379,12 +1388,48 @@ async function submitCustomerReview(e) {
   }
 }
 
-function openReviewPhotoModal(src) {
+let photoViewerList = [];
+let photoViewerIndex = 0;
+
+function openPhotoViewer(images, startIndex = 0) {
   const modal = document.getElementById('modal-review-photo');
   const img = document.getElementById('review-photo-full');
   if (!modal || !img) return;
-  img.src = typeof reviewMediaUrl === 'function' ? reviewMediaUrl(src) : src;
+  const list = Array.isArray(images) ? images.filter(Boolean) : [images].filter(Boolean);
+  if (!list.length) return;
+  photoViewerList = list;
+  photoViewerIndex = Math.max(0, Math.min(startIndex, list.length - 1));
+  updatePhotoViewerUI();
   modal.classList.remove('hidden');
+}
+
+function updatePhotoViewerUI() {
+  const img = document.getElementById('review-photo-full');
+  const counter = document.getElementById('review-photo-counter');
+  const prevBtn = document.getElementById('review-photo-prev');
+  const nextBtn = document.getElementById('review-photo-next');
+  if (!img || !photoViewerList.length) return;
+
+  const currentSrc = photoViewerList[photoViewerIndex];
+  img.src = typeof reviewMediaUrl === 'function' ? reviewMediaUrl(currentSrc) : currentSrc;
+
+  const hasMultiple = photoViewerList.length > 1;
+  if (counter) {
+    counter.textContent = `${photoViewerIndex + 1} / ${photoViewerList.length}`;
+    counter.classList.toggle('hidden', !hasMultiple);
+  }
+  if (prevBtn) prevBtn.classList.toggle('hidden', !hasMultiple);
+  if (nextBtn) nextBtn.classList.toggle('hidden', !hasMultiple);
+}
+
+function movePhotoViewer(delta) {
+  if (photoViewerList.length <= 1) return;
+  photoViewerIndex = (photoViewerIndex + delta + photoViewerList.length) % photoViewerList.length;
+  updatePhotoViewerUI();
+}
+
+function openReviewPhotoModal(src) {
+  openPhotoViewer([src], 0);
 }
 
 function closeReviewPhotoModal() {
@@ -1392,7 +1437,22 @@ function closeReviewPhotoModal() {
   const img = document.getElementById('review-photo-full');
   if (modal) modal.classList.add('hidden');
   if (img) img.src = '';
+  photoViewerList = [];
+  photoViewerIndex = 0;
 }
+
+// Esc 및 방향키로 사진 뷰어 조작
+window.addEventListener('keydown', e => {
+  const modal = document.getElementById('modal-review-photo');
+  if (!modal || modal.classList.contains('hidden')) return;
+  if (e.key === 'Escape') {
+    closeReviewPhotoModal();
+  } else if (e.key === 'ArrowLeft') {
+    movePhotoViewer(-1);
+  } else if (e.key === 'ArrowRight') {
+    movePhotoViewer(1);
+  }
+});
 
 
 // 5. 뷰 전환 및 모바일 메뉴 제어

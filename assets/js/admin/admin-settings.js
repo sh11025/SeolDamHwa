@@ -34,6 +34,7 @@ function renderAdminSettings() {
   setVal('settings-phone', s.phone);
   setVal('settings-email', s.email);
   setVal('settings-kakao', s.kakaoChannelUrl);
+  setVal('settings-shop-url', s.shopUrl || '');
   setVal('settings-address', s.address);
   setVal('settings-address-detail', s.addressDetail);
   setVal('settings-directions', s.directions);
@@ -308,6 +309,7 @@ function saveStoreSettings(e) {
     phone,
     email: document.getElementById('settings-email').value.trim(),
     kakaoChannelUrl: kakaoUrl,
+    shopUrl: (document.getElementById('settings-shop-url') ? document.getElementById('settings-shop-url').value.trim() : ''),
     weeklyHours: adminWeeklyHours,
     closures: adminClosures,
     holidayClosed: adminHolidayClosed,
