@@ -238,6 +238,7 @@ const DataSync = (() => {
         <div class="flex items-center gap-2"><span class="font-brush text-2xl text-ink-black">설담화</span><span class="text-xs font-bold bg-seal-red text-white px-2 py-0.5 rounded">관리자</span></div>
         <p class="text-sm text-ink-charcoal leading-relaxed">${hasPassword ? '이 기기에서 관리자 화면을 쓰려면 비밀번호를 넣어 주세요.' : '아직 관리자 비밀번호가 없어요. 매장 컴퓨터의 관리자 화면 [연동·데이터 &gt; 서버 관리]에서 먼저 비밀번호를 정해 주세요.'}</p>
         ${hasPassword ? '<input type="password" id="admin-login-pw" required autocomplete="current-password" aria-label="관리자 비밀번호" placeholder="관리자 비밀번호" class="w-full bg-white border border-ink-black/20 p-2.5 rounded-xs text-sm"><p id="admin-login-msg" class="hidden text-xs font-bold text-seal-red"></p><button type="submit" class="w-full py-2.5 bg-ink-black text-white text-sm font-bold rounded-xs hover:bg-seal-red cursor-pointer">로그인</button>' : ''}
+        <p class="text-xs text-ink-gray leading-relaxed">매장 컴퓨터라면 비밀번호 없이 <a href="http://localhost:${location.port || 80}/admin-index.html" class="underline font-bold">localhost:${location.port || 80}</a> 주소로 여세요.</p>
         <a href="index.html" class="block text-center text-xs text-ink-gray underline">쇼핑몰로 가기</a>
       </form>`;
     document.body.appendChild(layer);

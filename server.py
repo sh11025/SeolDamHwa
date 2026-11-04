@@ -933,6 +933,7 @@ def main():
         if ip:
             print(f'같은 와이파이 휴대폰에서: http://{ip}:{args.port}/')
         print('※ 손님 개인정보가 오가요. 매장 내부 와이파이에서만 쓰세요.')
+        print(f'※ 이 컴퓨터의 관리자 화면은 http://localhost:{args.port}/admin-index.html 로 여세요. (휴대폰 주소로 열면 비밀번호를 물어봐요)')
     print('끄려면 Ctrl+C')
     try:
         server.serve_forever()

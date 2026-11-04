@@ -173,6 +173,96 @@ function updateProductImagePreview() {
   if (img) img.src = v && !v.endsWith('/') ? v : '';
 }
 
+// 사이트 색 (쇼핑몰에만 적용)
+function themeFormValue() {
+  return { accent: document.getElementById('theme-accent').value, soft: document.getElementById('theme-soft').value };
+}
+
+function matchThemePreset(v) {
+  return Object.keys(THEME_PRESETS).find(k => THEME_PRESETS[k].accent.toLowerCase() === v.accent.toLowerCase() && THEME_PRESETS[k].soft.toLowerCase() === v.soft.toLowerCase()) || 'custom';
+}
+
+function updateThemePreview() {
+  const v = themeFormValue();
+  const tab = document.getElementById('theme-preview-tab');
+  const btn = document.getElementById('theme-preview-btn');
+  const soft = document.getElementById('theme-preview-soft');
+  tab.style.color = v.accent;
+  tab.style.borderColor = v.accent;
+  btn.style.backgroundColor = v.accent;
+  soft.style.backgroundColor = v.soft;
+  soft.style.color = v.accent;
+  const warnings = [];
+  if (themeContrast(v.accent, '#FFFFFF') < 4.5) warnings.push('대표색이 밝아서 버튼의 흰 글자가 잘 안 보일 수 있어요.');
+  if (themeContrast(v.accent, v.soft) < 3) warnings.push('대표색과 보조색이 비슷해서 글자가 잘 안 보일 수 있어요.');
+  const warn = document.getElementById('theme-warning');
+  warn.textContent = warnings.join(' ');
+  warn.classList.toggle('hidden', !warnings.length);
+  const cur = matchThemePreset(v);
+  document.querySelectorAll('#theme-presets button').forEach(b => {
+    const on = b.dataset.preset === cur;
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.classList.toggle('border-ink-black', on);
+    b.classList.toggle('border-ink-black/15', !on);
+  });
+}
+
+function pickThemePreset(key) {
+  const p = THEME_PRESETS[key];
+  if (!p) return;
+  document.getElementById('theme-accent').value = p.accent;
+  document.getElementById('theme-soft').value = p.soft;
+  setIntegrationMessage('theme-message', '', true);
+  updateThemePreview();
+}
+
+function onThemeColorInput() {
+  setIntegrationMessage('theme-message', '', true);
+  updateThemePreview();
+}
+
+function renderThemeSettings() {
+  const box = document.getElementById('theme-presets');
+  if (!box) return;
+  const t = normalizeSiteTheme(loadSettings().theme);
+  box.innerHTML = '';
+  Object.keys(THEME_PRESETS).forEach(key => {
+    const p = THEME_PRESETS[key];
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.preset = key;
+    b.className = 'flex items-center gap-2 px-3 py-2 bg-white border border-ink-black/15 rounded-xs text-xs font-bold cursor-pointer hover:border-ink-black';
+    b.onclick = () => pickThemePreset(key);
+    const dot = document.createElement('span');
+    dot.className = 'w-5 h-5 rounded-full border border-ink-black/10';
+    dot.style.backgroundColor = p.accent;
+    const dot2 = document.createElement('span');
+    dot2.className = 'w-5 h-5 -ml-3.5 rounded-full border border-ink-black/10';
+    dot2.style.backgroundColor = p.soft;
+    const label = document.createElement('span');
+    label.textContent = p.label;
+    b.append(dot, dot2, label);
+    box.appendChild(b);
+  });
+  document.getElementById('theme-accent').value = t.accent;
+  document.getElementById('theme-soft').value = t.soft;
+  updateThemePreview();
+}
+
+function saveThemeSettings(e) {
+  e.preventDefault();
+  const v = themeFormValue();
+  saveSettings({ theme: { preset: matchThemePreset(v), accent: v.accent, soft: v.soft } });
+  setIntegrationMessage('theme-message', '저장했어요. 쇼핑몰을 새로 고치면 바뀐 색이 보여요.', true);
+}
+
+function resetThemeSettings() {
+  const p = THEME_PRESETS.current;
+  saveSettings({ theme: { preset: 'current', accent: p.accent, soft: p.soft } });
+  renderThemeSettings();
+  setIntegrationMessage('theme-message', '처음 색으로 되돌렸어요.', true);
+}
+
 // 배송 방법·배송비
 let adminDateLimits = [];
 
@@ -231,6 +321,7 @@ function removeDateLimit(idx) {
 }
 
 function renderDeliverySettings() {
+  renderThemeSettings();
   const d = loadSettings().delivery;
   if (!d || !document.getElementById('dlv-quick-on')) return;
   ['quick', 'parcel', 'pickup'].forEach(k => {

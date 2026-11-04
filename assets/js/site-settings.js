@@ -50,6 +50,7 @@ const DEFAULT_SETTINGS = {
   directions: '',          // 예: "안국역 2번 출구 도보 7분"
   kakaoChannelUrl: '',     // 예: "https://pf.kakao.com/_xxxx"
   shopUrl: '',             // 후기 요청 링크용 쇼핑몰 주소
+  theme: { preset: 'current', accent: '#8B2500', soft: '#F3EDE3' }, // 쇼핑몰 색 (site-theme.js)
   showLocation: false,     // 오프라인 아틀리에 오시는 길 공개 여부 (기본 false: 비공개)
   business: { companyName: '설담화', ceo: '', bizNumber: '', mailOrderNumber: '', bizAddress: '', privacyOfficer: '' }, // 사업자 정보 (맨 아래·약관에 표시)
   // 배송 방법·배송비 (관리자 > 매장 정보 설정에서 수정)

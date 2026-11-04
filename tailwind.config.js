@@ -13,8 +13,10 @@ module.exports = {
           light: '#999999'
         },
         seal: {
-          red: '#8B2500',
-          crimson: '#A3330D'
+          red: 'rgb(var(--sdh-accent, 139 37 0) / <alpha-value>)',    // 쇼핑몰 대표색 (관리자에서 바꿈, 관리자 화면은 기본값)
+          crimson: 'rgb(var(--sdh-accent-2, 163 51 13) / <alpha-value>)',
+          soft: 'rgb(var(--sdh-soft, 243 237 227) / <alpha-value>)',    // 보조색: 옅은 바탕
+          stamp: '#8B2500'    // 도장·오류 글자: 언제나 붉은색
         }
       },
       fontFamily: {

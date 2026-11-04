@@ -11,20 +11,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
   
-  <script src="assets/js/data-store.js?v=75"></script>
-  <script src="assets/js/products-data.js?v=75"></script>
-  <script src="assets/js/flowers-data.js?v=75"></script>
-  <script src="assets/js/site-settings.js?v=75"></script>
-  <script src="assets/js/popups.js?v=75"></script>
-  <script src="assets/js/finance-data.js?v=75"></script>
-  <script src="assets/js/integrations.js?v=75"></script>
-  <script src="assets/js/admin-tools.js?v=75"></script>
-  <script src="assets/js/site-pages.js?v=75"></script>
-  <script src="assets/js/image-library.js?v=75"></script>
-  <script src="assets/js/restock.js?v=75"></script>
-  <script src="assets/js/csv-db.js?v=75"></script>
-  <script src="assets/js/data-sync.js?v=75"></script>
-  <script src="assets/js/coupons.js?v=75"></script>
+  <script src="assets/js/data-store.js?v=76"></script>
+  <script src="assets/js/products-data.js?v=76"></script>
+  <script src="assets/js/flowers-data.js?v=76"></script>
+  <script src="assets/js/site-theme.js?v=76"></script>
+  <script src="assets/js/site-settings.js?v=76"></script>
+  <script src="assets/js/popups.js?v=76"></script>
+  <script src="assets/js/finance-data.js?v=76"></script>
+  <script src="assets/js/integrations.js?v=76"></script>
+  <script src="assets/js/admin-tools.js?v=76"></script>
+  <script src="assets/js/site-pages.js?v=76"></script>
+  <script src="assets/js/image-library.js?v=76"></script>
+  <script src="assets/js/restock.js?v=76"></script>
+  <script src="assets/js/csv-db.js?v=76"></script>
+  <script src="assets/js/data-sync.js?v=76"></script>
+  <script src="assets/js/coupons.js?v=76"></script>
   <!-- 운송장 바코드: JsBarcode -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
   <!-- 차트: Chart.js -->
@@ -169,7 +170,7 @@
     }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=75">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=76">
 </head>
 <body class="min-h-screen flex flex-col selection:bg-seal-red/15 selection:text-seal-red">
   <!-- 1. 관리자 상단 헤더 (Admin Top Bar) -->
@@ -1111,6 +1112,7 @@
           <a href="#set-holidays" class="px-3 py-1.5 rounded-full bg-white border border-ink-black/15 font-bold hover:border-seal-red hover:text-seal-red">공휴일·임시 휴무</a>
           <a href="#set-location" class="px-3 py-1.5 rounded-full bg-white border border-ink-black/15 font-bold hover:border-seal-red hover:text-seal-red">오시는 길·지도</a>
           <a href="#set-delivery" class="px-3 py-1.5 rounded-full bg-white border border-ink-black/15 font-bold hover:border-seal-red hover:text-seal-red">배송비</a>
+          <a href="#set-theme" class="px-3 py-1.5 rounded-full bg-white border border-ink-black/15 font-bold hover:border-seal-red hover:text-seal-red">사이트 색</a>
         </nav>
 
         <div class="space-y-6">
@@ -1355,6 +1357,39 @@
           <div class="flex items-center gap-3">
             <button type="submit" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">배송 설정 저장</button>
             <span id="delivery-message" class="text-xs font-bold"></span>
+          </div>
+        </form>
+
+        <span id="set-theme" class="block scroll-mt-32"></span>
+        <!-- 사이트 색 (쇼핑몰에만 적용, 도장은 붉은색 그대로) -->
+        <form id="theme-form" onsubmit="saveThemeSettings(event)" class="admin-card p-5 rounded-sm space-y-4 text-sm">
+          <div>
+            <h2 class="font-bold text-ink-black">사이트 색</h2>
+            <p class="text-xs text-ink-gray mt-1">쇼핑몰의 탭, 버튼, 강조 글자, 무늬 색을 바꿔요. 도장과 오류 안내는 붉은색 그대로이고, 이 관리자 화면 색은 바뀌지 않아요.</p>
+          </div>
+          <div id="theme-presets" class="flex flex-wrap gap-2" role="group" aria-label="색 시안"></div>
+          <div class="grid sm:grid-cols-2 gap-3 text-xs">
+            <label class="flex items-center gap-2 font-bold text-ink-black">
+              <input type="color" id="theme-accent" oninput="onThemeColorInput()" class="w-11 h-9 p-0.5 bg-white border border-ink-black/20 rounded-xs cursor-pointer">
+              <span>대표색 <span class="block font-normal text-ink-gray">탭, 버튼, 강조 글자, 무늬</span></span>
+            </label>
+            <label class="flex items-center gap-2 font-bold text-ink-black">
+              <input type="color" id="theme-soft" oninput="onThemeColorInput()" class="w-11 h-9 p-0.5 bg-white border border-ink-black/20 rounded-xs cursor-pointer">
+              <span>보조색 <span class="block font-normal text-ink-gray">버튼에 올렸을 때, 동그라미의 옅은 바탕</span></span>
+            </label>
+          </div>
+          <div class="p-3 rounded-xs bg-[#FBF9F5] border border-ink-black/10 flex flex-wrap items-center gap-3 text-xs" aria-label="미리보기">
+            <span id="theme-preview-tab" class="font-bold pb-1 border-b-2">꽃 둘러보기</span>
+            <span id="theme-preview-btn" class="px-3 py-1.5 font-bold rounded-xs text-white">꽃 둘러보기</span>
+            <span id="theme-preview-soft" class="px-3 py-1.5 font-bold rounded-full">보조색 바탕</span>
+            <img src="assets/images/seal.svg" alt="도장은 붉은색 그대로" class="w-7 h-7 ml-auto">
+          </div>
+          <p id="theme-warning" class="hidden text-xs font-bold text-amber-800"></p>
+          <div class="flex flex-wrap items-center gap-3">
+            <button type="submit" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">색 저장</button>
+            <button type="button" onclick="resetThemeSettings()" class="px-4 py-2 border border-ink-black/20 bg-white font-bold rounded-xs cursor-pointer hover:border-ink-black">처음 색으로 되돌리기</button>
+            <a href="index.html" target="_blank" rel="noopener" class="text-xs underline text-ink-gray">쇼핑몰에서 보기</a>
+            <span id="theme-message" class="text-xs font-bold"></span>
           </div>
         </form>
         </div>
@@ -1651,19 +1686,19 @@
 
   <!-- JavaScript: Admin 로직 & 쇼핑몰 데이터 양방향 실시간 동기화 -->
   <!-- 관리자 화면 동작 (화면별 파일, 순서 중요) -->
-  <script src="assets/js/admin/admin-dashboard.js?v=75"></script>
-  <script src="assets/js/admin/admin-products.js?v=75"></script>
-  <script src="assets/js/admin/admin-orders.js?v=75"></script>
-  <script src="assets/js/admin/admin-inquiries.js?v=75"></script>
-  <script src="assets/js/admin/admin-product-modal.js?v=75"></script>
-  <script src="assets/js/admin/admin-flowers.js?v=75"></script>
-  <script src="assets/js/admin/admin-coupons.js?v=75"></script>
-  <script src="assets/js/admin/admin-settings.js?v=75"></script>
-  <script src="assets/js/admin/admin-popups.js?v=75"></script>
-  <script src="assets/js/admin/admin-finance.js?v=75"></script>
-  <script src="assets/js/admin/admin-integrations.js?v=75"></script>
-  <script src="assets/js/admin/admin-pages.js?v=75"></script>
-  <script src="assets/js/admin/admin-tools-ui.js?v=75"></script>
+  <script src="assets/js/admin/admin-dashboard.js?v=76"></script>
+  <script src="assets/js/admin/admin-products.js?v=76"></script>
+  <script src="assets/js/admin/admin-orders.js?v=76"></script>
+  <script src="assets/js/admin/admin-inquiries.js?v=76"></script>
+  <script src="assets/js/admin/admin-product-modal.js?v=76"></script>
+  <script src="assets/js/admin/admin-flowers.js?v=76"></script>
+  <script src="assets/js/admin/admin-coupons.js?v=76"></script>
+  <script src="assets/js/admin/admin-settings.js?v=76"></script>
+  <script src="assets/js/admin/admin-popups.js?v=76"></script>
+  <script src="assets/js/admin/admin-finance.js?v=76"></script>
+  <script src="assets/js/admin/admin-integrations.js?v=76"></script>
+  <script src="assets/js/admin/admin-pages.js?v=76"></script>
+  <script src="assets/js/admin/admin-tools-ui.js?v=76"></script>
 
   <!-- 슬라이드 편집 모달 -->
   <div id="slide-edit-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-black/60 hidden">

@@ -107,7 +107,7 @@ function couponMessage(text, ok) {
   el.textContent = text || '';
   el.classList.toggle('hidden', !text);
   el.classList.toggle('text-emerald-700', !!ok);
-  el.classList.toggle('text-seal-red', !ok);
+  el.classList.toggle('text-seal-stamp', !ok);
 }
 
 function couponReasonText(reason, c) {
@@ -507,7 +507,7 @@ function runOrderLookup(e) {
   box.innerHTML = '';
   if (!o) {
     const p = document.createElement('p');
-    p.className = 'text-sm text-seal-red font-bold text-center py-3';
+    p.className = 'text-sm text-seal-stamp font-bold text-center py-3';
     p.textContent = coT('lookup_not_found', '주문을 찾지 못했어요. 주문번호와 주문하신 분 연락처를 다시 확인해 주세요.');
     box.appendChild(p);
     return;
@@ -1107,7 +1107,7 @@ function updateReviewCharCount() {
   const len = textEl.value.trim().length;
   countEl.textContent = `${len} / 500`;
   if (len > 0 && len < 10) {
-    countEl.className = 'text-seal-red text-xs font-bold';
+    countEl.className = 'text-seal-stamp text-xs font-bold';
   } else {
     countEl.className = 'text-ink-gray text-xs';
   }

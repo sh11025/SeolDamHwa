@@ -15,6 +15,8 @@ function renderSiteSettings() {
     closures: []
   };
 
+  if (typeof applySiteTheme === 'function') applySiteTheme(s.theme); // 관리자에서 고른 사이트 색
+
   const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'ko';
 
   // 1) 전화번호 & 이메일

@@ -24,6 +24,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
   
+  <!-- 관리자에서 고른 사이트 색을 첫 화면부터 입힘 -->
+  <script src="assets/js/data-store.js?v=76"></script>
+  <script src="assets/js/site-theme.js?v=76"></script>
+  <script>try { applySiteTheme((DataStore.read(DataStore.KEYS.settings, null) || {}).theme); } catch (e) { /* 기본 색 */ }</script>
   <script>
 
     // 8. 동영상 제어 초기화 (항상 음소거, 1.4배속 재생 및 스크롤 시 재생/정지, prefers-reduced-motion 대응)
@@ -77,15 +81,16 @@
       hasFloatingScrollListener = true;
       window.addEventListener('scroll', () => {
         if (window.scrollY > 400) {
-          topBtn.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+          topBtn.classList.remove('hidden');
         } else {
-          topBtn.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+          topBtn.classList.add('hidden');
         }
       }, { passive: true });
     }
   </script>
 
   <style>
+    :root { --sdh-accent: 139 37 0; --sdh-accent-2: 163 51 13; --sdh-soft: 243 237 227; }
     /* 다국어 폰트 설정 (일본어 폰트 & 영/일 태그라인 세리프 전환) */
     html[lang="ja"] body {
       font-family: 'Noto Sans JP', 'Pretendard', sans-serif;
@@ -117,7 +122,7 @@
       bottom: -4px;
       width: 100%;
       height: 3px;
-      background: linear-gradient(90deg, #8B2500 0%, #1A1A1A 60%, transparent 100%);
+      background: linear-gradient(90deg, rgb(var(--sdh-accent)) 0%, #1A1A1A 60%, transparent 100%);
       opacity: 0.75;
       border-radius: 2px;
     }
@@ -192,9 +197,9 @@
       transform: rotate(-25deg) translateY(55%);
     }
     .jakae-light-btn:hover {
-      border-color: #8B2500;
-      color: #8B2500;
-      box-shadow: 0 4px 16px -2px rgba(139, 37, 0, 0.12);
+      border-color: rgb(var(--sdh-accent));
+      color: rgb(var(--sdh-accent));
+      box-shadow: 0 4px 16px -2px rgb(var(--sdh-accent) / 0.12);
       transform: translateY(-1px);
     }
 
@@ -206,40 +211,45 @@
       transition: all 0.3s ease;
     }
     .hanok-card:hover {
-      border-color: rgba(139, 37, 0, 0.45);
+      border-color: rgb(var(--sdh-accent) / 0.45);
       box-shadow: 0 10px 25px -5px rgba(26, 26, 26, 0.08);
     }
-    .corner-tl { position: absolute; top: 6px; left: 6px; width: 10px; height: 10px; border-top: 1.5px solid #8B2500; border-left: 1.5px solid #8B2500; pointer-events: none; }
-    .corner-tr { position: absolute; top: 6px; right: 6px; width: 10px; height: 10px; border-top: 1.5px solid #8B2500; border-right: 1.5px solid #8B2500; pointer-events: none; }
-    .corner-bl { position: absolute; bottom: 6px; left: 6px; width: 10px; height: 10px; border-bottom: 1.5px solid #8B2500; border-left: 1.5px solid #8B2500; pointer-events: none; }
+    .corner-tl { position: absolute; top: 6px; left: 6px; width: 10px; height: 10px; border-top: 1.5px solid rgb(var(--sdh-accent)); border-left: 1.5px solid rgb(var(--sdh-accent)); pointer-events: none; }
+    .corner-tr { position: absolute; top: 6px; right: 6px; width: 10px; height: 10px; border-top: 1.5px solid rgb(var(--sdh-accent)); border-right: 1.5px solid rgb(var(--sdh-accent)); pointer-events: none; }
+    .corner-bl { position: absolute; bottom: 6px; left: 6px; width: 10px; height: 10px; border-bottom: 1.5px solid rgb(var(--sdh-accent)); border-left: 1.5px solid rgb(var(--sdh-accent)); pointer-events: none; }
     /* 꽃 사전 카드: 상품 카드의 창살(ㄱ자) 대신 꽃살 무늬 모서리 */
-    .kkotsal { position: absolute; width: 14px; height: 14px; z-index: 2; pointer-events: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cg fill='none' stroke='%238B2500' stroke-width='1.2'%3E%3Ccircle cx='5' cy='2.6' r='2.3'/%3E%3Ccircle cx='2.6' cy='5' r='2.3'/%3E%3Ccircle cx='7.4' cy='5' r='2.3'/%3E%3Ccircle cx='5' cy='7.4' r='2.3'/%3E%3C/g%3E%3Ccircle cx='5' cy='5' r='1' fill='%238B2500'/%3E%3C/svg%3E") no-repeat center / contain; }
+    .kkotsal { position: absolute; width: 14px; height: 14px; z-index: 2; pointer-events: none; background-color: rgb(var(--sdh-accent)); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cg fill='none' stroke='%238B2500' stroke-width='1.2'%3E%3Ccircle cx='5' cy='2.6' r='2.3'/%3E%3Ccircle cx='2.6' cy='5' r='2.3'/%3E%3Ccircle cx='7.4' cy='5' r='2.3'/%3E%3Ccircle cx='5' cy='7.4' r='2.3'/%3E%3C/g%3E%3Ccircle cx='5' cy='5' r='1' fill='%238B2500'/%3E%3C/svg%3E") no-repeat center / contain; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cg fill='none' stroke='%238B2500' stroke-width='1.2'%3E%3Ccircle cx='5' cy='2.6' r='2.3'/%3E%3Ccircle cx='2.6' cy='5' r='2.3'/%3E%3Ccircle cx='7.4' cy='5' r='2.3'/%3E%3Ccircle cx='5' cy='7.4' r='2.3'/%3E%3C/g%3E%3Ccircle cx='5' cy='5' r='1' fill='%238B2500'/%3E%3C/svg%3E") no-repeat center / contain; }
     /* 모서리 무늬는 space-y 칸 띄우기의 영향을 받지 않게 (위치가 어긋나던 문제) */
     .kkotsal, .corner-tl, .corner-tr, .corner-bl, .corner-br { margin: 0 !important; }
     /* 페이지별 모서리 무늬 (.kkotsal 위치·뒤집기를 그대로 쓰고 그림만 바꿈) */
     .kkotsal[class*="mk-"] { width: 16px; height: 16px; }
     .kkotsal.mk-cloud { width: 18px; height: 18px; }
-    .kkotsal.mk-ajasal { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M2 18V9h7V2h11' fill='none' stroke='%238B2500' stroke-width='1.4'/%3E%3Cpath d='M6 18v-5h7V6h7' fill='none' stroke='%238B2500' stroke-width='1'/%3E%3C/svg%3E"); }
-    .kkotsal.mk-cloud { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22'%3E%3Cpath d='M3 15V3h12' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Cpath d='M15 3c2.4 0 3.4 1.2 3.4 2.6 0 1.1-.8 1.8-1.7 1.8-.9 0-1.4-.6-1.4-1.3' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3Cpath d='M3 15c0 2.4 1.2 3.4 2.6 3.4 1.1 0 1.8-.8 1.8-1.7 0-.9-.6-1.4-1.3-1.4' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E"); }
-    .kkotsal.mk-gyeop { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M2 17V2h15' fill='none' stroke='%238B2500' stroke-width='1.4'/%3E%3Cpath d='M6 17V6h11' fill='none' stroke='%238B2500' stroke-width='0.9'/%3E%3C/svg%3E"); }
-    .kkotsal.mk-maedeup { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8 3l5 5-5 5-5-5z' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Cpath d='M8 5.5l2.5 2.5L8 10.5 5.5 8z' fill='%238B2500'/%3E%3Cpath d='M13 8h6M8 13v6' stroke='%238B2500' stroke-width='1.1'/%3E%3C/svg%3E"); }
-    .kkotsal.mk-ttisal { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M2 2h16M2 2v16' stroke='%238B2500' stroke-width='1.4'/%3E%3Cpath d='M6 2v8M10 2v5M2 6h8M2 10h5' stroke='%238B2500' stroke-width='0.9'/%3E%3C/svg%3E"); }
-    .kkotsal.mk-lotus { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8 3c3 2 3 7 0 10-3-3-3-8 0-10z' fill='none' stroke='%238B2500' stroke-width='1.2'/%3E%3Cpath d='M8 13c-3 0-6-2-6-5 2 0 4 1 6 5zm0 0c3 0 6-2 6-5-2 0-4 1-6 5z' fill='none' stroke='%238B2500' stroke-width='1'/%3E%3C/svg%3E"); }
-    /* 머리글 C: 글씨 크게, 지금 보는 탭은 밑줄 대신 그 페이지의 무늬 */
-    .nav-btn { position: relative; font-size: 15px; letter-spacing: -0.01em; }
+    .kkotsal.mk-ajasal { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M2 18V9h7V2h11' fill='none' stroke='%238B2500' stroke-width='1.4'/%3E%3Cpath d='M6 18v-5h7V6h7' fill='none' stroke='%238B2500' stroke-width='1'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M2 18V9h7V2h11' fill='none' stroke='%238B2500' stroke-width='1.4'/%3E%3Cpath d='M6 18v-5h7V6h7' fill='none' stroke='%238B2500' stroke-width='1'/%3E%3C/svg%3E"); }
+    .kkotsal.mk-cloud { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22'%3E%3Cpath d='M3 15V3h12' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Cpath d='M15 3c2.4 0 3.4 1.2 3.4 2.6 0 1.1-.8 1.8-1.7 1.8-.9 0-1.4-.6-1.4-1.3' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3Cpath d='M3 15c0 2.4 1.2 3.4 2.6 3.4 1.1 0 1.8-.8 1.8-1.7 0-.9-.6-1.4-1.3-1.4' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22'%3E%3Cpath d='M3 15V3h12' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Cpath d='M15 3c2.4 0 3.4 1.2 3.4 2.6 0 1.1-.8 1.8-1.7 1.8-.9 0-1.4-.6-1.4-1.3' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3Cpath d='M3 15c0 2.4 1.2 3.4 2.6 3.4 1.1 0 1.8-.8 1.8-1.7 0-.9-.6-1.4-1.3-1.4' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E"); }
+    .kkotsal.mk-gyeop { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M2 17V2h15' fill='none' stroke='%238B2500' stroke-width='1.4'/%3E%3Cpath d='M6 17V6h11' fill='none' stroke='%238B2500' stroke-width='0.9'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M2 17V2h15' fill='none' stroke='%238B2500' stroke-width='1.4'/%3E%3Cpath d='M6 17V6h11' fill='none' stroke='%238B2500' stroke-width='0.9'/%3E%3C/svg%3E"); }
+    .kkotsal.mk-maedeup { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8 3l5 5-5 5-5-5z' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Cpath d='M8 5.5l2.5 2.5L8 10.5 5.5 8z' fill='%238B2500'/%3E%3Cpath d='M13 8h6M8 13v6' stroke='%238B2500' stroke-width='1.1'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8 3l5 5-5 5-5-5z' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Cpath d='M8 5.5l2.5 2.5L8 10.5 5.5 8z' fill='%238B2500'/%3E%3Cpath d='M13 8h6M8 13v6' stroke='%238B2500' stroke-width='1.1'/%3E%3C/svg%3E"); }
+    .kkotsal.mk-ttisal { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M2 2h16M2 2v16' stroke='%238B2500' stroke-width='1.4'/%3E%3Cpath d='M6 2v8M10 2v5M2 6h8M2 10h5' stroke='%238B2500' stroke-width='0.9'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M2 2h16M2 2v16' stroke='%238B2500' stroke-width='1.4'/%3E%3Cpath d='M6 2v8M10 2v5M2 6h8M2 10h5' stroke='%238B2500' stroke-width='0.9'/%3E%3C/svg%3E"); }
+    .kkotsal.mk-lotus { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8 3c3 2 3 7 0 10-3-3-3-8 0-10z' fill='none' stroke='%238B2500' stroke-width='1.2'/%3E%3Cpath d='M8 13c-3 0-6-2-6-5 2 0 4 1 6 5zm0 0c3 0 6-2 6-5-2 0-4 1-6 5z' fill='none' stroke='%238B2500' stroke-width='1'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8 3c3 2 3 7 0 10-3-3-3-8 0-10z' fill='none' stroke='%238B2500' stroke-width='1.2'/%3E%3Cpath d='M8 13c-3 0-6-2-6-5 2 0 4 1 6 5zm0 0c3 0 6-2 6-5-2 0-4 1-6 5z' fill='none' stroke='%238B2500' stroke-width='1'/%3E%3C/svg%3E"); }
+    /* 머리글 탭: 글씨 크게, 올리면 옅은 밑줄, 지금 보는 탭은 대표색 밑줄 + 그 페이지의 작은 무늬 */
+    .nav-btn { position: relative; font-size: 15px; letter-spacing: -0.01em; padding: 6px 2px; }
+    .nav-btn:focus-visible { outline: 2px solid rgb(var(--sdh-accent)); outline-offset: 3px; border-radius: 2px; }
+    .nav-btn::before { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: rgb(var(--sdh-accent) / .3); transform: scaleX(0); transition: transform .2s ease; }
+    .nav-btn:hover::before { transform: scaleX(1); }
     .nav-btn.border-b-2 { border-bottom-width: 0 !important; }
-    .nav-btn.border-b-2::after { content: ''; position: absolute; left: 50%; bottom: -15px; width: 14px; height: 14px; transform: translateX(-50%); background: no-repeat center / contain; }
-    #nav-story.border-b-2::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5.5 1.5h5v4h4v5h-4v4h-5v-4h-4v-5h4z' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Crect x='6.5' y='6.5' width='3' height='3' fill='%238B2500'/%3E%3C/svg%3E"); }
-    #nav-shop.border-b-2::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2' y='2' width='12' height='12' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Cpath d='M6 2v12M10 2v12M2 8h12' stroke='%238B2500' stroke-width='0.9'/%3E%3C/svg%3E"); }
-    #nav-dictionary.border-b-2::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cg fill='none' stroke='%238B2500' stroke-width='1.3'%3E%3Ccircle cx='8' cy='5' r='3'/%3E%3Ccircle cx='5' cy='8' r='3'/%3E%3Ccircle cx='11' cy='8' r='3'/%3E%3Ccircle cx='8' cy='11' r='3'/%3E%3C/g%3E%3Ccircle cx='8' cy='8' r='1.2' fill='%238B2500'/%3E%3C/svg%3E"); }
-    #nav-custom.border-b-2::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 10h12' stroke='%238B2500' stroke-width='1.3' stroke-linecap='round'/%3E%3Cpath d='M5 10c-2 0-3-1-3-2.3C2 6.6 2.8 6 3.6 6c.8 0 1.2.6 1.2 1.1' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3Cpath d='M11 10c2 0 3-1 3-2.3 0-1.1-.8-1.7-1.6-1.7-.8 0-1.2.6-1.2 1.1' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3Cpath d='M8 10V5.5c0-1.4 1-2 1.9-2 .8 0 1.4.6 1.4 1.3' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E"); }
-    #nav-guide.border-b-2::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1.5l6.5 6.5L8 14.5 1.5 8z' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Cpath d='M8 5l3 3-3 3-3-3z' fill='%238B2500'/%3E%3C/svg%3E"); }
-    #nav-reviews.border-b-2::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8 3c3 2 3 7 0 10-3-3-3-8 0-10z' fill='none' stroke='%238B2500' stroke-width='1.2'/%3E%3Cpath d='M8 13c-3 0-6-2-6-5 2 0 4 1 6 5zm0 0c3 0 6-2 6-5-2 0-4 1-6 5z' fill='none' stroke='%238B2500' stroke-width='1'/%3E%3C/svg%3E"); }
+    .nav-btn.border-b-2::before { background: rgb(var(--sdh-accent)); transform: scaleX(1); }
+    .nav-btn.border-b-2::after { content: ''; position: absolute; left: 50%; bottom: -13px; width: 10px; height: 10px; transform: translateX(-50%); background-color: rgb(var(--sdh-accent)); -webkit-mask: no-repeat center / contain; mask: no-repeat center / contain; }
+    @media (prefers-reduced-motion: reduce) { .nav-btn::before { transition: none; } }
+    #nav-story.border-b-2::after { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5.5 1.5h5v4h4v5h-4v4h-5v-4h-4v-5h4z' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Crect x='6.5' y='6.5' width='3' height='3' fill='%238B2500'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5.5 1.5h5v4h4v5h-4v4h-5v-4h-4v-5h4z' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Crect x='6.5' y='6.5' width='3' height='3' fill='%238B2500'/%3E%3C/svg%3E"); }
+    #nav-shop.border-b-2::after { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2' y='2' width='12' height='12' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Cpath d='M6 2v12M10 2v12M2 8h12' stroke='%238B2500' stroke-width='0.9'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2' y='2' width='12' height='12' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Cpath d='M6 2v12M10 2v12M2 8h12' stroke='%238B2500' stroke-width='0.9'/%3E%3C/svg%3E"); }
+    #nav-dictionary.border-b-2::after { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cg fill='none' stroke='%238B2500' stroke-width='1.3'%3E%3Ccircle cx='8' cy='5' r='3'/%3E%3Ccircle cx='5' cy='8' r='3'/%3E%3Ccircle cx='11' cy='8' r='3'/%3E%3Ccircle cx='8' cy='11' r='3'/%3E%3C/g%3E%3Ccircle cx='8' cy='8' r='1.2' fill='%238B2500'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cg fill='none' stroke='%238B2500' stroke-width='1.3'%3E%3Ccircle cx='8' cy='5' r='3'/%3E%3Ccircle cx='5' cy='8' r='3'/%3E%3Ccircle cx='11' cy='8' r='3'/%3E%3Ccircle cx='8' cy='11' r='3'/%3E%3C/g%3E%3Ccircle cx='8' cy='8' r='1.2' fill='%238B2500'/%3E%3C/svg%3E"); }
+    #nav-custom.border-b-2::after { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 10h12' stroke='%238B2500' stroke-width='1.3' stroke-linecap='round'/%3E%3Cpath d='M5 10c-2 0-3-1-3-2.3C2 6.6 2.8 6 3.6 6c.8 0 1.2.6 1.2 1.1' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3Cpath d='M11 10c2 0 3-1 3-2.3 0-1.1-.8-1.7-1.6-1.7-.8 0-1.2.6-1.2 1.1' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3Cpath d='M8 10V5.5c0-1.4 1-2 1.9-2 .8 0 1.4.6 1.4 1.3' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 10h12' stroke='%238B2500' stroke-width='1.3' stroke-linecap='round'/%3E%3Cpath d='M5 10c-2 0-3-1-3-2.3C2 6.6 2.8 6 3.6 6c.8 0 1.2.6 1.2 1.1' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3Cpath d='M11 10c2 0 3-1 3-2.3 0-1.1-.8-1.7-1.6-1.7-.8 0-1.2.6-1.2 1.1' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3Cpath d='M8 10V5.5c0-1.4 1-2 1.9-2 .8 0 1.4.6 1.4 1.3' fill='none' stroke='%238B2500' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E"); }
+    #nav-guide.border-b-2::after { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1.5l6.5 6.5L8 14.5 1.5 8z' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Cpath d='M8 5l3 3-3 3-3-3z' fill='%238B2500'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1.5l6.5 6.5L8 14.5 1.5 8z' fill='none' stroke='%238B2500' stroke-width='1.3'/%3E%3Cpath d='M8 5l3 3-3 3-3-3z' fill='%238B2500'/%3E%3C/svg%3E"); }
+    #nav-reviews.border-b-2::after { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8 3c3 2 3 7 0 10-3-3-3-8 0-10z' fill='none' stroke='%238B2500' stroke-width='1.2'/%3E%3Cpath d='M8 13c-3 0-6-2-6-5 2 0 4 1 6 5zm0 0c3 0 6-2 6-5-2 0-4 1-6 5z' fill='none' stroke='%238B2500' stroke-width='1'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8 3c3 2 3 7 0 10-3-3-3-8 0-10z' fill='none' stroke='%238B2500' stroke-width='1.2'/%3E%3Cpath d='M8 13c-3 0-6-2-6-5 2 0 4 1 6 5zm0 0c3 0 6-2 6-5-2 0-4 1-6 5z' fill='none' stroke='%238B2500' stroke-width='1'/%3E%3C/svg%3E"); }
     .kkotsal.tl { top: 5px; left: 5px; }
     .kkotsal.tr { top: 5px; right: 5px; transform: scaleX(-1); }
     .kkotsal.bl { bottom: 5px; left: 5px; transform: scaleY(-1); }
     .kkotsal.br { bottom: 5px; right: 5px; transform: scale(-1, -1); }
-    .corner-br { position: absolute; bottom: 6px; right: 6px; width: 10px; height: 10px; border-bottom: 1.5px solid #8B2500; border-right: 1.5px solid #8B2500; pointer-events: none; }
+    .corner-br { position: absolute; bottom: 6px; right: 6px; width: 10px; height: 10px; border-bottom: 1.5px solid rgb(var(--sdh-accent)); border-right: 1.5px solid rgb(var(--sdh-accent)); pointer-events: none; }
 
     /* 프로토타입 스타일의 유려한 대형 라운드 액자 & 외곽선 */
     .film-frame {
@@ -252,7 +262,7 @@
       position: absolute;
       inset: -10px;
       pointer-events: none;
-      border: 1px solid rgba(139, 37, 0, 0.3);
+      border: 1px solid rgb(var(--sdh-accent) / 0.3);
       border-radius: 50% 50% 46% 46% / 14% 14% 12% 12%;
     }
     @media (max-width: 768px) {
@@ -274,7 +284,7 @@
       content: '';
       position: absolute;
       inset: -16px;
-      border: 1px solid rgba(139, 37, 0, 0.3);
+      border: 1px solid rgb(var(--sdh-accent) / 0.3);
       border-radius: 46% 46% 44% 44% / 52% 52% 48% 48%;
       transform: rotate(-3deg);
       pointer-events: none;
@@ -297,7 +307,7 @@
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: #FBF9F5; }
     ::-webkit-scrollbar-thumb { background: #D6D0C5; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #8B2500; }
+    ::-webkit-scrollbar-thumb:hover { background: rgb(var(--sdh-accent)); }
   
     /* 터치스크린 호버 대체 스타일 */
     @media (hover: none) {
@@ -323,8 +333,8 @@
       body.on-product-page aside[aria-label="빠른 바로가기"] { bottom: 150px; }
     }
     .cta-pick { transition: transform .45s cubic-bezier(.2,.8,.2,1), box-shadow .45s, opacity .45s, filter .45s; }
-    .cta-pick.is-looking { transform: translateY(-10px) scale(1.12); box-shadow: 0 0 0 3px #E8C9A8; z-index: 2; }
-    .cta-pick.is-picked { transform: translateY(-14px) scale(1.25); box-shadow: 0 0 0 3px #8B2500, 0 10px 20px rgba(60,40,20,.25); z-index: 3; }
+    .cta-pick.is-looking { transform: translateY(-10px) scale(1.12); box-shadow: 0 0 0 3px rgb(var(--sdh-soft)); z-index: 2; }
+    .cta-pick.is-picked { transform: translateY(-14px) scale(1.25); box-shadow: 0 0 0 3px rgb(var(--sdh-accent)), 0 10px 20px rgba(60,40,20,.25); z-index: 3; }
     .cta-pick.is-dim { opacity: .45; filter: grayscale(.6); }
     @media (prefers-reduced-motion: reduce) { .cta-pick { transition: none; } }
     /* 읽기 편하게: 쇼핑몰의 작은 글씨는 최소 13px (장바구니·찜 숫자 배지 text-[10px]는 그대로) */
@@ -339,7 +349,7 @@
     .info-page-body .page-ul li { margin: 3px 0; }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=75">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=76">
 </head>
 <body class="selection:bg-seal-red/15 selection:text-seal-red min-h-screen flex flex-col">
   <!-- 상품 미리보기 모드 상단 고정 배너 -->
@@ -421,7 +431,7 @@
       <div class="flex items-center justify-end space-x-0.5 sm:space-x-3">
         <!-- 언어 선택 드롭다운 (KO / EN / JA). 휴대폰은 ☰ 메뉴 안의 언어 선택을 씀 -->
         <div class="relative hidden sm:block">
-          <button id="lang-switch-btn" type="button" onclick="toggleLangDropdown(event)" class="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold text-ink-charcoal hover:text-seal-red hover:bg-[#FAF7F2] border border-ink-black/15 transition-all cursor-pointer shadow-2xs" aria-label="Language / 언어 선택">
+          <button id="lang-switch-btn" type="button" onclick="toggleLangDropdown(event)" class="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold text-ink-charcoal hover:text-seal-red hover:bg-seal-soft border border-ink-black/15 transition-all cursor-pointer shadow-2xs" aria-label="Language / 언어 선택">
             <svg class="w-3.5 h-3.5 shrink-0 text-ink-charcoal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
             </svg>
@@ -432,28 +442,28 @@
           </button>
 
           <div id="lang-dropdown" class="hidden absolute right-0 mt-1.5 w-28 bg-white/95 backdrop-blur-md border border-ink-black/10 rounded-xs shadow-lg py-1 z-50 text-xs">
-            <button type="button" onclick="changeLanguage('ko')" class="lang-select-btn block w-full text-left px-3.5 py-2 hover:bg-[#FAF7F2] transition-colors cursor-pointer font-bold text-seal-red" data-lang="ko">
+            <button type="button" onclick="changeLanguage('ko')" class="lang-select-btn block w-full text-left px-3.5 py-2 hover:bg-seal-soft transition-colors cursor-pointer font-bold text-seal-red" data-lang="ko">
               한국어
             </button>
-            <button type="button" onclick="changeLanguage('en')" class="lang-select-btn block w-full text-left px-3.5 py-2 hover:bg-[#FAF7F2] transition-colors cursor-pointer text-ink-charcoal" data-lang="en">
+            <button type="button" onclick="changeLanguage('en')" class="lang-select-btn block w-full text-left px-3.5 py-2 hover:bg-seal-soft transition-colors cursor-pointer text-ink-charcoal" data-lang="en">
               English
             </button>
-            <button type="button" onclick="changeLanguage('ja')" class="lang-select-btn block w-full text-left px-3.5 py-2 hover:bg-[#FAF7F2] transition-colors cursor-pointer text-ink-charcoal" data-lang="ja">
+            <button type="button" onclick="changeLanguage('ja')" class="lang-select-btn block w-full text-left px-3.5 py-2 hover:bg-seal-soft transition-colors cursor-pointer text-ink-charcoal" data-lang="ja">
               日本語
             </button>
           </div>
         </div>
 
-        <button onclick="toggleSearchModal(true)" class="p-2 text-ink-charcoal hover:text-seal-red hover:bg-[#FAF7F2] rounded-full transition-colors cursor-pointer" title="검색">
+        <button onclick="toggleSearchModal(true)" class="p-2 text-ink-charcoal hover:text-seal-red hover:bg-seal-soft rounded-full transition-colors cursor-pointer" title="검색">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         </button>
 
-        <button onclick="openWishlist()" class="p-2 text-ink-charcoal hover:text-seal-red hover:bg-[#FAF7F2] rounded-full transition-colors relative cursor-pointer" title="찜한 꽃 · 최근 본 꽃" aria-label="찜한 꽃 · 최근 본 꽃">
+        <button onclick="openWishlist()" class="p-2 text-ink-charcoal hover:text-seal-red hover:bg-seal-soft rounded-full transition-colors relative cursor-pointer" title="찜한 꽃 · 최근 본 꽃" aria-label="찜한 꽃 · 최근 본 꽃">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
           <span id="wish-count-badge" class="hidden absolute top-0 right-0 bg-ink-black text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">0</span>
         </button>
 
-        <button onclick="toggleCartDrawer(true)" class="p-2 text-ink-charcoal hover:text-seal-red hover:bg-[#FAF7F2] rounded-full transition-colors relative cursor-pointer" title="장바구니">
+        <button onclick="toggleCartDrawer(true)" class="p-2 text-ink-charcoal hover:text-seal-red hover:bg-seal-soft rounded-full transition-colors relative cursor-pointer" title="장바구니">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
           <span id="cart-badge" class="absolute top-0 right-0 bg-seal-red text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">1</span>
         </button>
@@ -544,7 +554,7 @@
         <div class="hero-eaves absolute left-0 right-0 -bottom-[1px] z-20 pointer-events-none leading-none" aria-hidden="true">
           <svg viewBox="0 0 1440 90" preserveAspectRatio="none" class="w-full h-12 sm:h-16 md:h-20 lg:h-24 block">
             <path d="M0 0 C 120 70, 420 88, 720 88 C 1020 88, 1320 70, 1440 0 L1440 90 L0 90 Z" fill="#FBF9F5" />
-            <path d="M0 0 C 120 70, 420 88, 720 88 C 1020 88, 1320 70, 1440 0" fill="none" stroke="#8B2500" stroke-width="1.2" opacity="0.3" />
+            <path d="M0 0 C 120 70, 420 88, 720 88 C 1020 88, 1320 70, 1440 0" fill="none" style="stroke: rgb(var(--sdh-accent))" stroke-width="1.2" opacity="0.3" />
           </svg>
         </div>
       </section>
@@ -679,7 +689,7 @@
             <!-- 1. 버리지 않는 포장 -->
             <div class="relative pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
               <span class="kkotsal tl mk-maedeup" aria-hidden="true"></span><span class="kkotsal tr mk-maedeup" aria-hidden="true"></span>
-              <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
+              <div class="w-10 h-10 rounded-full bg-seal-soft flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                 </svg>
@@ -696,7 +706,7 @@
             <!-- 2. 1:1 맞춤 꽃 -->
             <div class="relative pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
               <span class="kkotsal tl mk-maedeup" aria-hidden="true"></span><span class="kkotsal tr mk-maedeup" aria-hidden="true"></span>
-              <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
+              <div class="w-10 h-10 rounded-full bg-seal-soft flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                 </svg>
@@ -713,7 +723,7 @@
             <!-- 3. 취향을 읽는 설계 -->
             <div class="relative pt-6 border-t-2 border-seal-red/40 space-y-3 text-center md:text-left">
               <span class="kkotsal tl mk-maedeup" aria-hidden="true"></span><span class="kkotsal tr mk-maedeup" aria-hidden="true"></span>
-              <div class="w-10 h-10 rounded-full bg-[#F3EDE3] flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
+              <div class="w-10 h-10 rounded-full bg-seal-soft flex items-center justify-center text-seal-red mx-auto md:mx-0 border border-seal-red/20">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                 </svg>
@@ -740,7 +750,7 @@
       <div class="text-center space-y-4 max-w-3xl mx-auto">
         <span data-i18n="story_header_sub" class="font-brush text-3xl text-seal-red">말하지 않아도 꽃이 전하는 정갈한 온기</span>
         <h1 data-i18n="story_header_title" class="text-3xl sm:text-5xl font-extrabold text-ink-black tracking-tight">설담화(說談花) 이야기</h1>
-        <div class="w-8 h-8 mx-auto bg-seal-red text-white flex items-center justify-center font-serif font-bold text-xs rounded-xs shadow">花</div>
+        <div class="w-8 h-8 mx-auto bg-seal-stamp text-white flex items-center justify-center font-serif font-bold text-xs rounded-xs shadow">花</div>
       </div>
 
       <div class="hanok-card p-8 sm:p-14 max-w-5xl mx-auto">
@@ -1697,31 +1707,34 @@
       </div>
     </div>
 
+    <!-- 찜·상담·맨 위로를 세로 캡슐 하나로 묶음 -->
+    <div id="fab-dock" class="flex flex-col items-center gap-1 p-1 rounded-full bg-hanji border border-seal-red/25 shadow-lg">
     <!-- 휴대폰: ♡·💬를 하나로 묶어 누르면 펼침 / 태블릿·PC: 항상 보임 (shop-nav.js toggleFabGroup) -->
-    <div id="fab-group" class="hidden sm:flex flex-col gap-2.5 items-center">
+    <div id="fab-group" class="hidden sm:flex flex-col gap-1 items-center">
       <!-- ♡ 버튼 -->
-      <button id="wish-toggle-btn" type="button" onclick="toggleWishPanel()" aria-expanded="false" aria-controls="wish-panel" aria-label="찜한 꽃 · 최근 본 꽃" title="찜한 꽃 · 최근 본 꽃" class="relative w-12 h-12 rounded-full bg-white border border-ink-black/15 hover:border-seal-red text-seal-red shadow-lg flex items-center justify-center text-xl transition-transform hover:scale-105 cursor-pointer">
+      <button id="wish-toggle-btn" type="button" onclick="toggleWishPanel()" aria-expanded="false" aria-controls="wish-panel" aria-label="찜한 꽃 · 최근 본 꽃" title="찜한 꽃 · 최근 본 꽃" class="relative w-11 h-11 rounded-full text-seal-red hover:bg-seal-soft flex items-center justify-center text-xl transition-colors cursor-pointer">
         ♡
         <span id="wish-float-badge" class="hidden absolute -top-1 -right-1 bg-ink-black text-white text-[10px] min-w-4 h-4 px-1 rounded-full flex items-center justify-center font-bold">0</span>
       </button>
 
       <!-- 💬 말풍선 버튼 -->
-      <button id="chat-toggle-btn" type="button" onclick="toggleChatPanel()" aria-expanded="false" aria-controls="chat-panel" aria-label="1:1 상담 열기" title="1:1 상담" class="w-12 h-12 rounded-full bg-seal-red hover:opacity-90 text-white shadow-lg flex items-center justify-center transition-transform hover:scale-105 cursor-pointer">
+      <button id="chat-toggle-btn" type="button" onclick="toggleChatPanel()" aria-expanded="false" aria-controls="chat-panel" aria-label="1:1 상담 열기" title="1:1 상담" class="w-11 h-11 rounded-full bg-seal-red hover:bg-seal-crimson text-white flex items-center justify-center transition-colors cursor-pointer">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
       </button>
     </div>
-    <button id="fab-toggle-btn" type="button" onclick="toggleFabGroup()" aria-expanded="false" aria-controls="fab-group" aria-label="찜·상담 버튼 펼치기" title="찜·상담" class="sm:hidden relative w-12 h-12 rounded-full bg-seal-red text-white shadow-lg flex items-center justify-center cursor-pointer">
+    <button id="fab-toggle-btn" type="button" onclick="toggleFabGroup()" aria-expanded="false" aria-controls="fab-group" aria-label="찜·상담 버튼 펼치기" title="찜·상담" class="sm:hidden relative w-11 h-11 rounded-full bg-seal-red text-white flex items-center justify-center cursor-pointer">
       <svg id="fab-toggle-open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
       <svg id="fab-toggle-close" class="hidden w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
       <span id="fab-toggle-badge" class="hidden absolute -top-1 -right-1 bg-ink-black text-white text-[10px] min-w-4 h-4 px-1 rounded-full flex items-center justify-center font-bold">♡</span>
     </button>
 
     <!-- 맨 위로 가기 플로팅 버튼 -->
-    <button id="float-top-btn" type="button" aria-label="맨 위로 이동" title="맨 위로 이동" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" class="w-12 h-12 rounded-full bg-ink-black hover:bg-seal-red text-white shadow-lg flex items-center justify-center transition-all duration-300 opacity-0 pointer-events-none translate-y-2 cursor-pointer">
+    <button id="float-top-btn" type="button" aria-label="맨 위로 이동" title="맨 위로 이동" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" class="hidden w-11 h-11 rounded-full text-seal-red hover:bg-seal-soft flex items-center justify-center transition-colors cursor-pointer">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
       </svg>
     </button>
+    </div>
   </aside>
 
   <!-- 5. 상품 상세 뷰 / PDP 모달 (비대칭 레이아웃 + 한 줄 글귀 + 희망 배송일) -->
@@ -1847,34 +1860,33 @@
   </div>
 
   <!-- 상품 데이터 및 공통 스토리지 스크립트 -->
-  <script src="assets/js/data-store.js?v=75"></script>
-  <script src="assets/js/products-data.js?v=75"></script>
-  <script src="assets/js/flowers-data.js?v=75"></script>
-  <script src="assets/js/i18n.js?v=75"></script>
-  <script src="assets/js/site-settings.js?v=75"></script>
-  <script src="assets/js/popups.js?v=75"></script>
-  <script src="assets/js/integrations.js?v=75"></script>
-  <script src="assets/js/site-pages.js?v=75"></script>
-  <script src="assets/js/restock.js?v=75"></script>
-  <script src="assets/js/csv-db.js?v=75"></script>
-  <script src="assets/js/data-sync.js?v=75"></script>
-  <script src="assets/js/coupons.js?v=75"></script>
+  <script src="assets/js/products-data.js?v=76"></script>
+  <script src="assets/js/flowers-data.js?v=76"></script>
+  <script src="assets/js/i18n.js?v=76"></script>
+  <script src="assets/js/site-settings.js?v=76"></script>
+  <script src="assets/js/popups.js?v=76"></script>
+  <script src="assets/js/integrations.js?v=76"></script>
+  <script src="assets/js/site-pages.js?v=76"></script>
+  <script src="assets/js/restock.js?v=76"></script>
+  <script src="assets/js/csv-db.js?v=76"></script>
+  <script src="assets/js/data-sync.js?v=76"></script>
+  <script src="assets/js/coupons.js?v=76"></script>
 
   <!-- JavaScript: 쇼핑몰 동작 & 인터랙션 로직 -->
   <!-- 쇼핑몰 화면 동작 (화면별 파일, 순서 중요) -->
-  <script src="assets/js/shop/shop-core.js?v=75"></script>
-  <script src="assets/js/shop/shop-product.js?v=75"></script>
-  <script src="assets/js/shop/shop-product-page.js?v=75"></script>
-  <script src="assets/js/shop/shop-checkout.js?v=75"></script>
-  <script src="assets/js/shop/shop-nav.js?v=75"></script>
-  <script src="assets/js/shop/shop-curation.js?v=75"></script>
-  <script src="assets/js/shop/shop-inquiry.js?v=75"></script>
-  <script src="assets/js/shop/shop-guide.js?v=75"></script>
-  <script src="assets/js/shop/shop-settings.js?v=75"></script>
-  <script src="assets/js/shop/shop-browse.js?v=75"></script>
-  <script src="assets/js/shop/shop-flowers.js?v=75"></script>
-  <script src="assets/js/shop/shop-dictionary.js?v=75"></script>
-  <script src="assets/js/shop/shop-router.js?v=75"></script>
-  <script src="assets/js/shop/shop-chat.js?v=75"></script>
+  <script src="assets/js/shop/shop-core.js?v=76"></script>
+  <script src="assets/js/shop/shop-product.js?v=76"></script>
+  <script src="assets/js/shop/shop-product-page.js?v=76"></script>
+  <script src="assets/js/shop/shop-checkout.js?v=76"></script>
+  <script src="assets/js/shop/shop-nav.js?v=76"></script>
+  <script src="assets/js/shop/shop-curation.js?v=76"></script>
+  <script src="assets/js/shop/shop-inquiry.js?v=76"></script>
+  <script src="assets/js/shop/shop-guide.js?v=76"></script>
+  <script src="assets/js/shop/shop-settings.js?v=76"></script>
+  <script src="assets/js/shop/shop-browse.js?v=76"></script>
+  <script src="assets/js/shop/shop-flowers.js?v=76"></script>
+  <script src="assets/js/shop/shop-dictionary.js?v=76"></script>
+  <script src="assets/js/shop/shop-router.js?v=76"></script>
+  <script src="assets/js/shop/shop-chat.js?v=76"></script>
 </body>
 </html>
