@@ -61,6 +61,7 @@ function saveExpense(e) {
 function editExpense(id) {
   const x = loadExpenses().find(e => e.id === id);
   if (!x) return;
+  if (typeof showPanelTab === 'function') showPanelTab('finance', 'add');
   document.getElementById('expense-id').value = x.id;
   document.getElementById('expense-date').value = x.date;
   document.getElementById('expense-category').value = x.category;

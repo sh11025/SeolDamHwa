@@ -273,28 +273,22 @@ function updateAdminMapPreview() {
   }
 }
 
-// 매장 설정 탭: 누른 항목만 보여 줌
-const SETTINGS_FORM_TABS = ['contact', 'hours', 'holidays', 'location'];
-
+// 매장 설정 탭: showPanelTab 공통 헬퍼 래퍼
 function showSettingsTab(name) {
-  document.querySelectorAll('[data-settings-tab]').forEach(el => el.classList.toggle('hidden', el.dataset.settingsTab !== name));
-  const card = document.getElementById('settings-main-card');
-  if (card) card.classList.toggle('hidden', !SETTINGS_FORM_TABS.includes(name));
-  document.querySelectorAll('[data-settings-btn]').forEach(btn => {
-    const on = btn.dataset.settingsBtn === name;
-    btn.setAttribute('aria-selected', on ? 'true' : 'false');
-    ['bg-ink-black', 'text-white', 'border-ink-black'].forEach(c => btn.classList.toggle(c, on));
-    ['bg-white', 'border-ink-black/15', 'hover:border-seal-red', 'hover:text-seal-red'].forEach(c => btn.classList.toggle(c, !on));
-  });
+  if (typeof showPanelTab === 'function') return showPanelTab('settings', name);
 }
 
 // 저장할 때 다른 탭에 잘못된 칸이 있으면 그 탭을 열어 알려 줌 (숨은 칸은 브라우저가 알려 주지 못함)
 function checkSettingsFormValid() {
+  if (typeof checkFormValid === 'function') return checkFormValid('admin-settings-form');
   const form = document.getElementById('admin-settings-form');
-  const bad = form.querySelector(':invalid');
+  const bad = form ? form.querySelector(':invalid') : null;
   if (!bad) return true;
-  const tab = bad.closest('[data-settings-tab]');
-  if (tab) showSettingsTab(tab.dataset.settingsTab);
+  const tab = bad.closest('[data-panel-tab]') || bad.closest('[data-settings-tab]');
+  if (tab) {
+    const tabName = tab.dataset.panelTab ? tab.dataset.panelTab.split(':')[1] : tab.dataset.settingsTab;
+    showSettingsTab(tabName);
+  }
   bad.reportValidity();
   return false;
 }

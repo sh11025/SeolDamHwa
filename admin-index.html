@@ -11,21 +11,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
   
-  <script src="assets/js/data-store.js?v=80"></script>
-  <script src="assets/js/products-data.js?v=80"></script>
-  <script src="assets/js/flowers-data.js?v=80"></script>
-  <script src="assets/js/site-theme.js?v=80"></script>
-  <script src="assets/js/site-settings.js?v=80"></script>
-  <script src="assets/js/popups.js?v=80"></script>
-  <script src="assets/js/finance-data.js?v=80"></script>
-  <script src="assets/js/integrations.js?v=80"></script>
-  <script src="assets/js/admin-tools.js?v=80"></script>
-  <script src="assets/js/site-pages.js?v=80"></script>
-  <script src="assets/js/image-library.js?v=80"></script>
-  <script src="assets/js/restock.js?v=80"></script>
-  <script src="assets/js/csv-db.js?v=80"></script>
-  <script src="assets/js/data-sync.js?v=80"></script>
-  <script src="assets/js/coupons.js?v=80"></script>
+  <script src="assets/js/data-store.js?v=81"></script>
+  <script src="assets/js/products-data.js?v=81"></script>
+  <script src="assets/js/flowers-data.js?v=81"></script>
+  <script src="assets/js/site-theme.js?v=81"></script>
+  <script src="assets/js/site-settings.js?v=81"></script>
+  <script src="assets/js/popups.js?v=81"></script>
+  <script src="assets/js/finance-data.js?v=81"></script>
+  <script src="assets/js/integrations.js?v=81"></script>
+  <script src="assets/js/admin-tools.js?v=81"></script>
+  <script src="assets/js/site-pages.js?v=81"></script>
+  <script src="assets/js/image-library.js?v=81"></script>
+  <script src="assets/js/restock.js?v=81"></script>
+  <script src="assets/js/csv-db.js?v=81"></script>
+  <script src="assets/js/data-sync.js?v=81"></script>
+  <script src="assets/js/coupons.js?v=81"></script>
   <!-- 운송장 바코드: JsBarcode -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
   <!-- 차트: Chart.js -->
@@ -170,7 +170,7 @@
     }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=80">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=81">
 </head>
 <body class="min-h-screen flex flex-col selection:bg-seal-red/15 selection:text-seal-red">
   <!-- 1. 관리자 상단 헤더 (Admin Top Bar) -->
@@ -334,12 +334,88 @@
       
       <!-- TAB 1: 대시보드 요약 (Dashboard Summary) -->
       <section id="panel-dashboard" class="space-y-6">
-        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
-          <div>
-            <h1 class="text-2xl font-extrabold text-ink-black tracking-tight">대시보드 운영 현황</h1>
-            <p class="text-sm text-ink-gray mt-1">매출·지출과 다가오는 생화 배송 일정을 한눈에 봅니다. <span class="text-ink-light">(이 컴퓨터에 저장된 주문 기준)</span></p>
+        <div>
+          <h1 class="text-2xl font-extrabold text-ink-black tracking-tight">대시보드 운영 현황</h1>
+          <p class="text-sm text-ink-gray mt-1">매출·지출과 다가오는 생화 배송 일정을 한눈에 봅니다. <span class="text-ink-light">(이 컴퓨터에 저장된 주문 기준)</span></p>
+        </div>
+
+        <!-- 대시보드 탭 바 -->
+        <nav role="tablist" aria-label="대시보드 항목" class="admin-tab-bar sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-hanji/95 backdrop-blur-xs border-b border-ink-black/10 flex items-center gap-2 overflow-x-auto whitespace-nowrap mb-6">
+          <button type="button" role="tab" data-panel-btn="dashboard:today" aria-selected="true" onclick="showPanelTab('dashboard', 'today')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-ink-black text-white border-ink-black">오늘 할 일</button>
+          <button type="button" role="tab" data-panel-btn="dashboard:delivery" aria-selected="false" onclick="showPanelTab('dashboard', 'delivery')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">배송 일정</button>
+          <button type="button" role="tab" data-panel-btn="dashboard:sales" aria-selected="false" onclick="showPanelTab('dashboard', 'sales')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">매출</button>
+          <button type="button" role="tab" data-panel-btn="dashboard:flowers" aria-selected="false" onclick="showPanelTab('dashboard', 'flowers')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">꽃 사입</button>
+        </nav>
+
+        <!-- 1) 오늘 할 일 탭 (default) -->
+        <div data-panel-tab="dashboard:today" class="space-y-6">
+          <!-- 오늘 할 일: 누르면 해당 화면으로 (admin-dashboard.js renderTodayTasks) -->
+          <div class="admin-card rounded-sm p-4 sm:p-5">
+            <div class="flex items-baseline justify-between gap-2 mb-3">
+              <h2 class="text-base font-extrabold text-ink-black">오늘 할 일</h2>
+              <p id="today-tasks-date" class="text-xs text-ink-gray"></p>
+            </div>
+            <div id="today-tasks" class="grid grid-cols-2 md:grid-cols-5 gap-2"></div>
+            <p id="today-tasks-backup-hint" class="hidden text-xs text-seal-red font-medium mt-3 pt-2.5 border-t border-ink-black/5 leading-relaxed"></p>
           </div>
-          <div class="flex flex-wrap items-center gap-2">
+
+          <div id="dashboard-empty-cta" class="hidden admin-card p-5 rounded-sm flex flex-wrap items-center justify-between gap-3 border-dashed">
+            <div>
+              <p class="font-bold text-ink-black">아직 들어온 주문이 없어요.</p>
+              <p class="text-sm text-ink-gray">차트와 PDF 리포트가 어떻게 나오는지 보려면 [연동·데이터] 탭에서 예시 데이터를 넣어 보세요.</p>
+            </div>
+          </div>
+
+          <!-- 최근 주문 -->
+          <div class="admin-card p-5 rounded-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-base font-bold text-ink-black">최근 주문</h2>
+                <p class="text-xs text-ink-gray">배송일이 오늘·내일인 주문은 색으로 표시돼요.</p>
+              </div>
+              <button onclick="switchAdminTab('orders')" class="text-sm font-bold text-seal-red hover:underline cursor-pointer">전체 주문 관리 &gt;</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead>
+                  <tr class="border-b border-ink-black/10 text-ink-gray text-xs font-bold">
+                    <th class="py-2.5 px-3">주문일</th>
+                    <th class="py-2.5 px-3">주문번호</th>
+                    <th class="py-2.5 px-3">주문자</th>
+                    <th class="py-2.5 px-3">상품</th>
+                    <th class="py-2.5 px-3">희망 배송일</th>
+                    <th class="py-2.5 px-3 text-right">금액</th>
+                    <th class="py-2.5 px-3">상태</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboard-recent-orders" class="divide-y divide-ink-black/5"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2) 배송 일정 탭 -->
+        <div data-panel-tab="dashboard:delivery" class="hidden space-y-6">
+          <div class="admin-card p-5 rounded-sm">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <div>
+                <h2 class="text-base font-bold text-ink-black">앞으로 7일 배송 일정</h2>
+                <p class="text-xs text-ink-gray">날짜별로 몇 개를 만들고 보내야 하는지 상태별로 보여 줘요.</p>
+              </div>
+              <div class="text-xs text-ink-gray flex flex-wrap gap-3">
+                <span><span class="legend-dot" style="background:#A8401A"></span>제작 중</span>
+                <span><span class="legend-dot" style="background:#C9850F"></span>포장 완료</span>
+                <span><span class="legend-dot" style="background:#1F7FA3"></span>배송 중</span>
+                <span><span class="legend-dot" style="background:#4C8A3B"></span>배송 완료</span>
+              </div>
+            </div>
+            <div class="relative h-56"><canvas id="chart-schedule" aria-label="앞으로 7일 배송 건수 상태별 누적 막대 차트" role="img"></canvas></div>
+          </div>
+        </div>
+
+        <!-- 3) 매출 탭 -->
+        <div data-panel-tab="dashboard:sales" class="hidden space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex gap-1" role="group" aria-label="기간 선택">
               <button type="button" class="period-btn active" data-period="today" onclick="setDashboardPeriod('today')">오늘</button>
               <button type="button" class="period-btn" data-period="week" onclick="setDashboardPeriod('week')">이번 주</button>
@@ -352,134 +428,76 @@
               <span>PDF 리포트</span>
             </button>
           </div>
-        </div>
 
-        <!-- 오늘 할 일: 누르면 해당 화면으로 (admin-dashboard.js renderTodayTasks) -->
-        <div class="admin-card rounded-sm p-4 sm:p-5">
-          <div class="flex items-baseline justify-between gap-2 mb-3">
-            <h2 class="text-base font-extrabold text-ink-black">오늘 할 일</h2>
-            <p id="today-tasks-date" class="text-xs text-ink-gray"></p>
+          <!-- 기간 직접 고르기 -->
+          <div id="custom-period-bar" class="hidden admin-card p-4 rounded-sm flex flex-wrap items-end gap-3 text-sm">
+            <label class="space-y-1"><span class="block font-bold text-xs">시작일</span><input type="date" id="dash-from" class="bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+            <label class="space-y-1"><span class="block font-bold text-xs">종료일</span><input type="date" id="dash-to" class="bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+            <div class="flex flex-wrap gap-1.5">
+              <button type="button" onclick="quickCustomPeriod('lastMonth')" class="px-3 py-2 border border-ink-black/20 bg-white rounded-xs text-xs font-bold cursor-pointer hover:border-ink-black">지난달</button>
+              <button type="button" onclick="quickCustomPeriod('90d')" class="px-3 py-2 border border-ink-black/20 bg-white rounded-xs text-xs font-bold cursor-pointer hover:border-ink-black">최근 90일</button>
+              <button type="button" onclick="quickCustomPeriod('year')" class="px-3 py-2 border border-ink-black/20 bg-white rounded-xs text-xs font-bold cursor-pointer hover:border-ink-black">올해</button>
+            </div>
+            <button type="button" onclick="applyCustomPeriod()" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">이 기간 보기</button>
+            <p id="custom-period-error" class="w-full text-xs text-seal-red font-bold hidden"></p>
           </div>
-          <div id="today-tasks" class="grid grid-cols-2 md:grid-cols-5 gap-2"></div>
-          <p id="today-tasks-backup-hint" class="hidden text-xs text-seal-red font-medium mt-3 pt-2.5 border-t border-ink-black/5 leading-relaxed"></p>
-        </div>
 
-        <!-- 기간 직접 고르기 -->
-        <div id="custom-period-bar" class="hidden admin-card p-4 rounded-sm flex flex-wrap items-end gap-3 text-sm">
-          <label class="space-y-1"><span class="block font-bold text-xs">시작일</span><input type="date" id="dash-from" class="bg-white border border-ink-black/20 p-2 rounded-xs"></label>
-          <label class="space-y-1"><span class="block font-bold text-xs">종료일</span><input type="date" id="dash-to" class="bg-white border border-ink-black/20 p-2 rounded-xs"></label>
-          <div class="flex flex-wrap gap-1.5">
-            <button type="button" onclick="quickCustomPeriod('lastMonth')" class="px-3 py-2 border border-ink-black/20 bg-white rounded-xs text-xs font-bold cursor-pointer hover:border-ink-black">지난달</button>
-            <button type="button" onclick="quickCustomPeriod('90d')" class="px-3 py-2 border border-ink-black/20 bg-white rounded-xs text-xs font-bold cursor-pointer hover:border-ink-black">최근 90일</button>
-            <button type="button" onclick="quickCustomPeriod('year')" class="px-3 py-2 border border-ink-black/20 bg-white rounded-xs text-xs font-bold cursor-pointer hover:border-ink-black">올해</button>
+          <!-- 핵심 숫자 카드 -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="admin-card p-5 rounded-sm space-y-1.5">
+              <p class="text-sm font-bold text-ink-gray"><span class="legend-dot" style="background:#A8401A"></span>매출</p>
+              <p id="metric-revenue" class="text-2xl lg:text-3xl font-extrabold text-ink-black">-</p>
+              <p id="metric-revenue-sub" class="text-xs text-ink-gray">주문 0건</p>
+            </div>
+            <div class="admin-card p-5 rounded-sm space-y-1.5">
+              <p class="text-sm font-bold text-ink-gray"><span class="legend-dot" style="background:#1F7FA3"></span>지출</p>
+              <p id="metric-expense" class="text-2xl lg:text-3xl font-extrabold text-ink-black">-</p>
+              <p id="metric-expense-sub" class="text-xs text-ink-gray">지출 0건</p>
+            </div>
+            <div class="admin-card p-5 rounded-sm space-y-1.5">
+              <p class="text-sm font-bold text-ink-gray">순이익 (매출 − 지출)</p>
+              <p id="metric-profit" class="text-2xl lg:text-3xl font-extrabold text-ink-black">-</p>
+              <p id="metric-profit-sub" class="text-xs text-ink-gray">-</p>
+            </div>
+            <div class="admin-card p-5 rounded-sm space-y-1.5">
+              <p class="text-sm font-bold text-ink-gray">처리할 일</p>
+              <p id="metric-orders" class="text-2xl lg:text-3xl font-extrabold text-ink-black">-</p>
+              <p id="metric-orders-sub" class="text-xs text-ink-gray">-</p>
+              <p id="metric-inquiries-sub" class="text-xs text-seal-red font-semibold cursor-pointer hover:underline" onclick="switchAdminTab('reviews')">새 상담 0건</p>
+            </div>
           </div>
-          <button type="button" onclick="applyCustomPeriod()" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">이 기간 보기</button>
-          <p id="custom-period-error" class="w-full text-xs text-seal-red font-bold hidden"></p>
-        </div>
 
-        <div id="dashboard-empty-cta" class="hidden admin-card p-5 rounded-sm flex flex-wrap items-center justify-between gap-3 border-dashed">
-          <div>
-            <p class="font-bold text-ink-black">아직 들어온 주문이 없어요.</p>
-            <p class="text-sm text-ink-gray">차트와 PDF 리포트가 어떻게 나오는지 보려면 [연동·데이터] 탭에서 예시 데이터를 넣어 보세요.</p>
-          </div>
-        </div>
-
-        <!-- 핵심 숫자 카드 -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="admin-card p-5 rounded-sm space-y-1.5">
-            <p class="text-sm font-bold text-ink-gray"><span class="legend-dot" style="background:#A8401A"></span>매출</p>
-            <p id="metric-revenue" class="text-2xl lg:text-3xl font-extrabold text-ink-black">-</p>
-            <p id="metric-revenue-sub" class="text-xs text-ink-gray">주문 0건</p>
-          </div>
-          <div class="admin-card p-5 rounded-sm space-y-1.5">
-            <p class="text-sm font-bold text-ink-gray"><span class="legend-dot" style="background:#1F7FA3"></span>지출</p>
-            <p id="metric-expense" class="text-2xl lg:text-3xl font-extrabold text-ink-black">-</p>
-            <p id="metric-expense-sub" class="text-xs text-ink-gray">지출 0건</p>
-          </div>
-          <div class="admin-card p-5 rounded-sm space-y-1.5">
-            <p class="text-sm font-bold text-ink-gray">순이익 (매출 − 지출)</p>
-            <p id="metric-profit" class="text-2xl lg:text-3xl font-extrabold text-ink-black">-</p>
-            <p id="metric-profit-sub" class="text-xs text-ink-gray">-</p>
-          </div>
-          <div class="admin-card p-5 rounded-sm space-y-1.5">
-            <p class="text-sm font-bold text-ink-gray">처리할 일</p>
-            <p id="metric-orders" class="text-2xl lg:text-3xl font-extrabold text-ink-black">-</p>
-            <p id="metric-orders-sub" class="text-xs text-ink-gray">-</p>
-            <p id="metric-inquiries-sub" class="text-xs text-seal-red font-semibold cursor-pointer hover:underline" onclick="switchAdminTab('reviews')">새 상담 0건</p>
-          </div>
-        </div>
-
-        <!-- 차트 -->
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
-          <div class="admin-card p-5 rounded-sm xl:col-span-2">
-            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-              <h2 class="text-base font-bold text-ink-black" id="chart-flow-title">날짜별 매출·지출</h2>
-              <div class="text-xs text-ink-gray flex gap-3">
-                <span><span class="legend-dot" style="background:#A8401A"></span>매출</span>
-                <span><span class="legend-dot" style="background:#1F7FA3"></span>지출</span>
+          <!-- 차트 -->
+          <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+            <div class="admin-card p-5 rounded-sm xl:col-span-2">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <h2 class="text-base font-bold text-ink-black" id="chart-flow-title">날짜별 매출·지출</h2>
+                <div class="text-xs text-ink-gray flex gap-3">
+                  <span><span class="legend-dot" style="background:#A8401A"></span>매출</span>
+                  <span><span class="legend-dot" style="background:#1F7FA3"></span>지출</span>
+                </div>
               </div>
+              <div class="relative h-64"><canvas id="chart-flow" aria-label="날짜별 매출과 지출 막대 차트" role="img"></canvas></div>
             </div>
-            <div class="relative h-64"><canvas id="chart-flow" aria-label="날짜별 매출과 지출 막대 차트" role="img"></canvas></div>
+            <div class="admin-card p-5 rounded-sm">
+              <h2 class="text-base font-bold text-ink-black mb-3" id="chart-products-title">상품별 매출</h2>
+              <div class="relative h-64"><canvas id="chart-products" aria-label="상품별 매출 가로 막대 차트" role="img"></canvas></div>
+              <p id="chart-products-empty" class="hidden text-sm text-ink-gray text-center py-24">이 기간에 판매된 상품이 없어요.</p>
+            </div>
           </div>
+        </div>
+
+        <!-- 4) 꽃 사입 계획 탭 -->
+        <div data-panel-tab="dashboard:flowers" class="hidden space-y-6">
           <div class="admin-card p-5 rounded-sm">
-            <h2 class="text-base font-bold text-ink-black mb-3" id="chart-products-title">상품별 매출</h2>
-            <div class="relative h-64"><canvas id="chart-products" aria-label="상품별 매출 가로 막대 차트" role="img"></canvas></div>
-            <p id="chart-products-empty" class="hidden text-sm text-ink-gray text-center py-24">이 기간에 판매된 상품이 없어요.</p>
-          </div>
-        </div>
-
-        <div class="admin-card p-5 rounded-sm">
-          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <div>
-              <h2 class="text-base font-bold text-ink-black">앞으로 7일 배송 일정</h2>
-              <p class="text-xs text-ink-gray">날짜별로 몇 개를 만들고 보내야 하는지 상태별로 보여 줘요.</p>
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div>
+                <h2 class="text-base font-bold text-ink-black">꽃 사입 계획 · 앞으로 3일</h2>
+                <p class="text-xs text-ink-gray">꽃시장 가기 전에 날짜별로 몇 개를 만들어야 하는지 봐요. (취소·배송 완료 제외)</p>
+              </div>
+              <button type="button" onclick="sendPurchasePlanToDiscord(this)" class="px-3 py-1.5 text-xs font-bold rounded-xs bg-[#4C8A3B] text-white cursor-pointer hover:opacity-90">디스코드로 보내기</button>
             </div>
-            <div class="text-xs text-ink-gray flex flex-wrap gap-3">
-              <span><span class="legend-dot" style="background:#A8401A"></span>제작 중</span>
-              <span><span class="legend-dot" style="background:#C9850F"></span>포장 완료</span>
-              <span><span class="legend-dot" style="background:#1F7FA3"></span>배송 중</span>
-              <span><span class="legend-dot" style="background:#4C8A3B"></span>배송 완료</span>
-            </div>
-          </div>
-          <div class="relative h-56"><canvas id="chart-schedule" aria-label="앞으로 7일 배송 건수 상태별 누적 막대 차트" role="img"></canvas></div>
-        </div>
-
-        <!-- 꽃 사입 계획 -->
-        <div class="admin-card p-5 rounded-sm">
-          <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-            <div>
-              <h2 class="text-base font-bold text-ink-black">꽃 사입 계획 · 앞으로 3일</h2>
-              <p class="text-xs text-ink-gray">꽃시장 가기 전에 날짜별로 몇 개를 만들어야 하는지 봐요. (취소·배송 완료 제외)</p>
-            </div>
-            <button type="button" onclick="sendPurchasePlanToDiscord(this)" class="px-3 py-1.5 text-xs font-bold rounded-xs bg-[#4C8A3B] text-white cursor-pointer hover:opacity-90">디스코드로 보내기</button>
-          </div>
-          <div id="purchase-plan" class="overflow-x-auto"></div>
-        </div>
-
-        <!-- 최근 주문 -->
-        <div class="admin-card p-5 rounded-sm space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
-              <h2 class="text-base font-bold text-ink-black">최근 주문</h2>
-              <p class="text-xs text-ink-gray">배송일이 오늘·내일인 주문은 색으로 표시돼요.</p>
-            </div>
-            <button onclick="switchAdminTab('orders')" class="text-sm font-bold text-seal-red hover:underline cursor-pointer">전체 주문 관리 &gt;</button>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
-              <thead>
-                <tr class="border-b border-ink-black/10 text-ink-gray text-xs font-bold">
-                  <th class="py-2.5 px-3">주문일</th>
-                  <th class="py-2.5 px-3">주문번호</th>
-                  <th class="py-2.5 px-3">주문자</th>
-                  <th class="py-2.5 px-3">상품</th>
-                  <th class="py-2.5 px-3">희망 배송일</th>
-                  <th class="py-2.5 px-3 text-right">금액</th>
-                  <th class="py-2.5 px-3">상태</th>
-                </tr>
-              </thead>
-              <tbody id="dashboard-recent-orders" class="divide-y divide-ink-black/5"></tbody>
-            </table>
+            <div id="purchase-plan" class="overflow-x-auto"></div>
           </div>
         </div>
       </section>
@@ -584,76 +602,92 @@
           <p class="text-sm text-ink-gray mt-1">쿠폰 묶음을 만들면 장마다 다른 코드가 생겨요. 카드로 인쇄해 매장에서 나눠 주면, 손님은 결제할 때 코드를 넣거나 QR을 찍어 할인을 받아요. 한 장은 한 번만 쓸 수 있고, 쿠폰에는 손님 정보를 저장하지 않아요.</p>
         </div>
 
-        <form id="coupon-form" onsubmit="createCouponBatch(event)" class="admin-card p-5 rounded-sm space-y-4 text-sm">
-          <h2 class="text-base font-bold text-ink-black">새 쿠폰 묶음 만들기</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            <label class="block space-y-1 xl:col-span-2"><span class="font-bold">쿠폰 이름</span>
-              <input type="text" id="coupon-name" required maxlength="30" placeholder="예: 11월 매장 방문 감사 쿠폰" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
-            <div class="space-y-1"><span class="block font-bold">할인</span>
-              <div class="flex items-center gap-3 text-xs" role="radiogroup" aria-label="할인 종류">
-                <label class="inline-flex items-center gap-1 cursor-pointer font-bold"><input type="radio" name="coupon-type" value="amount" checked onchange="updateCouponValueUnit()"> 금액</label>
-                <label class="inline-flex items-center gap-1 cursor-pointer font-bold"><input type="radio" name="coupon-type" value="percent" onchange="updateCouponValueUnit()"> 퍼센트</label>
-              </div>
-              <div class="flex items-center gap-1.5"><input type="number" id="coupon-value" required min="1" step="1" value="5000" aria-label="할인 값" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"><span id="coupon-value-unit" class="font-bold">원</span></div>
-            </div>
-            <label class="block space-y-1"><span class="font-bold">장수</span>
-              <input type="number" id="coupon-count" required min="1" max="500" value="40" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs">
-              <span class="block text-[11px] text-ink-gray">A4 한 장에 8장씩 인쇄돼요.</span></label>
-            <label class="block space-y-1"><span class="font-bold">최소 주문 금액 (상품 금액)</span>
-              <input type="number" id="coupon-min" min="0" step="1000" value="30000" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
-            <label class="block space-y-1"><span class="font-bold">시작일</span>
-              <input type="date" id="coupon-start" required class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
-            <label class="block space-y-1"><span class="font-bold">끝나는 날</span>
-              <input type="date" id="coupon-end" required class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
-          </div>
-          <div class="flex flex-wrap items-center gap-3">
-            <button type="submit" class="jakae-btn px-6 py-2.5 rounded-sm font-bold cursor-pointer">쿠폰 만들기</button>
-            <span id="coupon-form-message" class="text-xs font-bold"></span>
-          </div>
-          <p class="text-[11px] text-ink-gray">할인은 상품 금액에만 적용되고 배송비는 그대로예요. 퍼센트 할인은 100원 단위로 버림해요.</p>
-        </form>
+        <!-- 쿠폰 탭 바 -->
+        <nav role="tablist" aria-label="쿠폰 관리 항목" class="admin-tab-bar sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-hanji/95 backdrop-blur-xs border-b border-ink-black/10 flex items-center gap-2 overflow-x-auto whitespace-nowrap mb-6">
+          <button type="button" role="tab" data-panel-btn="coupons:list" aria-selected="true" onclick="showPanelTab('coupons', 'list')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-ink-black text-white border-ink-black">쿠폰 목록</button>
+          <button type="button" role="tab" data-panel-btn="coupons:create" aria-selected="false" onclick="showPanelTab('coupons', 'create')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">새 쿠폰 만들기</button>
+          <button type="button" role="tab" data-panel-btn="coupons:history" aria-selected="false" onclick="showPanelTab('coupons', 'history')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">사용 기록</button>
+        </nav>
 
-        <!-- 쿠폰 기록: 몇 장 만들고 몇 장 썼는지, 언제 많이 썼는지 (기간이 끝나 정리된 묶음 포함) -->
-        <div class="admin-card p-5 rounded-sm space-y-4">
-          <div class="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 class="text-base font-bold text-ink-black">쿠폰 기록</h2>
-            <p class="text-[11px] text-ink-gray">기간이 끝난 쿠폰은 관리자 화면을 열 때 코드가 저절로 지워지고, 몇 장 만들고 썼는지만 여기 남아요.</p>
-          </div>
-          <div id="coupon-stats-tiles" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
-          <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
-            <div class="xl:col-span-2">
-              <p class="text-xs font-bold text-ink-gray mb-1">최근 30일 하루하루 쓴 쿠폰 수</p>
-              <div class="h-48"><canvas id="coupon-daily-chart" aria-label="최근 30일 쿠폰 사용 수"></canvas></div>
+        <!-- 1) 쿠폰 목록 탭 (default) -->
+        <div data-panel-tab="coupons:list" class="space-y-6">
+          <div class="admin-card rounded-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="bg-[#EFECE6] border-b border-ink-black/10 text-ink-gray font-bold">
+                    <th class="py-3 px-4">쿠폰 이름</th>
+                    <th class="py-3 px-4">할인 · 조건</th>
+                    <th class="py-3 px-4">기간</th>
+                    <th class="py-3 px-4">사용</th>
+                    <th class="py-3 px-4">상태</th>
+                    <th class="py-3 px-4 text-center">관리</th>
+                  </tr>
+                </thead>
+                <tbody id="coupon-batch-table" class="divide-y divide-ink-black/5"></tbody>
+              </table>
             </div>
-            <div>
-              <p class="text-xs font-bold text-ink-gray mb-1">요일별 (지금까지 전체)</p>
-              <div class="h-48"><canvas id="coupon-weekday-chart" aria-label="요일별 쿠폰 사용 수"></canvas></div>
-            </div>
-          </div>
-          <p id="coupon-stats-note" class="text-xs text-ink-charcoal"></p>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead><tr class="bg-[#EFECE6] text-ink-gray font-bold"><th class="py-2 px-3">쿠폰</th><th class="py-2 px-3">기간</th><th class="py-2 px-3 text-right">만든 수</th><th class="py-2 px-3 text-right">쓴 수</th><th class="py-2 px-3 text-right">사용률</th><th class="py-2 px-3">상태</th></tr></thead>
-              <tbody id="coupon-history-table" class="divide-y divide-ink-black/5"></tbody>
-            </table>
           </div>
         </div>
 
-        <div class="admin-card rounded-sm overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead>
-                <tr class="bg-[#EFECE6] border-b border-ink-black/10 text-ink-gray font-bold">
-                  <th class="py-3 px-4">쿠폰 이름</th>
-                  <th class="py-3 px-4">할인 · 조건</th>
-                  <th class="py-3 px-4">기간</th>
-                  <th class="py-3 px-4">사용</th>
-                  <th class="py-3 px-4">상태</th>
-                  <th class="py-3 px-4 text-center">관리</th>
-                </tr>
-              </thead>
-              <tbody id="coupon-batch-table" class="divide-y divide-ink-black/5"></tbody>
-            </table>
+        <!-- 2) 새 쿠폰 만들기 탭 -->
+        <div data-panel-tab="coupons:create" class="hidden space-y-6">
+          <form id="coupon-form" novalidate onsubmit="createCouponBatch(event)" class="admin-card p-5 rounded-sm space-y-4 text-sm">
+            <h2 class="text-base font-bold text-ink-black">새 쿠폰 묶음 만들기</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+              <label class="block space-y-1 xl:col-span-2"><span class="font-bold">쿠폰 이름</span>
+                <input type="text" id="coupon-name" required maxlength="30" placeholder="예: 11월 매장 방문 감사 쿠폰" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+              <div class="space-y-1"><span class="block font-bold">할인</span>
+                <div class="flex items-center gap-3 text-xs" role="radiogroup" aria-label="할인 종류">
+                  <label class="inline-flex items-center gap-1 cursor-pointer font-bold"><input type="radio" name="coupon-type" value="amount" checked onchange="updateCouponValueUnit()"> 금액</label>
+                  <label class="inline-flex items-center gap-1 cursor-pointer font-bold"><input type="radio" name="coupon-type" value="percent" onchange="updateCouponValueUnit()"> 퍼센트</label>
+                </div>
+                <div class="flex items-center gap-1.5"><input type="number" id="coupon-value" required min="1" step="1" value="5000" aria-label="할인 값" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"><span id="coupon-value-unit" class="font-bold">원</span></div>
+              </div>
+              <label class="block space-y-1"><span class="font-bold">장수</span>
+                <input type="number" id="coupon-count" required min="1" max="500" value="40" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs">
+                <span class="block text-[11px] text-ink-gray">A4 한 장에 8장씩 인쇄돼요.</span></label>
+              <label class="block space-y-1"><span class="font-bold">최소 주문 금액 (상품 금액)</span>
+                <input type="number" id="coupon-min" min="0" step="1000" value="30000" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+              <label class="block space-y-1"><span class="font-bold">시작일</span>
+                <input type="date" id="coupon-start" required class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+              <label class="block space-y-1"><span class="font-bold">끝나는 날</span>
+                <input type="date" id="coupon-end" required class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <button type="submit" class="jakae-btn px-6 py-2.5 rounded-sm font-bold cursor-pointer">쿠폰 만들기</button>
+              <span id="coupon-form-message" class="text-xs font-bold"></span>
+            </div>
+            <p class="text-[11px] text-ink-gray">할인은 상품 금액에만 적용되고 배송비는 그대로예요. 퍼센트 할인은 100원 단위로 버림해요.</p>
+          </form>
+        </div>
+
+        <!-- 3) 사용 기록 탭 -->
+        <div data-panel-tab="coupons:history" class="hidden space-y-6">
+          <!-- 쿠폰 기록: 몇 장 만들고 몇 장 썼는지, 언제 많이 썼는지 (기간이 끝나 정리된 묶음 포함) -->
+          <div class="admin-card p-5 rounded-sm space-y-4">
+            <div class="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 class="text-base font-bold text-ink-black">쿠폰 기록</h2>
+              <p class="text-[11px] text-ink-gray">기간이 끝난 쿠폰은 관리자 화면을 열 때 코드가 저절로 지워지고, 몇 장 만들고 썼는지만 여기 남아요.</p>
+            </div>
+            <div id="coupon-stats-tiles" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+              <div class="xl:col-span-2">
+                <p class="text-xs font-bold text-ink-gray mb-1">최근 30일 하루하루 쓴 쿠폰 수</p>
+                <div class="h-48"><canvas id="coupon-daily-chart" aria-label="최근 30일 쿠폰 사용 수"></canvas></div>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-ink-gray mb-1">요일별 (지금까지 전체)</p>
+                <div class="h-48"><canvas id="coupon-weekday-chart" aria-label="요일별 쿠폰 사용 수"></canvas></div>
+              </div>
+            </div>
+            <p id="coupon-stats-note" class="text-xs text-ink-charcoal"></p>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead><tr class="bg-[#EFECE6] text-ink-gray font-bold"><th class="py-2 px-3">쿠폰</th><th class="py-2 px-3">기간</th><th class="py-2 px-3 text-right">만든 수</th><th class="py-2 px-3 text-right">쓴 수</th><th class="py-2 px-3 text-right">사용률</th><th class="py-2 px-3">상태</th></tr></thead>
+                <tbody id="coupon-history-table" class="divide-y divide-ink-black/5"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
@@ -718,9 +752,35 @@
           <button type="button" onclick="openReportModal()" class="jakae-btn px-4 py-2 rounded-sm text-sm font-bold cursor-pointer">PDF 리포트 만들기</button>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <!-- 지출 입력 -->
-          <form id="expense-form" onsubmit="saveExpense(event)" class="admin-card p-5 rounded-sm space-y-3 text-sm">
+        <!-- 매출·지출 탭 바 -->
+        <nav role="tablist" aria-label="매출·지출 항목" class="admin-tab-bar sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-hanji/95 backdrop-blur-xs border-b border-ink-black/10 flex items-center gap-2 overflow-x-auto whitespace-nowrap mb-6">
+          <button type="button" role="tab" data-panel-btn="finance:summary" aria-selected="true" onclick="showPanelTab('finance', 'summary')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-ink-black text-white border-ink-black">월별 요약</button>
+          <button type="button" role="tab" data-panel-btn="finance:add" aria-selected="false" onclick="showPanelTab('finance', 'add')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">지출 적기</button>
+          <button type="button" role="tab" data-panel-btn="finance:history" aria-selected="false" onclick="showPanelTab('finance', 'history')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">지출 내역</button>
+        </nav>
+
+        <!-- 1) 월별 요약 탭 (default) -->
+        <div data-panel-tab="finance:summary" class="space-y-6">
+          <div class="admin-card p-5 rounded-sm space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h2 class="text-base font-bold text-ink-black">월별 요약</h2>
+              <input type="month" id="finance-month" onchange="renderFinance()" class="bg-white border border-ink-black/20 p-1.5 rounded-xs text-sm">
+            </div>
+            <div class="grid grid-cols-3 gap-3 text-center">
+              <div class="bg-white border border-ink-black/10 rounded-xs p-3"><p class="text-xs text-ink-gray font-bold">매출</p><p id="fin-revenue" class="text-lg font-extrabold">-</p></div>
+              <div class="bg-white border border-ink-black/10 rounded-xs p-3"><p class="text-xs text-ink-gray font-bold">지출</p><p id="fin-expense" class="text-lg font-extrabold">-</p></div>
+              <div class="bg-white border border-ink-black/10 rounded-xs p-3"><p class="text-xs text-ink-gray font-bold">순이익</p><p id="fin-profit" class="text-lg font-extrabold">-</p></div>
+            </div>
+            <div>
+              <p class="text-sm font-bold text-ink-black mb-2">분류별 지출</p>
+              <div id="fin-category-bars" class="space-y-1.5 text-sm"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2) 지출 적기 탭 -->
+        <div data-panel-tab="finance:add" class="hidden space-y-6">
+          <form id="expense-form" novalidate onsubmit="saveExpense(event)" class="admin-card p-5 rounded-sm space-y-3 text-sm">
             <h2 id="expense-form-title" class="text-base font-bold text-ink-black">지출 적기</h2>
             <input type="hidden" id="expense-id">
             <div class="grid grid-cols-2 gap-3">
@@ -752,42 +812,27 @@
               <button type="button" id="expense-cancel-edit" onclick="resetExpenseForm()" class="hidden px-4 py-2.5 border border-ink-black/20 bg-white font-bold rounded-xs cursor-pointer">취소</button>
             </div>
           </form>
-
-          <!-- 월 요약 -->
-          <div class="admin-card p-5 rounded-sm lg:col-span-2 space-y-4">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <h2 class="text-base font-bold text-ink-black">월별 요약</h2>
-              <input type="month" id="finance-month" onchange="renderFinance()" class="bg-white border border-ink-black/20 p-1.5 rounded-xs text-sm">
-            </div>
-            <div class="grid grid-cols-3 gap-3 text-center">
-              <div class="bg-white border border-ink-black/10 rounded-xs p-3"><p class="text-xs text-ink-gray font-bold">매출</p><p id="fin-revenue" class="text-lg font-extrabold">-</p></div>
-              <div class="bg-white border border-ink-black/10 rounded-xs p-3"><p class="text-xs text-ink-gray font-bold">지출</p><p id="fin-expense" class="text-lg font-extrabold">-</p></div>
-              <div class="bg-white border border-ink-black/10 rounded-xs p-3"><p class="text-xs text-ink-gray font-bold">순이익</p><p id="fin-profit" class="text-lg font-extrabold">-</p></div>
-            </div>
-            <div>
-              <p class="text-sm font-bold text-ink-black mb-2">분류별 지출</p>
-              <div id="fin-category-bars" class="space-y-1.5 text-sm"></div>
-            </div>
-          </div>
         </div>
 
-        <!-- 지출 목록 -->
-        <div class="admin-card p-5 rounded-sm space-y-3">
-          <h2 class="text-base font-bold text-ink-black">지출 내역 <span id="fin-expense-count" class="text-sm text-ink-gray font-normal"></span></h2>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
-              <thead>
-                <tr class="border-b border-ink-black/10 text-ink-gray text-xs font-bold">
-                  <th class="py-2 px-3">날짜</th>
-                  <th class="py-2 px-3">분류</th>
-                  <th class="py-2 px-3">메모</th>
-                  <th class="py-2 px-3">결제 수단</th>
-                  <th class="py-2 px-3 text-right">금액</th>
-                  <th class="py-2 px-3 text-center">관리</th>
-                </tr>
-              </thead>
-              <tbody id="fin-expense-table" class="divide-y divide-ink-black/5"></tbody>
-            </table>
+        <!-- 3) 지출 내역 탭 -->
+        <div data-panel-tab="finance:history" class="hidden space-y-6">
+          <div class="admin-card p-5 rounded-sm space-y-3">
+            <h2 class="text-base font-bold text-ink-black">지출 내역 <span id="fin-expense-count" class="text-sm text-ink-gray font-normal"></span></h2>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead>
+                  <tr class="border-b border-ink-black/10 text-ink-gray text-xs font-bold">
+                    <th class="py-2 px-3">날짜</th>
+                    <th class="py-2 px-3">분류</th>
+                    <th class="py-2 px-3">메모</th>
+                    <th class="py-2 px-3">결제 수단</th>
+                    <th class="py-2 px-3 text-right">금액</th>
+                    <th class="py-2 px-3 text-center">관리</th>
+                  </tr>
+                </thead>
+                <tbody id="fin-expense-table" class="divide-y divide-ink-black/5"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
@@ -799,34 +844,19 @@
           <p class="text-sm text-ink-gray mt-1">예시 데이터, 백업, 디스코드 알림, AI 도우미를 설정해요. 여기 적은 키와 주소는 <strong class="text-ink-black">이 컴퓨터 브라우저에만</strong> 저장돼요.</p>
         </div>
 
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 text-sm">
+        <!-- 연동 탭 바 -->
+        <nav role="tablist" aria-label="연동 및 데이터 항목" class="admin-tab-bar sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-hanji/95 backdrop-blur-xs border-b border-ink-black/10 flex items-center gap-2 overflow-x-auto whitespace-nowrap mb-6">
+          <button type="button" role="tab" data-panel-btn="integrations:backup" aria-selected="true" onclick="showPanelTab('integrations', 'backup')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-ink-black text-white border-ink-black">백업</button>
+          <button type="button" role="tab" data-panel-btn="integrations:server" aria-selected="false" onclick="showPanelTab('integrations', 'server')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">서버·비밀번호</button>
+          <button type="button" role="tab" data-panel-btn="integrations:discord" aria-selected="false" onclick="showPanelTab('integrations', 'discord')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">디스코드</button>
+          <button type="button" role="tab" data-panel-btn="integrations:ai" aria-selected="false" onclick="showPanelTab('integrations', 'ai')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">AI 도우미</button>
+          <button type="button" role="tab" data-panel-btn="integrations:sample" aria-selected="false" onclick="showPanelTab('integrations', 'sample')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">예시 데이터</button>
+        </nav>
 
-          <!-- 서버 관리: server.py로 열었을 때만 보임 -->
-          <div id="server-admin-card" class="hidden admin-card p-5 rounded-sm space-y-4 xl:col-span-2">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <h2 class="text-base font-bold text-ink-black">서버 관리 (start-server.bat로 열었을 때)</h2>
-              <button type="button" id="server-logout-btn" onclick="adminLogout()" class="hidden px-3 py-1.5 border border-ink-black/20 bg-white rounded-xs text-xs font-bold cursor-pointer">이 기기 로그아웃</button>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <form onsubmit="saveAdminPassword(event)" class="space-y-2">
-                <p class="font-bold text-ink-black">관리자 비밀번호 <span id="server-pw-state" class="ml-1 text-[11px] font-bold"></span></p>
-                <p class="text-xs text-ink-gray leading-relaxed">매장 와이파이의 태블릿·휴대폰에서 관리자 화면을 쓸 때 필요해요. 이 컴퓨터에서는 묻지 않아요. 바꾸면 다른 기기는 다시 로그인해요.</p>
-                <div class="flex gap-2">
-                  <input type="password" id="server-pw" minlength="8" required autocomplete="new-password" placeholder="8자 이상" aria-label="새 관리자 비밀번호" class="flex-1 min-w-0 bg-white border border-ink-black/20 p-2 rounded-xs">
-                  <button type="submit" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red whitespace-nowrap">저장</button>
-                </div>
-                <p id="server-pw-msg" class="text-xs font-bold"></p>
-              </form>
-              <div class="space-y-2">
-                <p class="font-bold text-ink-black">백업에서 되돌리기</p>
-                <p class="text-xs text-ink-gray leading-relaxed">DATA/backup에 10분마다 남는 복사본이에요. 되돌리기 전에 지금 상태도 따로 백업해 둬요.</p>
-                <div id="server-backup-list" class="max-h-48 overflow-y-auto border border-ink-black/10 rounded-xs divide-y divide-ink-black/5 bg-white text-xs"></div>
-              </div>
-            </div>
-          </div>
-
+        <!-- 1) 백업 탭 (default: 전체 백업, CSV 저장소, 백업·복원) -->
+        <div data-panel-tab="integrations:backup" class="space-y-6">
           <!-- 전체 백업 내려받기 (CSV + 후기 사진·영상) -->
-          <div id="full-backup-card" class="admin-card p-5 rounded-sm space-y-3 xl:col-span-2">
+          <div id="full-backup-card" class="admin-card p-5 rounded-sm space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <h2 class="text-base font-bold text-ink-black flex items-center gap-2">
                 전체 백업 내려받기 (CSV + 후기 사진·영상)
@@ -846,7 +876,7 @@
           </div>
 
           <!-- CSV 데이터 폴더 -->
-          <div class="admin-card p-5 rounded-sm space-y-3 xl:col-span-2">
+          <div class="admin-card p-5 rounded-sm space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <h2 class="text-base font-bold text-ink-black">CSV 데이터 저장소 (DATA 폴더)</h2>
               <span id="csv-folder-status" class="text-xs font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-700">연결 안 됨</span>
@@ -868,21 +898,6 @@
             <p id="csv-message" class="text-xs text-ink-gray"></p>
           </div>
 
-          <!-- 예시 데이터 -->
-          <div class="admin-card p-5 rounded-sm space-y-3">
-            <h2 class="text-base font-bold text-ink-black">예시 데이터</h2>
-            <p class="text-ink-gray leading-relaxed">버튼 <strong class="text-ink-black">한 번</strong>이면 연습용 데이터가 한꺼번에 들어가요: 꽃다발·꽃바구니·화병꽂이·드라이·웨딩·화분·굿즈 7가지 종류에 골고루 <strong class="text-ink-black">예시 상품 41개</strong>(7천원~25만원, 품절·품절 임박, 아주 긴 이름, 사진 여러 장, 깨진 사진, 비공개·예약 등 화면 점검용 포함), <strong class="text-ink-black">최근 90일 주문</strong>, 석 달치 지출, 상담 문의 3건. 이름 앞에 <strong class="text-ink-black">[예시]</strong>가 붙어요.</p>
-            <label class="flex items-start gap-2 cursor-pointer">
-              <input type="checkbox" id="sample-show-in-shop" checked class="mt-0.5 w-4 h-4">
-              <span>예시 상품을 <strong>쇼핑몰에도 보이기</strong> <span class="text-xs text-ink-gray">(갤러리·맞춤 담화 예산 구간·품절 표시를 확인할 때. 실제 오픈 전에는 꼭 지워 주세요)</span></span>
-            </label>
-            <p id="sample-status" class="font-bold text-ink-black">-</p>
-            <div class="flex flex-wrap gap-2">
-              <button type="button" onclick="handleAddSampleData()" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">예시 데이터 넣기</button>
-              <button type="button" onclick="handleRemoveSampleData()" class="px-4 py-2 border border-seal-red/40 text-seal-red bg-white font-bold rounded-xs cursor-pointer hover:bg-seal-red/10">예시 데이터 모두 지우기</button>
-            </div>
-          </div>
-
           <!-- 백업·복원 -->
           <div class="admin-card p-5 rounded-sm space-y-3">
             <h2 class="text-base font-bold text-ink-black">백업·복원</h2>
@@ -896,9 +911,43 @@
             </div>
             <p id="backup-message" class="text-xs text-ink-gray"></p>
           </div>
+        </div>
 
-          <!-- 디스코드 -->
-          <form id="discord-form" onsubmit="saveDiscordSettings(event)" class="admin-card p-5 rounded-sm space-y-3">
+        <!-- 2) 서버·비밀번호 탭 -->
+        <div data-panel-tab="integrations:server" class="hidden space-y-6">
+          <div id="server-static-hint" class="hidden admin-card p-5 rounded-sm text-sm space-y-2">
+            <h2 class="text-base font-bold text-ink-black">서버 관리</h2>
+            <p class="text-ink-gray">서버 모드(<code>python server.py</code>)로 실행했을 때 비밀번호 설정과 백업 목록을 볼 수 있어요.</p>
+          </div>
+
+          <!-- 서버 관리: server.py로 열었을 때만 보임 -->
+          <div id="server-admin-card" class="hidden admin-card p-5 rounded-sm space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h2 class="text-base font-bold text-ink-black">서버 관리 (start-server.bat로 열었을 때)</h2>
+              <button type="button" id="server-logout-btn" onclick="adminLogout()" class="hidden px-3 py-1.5 border border-ink-black/20 bg-white rounded-xs text-xs font-bold cursor-pointer">이 기기 로그아웃</button>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <form onsubmit="saveAdminPassword(event)" class="space-y-2">
+                <p class="font-bold text-ink-black">관리자 비밀번호 <span id="server-pw-state" class="ml-1 text-[11px] font-bold"></span></p>
+                <p class="text-xs text-ink-gray leading-relaxed">매장 와이파이의 태블릿·휴대폰에서 관리자 화면을 쓸 때 필요해요. 이 컴퓨터에서는 묻지 않아요. 바꾸면 다른 기기는 다시 로그인해요.</p>
+                <div class="flex gap-2">
+                  <input type="password" id="server-pw" minlength="8" required autocomplete="new-password" placeholder="8자 이상" aria-label="새 관리자 비밀번호" class="flex-1 min-w-0 bg-white border border-ink-black/20 p-2 rounded-xs">
+                  <button type="submit" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red whitespace-nowrap">저장</button>
+                </div>
+                <p id="server-pw-msg" class="text-xs font-bold"></p>
+              </form>
+              <div class="space-y-2">
+                <p class="font-bold text-ink-black">백업에서 되돌리기</p>
+                <p class="text-xs text-ink-gray leading-relaxed">DATA/backup에 10분마다 남는 복사본이에요. 되돌리기 전에 지금 상태도 따로 백업해 둬요.</p>
+                <div id="server-backup-list" class="max-h-48 overflow-y-auto border border-ink-black/10 rounded-xs divide-y divide-ink-black/5 bg-white text-xs"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3) 디스코드 탭 -->
+        <div data-panel-tab="integrations:discord" class="hidden space-y-6">
+          <form id="discord-form" novalidate onsubmit="saveDiscordSettings(event)" class="admin-card p-5 rounded-sm space-y-3">
             <h2 class="text-base font-bold text-ink-black">디스코드 알림</h2>
             <p class="text-ink-gray leading-relaxed">디스코드에서 채널 2개(예: #주문, #상담)를 만들고, 각 채널의 설정 → 연동 → 웹후크에서 만든 주소를 붙여 넣으세요. 알림에는 연락처와 주소를 넣지 않아요. 지금은 <strong class="text-ink-black">이 컴퓨터에서 들어온 주문·상담만</strong> 알림이 가요(서버 연결 후 모든 손님 주문으로 넓어져요).</p>
             <div class="space-y-2 p-3 bg-white border border-ink-black/10 rounded-xs">
@@ -932,9 +981,11 @@
             </div>
             <p id="discord-message" class="text-xs text-ink-gray"></p>
           </form>
+        </div>
 
-          <!-- AI -->
-          <form id="ai-form" onsubmit="saveAiForm(event)" class="admin-card p-5 rounded-sm space-y-3">
+        <!-- 4) AI 도우미 탭 -->
+        <div data-panel-tab="integrations:ai" class="hidden space-y-6">
+          <form id="ai-form" novalidate onsubmit="saveAiForm(event)" class="admin-card p-5 rounded-sm space-y-3">
             <h2 class="text-base font-bold text-ink-black">AI 도우미 (Claude · GPT · Gemini)</h2>
             <p class="text-ink-gray leading-relaxed">상품 등록 때 한 줄 글귀·꽃말·설명 초안을 써 줘요. 쓰시는 AI의 키를 넣고, 기본으로 쓸 AI를 고르세요. 초안을 만들 때 다른 AI로 바꿀 수도 있어요. 사용한 만큼 각 회사 요금이 나가요.</p>
             <div class="flex flex-wrap gap-2" role="radiogroup" aria-label="기본 AI">
@@ -951,6 +1002,23 @@
             <p id="ai-message" class="text-xs text-ink-gray"></p>
           </form>
         </div>
+
+        <!-- 5) 예시 데이터 탭 -->
+        <div data-panel-tab="integrations:sample" class="hidden space-y-6">
+          <div class="admin-card p-5 rounded-sm space-y-3">
+            <h2 class="text-base font-bold text-ink-black">예시 데이터</h2>
+            <p class="text-ink-gray leading-relaxed">버튼 <strong class="text-ink-black">한 번</strong>이면 연습용 데이터가 한꺼번에 들어가요: 꽃다발·꽃바구니·화병꽂이·드라이·웨딩·화분·굿즈 7가지 종류에 골고루 <strong class="text-ink-black">예시 상품 41개</strong>(7천원~25만원, 품절·품절 임박, 아주 긴 이름, 사진 여러 장, 깨진 사진, 비공개·예약 등 화면 점검용 포함), <strong class="text-ink-black">최근 90일 주문</strong>, 석 달치 지출, 상담 문의 3건. 이름 앞에 <strong class="text-ink-black">[예시]</strong>가 붙어요.</p>
+            <label class="flex items-start gap-2 cursor-pointer">
+              <input type="checkbox" id="sample-show-in-shop" checked class="mt-0.5 w-4 h-4">
+              <span>예시 상품을 <strong>쇼핑몰에도 보이기</strong> <span class="text-xs text-ink-gray">(갤러리·맞춤 담화 예산 구간·품절 표시를 확인할 때. 실제 오픈 전에는 꼭 지워 주세요)</span></span>
+            </label>
+            <p id="sample-status" class="font-bold text-ink-black">-</p>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" onclick="handleAddSampleData()" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">예시 데이터 넣기</button>
+              <button type="button" onclick="handleRemoveSampleData()" class="px-4 py-2 border border-seal-red/40 text-seal-red bg-white font-bold rounded-xs cursor-pointer hover:bg-seal-red/10">예시 데이터 모두 지우기</button>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- TAB: 사업자·안내 페이지 -->
@@ -960,72 +1028,84 @@
           <p class="text-sm text-ink-gray mt-1">쇼핑몰 맨 아래 사업자 정보와 '정성 안내'·약관 페이지를 고쳐요. 저장하면 쇼핑몰에 바로 반영돼요.</p>
         </div>
 
-        <form id="business-form" onsubmit="saveBusinessInfo(event)" class="admin-card p-5 rounded-sm space-y-3 text-sm">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <h2 class="text-base font-bold text-ink-black">사업자 정보</h2>
-            <span class="text-xs text-ink-gray">사업자 등록 전이면 비워 두세요. 쇼핑몰에 '등록 준비 중'으로 나와요.</span>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <label class="block space-y-1"><span class="font-bold">상호</span><input type="text" id="biz-company" maxlength="40" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
-            <label class="block space-y-1"><span class="font-bold">대표자</span><input type="text" id="biz-ceo" maxlength="20" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
-            <label class="block space-y-1"><span class="font-bold">개인정보보호책임자</span><input type="text" id="biz-privacy-officer" maxlength="20" placeholder="비우면 대표자" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
-            <label class="block space-y-1"><span class="font-bold">사업자등록번호</span><input type="text" id="biz-number" maxlength="12" placeholder="000-00-00000" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
-            <label class="block space-y-1"><span class="font-bold">통신판매업 신고번호</span><input type="text" id="biz-mailorder" maxlength="30" placeholder="제2026-서울종로-0000호" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
-            <label class="block space-y-1"><span class="font-bold">사업장 주소</span><input type="text" id="biz-address" maxlength="80" placeholder="비우면 매장 주소" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
-          </div>
-          <div class="flex items-center gap-3">
-            <button type="submit" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">사업자 정보 저장</button>
-            <span id="business-message" class="text-xs font-bold"></span>
-          </div>
-        </form>
+        <!-- 사업자·안내 페이지 탭 바 -->
+        <nav role="tablist" aria-label="사업자 및 안내 페이지 항목" class="admin-tab-bar sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-hanji/95 backdrop-blur-xs border-b border-ink-black/10 flex items-center gap-2 overflow-x-auto whitespace-nowrap mb-6">
+          <button type="button" role="tab" data-panel-btn="pages:business" aria-selected="true" onclick="showPanelTab('pages', 'business')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-ink-black text-white border-ink-black">사업자 정보</button>
+          <button type="button" role="tab" data-panel-btn="pages:pages" aria-selected="false" onclick="showPanelTab('pages', 'pages')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">안내 페이지</button>
+        </nav>
 
-        <div class="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-4 text-sm">
-          <div class="admin-card p-3 rounded-sm space-y-1 h-fit" id="page-list"></div>
-          <form id="page-editor" onsubmit="savePageEditor(event)" class="admin-card p-5 rounded-sm space-y-3">
-            <input type="hidden" id="page-edit-id">
+        <!-- 1) 사업자 정보 탭 (default) -->
+        <div data-panel-tab="pages:business" class="space-y-6">
+          <form id="business-form" novalidate onsubmit="saveBusinessInfo(event)" class="admin-card p-5 rounded-sm space-y-3 text-sm">
             <div class="flex flex-wrap items-center justify-between gap-2">
-              <h2 class="text-base font-bold text-ink-black">안내 페이지 고치기</h2>
-              <span id="page-edit-badge" class="text-xs px-2 py-0.5 rounded font-bold"></span>
+              <h2 class="text-base font-bold text-ink-black">사업자 정보</h2>
+              <span class="text-xs text-ink-gray">사업자 등록 전이면 비워 두세요. 쇼핑몰에 '등록 준비 중'으로 나와요.</span>
             </div>
-            <p id="page-legal-note" class="hidden text-xs bg-amber-50 border border-amber-300 text-amber-900 p-2.5 rounded-xs leading-relaxed">
-              ⚖ 약관·개인정보처리방침·환불 안내는 <strong>초안</strong>이에요. 실제 판매 전에 공정거래위원회 표준약관이나 전문가와 한 번 대조해 주세요.
-            </p>
-            <label class="block space-y-1"><span class="font-bold">제목</span><input type="text" id="page-edit-title" required maxlength="40" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
-            <label class="block space-y-1">
-              <span class="font-bold">본문</span>
-              <textarea id="page-edit-body" required rows="18" oninput="updatePagePreview()" class="w-full bg-white border border-ink-black/20 p-2.5 rounded-xs font-mono text-xs leading-relaxed"></textarea>
-              <span class="block text-xs text-ink-gray">쓰는 법: <code>## 소제목</code> · <code>- 목록</code> · 빈 줄로 문단 나누기 · <code>{상호}</code> <code>{대표자}</code> <code>{전화}</code> <code>{이메일}</code> 등은 사업자 정보로 자동으로 바뀌어요.</span>
-            </label>
-            <!-- 사진·영상 (정성 안내 페이지만) -->
-            <div id="page-media-editor" class="hidden p-3 bg-[#FAF7F2] border border-ink-black/15 rounded-xs space-y-3 text-xs">
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <p class="font-bold text-sm text-ink-black">사진·영상</p>
-                <div class="flex items-center gap-3" role="radiogroup" aria-label="사진 비율">
-                  <span class="text-ink-gray">비율</span>
-                  <label class="inline-flex items-center gap-1 cursor-pointer font-bold"><input type="radio" name="page-media-ratio" value="1:1" onchange="setPageMediaRatio(this.value)"> 1:1 (정사각형)</label>
-                  <label class="inline-flex items-center gap-1 cursor-pointer font-bold"><input type="radio" name="page-media-ratio" value="4:3" onchange="setPageMediaRatio(this.value)"> 4:3</label>
-                </div>
-              </div>
-              <div id="page-media-list" class="flex gap-2 overflow-x-auto pb-1"></div>
-              <label class="block space-y-1">
-                <span class="font-bold text-ink-black">영상 주소 <span class="font-normal text-ink-gray">(유튜브 링크 또는 assets/videos/파일이름.mp4 · 비우면 영상 없음)</span></span>
-                <input type="text" id="page-media-video" oninput="setPageMediaVideo(this.value)" placeholder="예: assets/videos/bokjumeoni_packaging.mp4" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs">
-              </label>
-              <p class="text-[11px] text-ink-gray">사진은 정한 비율로 가운데를 기준으로 잘려 보여요. 휴대폰은 한 줄에 1장, PC는 2~3장씩 보여요. 영상 파일은 브라우저 저장 공간이 작아서 직접 올리지 말고 폴더에 넣은 뒤 주소를 적어 주세요.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <label class="block space-y-1"><span class="font-bold">상호</span><input type="text" id="biz-company" maxlength="40" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+              <label class="block space-y-1"><span class="font-bold">대표자</span><input type="text" id="biz-ceo" maxlength="20" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+              <label class="block space-y-1"><span class="font-bold">개인정보보호책임자</span><input type="text" id="biz-privacy-officer" maxlength="20" placeholder="비우면 대표자" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+              <label class="block space-y-1"><span class="font-bold">사업자등록번호</span><input type="text" id="biz-number" maxlength="12" placeholder="000-00-00000" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+              <label class="block space-y-1"><span class="font-bold">통신판매업 신고번호</span><input type="text" id="biz-mailorder" maxlength="30" placeholder="제2026-서울종로-0000호" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+              <label class="block space-y-1"><span class="font-bold">사업장 주소</span><input type="text" id="biz-address" maxlength="80" placeholder="비우면 매장 주소" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
             </div>
-            <div class="flex flex-wrap items-center gap-2">
-              <button type="submit" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">저장</button>
-              <button type="button" onclick="resetPageEditor()" class="px-4 py-2 border border-ink-black/20 bg-white font-bold rounded-xs cursor-pointer hover:border-ink-black">처음 문구로 되돌리기</button>
-              <span id="page-message" class="text-xs font-bold"></span>
-            </div>
-            <div class="pt-3 border-t border-ink-black/10">
-              <p class="text-xs font-bold text-ink-gray mb-2">미리보기 (손님에게 보이는 모습)</p>
-              <div class="bg-[#FBF9F5] border border-ink-black/10 rounded-xs p-4 max-h-[32rem] overflow-y-auto space-y-4">
-                <div id="page-media-preview" class="hidden"></div>
-                <div id="page-preview" class="info-page-body text-sm leading-relaxed"></div>
-              </div>
+            <div class="flex items-center gap-3">
+              <button type="submit" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">사업자 정보 저장</button>
+              <span id="business-message" class="text-xs font-bold"></span>
             </div>
           </form>
+        </div>
+
+        <!-- 2) 안내 페이지 탭 -->
+        <div data-panel-tab="pages:pages" class="hidden space-y-6">
+          <div class="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-4 text-sm">
+            <div class="admin-card p-3 rounded-sm space-y-1 h-fit" id="page-list"></div>
+            <form id="page-editor" novalidate onsubmit="savePageEditor(event)" class="admin-card p-5 rounded-sm space-y-3">
+              <input type="hidden" id="page-edit-id">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <h2 class="text-base font-bold text-ink-black">안내 페이지 고치기</h2>
+                <span id="page-edit-badge" class="text-xs px-2 py-0.5 rounded font-bold"></span>
+              </div>
+              <p id="page-legal-note" class="hidden text-xs bg-amber-50 border border-amber-300 text-amber-900 p-2.5 rounded-xs leading-relaxed">
+                ⚖ 약관·개인정보처리방침·환불 안내는 <strong>초안</strong>이에요. 실제 판매 전에 공정거래위원회 표준약관이나 전문가와 한 번 대조해 주세요.
+              </p>
+              <label class="block space-y-1"><span class="font-bold">제목</span><input type="text" id="page-edit-title" required maxlength="40" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
+              <label class="block space-y-1">
+                <span class="font-bold">본문</span>
+                <textarea id="page-edit-body" required rows="18" oninput="updatePagePreview()" class="w-full bg-white border border-ink-black/20 p-2.5 rounded-xs font-mono text-xs leading-relaxed"></textarea>
+                <span class="block text-xs text-ink-gray">쓰는 법: <code>## 소제목</code> · <code>- 목록</code> · 빈 줄로 문단 나누기 · <code>{상호}</code> <code>{대표자}</code> <code>{전화}</code> <code>{이메일}</code> 등은 사업자 정보로 자동으로 바뀌어요.</span>
+              </label>
+              <!-- 사진·영상 (정성 안내 페이지만) -->
+              <div id="page-media-editor" class="hidden p-3 bg-[#FAF7F2] border border-ink-black/15 rounded-xs space-y-3 text-xs">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <p class="font-bold text-sm text-ink-black">사진·영상</p>
+                  <div class="flex items-center gap-3" role="radiogroup" aria-label="사진 비율">
+                    <span class="text-ink-gray">비율</span>
+                    <label class="inline-flex items-center gap-1 cursor-pointer font-bold"><input type="radio" name="page-media-ratio" value="1:1" onchange="setPageMediaRatio(this.value)"> 1:1 (정사각형)</label>
+                    <label class="inline-flex items-center gap-1 cursor-pointer font-bold"><input type="radio" name="page-media-ratio" value="4:3" onchange="setPageMediaRatio(this.value)"> 4:3</label>
+                  </div>
+                </div>
+                <div id="page-media-list" class="flex gap-2 overflow-x-auto pb-1"></div>
+                <label class="block space-y-1">
+                  <span class="font-bold text-ink-black">영상 주소 <span class="font-normal text-ink-gray">(유튜브 링크 또는 assets/videos/파일이름.mp4 · 비우면 영상 없음)</span></span>
+                  <input type="text" id="page-media-video" oninput="setPageMediaVideo(this.value)" placeholder="예: assets/videos/bokjumeoni_packaging.mp4" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs">
+                </label>
+                <p class="text-[11px] text-ink-gray">사진은 정한 비율로 가운데를 기준으로 잘려 보여요. 휴대폰은 한 줄에 1장, PC는 2~3장씩 보여요. 영상 파일은 브라우저 저장 공간이 작아서 직접 올리지 말고 폴더에 넣은 뒤 주소를 적어 주세요.</p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <button type="submit" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">저장</button>
+                <button type="button" onclick="resetPageEditor()" class="px-4 py-2 border border-ink-black/20 bg-white font-bold rounded-xs cursor-pointer hover:border-ink-black">처음 문구로 되돌리기</button>
+                <span id="page-message" class="text-xs font-bold"></span>
+              </div>
+              <div class="pt-3 border-t border-ink-black/10">
+                <p class="text-xs font-bold text-ink-gray mb-2">미리보기 (손님에게 보이는 모습)</p>
+                <div class="bg-[#FBF9F5] border border-ink-black/10 rounded-xs p-4 max-h-[32rem] overflow-y-auto space-y-4">
+                  <div id="page-media-preview" class="hidden"></div>
+                  <div id="page-preview" class="info-page-body text-sm leading-relaxed"></div>
+                </div>
+              </div>
+            </form>
+          </div>
         </div>
       </section>
 
@@ -1105,13 +1185,13 @@
         </div>
 
         <!-- 설정 탭: 누른 항목만 보임 -->
-        <nav class="sticky top-[60px] z-20 -mx-1 px-1 py-2 bg-[#F4F1EA]/95 backdrop-blur-sm flex flex-wrap gap-1.5 text-xs" role="tablist" aria-label="매장 설정 항목">
-          <button type="button" role="tab" data-settings-btn="contact" aria-selected="true" onclick="showSettingsTab('contact')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer bg-ink-black text-white border-ink-black">연락처</button>
-          <button type="button" role="tab" data-settings-btn="hours" aria-selected="false" onclick="showSettingsTab('hours')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">운영시간</button>
-          <button type="button" role="tab" data-settings-btn="holidays" aria-selected="false" onclick="showSettingsTab('holidays')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">공휴일·임시 휴무</button>
-          <button type="button" role="tab" data-settings-btn="location" aria-selected="false" onclick="showSettingsTab('location')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">오시는 길·주소</button>
-          <button type="button" role="tab" data-settings-btn="delivery" aria-selected="false" onclick="showSettingsTab('delivery')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">배송비</button>
-          <button type="button" role="tab" data-settings-btn="theme" aria-selected="false" onclick="showSettingsTab('theme')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">사이트 색</button>
+        <nav role="tablist" aria-label="매장 설정 항목" class="admin-tab-bar sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-hanji/95 backdrop-blur-xs border-b border-ink-black/10 flex items-center gap-2 overflow-x-auto whitespace-nowrap mb-6">
+          <button type="button" role="tab" data-panel-btn="settings:contact" data-settings-btn="contact" aria-selected="true" onclick="showSettingsTab('contact')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-ink-black text-white border-ink-black">연락처</button>
+          <button type="button" role="tab" data-panel-btn="settings:hours" data-settings-btn="hours" aria-selected="false" onclick="showSettingsTab('hours')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">운영시간</button>
+          <button type="button" role="tab" data-panel-btn="settings:holidays" data-settings-btn="holidays" aria-selected="false" onclick="showSettingsTab('holidays')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">공휴일·임시 휴무</button>
+          <button type="button" role="tab" data-panel-btn="settings:location" data-settings-btn="location" aria-selected="false" onclick="showSettingsTab('location')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">오시는 길·주소</button>
+          <button type="button" role="tab" data-panel-btn="settings:delivery" data-settings-btn="delivery" aria-selected="false" onclick="showSettingsTab('delivery')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">배송비</button>
+          <button type="button" role="tab" data-panel-btn="settings:theme" data-settings-btn="theme" aria-selected="false" onclick="showSettingsTab('theme')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">사이트 색</button>
         </nav>
 
         <div class="space-y-6">
@@ -1119,7 +1199,7 @@
             <form id="admin-settings-form" novalidate onsubmit="saveStoreSettings(event)" class="space-y-4 text-xs">
               
               <!-- 1) 기본 연락처 -->
-              <div data-settings-tab="contact" class="space-y-4">
+              <div data-panel-tab="settings:contact" data-settings-tab="contact" class="space-y-4">
               <div class="space-y-3 pb-3 border-b border-ink-black/10">
                 <h3 class="font-bold text-sm text-ink-black">기본 연락처 & 온라인 상담</h3>
                 
@@ -1149,7 +1229,7 @@
 
               <!-- 2) 주간 정기 운영시간 (7행 테이블) -->
               </div>
-              <div data-settings-tab="hours" class="hidden space-y-4">
+              <div data-panel-tab="settings:hours" data-settings-tab="hours" class="hidden space-y-4">
               <div class="space-y-3 pb-3 border-b border-ink-black/10">
                 <div class="flex items-center justify-between">
                   <h3 class="font-bold text-sm text-ink-black">주간 요일별 운영시간</h3>
@@ -1178,7 +1258,7 @@
 
               </div>
               <!-- 2-1) 공휴일 휴무 설정 (Holiday Management) -->
-              <div data-settings-tab="holidays" class="hidden space-y-4">
+              <div data-panel-tab="settings:holidays" data-settings-tab="holidays" class="hidden space-y-4">
               <div class="space-y-3 pb-3 border-b border-ink-black/10">
                 <div class="flex items-center justify-between p-3.5 bg-[#FAF7F2] border border-ink-black/15 rounded-xs">
                   <div class="pr-3">
@@ -1245,7 +1325,7 @@
 
               <!-- 3) 오시는 길 및 주소 -->
               </div>
-              <div data-settings-tab="location" class="hidden space-y-4">
+              <div data-panel-tab="settings:location" data-settings-tab="location" class="hidden space-y-4">
               <div class="space-y-3">
                 <div class="flex items-center justify-between">
                   <h3 class="font-bold text-sm text-ink-black">오시는 길 & 매장 주소</h3>
@@ -1306,7 +1386,7 @@
           </div>
 
         <!-- 배송 방법·배송비 -->
-        <form id="delivery-form" data-settings-tab="delivery" onsubmit="saveDeliverySettings(event)" class="hidden admin-card p-5 rounded-sm space-y-4 text-sm">
+        <form id="delivery-form" data-panel-tab="settings:delivery" data-settings-tab="delivery" onsubmit="saveDeliverySettings(event)" class="hidden admin-card p-5 rounded-sm space-y-4 text-sm">
           <div>
             <h2 class="text-base font-bold text-ink-black">배송 방법·배송비</h2>
             <p class="text-xs text-ink-gray mt-1">손님 주문서에 켜 둔 방법만 나와요. 주문 금액이 무료 기준 이상이면 배송비가 0원이 돼요.</p>
@@ -1355,7 +1435,7 @@
         </form>
 
         <!-- 사이트 색 (쇼핑몰에만 적용, 도장은 붉은색 그대로) -->
-        <form id="theme-form" data-settings-tab="theme" onsubmit="saveThemeSettings(event)" class="hidden admin-card p-5 rounded-sm space-y-4 text-sm">
+        <form id="theme-form" data-panel-tab="settings:theme" data-settings-tab="theme" onsubmit="saveThemeSettings(event)" class="hidden admin-card p-5 rounded-sm space-y-4 text-sm">
           <div>
             <h2 class="font-bold text-ink-black">사이트 색</h2>
             <p class="text-xs text-ink-gray mt-1">쇼핑몰의 탭, 버튼, 강조 글자, 무늬 색을 바꿔요. 도장과 오류 안내는 붉은색 그대로이고, 이 관리자 화면 색은 바뀌지 않아요.</p>
@@ -1679,19 +1759,19 @@
 
   <!-- JavaScript: Admin 로직 & 쇼핑몰 데이터 양방향 실시간 동기화 -->
   <!-- 관리자 화면 동작 (화면별 파일, 순서 중요) -->
-  <script src="assets/js/admin/admin-dashboard.js?v=80"></script>
-  <script src="assets/js/admin/admin-products.js?v=80"></script>
-  <script src="assets/js/admin/admin-orders.js?v=80"></script>
-  <script src="assets/js/admin/admin-inquiries.js?v=80"></script>
-  <script src="assets/js/admin/admin-product-modal.js?v=80"></script>
-  <script src="assets/js/admin/admin-flowers.js?v=80"></script>
-  <script src="assets/js/admin/admin-coupons.js?v=80"></script>
-  <script src="assets/js/admin/admin-settings.js?v=80"></script>
-  <script src="assets/js/admin/admin-popups.js?v=80"></script>
-  <script src="assets/js/admin/admin-finance.js?v=80"></script>
-  <script src="assets/js/admin/admin-integrations.js?v=80"></script>
-  <script src="assets/js/admin/admin-pages.js?v=80"></script>
-  <script src="assets/js/admin/admin-tools-ui.js?v=80"></script>
+  <script src="assets/js/admin/admin-dashboard.js?v=81"></script>
+  <script src="assets/js/admin/admin-products.js?v=81"></script>
+  <script src="assets/js/admin/admin-orders.js?v=81"></script>
+  <script src="assets/js/admin/admin-inquiries.js?v=81"></script>
+  <script src="assets/js/admin/admin-product-modal.js?v=81"></script>
+  <script src="assets/js/admin/admin-flowers.js?v=81"></script>
+  <script src="assets/js/admin/admin-coupons.js?v=81"></script>
+  <script src="assets/js/admin/admin-settings.js?v=81"></script>
+  <script src="assets/js/admin/admin-popups.js?v=81"></script>
+  <script src="assets/js/admin/admin-finance.js?v=81"></script>
+  <script src="assets/js/admin/admin-integrations.js?v=81"></script>
+  <script src="assets/js/admin/admin-pages.js?v=81"></script>
+  <script src="assets/js/admin/admin-tools-ui.js?v=81"></script>
 
   <!-- 슬라이드 편집 모달 -->
   <div id="slide-edit-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-black/60 hidden">

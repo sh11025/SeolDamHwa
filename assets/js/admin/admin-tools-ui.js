@@ -182,6 +182,75 @@ function toggleAdminMenu(open) {
   if (btn) btn.setAttribute('aria-expanded', show ? 'true' : 'false');
 }
 
+const activePanelTabs = {
+  dashboard: 'today',
+  coupons: 'list',
+  finance: 'summary',
+  settings: 'contact',
+  pages: 'business',
+  integrations: 'backup'
+};
+
+function showPanelTab(panel, name) {
+  if (!panel || !name) return;
+  activePanelTabs[panel] = name;
+
+  // 1. 해당 패널 파트 show / hide
+  document.querySelectorAll(`[data-panel-tab^="${panel}:"]`).forEach(el => {
+    const isTarget = el.dataset.panelTab === `${panel}:${name}`;
+    el.classList.toggle('hidden', !isTarget);
+  });
+
+  // settings 패널 특수 케이스: settings-main-card는 폼 탭 4종에서만 노출
+  if (panel === 'settings') {
+    const SETTINGS_FORM_TABS = ['contact', 'hours', 'holidays', 'location'];
+    const card = document.getElementById('settings-main-card');
+    if (card) card.classList.toggle('hidden', !SETTINGS_FORM_TABS.includes(name));
+  }
+
+  // integrations:server 탭 정적 모드 안내
+  if (panel === 'integrations' && name === 'server') {
+    if (typeof renderServerAdmin === 'function') renderServerAdmin();
+  }
+
+  // 2. 버튼 활성 스타일 및 접근성 속성 갱신
+  document.querySelectorAll(`[data-panel-btn^="${panel}:"]`).forEach(btn => {
+    const on = btn.dataset.panelBtn === `${panel}:${name}`;
+    btn.setAttribute('aria-selected', on ? 'true' : 'false');
+    ['bg-ink-black', 'text-white', 'border-ink-black'].forEach(c => btn.classList.toggle(c, on));
+    ['bg-white', 'border-ink-black/15', 'hover:border-seal-red', 'hover:text-seal-red'].forEach(c => btn.classList.toggle(c, !on));
+    if (on && typeof btn.scrollIntoView === 'function') {
+      try {
+        btn.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' });
+      } catch (e) {}
+    }
+  });
+
+  // 3. 숨김 상태에서 그려져 너비가 0이 된 차트/막대 다시 그리기
+  if (panel === 'dashboard' && (name === 'sales' || name === 'delivery')) {
+    if (typeof renderDashboard === 'function') renderDashboard();
+  } else if (panel === 'finance' && name === 'summary') {
+    if (typeof renderFinance === 'function') renderFinance();
+  } else if (panel === 'coupons' && name === 'history') {
+    if (typeof renderCouponStats === 'function') renderCouponStats();
+  }
+}
+
+// 탭 분할된 폼 유효성 검사 헬퍼 (숨겨진 required 필드로 인한 무반응 제출 방지)
+function checkFormValid(formId) {
+  const form = typeof formId === 'string' ? document.getElementById(formId) : formId;
+  if (!form) return true;
+  const bad = form.querySelector(':invalid');
+  if (!bad) return true;
+  const tab = bad.closest('[data-panel-tab]');
+  if (tab && tab.dataset.panelTab) {
+    const [panel, name] = tab.dataset.panelTab.split(':');
+    showPanelTab(panel, name);
+  }
+  bad.reportValidity();
+  return false;
+}
+
 window.addEventListener('keydown', ev => { if (ev.key === 'Escape') toggleAdminMenu(false); });
 window.addEventListener('resize', () => { if (window.innerWidth >= 1024) toggleAdminMenu(false); });
 
@@ -205,6 +274,20 @@ function switchAdminTab(tabName) {
     active.classList.add('is-active');
     active.setAttribute('aria-current', 'page');
   }
+
+  // 탭 바가 있는 패널이면 세션에 기억된 탭(또는 기본 탭) 복원
+  if (['dashboard', 'coupons', 'finance', 'settings', 'pages', 'integrations'].includes(tabName)) {
+    const chosen = activePanelTabs[tabName] || {
+      dashboard: 'today',
+      coupons: 'list',
+      finance: 'summary',
+      settings: 'contact',
+      pages: 'business',
+      integrations: 'backup'
+    }[tabName];
+    showPanelTab(tabName, chosen);
+  }
+
   if (tabName === 'popups') { try { initPopupsAdmin(); } catch (e) { console.error('initPopupsAdmin error:', e); } }
   if (tabName === 'dashboard') { try { renderDashboard(); } catch (e) { console.error('renderDashboard error:', e); } }
   if (tabName === 'finance') { try { renderFinance(); } catch (e) { console.error('renderFinance error:', e); } }
@@ -227,8 +310,14 @@ setInterval(() => {
 /* ---------- 서버 관리 (server.py로 열었을 때) ---------- */
 async function renderServerAdmin() {
   const card = document.getElementById('server-admin-card');
+  const staticHint = document.getElementById('server-static-hint');
+  if (!window.SDH_SERVER_MODE) {
+    if (card) card.classList.add('hidden');
+    if (staticHint) staticHint.classList.remove('hidden');
+    return;
+  }
+  if (staticHint) staticHint.classList.add('hidden');
   if (!card) return;
-  if (!window.SDH_SERVER_MODE) { card.classList.add('hidden'); return; }
   card.classList.remove('hidden');
   try {
     const ses = await (await fetch('/api/session', { cache: 'no-store' })).json();
