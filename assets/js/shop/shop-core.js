@@ -521,6 +521,37 @@ function changeReviewSort(sort) {
   renderReviewsList();
 }
 
+// 리뷰 탭 위쪽 사진 띠 (최신 후기 사진 12장, 누르면 크게 보기)
+function renderReviewsPhotoStrip(approved) {
+  const wrap = document.getElementById('reviews-photo-strip-wrap');
+  const box = document.getElementById('reviews-photo-strip');
+  if (!wrap || !box) return;
+  const photos = [];
+  [...approved].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).forEach(r => {
+    let arr = [];
+    try { arr = Array.isArray(r.photos) ? r.photos : JSON.parse(r.photos || '[]'); } catch (e) {}
+    arr.forEach(src => { if (src) photos.push(src); });
+  });
+  const shown = photos.slice(0, 12);
+  box.innerHTML = '';
+  wrap.classList.toggle('hidden', shown.length === 0);
+  shown.forEach((src, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'shrink-0 snap-start w-32 h-32 sm:w-40 sm:h-40 rounded-xs overflow-hidden border border-ink-black/10 bg-white cursor-zoom-in';
+    btn.setAttribute('aria-label', `후기 사진 ${i + 1} 크게 보기`);
+    btn.onclick = () => { if (typeof openPhotoViewer === 'function') openPhotoViewer(shown, i); };
+    const img = document.createElement('img');
+    img.src = typeof reviewMediaUrl === 'function' ? reviewMediaUrl(src) : src;
+    img.alt = '';
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.className = 'w-full h-full object-cover hover:scale-105 transition-transform duration-300';
+    btn.appendChild(img);
+    box.appendChild(btn);
+  });
+}
+
 function renderReviewsPage() {
   const allRevs = typeof loadReviews === 'function' ? loadReviews() : [];
   const approved = allRevs.filter(r => r.status === 'approved' || (!r.status && !r.isSample));
@@ -562,6 +593,7 @@ function renderReviewsPage() {
     });
   }
 
+  renderReviewsPhotoStrip(approved);
   renderReviewsList();
 }
 
@@ -613,7 +645,7 @@ function renderReviewsList() {
   grid.innerHTML = '';
   pageItems.forEach(r => {
     const card = document.createElement('article');
-    card.className = 'relative bg-[#FAF7F2] border border-ink-black/10 rounded-sm p-5 md:p-6 space-y-4 shadow-xs flex flex-col justify-between';
+    card.className = 'relative bg-[#FAF7F2] border border-ink-black/10 rounded-sm p-5 md:px-7 md:py-5 space-y-3 shadow-xs';
     addCornerMarks(card, 'lotus');
 
     let photoArr = [];
@@ -628,7 +660,7 @@ function renderReviewsList() {
       photosHtml = `
         <div class="flex gap-2 pt-2 flex-wrap">
           ${photoArr.map(src => `
-            <img loading="lazy" decoding="async" src="${typeof reviewMediaUrl === 'function' ? reviewMediaUrl(src) : src}" alt="후기 사진" class="w-20 h-20 md:w-24 md:h-24 object-cover rounded-xs border border-ink-black/10 cursor-pointer hover:opacity-90" onclick="openReviewPhotoModal('${src}')" />
+            <img loading="lazy" decoding="async" src="${typeof reviewMediaUrl === 'function' ? reviewMediaUrl(src) : src}" alt="후기 사진" class="w-16 h-16 object-cover rounded-xs border border-ink-black/10 cursor-pointer hover:opacity-90" onclick="openReviewPhotoModal('${src}')" />
           `).join('')}
         </div>
       `;
@@ -640,7 +672,7 @@ function renderReviewsList() {
       const vUrl = typeof reviewMediaUrl === 'function' ? reviewMediaUrl(r.video) : r.video;
       videoHtml = `
         <div class="pt-2">
-          <video src="${vUrl}" controls playsinline preload="metadata" class="w-full max-h-60 rounded-xs bg-black"></video>
+          <video src="${vUrl}" controls playsinline preload="metadata" class="w-full max-w-sm max-h-52 rounded-xs bg-black"></video>
         </div>
       `;
     }
@@ -650,7 +682,7 @@ function renderReviewsList() {
     if (r.adminReply) {
       const repDate = r.replyAt ? (typeof formatKoreaTime === 'function' ? formatKoreaTime(r.replyAt, { delimiter: '.' }) : r.replyAt.slice(0, 10).replace(/-/g, '.')) : '';
       replyHtml = `
-        <div class="mt-4 p-3.5 bg-hanji/90 border-l-2 border-seal-red rounded-xs space-y-1.5 text-xs">
+        <div class="p-3.5 bg-hanji/90 border-l-2 border-seal-red rounded-xs space-y-1.5 text-xs">
           <div class="flex items-center justify-between font-bold text-ink-black">
             <span class="flex items-center gap-1.5 text-seal-red">
               <span class="text-sm">🌸</span> 설담화의 답글
@@ -662,20 +694,21 @@ function renderReviewsList() {
       `;
     }
 
+    // 손님 기기에는 상품 번호가 오지 않으므로, 번호가 있을 때만 상품으로 이동
+    const productLabel = htmlText(r.productName || '설담화 꽃');
+    const productHtml = r.productId
+      ? `<button type="button" class="underline hover:text-seal-red cursor-pointer" onclick="openProductDetail('${r.productId}')">${productLabel}</button>`
+      : `<span>${productLabel}</span>`;
+
     card.innerHTML = `
-      <div class="space-y-3">
-        <div class="flex items-center justify-between text-xs">
-          <span class="text-amber-500 font-bold text-base tracking-wide">${starStr}</span>
-          <span class="text-ink-gray text-xs">${dateStr}</span>
-        </div>
-        <div class="text-xs font-bold text-ink-gray">
-          <span>구매 상품: </span>
-          <button type="button" class="underline text-ink-black hover:text-seal-red cursor-pointer" onclick="openProductDetail('${r.productId}')">${htmlText(r.productName || '설담화 꽃')}</button>
-        </div>
-        <p class="text-sm text-ink-black leading-relaxed whitespace-pre-wrap">${htmlText(r.text || '')}</p>
-        ${photosHtml}
-        ${videoHtml}
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+        <span class="text-amber-500 font-bold text-base tracking-wide">${starStr}</span>
+        <span class="font-bold text-ink-gray">${productHtml}</span>
+        <span class="ml-auto text-ink-gray">${dateStr}</span>
       </div>
+      <p class="text-sm text-ink-black leading-relaxed whitespace-pre-wrap">${htmlText(r.text || '')}</p>
+      ${photosHtml}
+      ${videoHtml}
       ${replyHtml}
     `;
     grid.appendChild(card);
@@ -695,7 +728,7 @@ function renderReviewsList() {
         btn.onclick = () => {
           currentReviewPage = i;
           renderReviewsList();
-          window.scrollTo({ top: 300, behavior: 'smooth' });
+          document.getElementById('reviews-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
         };
         pagesWrap.appendChild(btn);
       }

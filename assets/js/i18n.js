@@ -454,6 +454,9 @@ const I18N = {
     search_no_results: "검색 결과가 없습니다.",
 
     // 손님 후기
+    reviews_count_suffix: "개의 정성스러운 후기",
+    reviews_rating_detail: "별점 자세히",
+    reviews_photo_title: "손님이 담아 주신 꽃",
     nav_reviews: "리뷰",
     reviews_tag: "손님 후기",
     reviews_title: "손님 후기",
@@ -915,6 +918,9 @@ const I18N = {
     search_no_results: "No matched products found.",
 
     // Reviews
+    reviews_count_suffix: " heartfelt reviews",
+    reviews_rating_detail: "Rating details",
+    reviews_photo_title: "Flowers from our customers",
     nav_reviews: "Reviews",
     reviews_tag: "CUSTOMER REVIEWS",
     reviews_title: "Customer Reviews",
@@ -1376,6 +1382,9 @@ const I18N = {
     search_no_results: "該当する商品が見つかりませんでした。",
 
     // Reviews
+    reviews_count_suffix: "件の心のこもったレビュー",
+    reviews_rating_detail: "評価の内訳",
+    reviews_photo_title: "お客様の花",
     nav_reviews: "レビュー",
     reviews_tag: "お客様レビュー",
     reviews_title: "お客様レビュー",
