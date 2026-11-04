@@ -424,6 +424,151 @@ function scrollHomeReviews(direction) {
   }
 }
 
+/**
+ * 편지 카드 빌더 (꽃 편지함)
+ * 홈 슬라이더와 편지 페이지 목록에서 공통으로 사용됩니다.
+ * 반드시 DOM 생성 호출(document.createElement 등)로 작성하며,
+ * 모든 카드는 같은 행에서 동일한 높이를 유지하고 인장 도장은 우측 하단에 고정됩니다.
+ */
+function buildLetterCard(r) {
+  const card = document.createElement('article');
+
+  let photoArr = [];
+  try {
+    photoArr = Array.isArray(r.photos) ? r.photos : JSON.parse(r.photos || '[]');
+  } catch (e) {
+    photoArr = [];
+  }
+  const hasPhoto = photoArr.length > 0;
+  const hasVideo = !!r.video;
+  const textRaw = (r.text || '').trim();
+  const textLen = textRaw.length;
+  const isShortText = !hasPhoto && textLen <= 40;
+  const isLongText = !hasPhoto && textLen > 40;
+
+  // 카드 기본 컨테이너 스타일 (동일 높이, flex column, justify-between)
+  const baseBg = isShortText ? 'bg-seal-soft border-seal-red/25' : 'bg-[#FAF7F2] border-ink-black/10';
+  card.className = `border rounded-sm overflow-hidden cursor-pointer hover:border-seal-red/40 transition-all flex flex-col justify-between h-[340px] relative group shadow-2xs ${baseBg}`;
+
+  // 상단 영역 (사진이 있는 경우 사진, 없는 경우 헤더)
+  const topWrap = document.createElement('div');
+  topWrap.className = 'flex flex-col flex-1';
+
+  if (hasPhoto) {
+    // 1. 사진 있음: 상단에 첫 사진 (4:3 비율, loading="lazy", decoding="async", reviewMediaUrl 사용)
+    const photoBox = document.createElement('div');
+    photoBox.className = 'relative w-full aspect-[4/3] bg-ink-black/5 overflow-hidden shrink-0';
+
+    const img = document.createElement('img');
+    const firstUrl = typeof reviewMediaUrl === 'function' ? reviewMediaUrl(photoArr[0]) : photoArr[0];
+    img.src = firstUrl;
+    img.alt = r.productName || '꽃 편지 사진';
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.className = 'w-full h-full object-cover group-hover:scale-102 transition-transform duration-300';
+    photoBox.appendChild(img);
+
+    topWrap.appendChild(photoBox);
+
+    // 본문 컨테이너
+    const bodyBox = document.createElement('div');
+    bodyBox.className = 'p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3';
+
+    const textEl = document.createElement('p');
+    textEl.className = 'font-serif text-xs sm:text-sm text-ink-black leading-relaxed line-clamp-3';
+    textEl.textContent = textRaw;
+    bodyBox.appendChild(textEl);
+
+    // 별점
+    const starsBox = document.createElement('div');
+    starsBox.className = 'text-amber-500 text-xs font-bold tracking-tight';
+    starsBox.textContent = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
+    bodyBox.appendChild(starsBox);
+
+    topWrap.appendChild(bodyBox);
+
+  } else if (isLongText) {
+    // 2. 사진 없음, 긴 글 (41자 이상): 글이 메인, 더 큰 명조체 (최대 7줄), 작은 상품명 상단
+    const bodyBox = document.createElement('div');
+    bodyBox.className = 'p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-3';
+
+    const headerEl = document.createElement('div');
+    headerEl.className = 'text-xs text-ink-gray font-bold truncate';
+    headerEl.textContent = r.productName || '설담화 꽃';
+    bodyBox.appendChild(headerEl);
+
+    const textEl = document.createElement('p');
+    textEl.className = 'font-serif text-sm sm:text-base text-ink-black leading-relaxed line-clamp-6 sm:line-clamp-7 flex-1';
+    textEl.textContent = textRaw;
+    bodyBox.appendChild(textEl);
+
+    const starsBox = document.createElement('div');
+    starsBox.className = 'text-amber-500 text-xs font-bold tracking-tight pt-1';
+    starsBox.textContent = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
+    bodyBox.appendChild(starsBox);
+
+    topWrap.appendChild(bodyBox);
+
+  } else {
+    // 3. 사진 없음, 짧은 글 (40자 이하): bg-seal-soft 틴트 카드, 중앙에 크고 굵은 한 줄 문구
+    const bodyBox = document.createElement('div');
+    bodyBox.className = 'p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-3';
+
+    const headerEl = document.createElement('div');
+    headerEl.className = 'text-xs text-ink-gray font-bold truncate';
+    headerEl.textContent = r.productName || '설담화 꽃';
+    bodyBox.appendChild(headerEl);
+
+    const textEl = document.createElement('p');
+    textEl.className = 'font-serif text-base sm:text-lg font-bold text-ink-black text-center my-auto px-2 line-clamp-2 leading-snug flex-1 flex items-center justify-center';
+    textEl.textContent = textRaw;
+    bodyBox.appendChild(textEl);
+
+    const starsBox = document.createElement('div');
+    starsBox.className = 'text-amber-500 text-xs font-bold tracking-tight text-center pt-1';
+    starsBox.textContent = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
+    bodyBox.appendChild(starsBox);
+
+    topWrap.appendChild(bodyBox);
+  }
+
+  card.appendChild(topWrap);
+
+  // 하단 푸터 영역: 사연 라벨 좌측, 인장 도장 우측 고정 위치
+  const footerBox = document.createElement('div');
+  footerBox.className = 'px-4 sm:px-5 py-3 border-t border-ink-black/5 flex items-center justify-between gap-2 mt-auto';
+
+  // 좌측: 사연 라벨 & 동영상 뱃지
+  const leftGroup = document.createElement('div');
+  leftGroup.className = 'flex items-center gap-1.5 min-w-0';
+
+  const recipLabel = document.createElement('span');
+  recipLabel.className = 'text-xs font-bold text-seal-red truncate';
+  const recipText = typeof getReviewRecipientLabel === 'function' ? getReviewRecipientLabel(r.recipient) : (r.recipient || '전하는 마음');
+  recipLabel.textContent = recipText;
+  leftGroup.appendChild(recipLabel);
+
+  if (hasVideo) {
+    const vidBadge = document.createElement('span');
+    vidBadge.className = 'text-[10px] font-bold px-1.5 py-0.5 rounded bg-ink-black/5 text-ink-charcoal shrink-0';
+    vidBadge.textContent = '🎬 영상';
+    leftGroup.appendChild(vidBadge);
+  }
+
+  footerBox.appendChild(leftGroup);
+
+  // 우측: 인장 도장 (assets/images/seal.svg, 약 24px)
+  const sealImg = document.createElement('img');
+  sealImg.src = 'assets/images/seal.svg';
+  sealImg.alt = '인장';
+  sealImg.className = 'w-6 h-6 seal-stamp opacity-90 shrink-0 inline-block';
+  footerBox.appendChild(sealImg);
+
+  card.appendChild(footerBox);
+
+  return card;
+}
+
 function renderHomeReviewsSlider() {
   const sec = document.getElementById('home-reviews-section');
   const track = document.getElementById('home-reviews-track') || document.getElementById('home-reviews-slider');
@@ -448,55 +593,9 @@ function renderHomeReviewsSlider() {
   track.innerHTML = '';
 
   list.forEach(r => {
-    const card = document.createElement('div');
-    let photoArr = [];
-    try { photoArr = Array.isArray(r.photos) ? r.photos : JSON.parse(r.photos || '[]'); } catch (e) {}
-
-    const hasPhoto = photoArr.length > 0;
-    const hasVideo = !!r.video;
-
-    let mediaHeaderHtml = '';
-    if (hasPhoto) {
-      const firstPhotoUrl = typeof reviewMediaUrl === 'function' ? reviewMediaUrl(photoArr[0]) : photoArr[0];
-      mediaHeaderHtml = `
-        <div class="relative w-full aspect-[4/3] bg-ink-black/5 overflow-hidden">
-          <img src="${htmlText(firstPhotoUrl)}" alt="${htmlText(r.productName || '후기 사진')}" loading="lazy" decoding="async" class="w-full h-full object-cover">
-          ${hasVideo ? '<span class="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">🎬 영상</span>' : ''}
-        </div>
-      `;
-    }
-
-    card.className = 'w-[280px] sm:w-[320px] shrink-0 bg-[#FAF7F2] border border-ink-black/10 rounded-sm overflow-hidden cursor-pointer hover:border-seal-red/40 transition-colors flex flex-col justify-between self-stretch';
-    card.onclick = () => {
-      if (typeof switchView === 'function') switchView('reviews');
-    };
-
-    const starStr = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
-    const dateStr = r.createdAt ? (typeof formatKoreaTime === 'function' ? formatKoreaTime(r.createdAt, { delimiter: '.' }) : r.createdAt.slice(0, 10).replace(/-/g, '.')) : '';
-
-    card.innerHTML = `
-      ${mediaHeaderHtml}
-      <div class="p-4 space-y-3 flex-1 flex flex-col justify-between">
-        <div class="space-y-2">
-          <div class="flex items-center justify-between text-xs">
-            <span class="text-amber-500 font-bold">${starStr}</span>
-            <div class="flex items-center gap-1.5">
-              ${!hasPhoto && hasVideo ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-ink-black/5 text-ink-black">🎬 영상</span>' : ''}
-              <span class="text-ink-gray text-[11px]">${dateStr}</span>
-            </div>
-          </div>
-          <p class="text-xs font-bold text-ink-black truncate">${htmlText(r.productName || '설담화 꽃')}</p>
-          <p class="text-xs text-ink-charcoal line-clamp-3 leading-relaxed">${htmlText(r.text || '')}</p>
-        </div>
-        <div class="pt-2 border-t border-ink-black/5 flex items-center justify-between text-[11px] text-ink-gray">
-          <div class="flex items-center gap-1.5">
-            ${photoArr.length > 0 ? `<span class="inline-flex items-center gap-0.5">📷 ${photoArr.length}</span>` : ''}
-            ${r.video ? `<span>🎬 영상</span>` : ''}
-          </div>
-          ${r.adminReply ? `<span class="text-seal-red font-medium">답글 도착</span>` : ''}
-        </div>
-      </div>
-    `;
+    const card = buildLetterCard(r);
+    card.classList.add('w-[280px]', 'sm:w-[320px]', 'shrink-0', 'snap-start');
+    card.onclick = () => openLetterModal(r, list);
     track.appendChild(card);
   });
 }
@@ -505,13 +604,9 @@ function setReviewFilter(filter) {
   currentReviewFilter = filter;
   currentReviewPage = 1;
 
-  document.querySelectorAll('.review-filter-btn').forEach(btn => {
-    const match = btn.dataset.filter === filter;
-    btn.className = `review-filter-btn px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer transition-colors ${
-      match ? 'bg-ink-black text-white' : 'bg-white border border-ink-black/15 text-ink-charcoal hover:bg-hanji'
-    }`;
-  });
-
+  const allRevs = typeof loadReviews === 'function' ? loadReviews() : [];
+  const approved = allRevs.filter(r => r.status === 'approved' || (!r.status && !r.isSample));
+  renderReviewFilterChips(approved);
   renderReviewsList();
 }
 
@@ -521,35 +616,58 @@ function changeReviewSort(sort) {
   renderReviewsList();
 }
 
-// 리뷰 탭 위쪽 사진 띠 (최신 후기 사진 12장, 누르면 크게 보기)
-function renderReviewsPhotoStrip(approved) {
-  const wrap = document.getElementById('reviews-photo-strip-wrap');
-  const box = document.getElementById('reviews-photo-strip');
-  if (!wrap || !box) return;
-  const photos = [];
-  [...approved].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).forEach(r => {
-    let arr = [];
-    try { arr = Array.isArray(r.photos) ? r.photos : JSON.parse(r.photos || '[]'); } catch (e) {}
-    arr.forEach(src => { if (src) photos.push(src); });
+function renderReviewFilterChips(approved) {
+  const container = document.getElementById('reviews-filter-chips');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const currentLang = typeof getLanguage === 'function' ? getLanguage() : 'ko';
+
+  // 1. "전체" 칩
+  const allBtn = document.createElement('button');
+  allBtn.type = 'button';
+  allBtn.className = `review-filter-btn px-3.5 py-1.5 rounded-full text-xs font-bold cursor-pointer transition-all ${
+    currentReviewFilter === 'all'
+      ? 'bg-seal-red text-white border border-seal-red shadow-xs'
+      : 'bg-white border border-ink-black/15 text-ink-charcoal hover:bg-hanji hover:border-seal-red/40'
+  }`;
+  allBtn.textContent = typeof t === 'function' ? t('filter_story_all', '전체') : '전체';
+  allBtn.onclick = () => setReviewFilter('all');
+  container.appendChild(allBtn);
+
+  // 2. 게시된 후기(approved)에 1건 이상 존재하는 사연들
+  const presentRecipients = new Set();
+  approved.forEach(r => {
+    const code = r.recipient || 'other';
+    presentRecipients.add(code);
   });
-  const shown = photos.slice(0, 12);
-  box.innerHTML = '';
-  wrap.classList.toggle('hidden', shown.length === 0);
-  shown.forEach((src, i) => {
+
+  const recipients = typeof REVIEW_RECIPIENTS !== 'undefined' ? REVIEW_RECIPIENTS : [];
+  recipients.forEach(item => {
+    if (!presentRecipients.has(item.code)) return;
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'shrink-0 snap-start w-32 h-32 sm:w-40 sm:h-40 rounded-xs overflow-hidden border border-ink-black/10 bg-white cursor-zoom-in';
-    btn.setAttribute('aria-label', `후기 사진 ${i + 1} 크게 보기`);
-    btn.onclick = () => { if (typeof openPhotoViewer === 'function') openPhotoViewer(shown, i); };
-    const img = document.createElement('img');
-    img.src = typeof reviewMediaUrl === 'function' ? reviewMediaUrl(src) : src;
-    img.alt = '';
-    img.loading = 'lazy';
-    img.decoding = 'async';
-    img.className = 'w-full h-full object-cover hover:scale-105 transition-transform duration-300';
-    btn.appendChild(img);
-    box.appendChild(btn);
+    btn.className = `review-filter-btn px-3.5 py-1.5 rounded-full text-xs font-bold cursor-pointer transition-all ${
+      currentReviewFilter === item.code
+        ? 'bg-seal-red text-white border border-seal-red shadow-xs'
+        : 'bg-white border border-ink-black/15 text-ink-charcoal hover:bg-hanji hover:border-seal-red/40'
+    }`;
+    btn.textContent = item[currentLang] || item.ko;
+    btn.onclick = () => setReviewFilter(item.code);
+    container.appendChild(btn);
   });
+
+  // 3. "사진·영상" 칩
+  const mediaBtn = document.createElement('button');
+  mediaBtn.type = 'button';
+  mediaBtn.className = `review-filter-btn px-3.5 py-1.5 rounded-full text-xs font-bold cursor-pointer transition-all ${
+    currentReviewFilter === 'media'
+      ? 'bg-seal-red text-white border border-seal-red shadow-xs'
+      : 'bg-white border border-ink-black/15 text-ink-charcoal hover:bg-hanji hover:border-seal-red/40'
+  }`;
+  mediaBtn.textContent = typeof t === 'function' ? t('filter_story_media', '사진·영상') : '사진·영상';
+  mediaBtn.onclick = () => setReviewFilter('media');
+  container.appendChild(mediaBtn);
 }
 
 function renderReviewsPage() {
@@ -593,13 +711,13 @@ function renderReviewsPage() {
     });
   }
 
-  renderReviewsPhotoStrip(approved);
+  renderReviewFilterChips(approved);
   renderReviewsList();
 }
 
 function renderReviewsList() {
   const grid = document.getElementById('reviews-grid');
-  const emptyState = document.getElementById('reviews-empty-state') || document.getElementById('reviews-empty');
+  const emptyState = document.getElementById('reviews-empty');
   const pagesWrap = document.getElementById('reviews-pages');
   if (!grid) return;
 
@@ -613,9 +731,8 @@ function renderReviewsList() {
       try { p = Array.isArray(r.photos) ? r.photos : JSON.parse(r.photos || '[]'); } catch (e) {}
       return p.length > 0 || !!r.video;
     });
-  } else if (['1', '2', '3', '4', '5'].includes(currentReviewFilter)) {
-    const star = Number(currentReviewFilter);
-    list = list.filter(r => (Number(r.rating) || 5) === star);
+  } else if (currentReviewFilter !== 'all') {
+    list = list.filter(r => (r.recipient || 'other') === currentReviewFilter);
   }
 
   // 정렬 적용
@@ -644,73 +761,9 @@ function renderReviewsList() {
 
   grid.innerHTML = '';
   pageItems.forEach(r => {
-    const card = document.createElement('article');
-    card.className = 'relative bg-[#FAF7F2] border border-ink-black/10 rounded-sm p-5 md:px-7 md:py-5 space-y-3 shadow-xs';
-    addCornerMarks(card, 'lotus');
-
-    let photoArr = [];
-    try { photoArr = Array.isArray(r.photos) ? r.photos : JSON.parse(r.photos || '[]'); } catch (e) {}
-
-    const starStr = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
-    const dateStr = r.createdAt ? (typeof formatKoreaTime === 'function' ? formatKoreaTime(r.createdAt, { delimiter: '.' }) : r.createdAt.slice(0, 10).replace(/-/g, '.')) : '';
-
-    // 사진 썸네일 HTML
-    let photosHtml = '';
-    if (photoArr.length > 0) {
-      photosHtml = `
-        <div class="flex gap-2 pt-2 flex-wrap">
-          ${photoArr.map(src => `
-            <img loading="lazy" decoding="async" src="${typeof reviewMediaUrl === 'function' ? reviewMediaUrl(src) : src}" alt="후기 사진" class="w-16 h-16 object-cover rounded-xs border border-ink-black/10 cursor-pointer hover:opacity-90" onclick="openReviewPhotoModal('${src}')" />
-          `).join('')}
-        </div>
-      `;
-    }
-
-    // 동영상 플레이어 HTML
-    let videoHtml = '';
-    if (r.video) {
-      const vUrl = typeof reviewMediaUrl === 'function' ? reviewMediaUrl(r.video) : r.video;
-      videoHtml = `
-        <div class="pt-2">
-          <video src="${vUrl}" controls playsinline preload="metadata" class="w-full max-w-sm max-h-52 rounded-xs bg-black"></video>
-        </div>
-      `;
-    }
-
-    // 사장님 답글 HTML
-    let replyHtml = '';
-    if (r.adminReply) {
-      const repDate = r.replyAt ? (typeof formatKoreaTime === 'function' ? formatKoreaTime(r.replyAt, { delimiter: '.' }) : r.replyAt.slice(0, 10).replace(/-/g, '.')) : '';
-      replyHtml = `
-        <div class="p-3.5 bg-hanji/90 border-l-2 border-seal-red rounded-xs space-y-1.5 text-xs">
-          <div class="flex items-center justify-between font-bold text-ink-black">
-            <span class="flex items-center gap-1.5 text-seal-red">
-              <span class="text-sm">🌸</span> 설담화의 답글
-            </span>
-            <span class="text-[11px] font-normal text-ink-gray">${repDate}</span>
-          </div>
-          <p class="text-ink-charcoal leading-relaxed whitespace-pre-wrap">${htmlText(r.adminReply)}</p>
-        </div>
-      `;
-    }
-
-    // 손님 기기에는 상품 번호가 오지 않으므로, 번호가 있을 때만 상품으로 이동
-    const productLabel = htmlText(r.productName || '설담화 꽃');
-    const productHtml = r.productId
-      ? `<button type="button" class="underline hover:text-seal-red cursor-pointer" onclick="openProductDetail('${r.productId}')">${productLabel}</button>`
-      : `<span>${productLabel}</span>`;
-
-    card.innerHTML = `
-      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-        <span class="text-amber-500 font-bold text-base tracking-wide">${starStr}</span>
-        <span class="font-bold text-ink-gray">${productHtml}</span>
-        <span class="ml-auto text-ink-gray">${dateStr}</span>
-      </div>
-      <p class="text-sm text-ink-black leading-relaxed whitespace-pre-wrap">${htmlText(r.text || '')}</p>
-      ${photosHtml}
-      ${videoHtml}
-      ${replyHtml}
-    `;
+    const card = buildLetterCard(r);
+    card.classList.add('w-full');
+    card.onclick = () => openLetterModal(r, list);
     grid.appendChild(card);
   });
 
@@ -735,3 +788,171 @@ function renderReviewsList() {
     }
   }
 }
+
+// ----------------------------------------------------
+// 편지 뷰어 모달 제어 (#modal-letter)
+// ----------------------------------------------------
+let currentLetterList = [];
+let currentLetterIndex = -1;
+
+function openLetterModal(review, list) {
+  const modal = document.getElementById('modal-letter');
+  if (!modal) return;
+
+  if (Array.isArray(list) && list.length > 0) {
+    currentLetterList = list;
+    currentLetterIndex = list.findIndex(item => item.id === review.id);
+    if (currentLetterIndex < 0) currentLetterIndex = 0;
+  } else {
+    currentLetterList = [review];
+    currentLetterIndex = 0;
+  }
+
+  renderLetterModalContent(currentLetterList[currentLetterIndex]);
+  modal.classList.remove('hidden');
+}
+
+function closeLetterModal() {
+  const modal = document.getElementById('modal-letter');
+  if (modal) modal.classList.add('hidden');
+  const vid = document.getElementById('letter-modal-video');
+  if (vid) {
+    vid.pause();
+    vid.src = '';
+  }
+}
+
+function moveLetterModal(dir) {
+  if (!currentLetterList.length) return;
+  const nextIdx = currentLetterIndex + dir;
+  if (nextIdx >= 0 && nextIdx < currentLetterList.length) {
+    currentLetterIndex = nextIdx;
+    renderLetterModalContent(currentLetterList[currentLetterIndex]);
+  }
+}
+
+function renderLetterModalContent(r) {
+  if (!r) return;
+
+  // 사연 라벨
+  const recipEl = document.getElementById('letter-modal-recipient');
+  if (recipEl) {
+    recipEl.textContent = typeof getReviewRecipientLabel === 'function' ? getReviewRecipientLabel(r.recipient) : (r.recipient || '전하는 마음');
+  }
+
+  // 상품명 (일반 텍스트)
+  const prodEl = document.getElementById('letter-modal-product');
+  if (prodEl) {
+    prodEl.textContent = r.productName || '설담화 꽃';
+  }
+
+  // 별점
+  const starsEl = document.getElementById('letter-modal-stars');
+  if (starsEl) {
+    starsEl.textContent = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
+  }
+
+  // 작성일
+  const dateEl = document.getElementById('letter-modal-date');
+  if (dateEl) {
+    dateEl.textContent = r.createdAt ? (typeof formatKoreaTime === 'function' ? formatKoreaTime(r.createdAt, { delimiter: '.' }) : r.createdAt.slice(0, 10).replace(/-/g, '.')) : '';
+  }
+
+  // 사진들 (클릭 시 openPhotoViewer)
+  let photoArr = [];
+  try {
+    photoArr = Array.isArray(r.photos) ? r.photos : JSON.parse(r.photos || '[]');
+  } catch (e) {
+    photoArr = [];
+  }
+  const photosBox = document.getElementById('letter-modal-photos');
+  if (photosBox) {
+    photosBox.innerHTML = '';
+    if (photoArr.length > 0) {
+      photosBox.classList.remove('hidden');
+      photoArr.forEach((src, idx) => {
+        const fullUrl = typeof reviewMediaUrl === 'function' ? reviewMediaUrl(src) : src;
+        const img = document.createElement('img');
+        img.src = fullUrl;
+        img.alt = '꽃 편지 사진';
+        img.className = 'w-full aspect-[4/3] object-cover rounded-xs border border-ink-black/10 cursor-pointer hover:opacity-90';
+        img.onclick = () => {
+          if (typeof openPhotoViewer === 'function') {
+            openPhotoViewer(photoArr, idx);
+          }
+        };
+        photosBox.appendChild(img);
+      });
+    } else {
+      photosBox.classList.add('hidden');
+    }
+  }
+
+  // 동영상
+  const vidWrap = document.getElementById('letter-modal-video-wrap');
+  const vid = document.getElementById('letter-modal-video');
+  if (vidWrap && vid) {
+    if (r.video) {
+      vidWrap.classList.remove('hidden');
+      vid.src = typeof reviewMediaUrl === 'function' ? reviewMediaUrl(r.video) : r.video;
+    } else {
+      vidWrap.classList.add('hidden');
+      vid.pause();
+      vid.src = '';
+    }
+  }
+
+  // 편지 글 본문
+  const textEl = document.getElementById('letter-modal-text');
+  if (textEl) {
+    textEl.textContent = r.text || '';
+  }
+
+  // 사장님 답글
+  const replyWrap = document.getElementById('letter-modal-reply-wrap');
+  const replyTextEl = document.getElementById('letter-modal-reply-text');
+  const replyDateEl = document.getElementById('letter-modal-reply-date');
+  if (replyWrap) {
+    if (r.adminReply) {
+      replyWrap.classList.remove('hidden');
+      if (replyTextEl) replyTextEl.textContent = r.adminReply;
+      if (replyDateEl) {
+        replyDateEl.textContent = r.replyAt ? (typeof formatKoreaTime === 'function' ? formatKoreaTime(r.replyAt, { delimiter: '.' }) : r.replyAt.slice(0, 10).replace(/-/g, '.')) : '';
+      }
+    } else {
+      replyWrap.classList.add('hidden');
+    }
+  }
+
+  // 이전/다음 버튼 활성/비활성
+  const prevBtn = document.getElementById('letter-modal-prev-btn');
+  const nextBtn = document.getElementById('letter-modal-next-btn');
+  if (prevBtn) prevBtn.disabled = currentLetterIndex <= 0;
+  if (nextBtn) nextBtn.disabled = currentLetterIndex >= currentLetterList.length - 1;
+  if (prevBtn) prevBtn.classList.toggle('opacity-40', currentLetterIndex <= 0);
+  if (nextBtn) nextBtn.classList.toggle('opacity-40', currentLetterIndex >= currentLetterList.length - 1);
+}
+
+// 편지 뷰어 키보드 이벤트 리스너 등록
+window.addEventListener('keydown', e => {
+  const modal = document.getElementById('modal-letter');
+  if (!modal || modal.classList.contains('hidden')) return;
+
+  if (e.key === 'Escape') {
+    const photoModal = document.getElementById('modal-review-photo');
+    if (photoModal && !photoModal.classList.contains('hidden')) {
+      // 사진 뷰어가 위에 열려있으면 사진 뷰어만 닫힘 (기존 리스너가 처리)
+      return;
+    }
+    closeLetterModal();
+    return;
+  }
+  if (e.key === 'ArrowLeft') {
+    moveLetterModal(-1);
+    return;
+  }
+  if (e.key === 'ArrowRight') {
+    moveLetterModal(1);
+    return;
+  }
+});

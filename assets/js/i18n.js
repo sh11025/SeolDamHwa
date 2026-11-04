@@ -453,17 +453,24 @@ const I18N = {
     search_placeholder: "꽃 이름, 꽃말, 이야기 키워드를 검색하세요.",
     search_no_results: "검색 결과가 없습니다.",
 
-    // 손님 후기
-    reviews_count_suffix: "개의 정성스러운 후기",
+    // 꽃 편지 (손님 후기)
+    reviews_count_suffix: "통의 소중한 편지",
     reviews_rating_detail: "별점 자세히",
-    reviews_photo_title: "손님이 담아 주신 꽃",
     nav_reviews: "리뷰",
-    reviews_tag: "손님 후기",
-    reviews_title: "손님 후기",
-    reviews_subtitle: "설담화 꽃과 함께해 주신 소중한 마음들을 모았습니다.",
-    home_reviews_tag: "손님 후기",
-    home_reviews_title: "손님들이 남겨주신 정성스러운 후기",
-    home_reviews_view_all: "전체 후기 보기"
+    reviews_tag: "꽃 편지함",
+    reviews_title: "꽃 편지",
+    reviews_subtitle: "꽃과 함께 전해진 이야기를 모았습니다.",
+    reviews_empty: "아직 게시된 후기가 없어요",
+    home_reviews_tag: "꽃 편지함",
+    home_reviews_title: "꽃과 함께 전해진 이야기",
+    home_reviews_more: "편지 모두 보기",
+    home_reviews_view_all: "편지 모두 보기",
+    review_recipient_label: "누구에게 보낸 꽃인가요?",
+    review_recipient_required: "누구에게 보낸 꽃인지 선택해 주세요.",
+    letter_reply_title: "설담화의 답장",
+    letter_video_badge: "영상",
+    filter_story_all: "전체",
+    filter_story_media: "사진·영상"
   },
 
   en: {
@@ -917,17 +924,24 @@ const I18N = {
     search_placeholder: "Search by flower name, meaning, or story keyword...",
     search_no_results: "No matched products found.",
 
-    // Reviews
-    reviews_count_suffix: " heartfelt reviews",
+    // Flower Letters
+    reviews_count_suffix: " heartfelt letters",
     reviews_rating_detail: "Rating details",
-    reviews_photo_title: "Flowers from our customers",
     nav_reviews: "Reviews",
-    reviews_tag: "CUSTOMER REVIEWS",
-    reviews_title: "Customer Reviews",
-    reviews_subtitle: "Heartfelt stories and reviews from our valued customers.",
-    home_reviews_tag: "CUSTOMER REVIEWS",
-    home_reviews_title: "Heartfelt Customer Reviews",
-    home_reviews_view_all: "View all reviews"
+    reviews_tag: "FLOWER LETTERS",
+    reviews_title: "Flower Letters",
+    reviews_subtitle: "A collection of heartfelt stories delivered with our flowers.",
+    reviews_empty: "No letters published yet.",
+    home_reviews_tag: "FLOWER LETTERS",
+    home_reviews_title: "Stories Delivered with Flowers",
+    home_reviews_more: "View all letters",
+    home_reviews_view_all: "View all letters",
+    review_recipient_label: "Who was this flower for?",
+    review_recipient_required: "Please select who this flower was for.",
+    letter_reply_title: "SeolDamHwa's Reply",
+    letter_video_badge: "Video",
+    filter_story_all: "All",
+    filter_story_media: "Photos & Videos"
   },
 
   ja: {
@@ -1381,17 +1395,24 @@ const I18N = {
     search_placeholder: "花の名前、花言葉、物語のキーワードで検索...",
     search_no_results: "該当する商品が見つかりませんでした。",
 
-    // Reviews
-    reviews_count_suffix: "件の心のこもったレビュー",
+    // 花のお手紙
+    reviews_count_suffix: "通の心温まるお手紙",
     reviews_rating_detail: "評価の内訳",
-    reviews_photo_title: "お客様の花",
     nav_reviews: "レビュー",
-    reviews_tag: "お客様レビュー",
-    reviews_title: "お客様レビュー",
-    reviews_subtitle: "雪潭花の花と過ごした温かいお声を集めました。",
-    home_reviews_tag: "お客様レビュー",
-    home_reviews_title: "お客様から届いた温かいレビュー",
-    home_reviews_view_all: "すべてのレビューを見る"
+    reviews_tag: "花のお手紙箱",
+    reviews_title: "花のお手紙",
+    reviews_subtitle: "花と共に届いた心温まる物語を集めました。",
+    reviews_empty: "まだ掲載されたお手紙がありません。",
+    home_reviews_tag: "花のお手紙箱",
+    home_reviews_title: "花と共に届いた物語",
+    home_reviews_more: "すべてのお手紙を見る",
+    home_reviews_view_all: "すべてのお手紙を見る",
+    review_recipient_label: "どなたへ贈られたお花ですか？",
+    review_recipient_required: "どなたへ贈られたか選択してください。",
+    letter_reply_title: "説談花からのお返事",
+    letter_video_badge: "動画",
+    filter_story_all: "すべて",
+    filter_story_media: "写真・動画"
   }
 };
 

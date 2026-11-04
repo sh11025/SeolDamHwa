@@ -291,6 +291,7 @@ CREATE TABLE IF NOT EXISTS public.reviews (
     "orderNumber" text NOT NULL,
     "productId" text DEFAULT NULL,
     "productName" text NOT NULL,
+    recipient text NOT NULL DEFAULT 'other',
     rating integer NOT NULL DEFAULT 5,
     text text NOT NULL,
     photos jsonb NOT NULL DEFAULT '[]'::jsonb,

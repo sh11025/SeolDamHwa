@@ -419,6 +419,7 @@
   | `"orderNumber"` | `text` | NOT NULL | - | 주문번호 (완료 주문 검증용) | - |
   | `"productId"` | `text` | - | NULL | 후기 대상 상품 식별자 (상품 삭제 시 NULL) | - |
   | `"productName"` | `text` | NOT NULL | - | 후기 대상 상품명 | - |
+  | `recipient` | `text` | NOT NULL | `'other'` | 꽃 선물 대상 사연 코드 (parents, lover, friend, celebrate, comfort, self, other) | - |
   | `rating` | `integer` | NOT NULL | `5` | 별점 (1~5점) | - |
   | `text` | `text` | NOT NULL | - | 손님이 쓴 후기 글 본문 (10~500자) | - |
   | `photos` | `jsonb` | NOT NULL | `'[]'::jsonb` | 첨부 사진 저장 경로 배열 (최대 3장) | - |

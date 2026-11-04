@@ -45,7 +45,7 @@ PUBLIC_TABLES = {'products', 'popups', 'pages', 'settings', 'flowers'}   # 손�
 REMOTE_INSERT_TABLES = {'orders', 'order_items', 'inquiries', 'restock', 'reviews'}  # 손님 기기는 새 줄 추가만
 KEYS = {'order_items': ('orderId', 'lineNo'), 'settings': ('key',), 'coupons': ('code',)}
 COUPON_PUBLIC = ('code', 'batchName', 'type', 'value', 'minOrder', 'startDate', 'endDate', 'active')
-REVIEW_PUBLIC = ('id', 'productName', 'rating', 'text', 'photos', 'video', 'status', 'adminReply', 'replyAt', 'createdAt', 'isSample')
+REVIEW_PUBLIC = ('id', 'productName', 'recipient', 'rating', 'text', 'photos', 'video', 'status', 'adminReply', 'replyAt', 'createdAt', 'isSample')
 UPLOADS_DIR = os.path.join(DATA, 'uploads')
 REVIEW_UPLOADS_DIR = os.path.join(UPLOADS_DIR, 'reviews')
 _review_media_counts = {}  # (orderNumber, YYYY-MM-DD) -> 업로드 횟수
@@ -349,6 +349,11 @@ def apply_change(change, local):
                 row['adminReply'] = ''
                 row['replyAt'] = ''
                 row['isSample'] = 'false'
+                recip = str(row.get('recipient') or '').strip()
+                if recip not in ('parents', 'lover', 'friend', 'celebrate', 'comfort', 'self', 'other'):
+                    rejected.append('reviews: 올바른 수신 대상을 선택해 주세요')
+                    continue
+                row['recipient'] = recip
                 rev_order_num = str(row.get('orderNumber') or '').strip().upper()
                 rev_order_id = str(row.get('orderId') or '').strip()
                 rev_prod_id = str(row.get('productId') or '').strip()

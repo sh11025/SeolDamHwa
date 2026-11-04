@@ -117,7 +117,7 @@ const CSV_TABLES = {
   },
   reviews: {
     file: 'reviews.csv',
-    columns: ['id', 'orderId', 'orderNumber', 'productId', 'productName', 'rating', 'text', 'photos', 'video', 'status', 'adminReply', 'replyAt', 'createdAt', 'isSample'],
+    columns: ['id', 'orderId', 'orderNumber', 'productId', 'productName', 'recipient', 'rating', 'text', 'photos', 'video', 'status', 'adminReply', 'replyAt', 'createdAt', 'isSample'],
     json: ['photos'], num: ['rating'], bool: ['isSample'],
     read: () => (typeof loadReviews === 'function' ? loadReviews() : []),
     write: rows => (typeof saveReviews === 'function' ? saveReviews(rows) : DataStore.write(DataStore.KEYS.reviews, rows))

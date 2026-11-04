@@ -465,8 +465,11 @@ function renderReviewsAdmin() {
       </div>
 
       <div class="space-y-2">
-        <div class="text-xs font-bold text-seal-red">
-          꽃 상품: ${escapeHtml(r.productName || '설담화 꽃')}
+        <div class="flex items-center gap-2 flex-wrap text-xs">
+          <span class="font-bold text-seal-red">꽃 상품: ${escapeHtml(r.productName || '설담화 꽃')}</span>
+          <span class="px-2 py-0.5 rounded-full bg-hanji border border-ink-black/15 text-[11px] text-ink-charcoal font-medium">
+            ${escapeHtml(typeof getReviewRecipientLabel === 'function' ? getReviewRecipientLabel(r.recipient) : (r.recipient || '전하는 마음'))}
+          </span>
         </div>
         <p class="text-sm text-ink-charcoal leading-relaxed whitespace-pre-wrap">${escapeHtml(r.text || '')}</p>
         ${mediaHtml}

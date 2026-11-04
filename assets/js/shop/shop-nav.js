@@ -38,6 +38,11 @@ function onInquiryDateFocus(el) {
   el.min = kp ? kp.dateStr : tomorrow.toISOString().slice(0, 10);
 }
 
+function onInquiryDateBlur(el) {
+  if (!el) return;
+  if (!el.value) el.type = 'text';
+}
+
 function initPopupSlider() {
   try {
     const urlParams = new URLSearchParams(window.location.search);

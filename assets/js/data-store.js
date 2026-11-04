@@ -242,6 +242,23 @@ function reviewMediaUrl(path) {
   return trimmed;
 }
 
+// 꽃 편지 사연(누구에게 보낸 꽃인가요?) 정의
+const REVIEW_RECIPIENTS = Object.freeze([
+  { code: 'parents', ko: '부모님께', en: 'For parents', ja: 'ご両親へ' },
+  { code: 'lover', ko: '연인에게', en: 'For a loved one', ja: '恋人へ' },
+  { code: 'friend', ko: '친구·지인에게', en: 'For a friend', ja: '友人へ' },
+  { code: 'celebrate', ko: '축하의 마음', en: 'Celebration', ja: 'お祝い' },
+  { code: 'comfort', ko: '위로의 마음', en: 'Comfort', ja: 'お見舞い' },
+  { code: 'self', ko: '나에게', en: 'For myself', ja: '自分へ' },
+  { code: 'other', ko: '전하는 마음', en: 'From the heart', ja: '想いを込めて' }
+]);
+
+function getReviewRecipientLabel(code, lang) {
+  const currentLang = lang || (typeof getLanguage === 'function' ? getLanguage() : 'ko');
+  const found = REVIEW_RECIPIENTS.find(r => r.code === code) || REVIEW_RECIPIENTS.find(r => r.code === 'other');
+  return (found && found[currentLang]) || (found && found.ko) || '전하는 마음';
+}
+
 // 브라우저 저장 공간(약 5MB)이 가득 차서 저장이 안 될 때 알려 줌 (products-data.js에서 이동)
 (function guardStorageQuota() {
   if (typeof Storage === 'undefined') return;

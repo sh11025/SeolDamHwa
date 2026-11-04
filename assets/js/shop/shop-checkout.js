@@ -1037,6 +1037,40 @@ async function submitCustomerOrder(e) {
 let reviewSelectedPhotos = []; // { blob, name, previewUrl }
 let reviewSelectedVideo = null; // { file, name }
 
+function setReviewRecipient(code) {
+  const hiddenInput = document.getElementById('review-recipient');
+  if (hiddenInput) hiddenInput.value = code || '';
+  const chipsContainer = document.getElementById('review-recipient-chips');
+  if (!chipsContainer) return;
+  chipsContainer.querySelectorAll('.recipient-chip-btn').forEach(btn => {
+    const isSelected = btn.dataset.code === code;
+    btn.className = `recipient-chip-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+      isSelected
+        ? 'bg-seal-red text-white border border-seal-red shadow-xs'
+        : 'bg-white/90 text-ink-charcoal border border-ink-black/15 hover:border-seal-red/40 hover:bg-hanji'
+    }`;
+    btn.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+  });
+}
+
+function renderReviewRecipientChips() {
+  const container = document.getElementById('review-recipient-chips');
+  if (!container) return;
+  container.innerHTML = '';
+  const currentLang = typeof getLanguage === 'function' ? getLanguage() : 'ko';
+  const recipients = typeof REVIEW_RECIPIENTS !== 'undefined' ? REVIEW_RECIPIENTS : [];
+
+  recipients.forEach(item => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.dataset.code = item.code;
+    btn.className = 'recipient-chip-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer bg-white/90 text-ink-charcoal border border-ink-black/15 hover:border-seal-red/40 hover:bg-hanji';
+    btn.textContent = item[currentLang] || item.ko;
+    btn.onclick = () => setReviewRecipient(item.code);
+    container.appendChild(btn);
+  });
+}
+
 function openReviewModal(order, item) {
   const modal = document.getElementById('modal-review');
   if (!modal) return;
@@ -1061,6 +1095,8 @@ function openReviewModal(order, item) {
   if (offlineNotice) offlineNotice.classList.toggle('hidden', isServerRemote);
 
   // 초기화
+  setReviewRecipient('');
+  renderReviewRecipientChips();
   setReviewRating(5);
   const textEl = document.getElementById('review-text');
   if (textEl) textEl.value = '';
@@ -1296,7 +1332,7 @@ async function uploadReviewMedia(orderNumber, phone, filename, blob) {
 }
 
 async function submitCustomerReview(e) {
-  e.preventDefault();
+  if (e && typeof e.preventDefault === 'function') e.preventDefault();
   const orderId = document.getElementById('review-order-id').value;
   const orderNumber = document.getElementById('review-order-number').value;
   const phone = document.getElementById('review-orderer-phone').value;
@@ -1304,6 +1340,12 @@ async function submitCustomerReview(e) {
   const productName = document.getElementById('review-product-name').value;
   const rating = Number(document.getElementById('review-rating-val').value) || 5;
   const text = (document.getElementById('review-text').value || '').trim();
+
+  const recipient = (document.getElementById('review-recipient')?.value || '').trim();
+  if (!recipient) {
+    alert(typeof t === 'function' ? t('review_recipient_required') : '누구에게 보낸 꽃인지 선택해 주세요.');
+    return;
+  }
 
   if (rating < 1 || rating > 5) {
     alert('별점을 1~5점 중에서 골라 주세요.');
@@ -1359,6 +1401,7 @@ async function submitCustomerReview(e) {
       orderNumber,
       productId,
       productName,
+      recipient,
       rating,
       text,
       photos: photoPaths,
