@@ -169,13 +169,32 @@ function deliveryNeedsTime(method) {
 
 /* ---------- 배송일 달력 (② 받는 분·배송) ---------- */
 let deliveryCalMonth = ''; // 'YYYY-MM'
+let serverFullDatesCache = [];
+
+async function syncServerFullDates() {
+  if (window.SDH_SERVER_MODE) {
+    try {
+      const res = await (await fetch('/api/full-dates', { cache: 'no-store' })).json();
+      if (res && res.ok && Array.isArray(res.dates)) {
+        serverFullDatesCache = res.dates;
+      }
+    } catch (e) {}
+  }
+}
 
 function initDeliveryCalendar() {
   const input = document.getElementById('order-delivery-date');
-  const dates = getAvailableDeliveryDates();
-  if (input && !dates.some(d => d.value === input.value)) input.value = dates.length ? dates[0].value : '';
-  deliveryCalMonth = (input && input.value ? input.value : (dates[0] ? dates[0].value : '')).slice(0, 7);
-  renderDeliveryCalendar();
+  const fallbackInit = () => {
+    const dates = getAvailableDeliveryDates();
+    if (input && !dates.some(d => d.value === input.value)) input.value = dates.length ? dates[0].value : '';
+    deliveryCalMonth = (input && input.value ? input.value : (dates[0] ? dates[0].value : '')).slice(0, 7);
+    renderDeliveryCalendar();
+  };
+  syncServerFullDates().then(() => {
+    fallbackInit();
+  }).catch(() => {
+    fallbackInit();
+  });
 }
 
 function moveDeliveryCalendar(delta) {
@@ -243,14 +262,20 @@ function renderDeliveryCalendar() {
     const b = document.createElement('button');
     b.type = 'button';
     b.textContent = d;
-    const ok = open.has(value);
+    const isFull = typeof isDeliveryDateFull === 'function' && isDeliveryDateFull(value, { serverFullDates: serverFullDatesCache });
+    const ok = open.has(value) && !isFull;
     const on = value === input.value;
     b.disabled = !ok;
     b.dataset.date = value;
     b.setAttribute('aria-pressed', on ? 'true' : 'false');
     const info = dates.find(x => x.value === value);
-    b.setAttribute('aria-label', info ? info.label : value);
-    b.className = `h-9 rounded-full text-sm font-bold ${on ? 'bg-seal-red text-white' : ok ? 'text-ink-black hover:bg-[#FAF7F2] border border-ink-black/10 cursor-pointer' : 'text-ink-black/25 cursor-not-allowed'}${value === today ? ' underline' : ''}`;
+    if (isFull) {
+      b.title = coT('co_date_full', '이 날은 주문이 마감되었어요.');
+      b.setAttribute('aria-label', `${value} (${coT('co_date_full', '이 날은 주문이 마감되었어요.')})`);
+    } else {
+      b.setAttribute('aria-label', info ? info.label : value);
+    }
+    b.className = `h-9 rounded-full text-sm font-bold ${on ? 'bg-seal-red text-white' : ok ? 'text-ink-black hover:bg-[#FAF7F2] border border-ink-black/10 cursor-pointer' : 'text-ink-black/25 cursor-not-allowed'}${value === today ? ' underline' : ''}${isFull ? ' line-through opacity-40' : ''}`;
     if (ok) b.onclick = () => pickDeliveryDate(value);
     grid.appendChild(b);
   }
@@ -695,6 +720,12 @@ function validateCheckoutStep2() {
   const method = selectedDeliveryMethod();
   if (!method) { alert(coT('co_method_required', '배송 방법을 골라 주세요.')); return false; }
   const pickedDate = document.getElementById('order-delivery-date').value;
+  if (pickedDate && typeof isDeliveryDateFull === 'function' && isDeliveryDateFull(pickedDate, { serverFullDates: serverFullDatesCache })) {
+    document.getElementById('order-delivery-date').value = '';
+    renderDeliveryCalendar();
+    alert(coT('co_date_full_pick_other', '선택하신 날짜는 주문이 마감되었어요. 다른 날짜를 골라 주세요.'));
+    return false;
+  }
   if (pickedDate && !getAvailableDeliveryDates().some(d => d.value === pickedDate)) {
     // 예: 당일 퀵 마감 시각이 지나 버림
     document.getElementById('order-delivery-date').value = '';
@@ -790,6 +821,13 @@ async function submitCustomerOrder(e) {
       return;
     }
     const dateVal = document.getElementById('order-delivery-date').value;
+    if (dateVal && typeof isDeliveryDateFull === 'function' && isDeliveryDateFull(dateVal, { serverFullDates: serverFullDatesCache })) {
+      document.getElementById('order-delivery-date').value = '';
+      renderDeliveryCalendar();
+      goCheckoutStep(2);
+      alert(coT('co_date_full_pick_other', '선택하신 날짜는 주문이 마감되었어요. 다른 날짜를 골라 주세요.'));
+      return;
+    }
     if (dateVal && !getAvailableDeliveryDates().some(d => d.value === dateVal)) {
       document.getElementById('order-delivery-date').value = '';
       renderDeliveryCalendar();

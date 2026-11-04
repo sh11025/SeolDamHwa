@@ -453,6 +453,9 @@ DECLARE
     v_total_amount numeric := 0;
     v_today text;
     v_now_kst text;
+    v_delivery_date text;
+    v_date_limit int := 0;
+    v_order_count int := 0;
 
     v_item jsonb;
     v_prod_id text;
@@ -477,6 +480,37 @@ BEGIN
     -- 중복 주문번호 거부
     IF EXISTS (SELECT 1 FROM public.orders WHERE "orderNumber" = v_order_number) THEN
         RAISE EXCEPTION '이미 존재하는 주문번호입니다: %', v_order_number;
+    END IF;
+
+    -- 0) 배송일 주문 상한 검증 (deliveryDate 기준, 취소·예시 주문 제외)
+    v_delivery_date := SPLIT_PART(TRIM(COALESCE(p_order ->> 'deliveryDate', '')), ' ', 1);
+    IF v_delivery_date <> '' THEN
+        SELECT value INTO v_delivery_settings FROM public.settings WHERE key = 'delivery';
+        IF v_delivery_settings IS NOT NULL THEN
+            IF v_delivery_settings ? 'dateLimits' THEN
+                SELECT COALESCE((elem ->> 'limit')::int, 0)
+                INTO v_date_limit
+                FROM jsonb_array_elements(v_delivery_settings -> 'dateLimits') AS elem
+                WHERE elem ->> 'date' = v_delivery_date
+                LIMIT 1;
+            END IF;
+            IF v_date_limit IS NULL OR v_date_limit <= 0 THEN
+                v_date_limit := COALESCE((v_delivery_settings ->> 'dailyLimit')::int, 0);
+            END IF;
+
+            IF v_date_limit > 0 THEN
+                SELECT COUNT(*)
+                INTO v_order_count
+                FROM public.orders
+                WHERE status <> 'cancelled'
+                  AND "isSample" = false
+                  AND SPLIT_PART("deliveryDate", ' ', 1) = v_delivery_date;
+
+                IF v_order_count >= v_date_limit THEN
+                    RAISE EXCEPTION '해당 배송일(%)은 주문이 마감되었습니다. (상한: %건)', v_delivery_date, v_date_limit;
+                END IF;
+            END IF;
+        END IF;
     END IF;
 
     -- 1) 품목 검증, 가격 조회 및 재고 차감 (손님 기기의 단가/금액 무시)

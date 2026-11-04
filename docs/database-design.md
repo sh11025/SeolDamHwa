@@ -472,6 +472,7 @@
    - 손님이 주문번호와 주문자 연락처(숫자만 비교)를 정확히 입력했을 때만 해당 주문 1건과 소속 품목 목록(`order_items`)을 안전하게 돌려줍니다.
    - **개인정보 보호**: 쇼핑몰 주문 조회 화면에 필요한 필드(`orderNumber`, `createdDate`, `status`, `deliveryMethodLabel`, `deliveryDate`, `itemsTotal`, `deliveryFee`, `couponDiscount`, `totalAmount`, `courier`, `trackingNumber`)만 반환하며, 받는 분 성함은 `김*희` 형태로 마스킹 처리합니다. 손님의 전화번호, 배송지 상세 주소, 관리자 메모 등은 절대 반환하지 않습니다.
 4. **주문 통합 접수 단일 트랜잭션 함수 (`submit_order_transaction(p_order, p_items)`)**
+   - **날짜별 주문 상한 검증**: 주문의 배송일자(`deliveryDate`)를 기준으로 `settings`의 `delivery` 설정에 등록된 특정일 상한(`dateLimits`) 또는 기본 일일 상한(`dailyLimit`)을 조회합니다. 취소 및 예시 주문을 제외한 해당 날짜의 유효 주문 건수가 상한에 도달한 경우 **주문 전체를 거부 및 롤백**합니다.
    - **금액 불신뢰 원칙**: 손님 기기에서 전달된 단가, 합계, 배송비, 할인금액, 총액을 일절 신뢰하지 않고 DB 내부에서 직접 재계산합니다.
    - **상품 및 가격 검증**: 각 품목의 `productId`로 상품을 조회하고 비공개/예약공개 미도래 건은 즉시 주문을 거부합니다. 품목의 `sizeLabel`이 일치하면 해당 사이즈 단가를, 없으면 기본 단가를 적용합니다.
    - **배송비 재계산**: `settings`의 `delivery` 설정을 읽어 무료배송 기준(`freeOver`)과 배송방식별 요금을 엄격히 계산하며 음수 값은 거부합니다.

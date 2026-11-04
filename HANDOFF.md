@@ -1,6 +1,6 @@
 # 설담화 작업 이어받기 안내 (HANDOFF)
 
-> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-04 [75]
+> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-04 [76]
 
 ## 1. 프로젝트 한눈에
 - `index.html`: 손님 쇼핑몰 / `admin-index.html`: 관리자 센터. 둘 다 Tailwind CDN + 순수 JS, 데이터는 브라우저 `localStorage`(키 `seoldamhwa_*`).
@@ -32,7 +32,7 @@
 0. **화면 클래스(Tailwind)를 새로 쓰거나 바꾸면 꼭 `npm run build:css`** (처음 한 번은 `npm install`). 예전 CDN 대신 `assets/css/tailwind.css`를 미리 만들어 쓰므로, 다시 만들지 않으면 새 클래스는 화면에 안 먹어요. 설정은 `tailwind.config.js`, 원본은 `src/tailwind.css`. 고치는 중에는 `npm run watch:css`를 켜 두면 저장할 때마다 자동으로 만들어져요.
    - **JS·CSS 파일을 바꾸면 커밋 전에 `npm run bump`** (브라우저가 옛 파일을 섞어 쓰지 않게).
 1. 바꾸기 전 `git status` 확인, 끝나면 커밋 (커밋 메시지 끝에 공동 작성자 줄).
-2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[76]**.
+2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[77]**.
 3. 검증: `python -m http.server 5500`로 띄우고 브라우저에서 직접 클릭. 서버 모드 및 손님 기기 기능은 `python server.py --port 5600 --lan`으로 임시 DATA 사본(`SDH_DATA_DIR`)을 사용하고, 모의 API 호출 대신 실제 LAN IP 주소와 실기기/CDP 브라우저 조작(버튼 클릭, 폼 전송)으로 검증할 것. 매번 확인할 것
    - 인라인 스크립트 문법(`node --check`), 모든 `getElementById` id 존재
    - 버튼이 부르는 함수가 모두 있는지: 콘솔에서 `[...new Set([...document.documentElement.outerHTML.matchAll(/on\w+="([A-Za-z_]\w*)\(/g)].map(m=>m[1]))].filter(n=>typeof window[n]!=='function')` → `[]` (예외: `if`)
@@ -102,6 +102,7 @@
    - ~~[73] 쿠폰 할인율 상한 90%로 되돌림~~ 완료 (2026-11-04): 주문 무료화 방지를 위해 관리자 쿠폰 생성(`createCouponBatch`) 시 비율 할인율 상한을 90%로 되돌리고 안내 문구 갱신 (95% 입력 시 '할인율은 1~90% 사이로 적어 주세요.' 거부 및 90% 정상 발행 검증 통과).
    - ~~[74] README 실행 방법 바로잡기~~ 완료 (2026-11-04): start-server.bat의 기본 실행(포트 5500, 이 컴퓨터 전용)과 휴대폰 연동(`python server.py --lan`) 차이점을 명확히 하고, 10분 주기/최신 40개 보관 자동 백업 및 uploads 폴더 제외 규칙을 README.md에 정확히 반영.
    - ~~[75] 개인정보처리방침 보완·전체 백업 내려받기~~ 완료 (2026-11-04): 개인정보처리방침에 재입고 알림 신청, 후기 수집·보관(작성자 이름 미표시, 얼굴·개인정보 주의), 디스코드 전달 항목(주문자/받는분 성함, 카드 메시지 전달 / 연락처·상세주소 미전달) 및 후기 삭제/숨김 요청 권리를 보완. 서버 모드에서 모든 CSV 표와 후기 미디어를 압축하는 `GET /api/full-backup` 및 관리자 '연동·데이터' 탭 다운로드 버튼, 7일 경과 시 대시보드 알림을 구현.
+   - ~~[76] 날짜별 주문 상한~~ 완료 (2026-11-04): 매장 설정에 기본 하루 주문 상한(`dailyLimit`, 0=무제한) 및 특정일 상한(`dateLimits`) 추가. 유효 주문(취소·예시 제외) 기반 마감 판정(`GET /api/full-dates`), 쇼핑몰 달력 마감일 비활성화/취소선 표시 및 14일 수집 보장, 주문 직전 마감 재확인, 서버 및 DB 트랜잭션(`submit_order_transaction`) 마감일 주문 거부 구현.
 5. **오픈 준비(나중)**
    - 사용자 결정이 필요한 것 (2026-11-02 기준): ① 영상 압축 — ffmpeg 설치 필요(설치 허락 받으면 assets/videos 두 개를 1MB 안팎으로) ② 공유 미리보기 `og:image`·`og:url` — 도메인이 정해져야 함 ③ 실제 DB·호스팅·관리자 로그인(인터넷 공개용) — 업체 선택(예: Supabase, Cloudflare, 카페24 등) ④ 결제(PG) — 사업자 등록 후.: 서버·DB 연결(현재 load/save 함수만 교체하도록 분리돼 있음), 결제 연결, 관리자 로그인, 실제 후기 기능, 약관 및 개인정보처리방침 전문가 검토.
 

@@ -57,7 +57,9 @@ const DEFAULT_SETTINGS = {
     parcel: { enabled: false, fee: 4000, area: '전국 (생화 특성상 제주·도서 지역 제외)' }, // 택배
     pickup: { enabled: false, fee: 0, area: '' },                    // 매장 픽업 (매장 공개 후 켜기)
     freeOver: 100000,   // 이 금액 이상 주문하면 배송비 무료 (0이면 무료 조건 없음)
-    note: ''            // 주문서에 함께 보여 줄 배송 안내 한 줄
+    note: '',           // 주문서에 함께 보여 줄 배송 안내 한 줄
+    dailyLimit: 0,      // 하루 기본 주문 상한 (0 = 무제한)
+    dateLimits: []      // 특정일 주문 상한 [{ date: "YYYY-MM-DD", limit: 20 }, ...]
   },
   weeklyHours: DEFAULT_WEEKLY_HOURS,
   closures: [],            // [ { date: "YYYY-MM-DD", reason: "" }, ... ]
@@ -123,6 +125,59 @@ function formatKoreaTime(isoStr, { time = false, delimiter = '-' } = {}) {
 }
 
 /**
+ * 특정 배송일의 주문 상한 수(0이면 무제한) 반환
+ * @param {string} dateStr 'YYYY-MM-DD'
+ * @param {object} [deliverySettings]
+ * @returns {number} 0=무제한, >0=상한 건수
+ */
+function getDeliveryLimitForDate(dateStr, deliverySettings) {
+  if (!dateStr) return 0;
+  const d = deliverySettings || (typeof loadSettings === 'function' ? (loadSettings().delivery || {}) : (DEFAULT_SETTINGS.delivery || {}));
+  if (Array.isArray(d.dateLimits)) {
+    const found = d.dateLimits.find(x => x && x.date === dateStr);
+    if (found && typeof found.limit === 'number') {
+      return Math.max(0, found.limit);
+    }
+  }
+  return typeof d.dailyLimit === 'number' ? Math.max(0, d.dailyLimit) : (parseInt(d.dailyLimit, 10) || 0);
+}
+
+/**
+ * 특정 날짜에 이미 접수된 유효 주문 수 계산 (취소·예시 제외)
+ * @param {string} dateStr 'YYYY-MM-DD'
+ * @param {Array} [orders]
+ * @returns {number}
+ */
+function getActiveOrderCountForDate(dateStr, orders) {
+  if (!dateStr) return 0;
+  const list = orders || (typeof loadOrders === 'function' ? loadOrders() : []);
+  if (!Array.isArray(list)) return 0;
+  return list.filter(o => {
+    if (!o || o.status === 'cancelled' || o.isSample) return false;
+    const d = (o.deliveryDate || (typeof getDeliveryDate === 'function' ? getDeliveryDate(o) : '') || '').slice(0, 10);
+    return d === dateStr;
+  }).length;
+}
+
+/**
+ * 특정 배송일이 마감되었는지 여부
+ * @param {string} dateStr 'YYYY-MM-DD'
+ * @param {object} [options]
+ * @returns {boolean}
+ */
+function isDeliveryDateFull(dateStr, { orders, settings, serverFullDates } = {}) {
+  if (!dateStr) return false;
+  if (serverFullDates && Array.isArray(serverFullDates) && serverFullDates.includes(dateStr)) {
+    return true;
+  }
+  const s = settings || (typeof loadSettings === 'function' ? loadSettings() : DEFAULT_SETTINGS);
+  const limit = getDeliveryLimitForDate(dateStr, s.delivery);
+  if (limit <= 0) return false; // 0은 무제한
+  const count = getActiveOrderCountForDate(dateStr, orders);
+  return count >= limit;
+}
+
+/**
  * 저장된 매장 설정 불러오기 (기본값과 병합 및 마이그레이션)
  */
 function loadSettings() {
@@ -145,7 +200,9 @@ function loadSettings() {
       parcel: { ...dd.parcel, ...(sd.parcel || {}) },
       pickup: { ...dd.pickup, ...(sd.pickup || {}) },
       freeOver: typeof sd.freeOver === 'number' ? sd.freeOver : dd.freeOver,
-      note: typeof sd.note === 'string' ? sd.note : dd.note
+      note: typeof sd.note === 'string' ? sd.note : dd.note,
+      dailyLimit: typeof sd.dailyLimit === 'number' ? Math.max(0, sd.dailyLimit) : (parseInt(sd.dailyLimit, 10) || 0),
+      dateLimits: Array.isArray(sd.dateLimits) ? sd.dateLimits.filter(x => x && x.date && typeof x.limit === 'number').map(x => ({ date: String(x.date), limit: Math.max(1, Math.round(Number(x.limit) || 1)) })) : []
     };
     // 마이그레이션: closures가 없으면 빈 배열
     if (!merged.closures || !Array.isArray(merged.closures)) {

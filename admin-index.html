@@ -11,20 +11,20 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
   
-  <script src="assets/js/data-store.js?v=72"></script>
-  <script src="assets/js/products-data.js?v=72"></script>
-  <script src="assets/js/flowers-data.js?v=72"></script>
-  <script src="assets/js/site-settings.js?v=72"></script>
-  <script src="assets/js/popups.js?v=72"></script>
-  <script src="assets/js/finance-data.js?v=72"></script>
-  <script src="assets/js/integrations.js?v=72"></script>
-  <script src="assets/js/admin-tools.js?v=72"></script>
-  <script src="assets/js/site-pages.js?v=72"></script>
-  <script src="assets/js/image-library.js?v=72"></script>
-  <script src="assets/js/restock.js?v=72"></script>
-  <script src="assets/js/csv-db.js?v=72"></script>
-  <script src="assets/js/data-sync.js?v=72"></script>
-  <script src="assets/js/coupons.js?v=72"></script>
+  <script src="assets/js/data-store.js?v=73"></script>
+  <script src="assets/js/products-data.js?v=73"></script>
+  <script src="assets/js/flowers-data.js?v=73"></script>
+  <script src="assets/js/site-settings.js?v=73"></script>
+  <script src="assets/js/popups.js?v=73"></script>
+  <script src="assets/js/finance-data.js?v=73"></script>
+  <script src="assets/js/integrations.js?v=73"></script>
+  <script src="assets/js/admin-tools.js?v=73"></script>
+  <script src="assets/js/site-pages.js?v=73"></script>
+  <script src="assets/js/image-library.js?v=73"></script>
+  <script src="assets/js/restock.js?v=73"></script>
+  <script src="assets/js/csv-db.js?v=73"></script>
+  <script src="assets/js/data-sync.js?v=73"></script>
+  <script src="assets/js/coupons.js?v=73"></script>
   <!-- 운송장 바코드: JsBarcode -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
   <!-- 차트: Chart.js -->
@@ -169,7 +169,7 @@
     }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=72">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=73">
 </head>
 <body class="min-h-screen flex flex-col selection:bg-seal-red/15 selection:text-seal-red">
   <!-- 1. 관리자 상단 헤더 (Admin Top Bar) -->
@@ -1324,6 +1324,28 @@
             <label class="block space-y-1"><span class="font-bold">무료 배송 기준 (원)</span><input type="number" id="dlv-free-over" min="0" step="1000" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"><span class="block text-[11px] text-ink-gray">0이면 무료 조건 없음</span></label>
             <label class="block space-y-1"><span class="font-bold">주문서 배송 안내 한 줄 (선택)</span><input type="text" id="dlv-note" maxlength="80" placeholder="예: 경기 지역은 상담 후 퀵으로 보내 드려요." class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
           </div>
+          <div class="space-y-4 pt-3 border-t border-ink-black/10">
+            <div>
+              <h3 class="font-bold text-sm text-ink-black">날짜별 주문 상한</h3>
+              <p class="text-xs text-ink-gray mt-0.5">하루에 받을 수 있는 주문 건수를 정해요. 상한에 도달한 날짜는 쇼핑몰 달력에서 자동으로 마감돼요.</p>
+            </div>
+            <div>
+              <label class="block space-y-1">
+                <span class="font-bold text-xs text-ink-black">기본 하루 주문 상한 건수</span>
+                <input type="number" id="dlv-daily-limit" min="0" step="1" class="w-48 bg-white border border-ink-black/20 p-2 rounded-xs font-mono text-xs">
+                <span class="block text-[11px] text-ink-gray">0이면 무제한 (취소·예시 주문 제외 유효 주문 기준)</span>
+              </label>
+            </div>
+            <div class="space-y-2">
+              <span class="block font-bold text-xs text-ink-black">특정일 주문 상한 (어버이날·스승의날·크리스마스 등)</span>
+              <div class="flex flex-wrap items-center gap-2">
+                <input type="date" id="new-limit-date" aria-label="상한 설정 날짜" class="bg-white border border-ink-black/20 p-1.5 rounded-xs text-xs">
+                <input type="number" id="new-limit-count" min="1" step="1" placeholder="상한 건수 (예: 20)" aria-label="상한 건수" class="w-36 bg-white border border-ink-black/20 p-1.5 rounded-xs text-xs">
+                <button type="button" onclick="addDateLimit()" class="px-3 py-1.5 bg-ink-black text-white font-bold rounded-xs text-xs cursor-pointer hover:bg-seal-red">특정일 상한 추가</button>
+              </div>
+              <div id="date-limits-list" class="max-h-40 overflow-y-auto border border-ink-black/10 rounded-xs divide-y divide-ink-black/5 bg-white text-xs"></div>
+            </div>
+          </div>
           <div class="flex items-center gap-3">
             <button type="submit" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">배송 설정 저장</button>
             <span id="delivery-message" class="text-xs font-bold"></span>
@@ -1623,19 +1645,19 @@
 
   <!-- JavaScript: Admin 로직 & 쇼핑몰 데이터 양방향 실시간 동기화 -->
   <!-- 관리자 화면 동작 (화면별 파일, 순서 중요) -->
-  <script src="assets/js/admin/admin-dashboard.js?v=72"></script>
-  <script src="assets/js/admin/admin-products.js?v=72"></script>
-  <script src="assets/js/admin/admin-orders.js?v=72"></script>
-  <script src="assets/js/admin/admin-inquiries.js?v=72"></script>
-  <script src="assets/js/admin/admin-product-modal.js?v=72"></script>
-  <script src="assets/js/admin/admin-flowers.js?v=72"></script>
-  <script src="assets/js/admin/admin-coupons.js?v=72"></script>
-  <script src="assets/js/admin/admin-settings.js?v=72"></script>
-  <script src="assets/js/admin/admin-popups.js?v=72"></script>
-  <script src="assets/js/admin/admin-finance.js?v=72"></script>
-  <script src="assets/js/admin/admin-integrations.js?v=72"></script>
-  <script src="assets/js/admin/admin-pages.js?v=72"></script>
-  <script src="assets/js/admin/admin-tools-ui.js?v=72"></script>
+  <script src="assets/js/admin/admin-dashboard.js?v=73"></script>
+  <script src="assets/js/admin/admin-products.js?v=73"></script>
+  <script src="assets/js/admin/admin-orders.js?v=73"></script>
+  <script src="assets/js/admin/admin-inquiries.js?v=73"></script>
+  <script src="assets/js/admin/admin-product-modal.js?v=73"></script>
+  <script src="assets/js/admin/admin-flowers.js?v=73"></script>
+  <script src="assets/js/admin/admin-coupons.js?v=73"></script>
+  <script src="assets/js/admin/admin-settings.js?v=73"></script>
+  <script src="assets/js/admin/admin-popups.js?v=73"></script>
+  <script src="assets/js/admin/admin-finance.js?v=73"></script>
+  <script src="assets/js/admin/admin-integrations.js?v=73"></script>
+  <script src="assets/js/admin/admin-pages.js?v=73"></script>
+  <script src="assets/js/admin/admin-tools-ui.js?v=73"></script>
 
   <!-- 슬라이드 편집 모달 -->
   <div id="slide-edit-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-black/60 hidden">

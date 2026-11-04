@@ -45,17 +45,19 @@ function getAvailableDeliveryDates(method = (typeof selectedDeliveryMethod === '
   if (until && typeof getKoreaTimeParts === 'function') {
     const kp = getKoreaTimeParts(now);
     const sched = typeof getDaySchedule === 'function' ? getDaySchedule(kp.dateStr, settings) : { open: true };
-    if (sched.open && kp.timeStr < until) {
+    const full = typeof isDeliveryDateFull === 'function' ? isDeliveryDateFull(kp.dateStr, { settings }) : false;
+    if (sched.open && !full && kp.timeStr < until) {
       const label = typeof formatDeliveryDateOption === 'function' ? formatDeliveryDateOption(new Date(kp.year, kp.month - 1, kp.date), currentLang) : kp.dateStr;
       list.push({ value: kp.dateStr, label: `${label} · ${typeof t === 'function' ? t('co_today', '오늘') : '오늘'}` });
     }
   }
-  // 최대 60일까지 탐색하며 open인 날 14일 수집
+  // 최대 60일까지 탐색하며 open이고 마감되지 않은 날 14일 수집
   for (let dayOffset = 1; list.length < 14 && dayOffset <= 60; dayOffset++) {
     const d = new Date(now.getTime() + dayOffset * 24 * 60 * 60 * 1000);
     const kp = typeof getKoreaTimeParts === 'function' ? getKoreaTimeParts(d) : { dateStr: d.toISOString().slice(0, 10), day: d.getDay() };
     const sched = typeof getDaySchedule === 'function' ? getDaySchedule(kp.dateStr, settings) : { open: true };
-    if (!sched.open) continue;
+    const full = typeof isDeliveryDateFull === 'function' ? isDeliveryDateFull(kp.dateStr, { settings }) : false;
+    if (!sched.open || full) continue;
     const [y, m, day] = kp.dateStr.split('-').map(Number);
     const label = typeof formatDeliveryDateOption === 'function'
       ? formatDeliveryDateOption(new Date(y, m - 1, day), currentLang)

@@ -174,6 +174,62 @@ function updateProductImagePreview() {
 }
 
 // 배송 방법·배송비
+let adminDateLimits = [];
+
+function renderDateLimitsList() {
+  const box = document.getElementById('date-limits-list');
+  if (!box) return;
+  box.innerHTML = '';
+  if (!adminDateLimits || adminDateLimits.length === 0) {
+    box.innerHTML = '<p class="p-3 text-ink-light text-center">등록된 특정일 상한이 없습니다.</p>';
+    return;
+  }
+  adminDateLimits.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  adminDateLimits.forEach((item, idx) => {
+    const row = document.createElement('div');
+    row.className = 'flex items-center justify-between p-2 hover:bg-black/[0.02]';
+    row.innerHTML = `
+      <div class="flex items-center gap-2">
+        <span class="font-mono font-bold text-ink-black">${typeof escapeHtml === 'function' ? escapeHtml(item.date) : item.date}</span>
+        <span class="text-ink-gray">최대 <strong class="text-seal-red">${item.limit}건</strong></span>
+      </div>
+      <button type="button" onclick="removeDateLimit(${idx})" class="text-ink-light hover:text-seal-red text-xs px-2 py-0.5 rounded font-bold cursor-pointer">삭제</button>
+    `;
+    box.appendChild(row);
+  });
+}
+
+function addDateLimit() {
+  const dateEl = document.getElementById('new-limit-date');
+  const countEl = document.getElementById('new-limit-count');
+  if (!dateEl || !dateEl.value) {
+    alert('상한을 설정할 날짜를 선택해 주세요.');
+    return;
+  }
+  const count = parseInt(countEl.value, 10);
+  if (!count || count < 1) {
+    alert('상한 건수는 1 이상의 숫자를 입력해 주세요.');
+    return;
+  }
+  const date = dateEl.value;
+  const existingIdx = adminDateLimits.findIndex(x => x.date === date);
+  if (existingIdx !== -1) {
+    adminDateLimits[existingIdx].limit = count;
+  } else {
+    adminDateLimits.push({ date, limit: count });
+  }
+  dateEl.value = '';
+  countEl.value = '';
+  renderDateLimitsList();
+}
+
+function removeDateLimit(idx) {
+  if (idx >= 0 && idx < adminDateLimits.length) {
+    adminDateLimits.splice(idx, 1);
+    renderDateLimitsList();
+  }
+}
+
 function renderDeliverySettings() {
   const d = loadSettings().delivery;
   if (!d || !document.getElementById('dlv-quick-on')) return;
@@ -186,6 +242,10 @@ function renderDeliverySettings() {
   document.getElementById('dlv-quick-sameday').value = (d.quick && d.quick.sameDayUntil) || '';
   document.getElementById('dlv-free-over').value = d.freeOver;
   document.getElementById('dlv-note').value = d.note || '';
+  const dailyEl = document.getElementById('dlv-daily-limit');
+  if (dailyEl) dailyEl.value = d.dailyLimit || 0;
+  adminDateLimits = JSON.parse(JSON.stringify(d.dateLimits || []));
+  renderDateLimitsList();
 }
 
 function saveDeliverySettings(e) {
@@ -206,7 +266,9 @@ function saveDeliverySettings(e) {
       parcel: { enabled: on('parcel'), fee: num('dlv-parcel-fee'), area: val('dlv-parcel-area') },
       pickup: { enabled: on('pickup'), fee: 0, area: val('dlv-pickup-area') },
       freeOver: num('dlv-free-over'),
-      note: val('dlv-note')
+      note: val('dlv-note'),
+      dailyLimit: num('dlv-daily-limit'),
+      dateLimits: adminDateLimits
     }
   });
   setIntegrationMessage('delivery-message', '저장했어요. 쇼핑몰 주문서에 바로 반영돼요.', true);

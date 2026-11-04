@@ -187,6 +187,57 @@ def make_backup(label, force=False):
     return folder
 
 
+def _get_server_full_dates():
+    """settings 표와 orders 표를 바탕으로 마감된 날짜 목록 계산 (LOCK 안에서 호출)"""
+    st = read_table('settings')
+    daily = 0
+    date_limits = {}
+    if st:
+        header, rows = st
+        delivery_row = next((r for r in rows if r.get('key') == 'delivery'), None)
+        if delivery_row:
+            try:
+                val = json.loads(delivery_row.get('value') or '{}')
+                daily = max(0, int(val.get('dailyLimit') or 0))
+                for dl in val.get('dateLimits') or []:
+                    if isinstance(dl, dict) and dl.get('date') and 'limit' in dl:
+                        date_limits[str(dl['date'])] = max(1, int(dl['limit']))
+            except Exception:
+                pass
+    if daily <= 0 and not date_limits:
+        return []
+    ot = read_table('orders')
+    if not ot:
+        return []
+    header, rows = ot
+    counts = {}
+    for r in rows:
+        if r.get('status') == 'cancelled':
+            continue
+        if str(r.get('isSample', '')).lower() in ('true', '1'):
+            continue
+        d = str(r.get('deliveryDate') or '').strip()
+        if d:
+            d_ymd = d.split()[0]
+            counts[d_ymd] = counts.get(d_ymd, 0) + 1
+
+    full_dates = set()
+    for d, lim in date_limits.items():
+        if lim > 0 and counts.get(d, 0) >= lim:
+            full_dates.add(d)
+    if daily > 0:
+        for d, cnt in counts.items():
+            if d not in date_limits and cnt >= daily:
+                full_dates.add(d)
+    return sorted(list(full_dates))
+
+
+def get_server_full_dates():
+    """락을 걸고 마감 날짜 목록 반환 (외부 호출용)"""
+    with LOCK:
+        return _get_server_full_dates()
+
+
 def apply_change(change, local):
     """한 표의 바뀐 줄 적용. (적용 수, 거절 사유 목록)"""
     table = change.get('table')
@@ -252,6 +303,11 @@ def apply_change(change, local):
                         break
                 if invalid_money:
                     rejected.append('orders: 금액 항목(totalAmount, itemsTotal, deliveryFee)은 0 이상의 숫자여야 합니다')
+                    continue
+                # 4. 날짜별 주문 상한 초과 검사
+                deliv_date = str(row.get('deliveryDate') or '').strip().split()[0]
+                if deliv_date and deliv_date in _get_server_full_dates():
+                    rejected.append(f'orders: {deliv_date} 배송일은 주문이 마감되었습니다')
                     continue
             if table == 'reviews':
                 row['status'] = 'pending'
@@ -560,6 +616,9 @@ class Handler(SimpleHTTPRequestHandler):
                 return buf.getvalue()
             item_rows = [r for r in (items[1] if items else []) if r.get('orderId') == row.get('id')]
             self.send_json({'ok': True, 'orders': as_csv(orders[0], [row]), 'items': as_csv(items[0], item_rows) if items else ''})
+            return
+        if path == '/api/full-dates':
+            self.send_json({'ok': True, 'dates': get_server_full_dates()})
             return
         if path == '/api/full-backup':
             if not self.is_admin():
