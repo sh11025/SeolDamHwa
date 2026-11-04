@@ -174,16 +174,21 @@ function renderTodayTasks(orders, products, inquiries, today) {
   });
   const hintEl = document.getElementById('today-tasks-backup-hint');
   if (hintEl) {
-    const lastBackup = typeof DataStore !== 'undefined' ? DataStore.read(DataStore.KEYS.lastFullBackup, '') : '';
-    const diffDays = lastBackup ? (Date.now() - new Date(lastBackup).getTime()) / (1000 * 60 * 60 * 24) : 999;
-    if (diffDays >= 7) {
-      hintEl.textContent = !lastBackup
-        ? '💡 전체 백업을 내려받은 기록이 없어요. [연동·데이터] 탭에서 백업을 받아 USB나 안전한 곳에 보관해 두세요.'
-        : `💡 전체 백업을 내려받은 지 ${Math.floor(diffDays)}일이 지났어요. [연동·데이터] 탭에서 최신 백업을 내려받아 두세요.`;
-      hintEl.classList.remove('hidden');
-    } else {
+    if (!window.SDH_SERVER_MODE) {
       hintEl.classList.add('hidden');
       hintEl.textContent = '';
+    } else {
+      const lastBackup = typeof DataStore !== 'undefined' ? DataStore.read(DataStore.KEYS.lastFullBackup, '') : '';
+      const diffDays = lastBackup ? (Date.now() - new Date(lastBackup).getTime()) / (1000 * 60 * 60 * 24) : 999;
+      if (diffDays >= 7) {
+        hintEl.textContent = !lastBackup
+          ? '💡 전체 백업을 내려받은 기록이 없어요. [연동·데이터] 탭에서 백업을 받아 USB나 안전한 곳에 보관해 두세요.'
+          : `💡 전체 백업을 내려받은 지 ${Math.floor(diffDays)}일이 지났어요. [연동·데이터] 탭에서 최신 백업을 내려받아 두세요.`;
+        hintEl.classList.remove('hidden');
+      } else {
+        hintEl.classList.add('hidden');
+        hintEl.textContent = '';
+      }
     }
   }
 }

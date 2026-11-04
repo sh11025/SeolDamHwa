@@ -267,6 +267,27 @@ def apply_change(change, local):
         if not k.strip('#'):
             continue
         if not local:
+            if table in ('orders', 'inquiries', 'restock', 'reviews'):
+                row_id = str(row.get('id') or '').strip()
+                if not re.match(r'^[A-Za-z0-9_-]{1,80}$', row_id):
+                    rejected.append(f'{table}: 잘못된 ID 형식입니다')
+                    continue
+            if table in ('order_items', 'restock', 'reviews'):
+                # 상품 번호는 관리자·쇼핑몰 버튼에 그대로 들어가므로 형식을 제한
+                prod_id = str(row.get('productId') or '').strip()
+                if prod_id and not re.match(r'^[A-Za-z0-9_-]{1,80}$', prod_id):
+                    rejected.append(f'{table}: 잘못된 상품 번호 형식입니다')
+                    continue
+            if table == 'order_items':
+                oid = str(row.get('orderId') or '').strip()
+                if not re.match(r'^[A-Za-z0-9_-]{1,80}$', oid):
+                    rejected.append('order_items: 잘못된 orderId 형식입니다')
+                    continue
+                orders_data = read_table('orders')
+                orders_ids = {str(o.get('id') or '').strip() for o in orders_data[1]} if orders_data else set()
+                if oid not in orders_ids:
+                    rejected.append('order_items: 일치하는 주문(orders)이 없습니다')
+                    continue
             if table == 'products':
                 # 손님 기기: 이미 있는 상품의 재고를 줄이는 것만
                 old = index.get(k)
@@ -278,11 +299,21 @@ def apply_change(change, local):
                     pass
                 continue
             if table == 'orders':
-                # 1. orderNumber 중복 검사
+                # 1. orderNumber 유효성 및 중복 검사
                 onum = str(row.get('orderNumber') or '').strip().upper()
-                if onum and onum in existing_order_numbers:
+                if not re.match(r'^[A-Za-z0-9-]{1,40}$', onum):
+                    rejected.append('orders: 잘못된 주문번호 형식입니다')
+                    continue
+                if onum in existing_order_numbers:
                     rejected.append(f'orders:{onum} 이미 접수된 주문번호입니다')
                     continue
+                # 원격 주문 상태 강제 덮어쓰기
+                row['status'] = 'preparing'
+                row['statusBeforeCancel'] = ''
+                row['courier'] = ''
+                row['trackingNumber'] = ''
+                row['reviewRequestedAt'] = ''
+                row['isSample'] = 'false'
                 # 2. ordererName, ordererPhone 비어있는지 검사
                 name = str(row.get('ordererName') or row.get('customerName') or '').strip()
                 phone = str(row.get('ordererPhone') or row.get('phone') or '').strip()
@@ -304,8 +335,12 @@ def apply_change(change, local):
                 if invalid_money:
                     rejected.append('orders: 금액 항목(totalAmount, itemsTotal, deliveryFee)은 0 이상의 숫자여야 합니다')
                     continue
-                # 4. 날짜별 주문 상한 초과 검사
-                deliv_date = str(row.get('deliveryDate') or '').strip().split()[0]
+                # 4. 빈 배송일 검사 및 날짜별 주문 상한 초과 검사
+                raw_deliv = str(row.get('deliveryDate') or '').strip()
+                if not raw_deliv:
+                    rejected.append('orders: 배송일이 비어 있습니다')
+                    continue
+                deliv_date = raw_deliv.split()[0]
                 if deliv_date and deliv_date in _get_server_full_dates():
                     rejected.append(f'orders: {deliv_date} 배송일은 주문이 마감되었습니다')
                     continue
@@ -837,7 +872,14 @@ class Handler(SimpleHTTPRequestHandler):
             total, rejected = 0, []
             with LOCK:
                 make_backup('auto')
-                for change in body.get('changes') or []:
+                changes = list(body.get('changes') or [])
+                def change_sort_key(c):
+                    t = c.get('table')
+                    if t == 'orders': return 0
+                    if t == 'order_items': return 2
+                    return 1
+                changes.sort(key=change_sort_key)
+                for change in changes:
                     n, r = apply_change(change, local)
                     total += n
                     rejected += r

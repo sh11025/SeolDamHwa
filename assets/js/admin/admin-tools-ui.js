@@ -437,7 +437,7 @@ function renderReviewsAdmin() {
           ${photoArr.map(src => {
             const url = typeof reviewMediaUrl === 'function' ? reviewMediaUrl(src) : src;
             return `
-              <img loading="lazy" decoding="async" src="${url}" alt="후기 사진" class="w-16 h-16 object-cover rounded-xs border border-ink-black/10 cursor-pointer hover:opacity-80" onclick="window.open('${url}', '_blank')" />
+              <img loading="lazy" decoding="async" src="${url}" alt="후기 사진" class="w-16 h-16 object-cover rounded-xs border border-ink-black/10 cursor-pointer hover:opacity-80" onclick="window.open(this.src, '_blank')" />
             `;
           }).join('')}
         </div>

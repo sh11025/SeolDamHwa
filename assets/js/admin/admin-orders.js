@@ -158,7 +158,7 @@ function renderOrdersList() {
           </div>
           <pre class="w-full text-xs p-2 bg-[#FAF7F2] border border-ink-black/10 rounded font-sans whitespace-pre-wrap leading-relaxed select-all">${escapeHtml(msgText)}</pre>
           <div class="flex flex-wrap items-center gap-2 pt-1 text-xs">
-            <button type="button" onclick="copyOrderMessage(${JSON.stringify(msgText).replace(/"/g, '&quot;')}, '${o.id}', ${isReview})" class="px-3 py-1 bg-ink-black text-white font-bold rounded-xs hover:bg-seal-red cursor-pointer">문구 복사</button>
+            <button type="button" onclick="copyOrderMessage('${o.id}', '${msgPanelType}')" class="px-3 py-1 bg-ink-black text-white font-bold rounded-xs hover:bg-seal-red cursor-pointer">문구 복사</button>
             ${cleanPhone ? `<a href="sms:${escapeHtml(cleanPhone)}?body=${smsBodyEncoded}" onclick="if (${isReview}) markReviewRequested('${o.id}')" class="px-3 py-1 border border-ink-black/20 text-ink-black font-bold rounded-xs hover:border-ink-black bg-white inline-block">문자 앱 열기</a>` : '<span class="text-[11px] text-ink-light">주문자 번호 없음</span>'}
             <button type="button" onclick="toggleOrderMsgPanel('${o.id}', '')" class="ml-auto text-ink-gray hover:text-seal-red cursor-pointer">닫기</button>
           </div>
@@ -504,7 +504,13 @@ function markReviewRequested(ordId) {
   renderOrdersList();
 }
 
-function copyOrderMessage(text, ordId, isReview) {
+function copyOrderMessage(ordId, type) {
+  const all = typeof loadAdminOrders === 'function' ? loadAdminOrders() : [];
+  const o = all.find(x => x.id === ordId);
+  if (!o) return;
+  const settings = typeof loadSettings === 'function' ? loadSettings() : {};
+  const isReview = type === 'review';
+  const text = isReview ? buildReviewMessage(o, settings) : buildShippingMessage(o, settings);
   const onDone = () => {
     alert('메시지 문구가 복사되었습니다.');
     if (isReview && ordId) markReviewRequested(ordId);

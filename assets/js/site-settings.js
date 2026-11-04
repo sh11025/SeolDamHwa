@@ -48,8 +48,8 @@ const DEFAULT_SETTINGS = {
   address: '서울시 종로구 북촌로 42',
   addressDetail: '(임시 주소)',
   directions: '',          // 예: "안국역 2번 출구 도보 7분"
-  kakaoChannelUrl: '',
-  shopUrl: '',             // 후기 요청 링크용 쇼핑몰 주소     // 예: "https://pf.kakao.com/_xxxx"
+  kakaoChannelUrl: '',     // 예: "https://pf.kakao.com/_xxxx"
+  shopUrl: '',             // 후기 요청 링크용 쇼핑몰 주소
   showLocation: false,     // 오프라인 아틀리에 오시는 길 공개 여부 (기본 false: 비공개)
   business: { companyName: '설담화', ceo: '', bizNumber: '', mailOrderNumber: '', bizAddress: '', privacyOfficer: '' }, // 사업자 정보 (맨 아래·약관에 표시)
   // 배송 방법·배송비 (관리자 > 매장 정보 설정에서 수정)
@@ -161,14 +161,19 @@ function getActiveOrderCountForDate(dateStr, orders) {
 }
 
 /**
+ * 서버에서 동기화한 마감일 목록 캐시 (배송일 계산 및 달력 렌더링 시 공용 참조)
+ */
+let serverFullDatesCache = [];
+
+/**
  * 특정 배송일이 마감되었는지 여부
  * @param {string} dateStr 'YYYY-MM-DD'
  * @param {object} [options]
  * @returns {boolean}
  */
-function isDeliveryDateFull(dateStr, { orders, settings, serverFullDates } = {}) {
+function isDeliveryDateFull(dateStr, { orders, settings } = {}) {
   if (!dateStr) return false;
-  if (serverFullDates && Array.isArray(serverFullDates) && serverFullDates.includes(dateStr)) {
+  if (Array.isArray(serverFullDatesCache) && serverFullDatesCache.includes(dateStr)) {
     return true;
   }
   const s = settings || (typeof loadSettings === 'function' ? loadSettings() : DEFAULT_SETTINGS);

@@ -460,7 +460,7 @@ function renderHomeReviewsSlider() {
       const firstPhotoUrl = typeof reviewMediaUrl === 'function' ? reviewMediaUrl(photoArr[0]) : photoArr[0];
       mediaHeaderHtml = `
         <div class="relative w-full aspect-[4/3] bg-ink-black/5 overflow-hidden">
-          <img src="${firstPhotoUrl}" alt="${htmlText(r.productName || '후기 사진')}" loading="lazy" decoding="async" class="w-full h-full object-cover">
+          <img src="${htmlText(firstPhotoUrl)}" alt="${htmlText(r.productName || '후기 사진')}" loading="lazy" decoding="async" class="w-full h-full object-cover">
           ${hasVideo ? '<span class="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">🎬 영상</span>' : ''}
         </div>
       `;

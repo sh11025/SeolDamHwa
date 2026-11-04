@@ -169,7 +169,6 @@ function deliveryNeedsTime(method) {
 
 /* ---------- 배송일 달력 (② 받는 분·배송) ---------- */
 let deliveryCalMonth = ''; // 'YYYY-MM'
-let serverFullDatesCache = [];
 
 async function syncServerFullDates() {
   if (window.SDH_SERVER_MODE) {
@@ -262,7 +261,7 @@ function renderDeliveryCalendar() {
     const b = document.createElement('button');
     b.type = 'button';
     b.textContent = d;
-    const isFull = typeof isDeliveryDateFull === 'function' && isDeliveryDateFull(value, { serverFullDates: serverFullDatesCache });
+    const isFull = typeof isDeliveryDateFull === 'function' && isDeliveryDateFull(value);
     const ok = open.has(value) && !isFull;
     const on = value === input.value;
     b.disabled = !ok;
@@ -481,16 +480,28 @@ function openOrderLookup(prefillNumber) {
 
 function closeOrderLookup() {
   document.getElementById('order-lookup-modal').classList.add('hidden');
+  if (location.hash && location.hash.startsWith('#/review/')) {
+    if (typeof setRouteHash === 'function') {
+      setRouteHash('#/', true);
+    } else {
+      history.replaceState(null, '', '#/');
+    }
+  }
 }
 
 function runOrderLookup(e) {
   e.preventDefault();
   const num = document.getElementById('lookup-order-number').value.trim().toUpperCase();
   const phone = document.getElementById('lookup-phone').value.replace(/\D/g, '');
-  const orders = loadOrders();
-  let o = orders.find(x => String(x.orderNumber).toUpperCase() === num && String(x.ordererPhone || x.phone || '').replace(/\D/g, '') === phone);
-  // 서버로 연 손님 기기는 주문 목록을 갖고 있지 않으므로 서버에 한 건만 확인
-  if (!o && typeof DataSync !== 'undefined' && DataSync.enabled && !DataSync.local) o = DataSync.lookupOrder(num, phone);
+  let o = null;
+  // 서버 모드 손님 기기는 서버의 최신 상태(배송완료·운송장 등)를 우선 조회
+  if (typeof DataSync !== 'undefined' && DataSync.enabled && !DataSync.local) {
+    o = DataSync.lookupOrder(num, phone);
+  }
+  if (!o) {
+    const orders = loadOrders();
+    o = orders.find(x => String(x.orderNumber).toUpperCase() === num && String(x.ordererPhone || x.phone || '').replace(/\D/g, '') === phone);
+  }
   const box = document.getElementById('lookup-result');
   box.classList.remove('hidden');
   box.innerHTML = '';
@@ -729,7 +740,7 @@ function validateCheckoutStep2() {
   const method = selectedDeliveryMethod();
   if (!method) { alert(coT('co_method_required', '배송 방법을 골라 주세요.')); return false; }
   const pickedDate = document.getElementById('order-delivery-date').value;
-  if (pickedDate && typeof isDeliveryDateFull === 'function' && isDeliveryDateFull(pickedDate, { serverFullDates: serverFullDatesCache })) {
+  if (pickedDate && typeof isDeliveryDateFull === 'function' && isDeliveryDateFull(pickedDate)) {
     document.getElementById('order-delivery-date').value = '';
     renderDeliveryCalendar();
     alert(coT('co_date_full_pick_other', '선택하신 날짜는 주문이 마감되었어요. 다른 날짜를 골라 주세요.'));
@@ -829,8 +840,11 @@ async function submitCustomerOrder(e) {
     if (!cart || cart.length === 0) {
       return;
     }
+    if (typeof syncServerFullDates === 'function') {
+      await syncServerFullDates();
+    }
     const dateVal = document.getElementById('order-delivery-date').value;
-    if (dateVal && typeof isDeliveryDateFull === 'function' && isDeliveryDateFull(dateVal, { serverFullDates: serverFullDatesCache })) {
+    if (dateVal && typeof isDeliveryDateFull === 'function' && isDeliveryDateFull(dateVal)) {
       document.getElementById('order-delivery-date').value = '';
       renderDeliveryCalendar();
       goCheckoutStep(2);
@@ -968,6 +982,15 @@ async function submitCustomerOrder(e) {
           // 서버에서 거절된 경우 로컬 롤백
           const rolledBack = loadOrders().filter(o => o.orderNumber !== orderNumber);
           saveOrders(rolledBack);
+          const fullRejection = syncRes.rejected.find(r => r.startsWith('orders:') && r.includes('주문이 마감'));
+          if (fullRejection) {
+            if (typeof syncServerFullDates === 'function') await syncServerFullDates();
+            document.getElementById('order-delivery-date').value = '';
+            renderDeliveryCalendar();
+            goCheckoutStep(2);
+            alert(coT('co_date_full_pick_other', '선택하신 날짜는 주문이 마감되었어요. 다른 날짜를 골라 주세요.'));
+            return;
+          }
           alert(coT('co_order_failed', '주문을 접수하지 못했어요. 입력 정보나 주문 번호를 확인해 주세요.'));
           return;
         }
