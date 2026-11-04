@@ -302,14 +302,8 @@ function filterReviewsAdmin(tab) {
   renderReviewsAdmin();
 }
 
-function renderReviewsAdmin() {
-  const listEl = document.getElementById('admin-reviews-list');
-  const emptyEl = document.getElementById('admin-reviews-empty');
-  if (!listEl) return;
-
+function updateAdminReviewCounts() {
   const allRevs = typeof loadReviews === 'function' ? loadReviews() : [];
-
-  // 카운트 집계
   const counts = {
     pending: allRevs.filter(r => r.status === 'pending').length,
     approved: allRevs.filter(r => r.status === 'approved').length,
@@ -322,7 +316,6 @@ function renderReviewsAdmin() {
     if (cEl) cEl.textContent = counts[t];
   });
 
-  // 사이드바 배지
   const sideBadge = document.getElementById('badge-review-admin-count');
   if (sideBadge) {
     if (counts.pending > 0) {
@@ -332,6 +325,16 @@ function renderReviewsAdmin() {
       sideBadge.classList.add('hidden');
     }
   }
+  return counts;
+}
+
+function renderReviewsAdmin() {
+  const listEl = document.getElementById('admin-reviews-list');
+  const emptyEl = document.getElementById('admin-reviews-empty');
+  if (!listEl) return;
+
+  const allRevs = typeof loadReviews === 'function' ? loadReviews() : [];
+  updateAdminReviewCounts();
 
   // 필터링
   let filtered = allRevs;
@@ -369,16 +372,20 @@ function renderReviewsAdmin() {
     if (photoArr.length > 0) {
       mediaHtml += `
         <div class="flex gap-2 pt-1 flex-wrap">
-          ${photoArr.map(src => `
-            <img src="${src}" alt="후기 사진" class="w-16 h-16 object-cover rounded-xs border border-ink-black/10 cursor-pointer hover:opacity-80" onclick="window.open('${src}', '_blank')" />
-          `).join('')}
+          ${photoArr.map(src => {
+            const url = typeof reviewMediaUrl === 'function' ? reviewMediaUrl(src) : src;
+            return `
+              <img src="${url}" alt="후기 사진" class="w-16 h-16 object-cover rounded-xs border border-ink-black/10 cursor-pointer hover:opacity-80" onclick="window.open('${url}', '_blank')" />
+            `;
+          }).join('')}
         </div>
       `;
     }
     if (r.video) {
+      const vUrl = typeof reviewMediaUrl === 'function' ? reviewMediaUrl(r.video) : r.video;
       mediaHtml += `
         <div class="pt-2 max-w-sm">
-          <video src="${r.video}" controls playsinline preload="metadata" class="w-full max-h-48 rounded-xs bg-black"></video>
+          <video src="${vUrl}" controls playsinline preload="metadata" class="w-full max-h-48 rounded-xs bg-black"></video>
         </div>
       `;
     }
@@ -477,7 +484,7 @@ async function updateReviewStatus(id, newStatus) {
   target.status = newStatus;
   if (typeof saveReviews === 'function') saveReviews(list);
   if (typeof DataSync !== 'undefined' && DataSync.enabled) {
-    try { await DataSync.sync(); } catch (e) { console.warn('리뷰 상태 동기화 실패:', e); }
+    try { await DataSync.push(); } catch (e) { console.warn('리뷰 상태 동기화 실패:', e); }
   }
   renderReviewsAdmin();
 }
@@ -488,7 +495,7 @@ async function deleteReview(id) {
   const filtered = list.filter(r => r.id !== id);
   if (typeof saveReviews === 'function') saveReviews(filtered);
   if (typeof DataSync !== 'undefined' && DataSync.enabled) {
-    try { await DataSync.sync(); } catch (e) { console.warn('리뷰 삭제 동기화 실패:', e); }
+    try { await DataSync.push(); } catch (e) { console.warn('리뷰 삭제 동기화 실패:', e); }
   }
   renderReviewsAdmin();
 }
@@ -501,7 +508,11 @@ async function saveAdminReply(id, replyText) {
   target.replyAt = new Date().toISOString();
   if (typeof saveReviews === 'function') saveReviews(list);
   if (typeof DataSync !== 'undefined' && DataSync.enabled) {
-    try { await DataSync.sync(); } catch (e) { console.warn('리뷰 답글 동기화 실패:', e); }
+    try { await DataSync.push(); } catch (e) { console.warn('리뷰 답글 동기화 실패:', e); }
   }
   renderReviewsAdmin();
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  try { updateAdminReviewCounts(); } catch (e) {}
+});

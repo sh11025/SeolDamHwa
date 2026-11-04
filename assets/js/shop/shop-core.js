@@ -416,7 +416,7 @@ let currentReviewPage = 1;
 const REVIEWS_PER_PAGE = 12;
 
 function scrollHomeReviews(direction) {
-  const track = document.getElementById('home-reviews-track');
+  const track = document.getElementById('home-reviews-track') || document.getElementById('home-reviews-slider');
   if (track) {
     track.scrollBy({ left: direction * 330, behavior: 'smooth' });
   }
@@ -424,11 +424,11 @@ function scrollHomeReviews(direction) {
 
 function renderHomeReviewsSlider() {
   const sec = document.getElementById('home-reviews-section');
-  const track = document.getElementById('home-reviews-track');
+  const track = document.getElementById('home-reviews-track') || document.getElementById('home-reviews-slider');
   if (!sec || !track) return;
 
   const allRevs = typeof loadReviews === 'function' ? loadReviews() : [];
-  const approved = allRevs.filter(r => r.status === 'approved');
+  const approved = allRevs.filter(r => r.status === 'approved' || (!r.status && !r.isSample));
 
   const isPreview = (typeof isPreviewMode !== 'undefined' && isPreviewMode) ||
                     (new URLSearchParams(window.location.search).get('preview') === '1');
@@ -501,7 +501,7 @@ function changeReviewSort(sort) {
 
 function renderReviewsPage() {
   const allRevs = typeof loadReviews === 'function' ? loadReviews() : [];
-  const approved = allRevs.filter(r => r.status === 'approved');
+  const approved = allRevs.filter(r => r.status === 'approved' || (!r.status && !r.isSample));
 
   // 통계 계산
   const total = approved.length;
@@ -550,7 +550,7 @@ function renderReviewsList() {
   if (!grid) return;
 
   const allRevs = typeof loadReviews === 'function' ? loadReviews() : [];
-  let list = allRevs.filter(r => r.status === 'approved');
+  let list = allRevs.filter(r => r.status === 'approved' || (!r.status && !r.isSample));
 
   // 필터 적용
   if (currentReviewFilter === 'media') {
@@ -606,7 +606,7 @@ function renderReviewsList() {
       photosHtml = `
         <div class="flex gap-2 pt-2 flex-wrap">
           ${photoArr.map(src => `
-            <img src="${src}" alt="후기 사진" class="w-20 h-20 md:w-24 md:h-24 object-cover rounded-xs border border-ink-black/10 cursor-pointer hover:opacity-90" onclick="openReviewPhotoModal('${src}')" />
+            <img src="${typeof reviewMediaUrl === 'function' ? reviewMediaUrl(src) : src}" alt="후기 사진" class="w-20 h-20 md:w-24 md:h-24 object-cover rounded-xs border border-ink-black/10 cursor-pointer hover:opacity-90" onclick="openReviewPhotoModal('${src}')" />
           `).join('')}
         </div>
       `;
@@ -615,9 +615,10 @@ function renderReviewsList() {
     // 동영상 플레이어 HTML
     let videoHtml = '';
     if (r.video) {
+      const vUrl = typeof reviewMediaUrl === 'function' ? reviewMediaUrl(r.video) : r.video;
       videoHtml = `
         <div class="pt-2">
-          <video src="${r.video}" controls playsinline preload="metadata" class="w-full max-h-60 rounded-xs bg-black"></video>
+          <video src="${vUrl}" controls playsinline preload="metadata" class="w-full max-h-60 rounded-xs bg-black"></video>
         </div>
       `;
     }

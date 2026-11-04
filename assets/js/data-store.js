@@ -179,18 +179,66 @@ function saveInquiries(list) {
   DataStore.write(DataStore.KEYS.inquiries, list);
 }
 
-// 양쪽 페이지 공통 상품 후기 데이터 함수
+// 양쪽 페이지 공통 손님 후기 데이터 함수
 function loadReviews() {
   try {
     const list = DataStore.read(DataStore.KEYS.reviews, []);
-    return Array.isArray(list) ? list : [];
+    if (!Array.isArray(list)) return [];
+    return list.map(r => {
+      if (!r || typeof r !== 'object') return null;
+      let photos = r.photos;
+      if (typeof photos === 'string') {
+        try {
+          photos = JSON.parse(photos);
+          if (typeof photos === 'string') photos = JSON.parse(photos);
+        } catch (e) {
+          photos = [];
+        }
+      }
+      if (!Array.isArray(photos)) photos = [];
+      return { ...r, photos };
+    }).filter(Boolean);
   } catch (e) {
     return [];
   }
 }
 
 function saveReviews(list) {
-  DataStore.write(DataStore.KEYS.reviews, list);
+  const normalized = (Array.isArray(list) ? list : []).map(r => {
+    if (!r || typeof r !== 'object') return null;
+    let photos = r.photos;
+    if (typeof photos === 'string') {
+      try {
+        photos = JSON.parse(photos);
+        if (typeof photos === 'string') photos = JSON.parse(photos);
+      } catch (e) {
+        photos = [];
+      }
+    }
+    if (!Array.isArray(photos)) photos = [];
+    return { ...r, photos };
+  }).filter(Boolean);
+  DataStore.write(DataStore.KEYS.reviews, normalized);
+}
+
+// 후기 미디어 URL 공용 헬퍼 (서버 모드 reviews/... 경로 및 assets, data:, blob: 지원)
+function reviewMediaUrl(path) {
+  if (!path || typeof path !== 'string') return '';
+  const trimmed = path.trim();
+  if (!trimmed) return '';
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:') || trimmed.startsWith('blob:') || trimmed.startsWith('assets/') || trimmed.startsWith('/assets/')) {
+    return trimmed;
+  }
+  if (trimmed.startsWith('/api/review-media/')) {
+    return trimmed;
+  }
+  if (trimmed.startsWith('reviews/')) {
+    return '/api/review-media/' + trimmed;
+  }
+  if (trimmed.startsWith('/reviews/')) {
+    return '/api/review-media' + trimmed;
+  }
+  return trimmed;
 }
 
 // 브라우저 저장 공간(약 5MB)이 가득 차서 저장이 안 될 때 알려 줌 (products-data.js에서 이동)

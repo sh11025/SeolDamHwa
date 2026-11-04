@@ -453,10 +453,10 @@ const I18N = {
 
     // 손님 후기
     nav_reviews: "리뷰",
-    reviews_tag: "CUSTOMER REVIEWS",
+    reviews_tag: "손님 후기",
     reviews_title: "손님 후기",
     reviews_subtitle: "설담화 꽃과 함께해 주신 소중한 마음들을 모았습니다.",
-    home_reviews_tag: "CUSTOMER REVIEWS",
+    home_reviews_tag: "손님 후기",
     home_reviews_title: "손님들이 남겨주신 정성스러운 후기",
     home_reviews_view_all: "전체 후기 보기"
   },
@@ -1371,10 +1371,10 @@ const I18N = {
 
     // Reviews
     nav_reviews: "レビュー",
-    reviews_tag: "CUSTOMER REVIEWS",
+    reviews_tag: "お客様レビュー",
     reviews_title: "お客様レビュー",
     reviews_subtitle: "雪潭花の花と過ごした温かいお声を集めました。",
-    home_reviews_tag: "CUSTOMER REVIEWS",
+    home_reviews_tag: "お客様レビュー",
     home_reviews_title: "お客様から届いた温かいレビュー",
     home_reviews_view_all: "すべてのレビューを見る"
   }

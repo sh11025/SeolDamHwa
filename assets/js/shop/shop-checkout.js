@@ -983,6 +983,13 @@ function openReviewModal(order, item) {
   const prodNameEl = document.getElementById('review-modal-product-name');
   if (prodNameEl) prodNameEl.textContent = pname + (item.sizeLabel ? ` (${item.sizeLabel})` : '');
 
+  // 서버 연결 여부에 따른 사진·동영상 선택기 / 오프라인 안내 제어
+  const isServerRemote = typeof DataSync !== 'undefined' && DataSync.enabled && !DataSync.local;
+  const mediaSec = document.getElementById('review-media-upload-section');
+  const offlineNotice = document.getElementById('review-media-offline-notice');
+  if (mediaSec) mediaSec.classList.toggle('hidden', !isServerRemote);
+  if (offlineNotice) offlineNotice.classList.toggle('hidden', isServerRemote);
+
   // 초기화
   setReviewRating(5);
   const textEl = document.getElementById('review-text');
@@ -1242,6 +1249,17 @@ async function submitCustomerReview(e) {
     return;
   }
 
+  // 동일 주문·상품 중복 작성 방지
+  const existingList = typeof loadReviews === 'function' ? loadReviews() : [];
+  const alreadyReviewed = existingList.some(r =>
+    (String(r.orderId) === String(orderId) || String(r.orderNumber) === String(orderNumber)) &&
+    (String(r.productId) === String(productId) || String(r.productName) === String(productName))
+  );
+  if (alreadyReviewed) {
+    alert('이미 후기를 작성해 주신 상품이에요. 소중한 마음에 감사드려요.');
+    return;
+  }
+
   const submitBtn = document.getElementById('btn-submit-review');
   if (submitBtn) {
     submitBtn.disabled = true;
@@ -1254,35 +1272,26 @@ async function submitCustomerReview(e) {
 
     const isServerMode = typeof DataSync !== 'undefined' && DataSync.enabled && !DataSync.local;
 
-    // 미디어 업로드
-    for (const p of reviewSelectedPhotos) {
-      if (isServerMode) {
+    // 미디어 업로드 (서버 모드일 때만)
+    if (isServerMode) {
+      for (const p of reviewSelectedPhotos) {
         const path = await uploadReviewMedia(orderNumber, phone, p.name, p.blob);
         photoPaths.push(path);
-      } else {
-        // 로컬 오프라인 모드에서는 base64 URL 보존
-        const b64 = await blobToBase64(p.blob);
-        photoPaths.push(`data:image/jpeg;base64,${b64}`);
       }
-    }
-
-    if (reviewSelectedVideo) {
-      if (isServerMode) {
+      if (reviewSelectedVideo) {
         videoPath = await uploadReviewMedia(orderNumber, phone, reviewSelectedVideo.name, reviewSelectedVideo.file);
-      } else {
-        videoPath = reviewSelectedVideo.name;
       }
     }
 
     const newRev = {
-      id: 'rev_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      id: typeof makeId === 'function' ? makeId('rev') : ('rev_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7)),
       orderId,
       orderNumber,
       productId,
       productName,
       rating,
       text,
-      photos: JSON.stringify(photoPaths),
+      photos: photoPaths,
       video: videoPath,
       status: 'pending', // 사장님 승인 대기
       adminReply: '',
@@ -1295,9 +1304,23 @@ async function submitCustomerReview(e) {
     currentRevs.push(newRev);
     if (typeof saveReviews === 'function') saveReviews(currentRevs);
 
-    // 서버에 동기화
-    if (typeof DataSync !== 'undefined' && DataSync.enabled) {
-      await DataSync.sync();
+    // 서버에 동기화 (DataSync.push 사용)
+    if (typeof DataSync !== 'undefined' && DataSync.enabled && typeof DataSync.push === 'function') {
+      try {
+        const pushRes = await DataSync.push();
+        if (pushRes && Array.isArray(pushRes.rejected)) {
+          const revRejects = pushRes.rejected.filter(r => typeof r === 'string' && r.startsWith('reviews:'));
+          if (revRejects.length > 0) {
+            const rolledBack = (typeof loadReviews === 'function' ? loadReviews() : []).filter(r => r.id !== newRev.id);
+            if (typeof saveReviews === 'function') saveReviews(rolledBack);
+            const reason = revRejects[0].replace(/^reviews:\s*/, '');
+            alert(reason || '후기를 등록하지 못했어요. 입력 내용을 확인해 주세요.');
+            return;
+          }
+        }
+      } catch (pushErr) {
+        console.warn('후기 서버 전송 중 오류:', pushErr);
+      }
     }
 
     alert('소중한 후기가 접수되었어요. 사장님 확인 후 게시됩니다.');
@@ -1322,7 +1345,7 @@ function openReviewPhotoModal(src) {
   const modal = document.getElementById('modal-review-photo');
   const img = document.getElementById('review-photo-full');
   if (!modal || !img) return;
-  img.src = src;
+  img.src = typeof reviewMediaUrl === 'function' ? reviewMediaUrl(src) : src;
   modal.classList.remove('hidden');
 }
 

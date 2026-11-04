@@ -44,7 +44,7 @@ PUBLIC_TABLES = {'products', 'popups', 'pages', 'settings', 'flowers'}   # 손�
 REMOTE_INSERT_TABLES = {'orders', 'order_items', 'inquiries', 'restock', 'reviews'}  # 손님 기기는 새 줄 추가만
 KEYS = {'order_items': ('orderId', 'lineNo'), 'settings': ('key',), 'coupons': ('code',)}
 COUPON_PUBLIC = ('code', 'batchName', 'type', 'value', 'minOrder', 'startDate', 'endDate', 'active')
-REVIEW_PUBLIC = ('id', 'productName', 'rating', 'text', 'photos', 'video', 'adminReply', 'replyAt', 'createdAt', 'isSample')
+REVIEW_PUBLIC = ('id', 'productName', 'rating', 'text', 'photos', 'video', 'status', 'adminReply', 'replyAt', 'createdAt', 'isSample')
 UPLOADS_DIR = os.path.join(DATA, 'uploads')
 REVIEW_UPLOADS_DIR = os.path.join(UPLOADS_DIR, 'reviews')
 _review_media_counts = {}  # (orderNumber, YYYY-MM-DD) -> 업로드 횟수
@@ -300,22 +300,40 @@ def apply_change(change, local):
                 if len(txt) < 10 or len(txt) > 500:
                     rejected.append('reviews: 후기 내용은 10자 이상 500자 이하여야 합니다')
                     continue
-                photos_raw = row.get('photos') or '[]'
-                try:
-                    photos_list = json.loads(photos_raw) if isinstance(photos_raw, str) else (photos_raw if isinstance(photos_raw, list) else [])
-                    invalid_photo = False
-                    for p in photos_list:
-                        p_str = str(p or '').strip()
-                        if not p_str.startswith('reviews/') or '..' in p_str or not re.match(r'^reviews/[\w.-]+$', p_str):
-                            invalid_photo = True
-                            break
-                    if invalid_photo:
-                        rejected.append('reviews: 사진 경로가 올바르지 않습니다')
+                photos_raw = row.get('photos')
+                if photos_raw is None or photos_raw == '':
+                    photos_list = []
+                elif isinstance(photos_raw, list):
+                    photos_list = photos_raw
+                elif isinstance(photos_raw, str):
+                    try:
+                        photos_list = json.loads(photos_raw)
+                        if isinstance(photos_list, str):
+                            photos_list = json.loads(photos_list)
+                    except Exception:
+                        photos_list = []
+                else:
+                    photos_list = []
+                if not isinstance(photos_list, list):
+                    photos_list = []
+
+                invalid_photo = False
+                for p in photos_list:
+                    p_str = str(p or '').strip()
+                    if not re.match(r'^reviews/[\w.-]+$', p_str) or '..' in p_str:
+                        invalid_photo = True
+                        break
+                if invalid_photo:
+                    rejected.append('reviews: 사진 경로가 올바르지 않습니다')
+                    continue
+                row['photos'] = json.dumps(photos_list, ensure_ascii=False)
+
+                v_raw = str(row.get('video') or '').strip()
+                if v_raw:
+                    if not re.match(r'^reviews/[\w.-]+$', v_raw) or '..' in v_raw:
+                        rejected.append('reviews: 동영상 경로가 올바르지 않습니다')
                         continue
-                except Exception:
-                    rejected.append('reviews: 사진 목록 형식이 올바르지 않습니다')
-                    continue
-                    continue
+                row['video'] = v_raw
             if k in index:
                 rejected.append(f'{table}:{k} 이미 있음')
                 continue
@@ -335,21 +353,31 @@ def apply_change(change, local):
     elif deletes:
         gone = set(str(d) for d in deletes)
         if table == 'reviews' and local:
+            norm_rev_dir = os.path.normpath(REVIEW_UPLOADS_DIR)
             for d in gone:
                 r_item = index.get(d)
                 if r_item:
                     try:
-                        p_list = json.loads(r_item.get('photos') or '[]')
+                        p_raw = r_item.get('photos')
+                        if isinstance(p_raw, str):
+                            try:
+                                p_list = json.loads(p_raw)
+                                if isinstance(p_list, str): p_list = json.loads(p_list)
+                            except Exception: p_list = []
+                        elif isinstance(p_raw, list): p_list = p_raw
+                        else: p_list = []
                         for pf in p_list:
-                            fp = os.path.join(DATA, 'uploads', str(pf).strip())
-                            if os.path.exists(fp):
-                                try: os.remove(fp)
-                                except OSError: pass
+                            pf_str = str(pf or '').strip()
+                            if pf_str:
+                                fp = os.path.normpath(os.path.join(DATA, 'uploads', pf_str))
+                                if fp.startswith(norm_rev_dir) and os.path.isfile(fp):
+                                    try: os.remove(fp)
+                                    except OSError: pass
                     except Exception: pass
                     vf = str(r_item.get('video') or '').strip()
                     if vf:
-                        fp = os.path.join(DATA, 'uploads', vf)
-                        if os.path.exists(fp):
+                        fp = os.path.normpath(os.path.join(DATA, 'uploads', vf))
+                        if fp.startswith(norm_rev_dir) and os.path.isfile(fp):
                             try: os.remove(fp)
                             except OSError: pass
         applied += len([k for k in order if k in gone])
@@ -393,8 +421,6 @@ class Handler(SimpleHTTPRequestHandler):
 
     def is_admin(self):
         """이 컴퓨터이거나, 다른 기기에서 관리자 비밀번호로 로그인한 경우"""
-        if (self.headers.get('X-Role') or '').strip().lower() == 'anon':
-            return False
         if self.is_local():
             return True
         tok = self.session_token()
@@ -441,12 +467,7 @@ class Handler(SimpleHTTPRequestHandler):
             if not os.path.exists(full_path) or not os.path.isfile(full_path):
                 self.send_error(404)
                 return
-            is_authed_admin = False
-            tok = self.session_token()
-            if tok and SESSIONS.get(tok) and SESSIONS[tok] > time.time():
-                is_authed_admin = True
-
-            if not is_authed_admin:
+            if not self.is_admin():
                 ref_target = subpath.replace('\\', '/')
                 with LOCK:
                     rev_data = read_table('reviews')
@@ -455,8 +476,17 @@ class Handler(SimpleHTTPRequestHandler):
                     for r in rev_data[1]:
                         if r.get('status') == 'approved':
                             try:
-                                photos = json.loads(r.get('photos') or '[]')
-                                if any(ref_target in p or os.path.basename(ref_target) == os.path.basename(p) for p in photos):
+                                photos = r.get('photos')
+                                if isinstance(photos, str):
+                                    try:
+                                        photos = json.loads(photos)
+                                        if isinstance(photos, str):
+                                            photos = json.loads(photos)
+                                    except Exception:
+                                        photos = []
+                                if not isinstance(photos, list):
+                                    photos = []
+                                if any(ref_target == p or os.path.basename(ref_target) == os.path.basename(p) for p in photos):
                                     referenced = True
                                     break
                             except Exception: pass
@@ -588,7 +618,7 @@ class Handler(SimpleHTTPRequestHandler):
                 for o in orders_data[1]:
                     if str(o.get('orderNumber') or '').strip().upper() == order_num:
                         o_phone = re.sub(r'\D', '', str(o.get('ordererPhone') or o.get('phone') or ''))
-                        if phone and (phone == o_phone or phone in o_phone or o_phone in phone):
+                        if phone and phone == o_phone:
                             target_order = o
                             break
             if not target_order:

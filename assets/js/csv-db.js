@@ -200,7 +200,7 @@ function buildAllCsv() {
 function importCsvTables(files) {
   const has = f => typeof files[f] === 'string';
   const result = [];
-  ['products', 'expenses', 'inquiries', 'restock', 'pages', 'flowers', 'coupons', 'coupon_history', 'images'].forEach(name => {
+  ['products', 'expenses', 'inquiries', 'restock', 'pages', 'flowers', 'coupons', 'coupon_history', 'images', 'reviews'].forEach(name => {
     const f = CSV_TABLES[name].file;
     if (!has(f)) return;
     const rows = csvToTable(name, files[f]);
