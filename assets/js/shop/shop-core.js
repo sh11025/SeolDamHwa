@@ -533,7 +533,7 @@ function renderReviewsPage() {
   if (avgRatingEl) avgRatingEl.textContent = avg;
 
   const totalCountEl = document.getElementById('reviews-total-count');
-  if (totalCountEl) totalCountEl.textContent = `${total}개의 후기`;
+  if (totalCountEl) totalCountEl.textContent = total;
 
   const avgStarsEl = document.getElementById('reviews-avg-stars');
   if (avgStarsEl) {

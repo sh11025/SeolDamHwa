@@ -11,21 +11,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
   
-  <script src="assets/js/data-store.js?v=76"></script>
-  <script src="assets/js/products-data.js?v=76"></script>
-  <script src="assets/js/flowers-data.js?v=76"></script>
-  <script src="assets/js/site-theme.js?v=76"></script>
-  <script src="assets/js/site-settings.js?v=76"></script>
-  <script src="assets/js/popups.js?v=76"></script>
-  <script src="assets/js/finance-data.js?v=76"></script>
-  <script src="assets/js/integrations.js?v=76"></script>
-  <script src="assets/js/admin-tools.js?v=76"></script>
-  <script src="assets/js/site-pages.js?v=76"></script>
-  <script src="assets/js/image-library.js?v=76"></script>
-  <script src="assets/js/restock.js?v=76"></script>
-  <script src="assets/js/csv-db.js?v=76"></script>
-  <script src="assets/js/data-sync.js?v=76"></script>
-  <script src="assets/js/coupons.js?v=76"></script>
+  <script src="assets/js/data-store.js?v=77"></script>
+  <script src="assets/js/products-data.js?v=77"></script>
+  <script src="assets/js/flowers-data.js?v=77"></script>
+  <script src="assets/js/site-theme.js?v=77"></script>
+  <script src="assets/js/site-settings.js?v=77"></script>
+  <script src="assets/js/popups.js?v=77"></script>
+  <script src="assets/js/finance-data.js?v=77"></script>
+  <script src="assets/js/integrations.js?v=77"></script>
+  <script src="assets/js/admin-tools.js?v=77"></script>
+  <script src="assets/js/site-pages.js?v=77"></script>
+  <script src="assets/js/image-library.js?v=77"></script>
+  <script src="assets/js/restock.js?v=77"></script>
+  <script src="assets/js/csv-db.js?v=77"></script>
+  <script src="assets/js/data-sync.js?v=77"></script>
+  <script src="assets/js/coupons.js?v=77"></script>
   <!-- 운송장 바코드: JsBarcode -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
   <!-- 차트: Chart.js -->
@@ -170,7 +170,7 @@
     }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=76">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=77">
 </head>
 <body class="min-h-screen flex flex-col selection:bg-seal-red/15 selection:text-seal-red">
   <!-- 1. 관리자 상단 헤더 (Admin Top Bar) -->
@@ -380,9 +380,8 @@
         <div id="dashboard-empty-cta" class="hidden admin-card p-5 rounded-sm flex flex-wrap items-center justify-between gap-3 border-dashed">
           <div>
             <p class="font-bold text-ink-black">아직 들어온 주문이 없어요.</p>
-            <p class="text-sm text-ink-gray">차트와 PDF 리포트가 어떻게 나오는지 보려면 예시 데이터를 넣어 보세요. 버튼 한 번이면 돼요.</p>
+            <p class="text-sm text-ink-gray">차트와 PDF 리포트가 어떻게 나오는지 보려면 [연동·데이터] 탭에서 예시 데이터를 넣어 보세요.</p>
           </div>
-          <button type="button" onclick="handleAddSampleData()" class="px-4 py-2.5 bg-seal-red text-white font-bold rounded-xs cursor-pointer hover:opacity-90">예시 데이터 넣기</button>
         </div>
 
         <!-- 핵심 숫자 카드 -->
@@ -1105,25 +1104,22 @@
           </p>
         </div>
 
-        <!-- 바로가기 -->
-        <nav class="sticky top-[60px] z-20 -mx-1 px-1 py-2 bg-[#F4F1EA]/95 backdrop-blur-sm flex flex-wrap gap-1.5 text-xs" aria-label="설정 바로가기">
-          <a href="#set-contact" class="px-3 py-1.5 rounded-full bg-white border border-ink-black/15 font-bold hover:border-seal-red hover:text-seal-red">연락처</a>
-          <a href="#set-hours" class="px-3 py-1.5 rounded-full bg-white border border-ink-black/15 font-bold hover:border-seal-red hover:text-seal-red">운영시간</a>
-          <a href="#set-holidays" class="px-3 py-1.5 rounded-full bg-white border border-ink-black/15 font-bold hover:border-seal-red hover:text-seal-red">공휴일·임시 휴무</a>
-          <a href="#set-location" class="px-3 py-1.5 rounded-full bg-white border border-ink-black/15 font-bold hover:border-seal-red hover:text-seal-red">오시는 길·지도</a>
-          <a href="#set-delivery" class="px-3 py-1.5 rounded-full bg-white border border-ink-black/15 font-bold hover:border-seal-red hover:text-seal-red">배송비</a>
-          <a href="#set-theme" class="px-3 py-1.5 rounded-full bg-white border border-ink-black/15 font-bold hover:border-seal-red hover:text-seal-red">사이트 색</a>
+        <!-- 설정 탭: 누른 항목만 보임 -->
+        <nav class="sticky top-[60px] z-20 -mx-1 px-1 py-2 bg-[#F4F1EA]/95 backdrop-blur-sm flex flex-wrap gap-1.5 text-xs" role="tablist" aria-label="매장 설정 항목">
+          <button type="button" role="tab" data-settings-btn="contact" aria-selected="true" onclick="showSettingsTab('contact')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer bg-ink-black text-white border-ink-black">연락처</button>
+          <button type="button" role="tab" data-settings-btn="hours" aria-selected="false" onclick="showSettingsTab('hours')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">운영시간</button>
+          <button type="button" role="tab" data-settings-btn="holidays" aria-selected="false" onclick="showSettingsTab('holidays')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">공휴일·임시 휴무</button>
+          <button type="button" role="tab" data-settings-btn="location" aria-selected="false" onclick="showSettingsTab('location')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">오시는 길·주소</button>
+          <button type="button" role="tab" data-settings-btn="delivery" aria-selected="false" onclick="showSettingsTab('delivery')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">배송비</button>
+          <button type="button" role="tab" data-settings-btn="theme" aria-selected="false" onclick="showSettingsTab('theme')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">사이트 색</button>
         </nav>
 
         <div class="space-y-6">
-          <div class="admin-card p-6 rounded-sm space-y-5">
-            <form id="admin-settings-form" onsubmit="saveStoreSettings(event)" class="space-y-4 text-xs">
+          <div id="settings-main-card" class="admin-card p-6 rounded-sm space-y-5">
+            <form id="admin-settings-form" novalidate onsubmit="saveStoreSettings(event)" class="space-y-4 text-xs">
               
-              <!-- PC 넓은 화면: 왼쪽 연락처·운영시간 / 오른쪽 휴무·오시는 길 -->
-              <div class="grid grid-cols-1 xl:grid-cols-2 gap-x-8 gap-y-4 items-start">
-              <div class="space-y-4">
               <!-- 1) 기본 연락처 -->
-              <span id="set-contact" class="block scroll-mt-32"></span>
+              <div data-settings-tab="contact" class="space-y-4">
               <div class="space-y-3 pb-3 border-b border-ink-black/10">
                 <h3 class="font-bold text-sm text-ink-black">기본 연락처 & 온라인 상담</h3>
                 
@@ -1152,7 +1148,8 @@
               </div>
 
               <!-- 2) 주간 정기 운영시간 (7행 테이블) -->
-              <span id="set-hours" class="block scroll-mt-32"></span>
+              </div>
+              <div data-settings-tab="hours" class="hidden space-y-4">
               <div class="space-y-3 pb-3 border-b border-ink-black/10">
                 <div class="flex items-center justify-between">
                   <h3 class="font-bold text-sm text-ink-black">주간 요일별 운영시간</h3>
@@ -1180,9 +1177,8 @@
               </div>
 
               </div>
-              <div class="space-y-4">
               <!-- 2-1) 공휴일 휴무 설정 (Holiday Management) -->
-              <span id="set-holidays" class="block scroll-mt-32"></span>
+              <div data-settings-tab="holidays" class="hidden space-y-4">
               <div class="space-y-3 pb-3 border-b border-ink-black/10">
                 <div class="flex items-center justify-between p-3.5 bg-[#FAF7F2] border border-ink-black/15 rounded-xs">
                   <div class="pr-3">
@@ -1248,7 +1244,8 @@
               </div>
 
               <!-- 3) 오시는 길 및 주소 -->
-              <span id="set-location" class="block scroll-mt-32"></span>
+              </div>
+              <div data-settings-tab="location" class="hidden space-y-4">
               <div class="space-y-3">
                 <div class="flex items-center justify-between">
                   <h3 class="font-bold text-sm text-ink-black">오시는 길 & 매장 주소</h3>
@@ -1298,8 +1295,6 @@
               </div>
 
               </div>
-              </div>
-
               <div class="sticky bottom-0 -mx-6 -mb-6 px-6 py-3 bg-[#FAF7F2]/95 backdrop-blur-sm border-t border-ink-black/10 flex items-center justify-between gap-3 rounded-b-sm">
                 <span class="text-[11px] text-ink-gray">연락처·운영시간·휴무·오시는 길은 이 버튼으로 함께 저장돼요.</span>
                 <button type="submit" class="jakae-btn px-6 py-2.5 rounded-sm font-bold text-xs cursor-pointer shadow-md whitespace-nowrap">
@@ -1310,9 +1305,8 @@
             </form>
           </div>
 
-        <span id="set-delivery" class="block scroll-mt-32"></span>
         <!-- 배송 방법·배송비 -->
-        <form id="delivery-form" onsubmit="saveDeliverySettings(event)" class="admin-card p-5 rounded-sm space-y-4 text-sm">
+        <form id="delivery-form" data-settings-tab="delivery" onsubmit="saveDeliverySettings(event)" class="hidden admin-card p-5 rounded-sm space-y-4 text-sm">
           <div>
             <h2 class="text-base font-bold text-ink-black">배송 방법·배송비</h2>
             <p class="text-xs text-ink-gray mt-1">손님 주문서에 켜 둔 방법만 나와요. 주문 금액이 무료 기준 이상이면 배송비가 0원이 돼요.</p>
@@ -1360,9 +1354,8 @@
           </div>
         </form>
 
-        <span id="set-theme" class="block scroll-mt-32"></span>
         <!-- 사이트 색 (쇼핑몰에만 적용, 도장은 붉은색 그대로) -->
-        <form id="theme-form" onsubmit="saveThemeSettings(event)" class="admin-card p-5 rounded-sm space-y-4 text-sm">
+        <form id="theme-form" data-settings-tab="theme" onsubmit="saveThemeSettings(event)" class="hidden admin-card p-5 rounded-sm space-y-4 text-sm">
           <div>
             <h2 class="font-bold text-ink-black">사이트 색</h2>
             <p class="text-xs text-ink-gray mt-1">쇼핑몰의 탭, 버튼, 강조 글자, 무늬 색을 바꿔요. 도장과 오류 안내는 붉은색 그대로이고, 이 관리자 화면 색은 바뀌지 않아요.</p>
@@ -1686,19 +1679,19 @@
 
   <!-- JavaScript: Admin 로직 & 쇼핑몰 데이터 양방향 실시간 동기화 -->
   <!-- 관리자 화면 동작 (화면별 파일, 순서 중요) -->
-  <script src="assets/js/admin/admin-dashboard.js?v=76"></script>
-  <script src="assets/js/admin/admin-products.js?v=76"></script>
-  <script src="assets/js/admin/admin-orders.js?v=76"></script>
-  <script src="assets/js/admin/admin-inquiries.js?v=76"></script>
-  <script src="assets/js/admin/admin-product-modal.js?v=76"></script>
-  <script src="assets/js/admin/admin-flowers.js?v=76"></script>
-  <script src="assets/js/admin/admin-coupons.js?v=76"></script>
-  <script src="assets/js/admin/admin-settings.js?v=76"></script>
-  <script src="assets/js/admin/admin-popups.js?v=76"></script>
-  <script src="assets/js/admin/admin-finance.js?v=76"></script>
-  <script src="assets/js/admin/admin-integrations.js?v=76"></script>
-  <script src="assets/js/admin/admin-pages.js?v=76"></script>
-  <script src="assets/js/admin/admin-tools-ui.js?v=76"></script>
+  <script src="assets/js/admin/admin-dashboard.js?v=77"></script>
+  <script src="assets/js/admin/admin-products.js?v=77"></script>
+  <script src="assets/js/admin/admin-orders.js?v=77"></script>
+  <script src="assets/js/admin/admin-inquiries.js?v=77"></script>
+  <script src="assets/js/admin/admin-product-modal.js?v=77"></script>
+  <script src="assets/js/admin/admin-flowers.js?v=77"></script>
+  <script src="assets/js/admin/admin-coupons.js?v=77"></script>
+  <script src="assets/js/admin/admin-settings.js?v=77"></script>
+  <script src="assets/js/admin/admin-popups.js?v=77"></script>
+  <script src="assets/js/admin/admin-finance.js?v=77"></script>
+  <script src="assets/js/admin/admin-integrations.js?v=77"></script>
+  <script src="assets/js/admin/admin-pages.js?v=77"></script>
+  <script src="assets/js/admin/admin-tools-ui.js?v=77"></script>
 
   <!-- 슬라이드 편집 모달 -->
   <div id="slide-edit-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-black/60 hidden">
