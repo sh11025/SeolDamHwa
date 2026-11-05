@@ -680,7 +680,23 @@ class Handler(SimpleHTTPRequestHandler):
         super().__init__(*args, directory=ROOT, **kwargs)
 
     def is_local(self):
-        return self.client_address[0] in ('127.0.0.1', '::1')
+        """이 컴퓨터(127.0.0.1/::1)의 로컬 주소(localhost, 127.0.0.1, [::1])로 접속했는지 확인"""
+        if self.client_address[0] not in ('127.0.0.1', '::1'):
+            return False
+        host_hdr = (self.headers.get('Host') or '').strip().lower()
+        if not host_hdr:
+            return False
+        if host_hdr.startswith('['):
+            idx = host_hdr.find(']')
+            if idx == -1:
+                return False
+            rem = host_hdr[idx+1:]
+            if rem and not rem.startswith(':'):
+                return False
+            hostname = host_hdr[:idx+1]
+        else:
+            hostname = host_hdr.split(':', 1)[0]
+        return hostname in ('localhost', '127.0.0.1', '[::1]')
 
     def session_token(self):
         cookie = self.headers.get('Cookie') or ''
