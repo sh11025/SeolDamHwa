@@ -22,6 +22,7 @@ import re
 import secrets
 import shutil
 import socket
+import sys
 import threading
 import time
 import urllib.request
@@ -33,6 +34,11 @@ from urllib.parse import parse_qs, urlparse
 ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA = os.environ.get('SDH_DATA_DIR') or os.path.join(ROOT, 'DATA')
 BACKUP = os.path.join(DATA, 'backup')
+ORIGINALS_DIR = os.path.join(DATA, 'originals')
+SUPABASE_FILE = os.path.join(DATA, '.supabase.json')
+ORIGINALS_INDEX_FILE = os.path.join(ORIGINALS_DIR, 'index.json')
+MAX_ORIGINAL_SIZE = 25 * 1024 * 1024  # 25MB
+SUPABASE_URL_RE = re.compile(r'^https://[a-z0-9-]+\.supabase\.co$')
 
 TABLES = {
     'products': 'products.csv', 'orders': 'orders.csv', 'order_items': 'order_items.csv',
@@ -99,6 +105,145 @@ def check_password(password):
     if not saved.get('salt') or not saved.get('hash'):
         return False
     return hmac.compare_digest(hash_password(password, saved['salt'])[1], saved['hash'])
+
+
+def detect_image_type(data: bytes):
+    """파일의 첫 바이트(매직 바이트)로 실제 이미지 포맷(JPG, PNG, WEBP) 판별"""
+    if len(data) >= 3 and data.startswith(b'\xFF\xD8\xFF'):
+        return 'image/jpeg', 'jpg'
+    if len(data) >= 8 and data.startswith(b'\x89PNG\r\n\x1a\n'):
+        return 'image/png', 'png'
+    if len(data) >= 12 and data[:4] == b'RIFF' and data[8:12] == b'WEBP':
+        return 'image/webp', 'webp'
+    return None, None
+
+
+def get_supabase_config():
+    """DATA/.supabase.json 설정 읽기 (url, serviceKey, bucket)"""
+    cfg = read_json_file(SUPABASE_FILE, {})
+    url = (cfg.get('url') or '').strip()
+    key = (cfg.get('serviceKey') or '').strip()
+    bucket = (cfg.get('bucket') or 'originals').strip() or 'originals'
+    return {'url': url, 'serviceKey': key, 'bucket': bucket}
+
+
+def upload_file_to_supabase(rel_path, abs_path, mime_type):
+    """Supabase Storage Private Bucket에 원본 파일 업로드 (60초 타임아웃, serviceKey 노출 금지)"""
+    cfg = get_supabase_config()
+    if not cfg['url'] or not cfg['serviceKey']:
+        return False, 'no-config'
+    if not os.path.isfile(abs_path):
+        return False, 'file-not-found'
+    endpoint = f"{cfg['url'].rstrip('/')}/storage/v1/object/{cfg['bucket']}/{rel_path.replace('\\', '/')}"
+    try:
+        with open(abs_path, 'rb') as f:
+            content = f.read()
+        req = urllib.request.Request(
+            endpoint,
+            data=content,
+            headers={
+                'Authorization': f"Bearer {cfg['serviceKey']}",
+                'Content-Type': mime_type or 'application/octet-stream',
+                'x-upsert': 'false'
+            },
+            method='POST'
+        )
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            if resp.status in (200, 201):
+                return True, ''
+            return False, f'http-{resp.status}'
+    except urllib.error.HTTPError as e:
+        return False, f'http-{e.code}'
+    except Exception as e:
+        return False, type(e).__name__
+
+
+def read_originals_index():
+    if not os.path.exists(ORIGINALS_INDEX_FILE):
+        return []
+    data = read_json_file(ORIGINALS_INDEX_FILE, [])
+    return data if isinstance(data, list) else []
+
+
+def write_originals_index(items):
+    os.makedirs(ORIGINALS_DIR, exist_ok=True)
+    write_json_file(ORIGINALS_INDEX_FILE, items)
+
+
+def try_supabase_upload_for_item(item_id):
+    with LOCK:
+        items = read_originals_index()
+        target = next((x for x in items if x.get('id') == item_id), None)
+        if not target or target.get('uploadedToSupabase'):
+            return
+        rel_path = target.get('path')
+        mime_type = target.get('mime')
+    abs_path = os.path.join(ORIGINALS_DIR, rel_path)
+    ok, err = upload_file_to_supabase(rel_path, abs_path, mime_type)
+    with LOCK:
+        items = read_originals_index()
+        target = next((x for x in items if x.get('id') == item_id), None)
+        if target:
+            target['uploadedToSupabase'] = ok
+            target['supabaseError'] = err if not ok else ''
+            write_originals_index(items)
+
+
+def import_originals(folder_path):
+    """지정한 폴더의 원본 사진들을 DATA/originals/site/로 복사하고 종료"""
+    if not os.path.isdir(folder_path):
+        print(f"오류: 폴더를 찾을 수 없습니다: {folder_path}")
+        sys.exit(1)
+    dest_dir = os.path.join(ORIGINALS_DIR, 'site')
+    os.makedirs(dest_dir, exist_ok=True)
+    copied = 0
+    skipped = 0
+    with LOCK:
+        items = read_originals_index()
+        existing_paths = {x.get('path') for x in items}
+
+    for root, dirs, files in os.walk(folder_path):
+        for fname in sorted(files):
+            src_path = os.path.join(root, fname)
+            if not os.path.isfile(src_path):
+                continue
+            try:
+                with open(src_path, 'rb') as f:
+                    header = f.read(16)
+            except OSError:
+                continue
+            mime, ext = detect_image_type(header)
+            if not mime:
+                continue
+            clean_name = re.sub(r'[^A-Za-z0-9._-]', '', fname)
+            if not clean_name:
+                clean_name = f'image.{ext}'
+            dest_path = os.path.join(dest_dir, clean_name)
+            rel_path = f'site/{clean_name}'
+            if os.path.exists(dest_path):
+                skipped += 1
+                continue
+            shutil.copy2(src_path, dest_path)
+            copied += 1
+            item_id = f'orig-site-{clean_name}'
+            if rel_path not in existing_paths:
+                sz = os.path.getsize(dest_path)
+                items.append({
+                    'id': item_id,
+                    'path': rel_path,
+                    'filename': clean_name,
+                    'size': sz,
+                    'mime': mime,
+                    'createdAt': datetime.now().isoformat(timespec='seconds'),
+                    'uploadedToSupabase': False,
+                    'supabaseError': ''
+                })
+                existing_paths.add(rel_path)
+
+    with LOCK:
+        write_originals_index(items)
+    print(f"원본 사진 {copied}장을 DATA/originals/site/에 가져왔습니다. (건너뜀: {skipped}장)")
+    sys.exit(0)
 
 
 def send_discord(channel, payload):
@@ -723,6 +868,57 @@ class Handler(SimpleHTTPRequestHandler):
                             files[TABLES[t]] = f.read()
             self.send_json({'ok': True, 'local': local, 'readable': readable, 'files': files})
             return
+        if path == '/api/originals':
+            if not self.is_admin():
+                self.send_json({'ok': False, 'error': '관리자만 접근할 수 있습니다.'}, 403)
+                return
+            with LOCK:
+                items = read_originals_index()
+            self.send_json({'ok': True, 'items': items})
+            return
+        if path.startswith('/api/originals/'):
+            subpath = path[len('/api/originals/'):].lstrip('/')
+            if not subpath or '..' in subpath:
+                self.send_error(404)
+                return
+            full_path = os.path.normpath(os.path.join(ORIGINALS_DIR, subpath))
+            if not full_path.startswith(os.path.normpath(ORIGINALS_DIR)):
+                self.send_error(404)
+                return
+            if not os.path.exists(full_path) or not os.path.isfile(full_path):
+                self.send_error(404)
+                return
+            if not self.is_admin():
+                self.send_error(403)
+                return
+            ctype = 'application/octet-stream'
+            lower_f = full_path.lower()
+            if lower_f.endswith(('.jpg', '.jpeg')): ctype = 'image/jpeg'
+            elif lower_f.endswith('.png'): ctype = 'image/png'
+            elif lower_f.endswith('.webp'): ctype = 'image/webp'
+            try:
+                with open(full_path, 'rb') as f:
+                    content = f.read()
+                self.send_response(200)
+                self.send_header('Content-Type', ctype)
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except OSError:
+                self.send_error(500)
+            return
+        if path == '/api/supabase-config':
+            if not self.is_admin():
+                self.send_json({'ok': False, 'error': '관리자만 접근할 수 있습니다.'}, 403)
+                return
+            cfg = get_supabase_config()
+            self.send_json({
+                'ok': True,
+                'configured': bool(cfg['url'] and cfg['serviceKey']),
+                'url': cfg['url'],
+                'bucket': cfg['bucket']
+            })
+            return
         super().do_GET()
 
     def do_POST(self):
@@ -734,6 +930,116 @@ class Handler(SimpleHTTPRequestHandler):
             return
         local = self.is_admin()
         ip = self.client_address[0]
+        if path == '/api/originals':
+            if not self.is_admin():
+                self.send_json({'ok': False, 'error': '관리자만 원본 사진을 올릴 수 있습니다.'}, 403)
+                return
+            filename = str(body.get('filename') or '').strip()
+            data_b64 = str(body.get('data') or '').strip()
+            if not filename or not data_b64:
+                self.send_json({'ok': False, 'error': '파일명과 파일 데이터가 필요합니다.'}, 400)
+                return
+            try:
+                raw_bytes = base64.b64decode(data_b64)
+            except Exception:
+                self.send_json({'ok': False, 'error': '올바른 base64 데이터가 아닙니다.'}, 400)
+                return
+            if len(raw_bytes) > MAX_ORIGINAL_SIZE:
+                self.send_json({'ok': False, 'error': '파일 크기는 25MB를 초과할 수 없습니다.'}, 400)
+                return
+            mime, ext = detect_image_type(raw_bytes)
+            if not mime:
+                self.send_json({'ok': False, 'error': 'JPG, PNG, WEBP 사진 파일만 올릴 수 있습니다.'}, 400)
+                return
+            clean_name = re.sub(r'[^A-Za-z0-9._-]', '', os.path.basename(filename))
+            if not clean_name:
+                clean_name = f'original.{ext}'
+            yyyymm = datetime.now().strftime('%Y%m')
+            sub_dir = os.path.join(ORIGINALS_DIR, yyyymm)
+            os.makedirs(sub_dir, exist_ok=True)
+            item_id = f'orig-{int(time.time()*1000)}-{secrets.token_hex(4)}'
+            dest_filename = f'{item_id}-{clean_name}'
+            dest_path = os.path.join(sub_dir, dest_filename)
+            rel_path = f'{yyyymm}/{dest_filename}'
+            if os.path.exists(dest_path):
+                item_id = f'orig-{int(time.time()*1000)}-{secrets.token_hex(6)}'
+                dest_filename = f'{item_id}-{clean_name}'
+                dest_path = os.path.join(sub_dir, dest_filename)
+                rel_path = f'{yyyymm}/{dest_filename}'
+            try:
+                with open(dest_path, 'wb') as f:
+                    f.write(raw_bytes)
+            except OSError:
+                self.send_json({'ok': False, 'error': '서버에 파일을 저장하지 못했습니다.'}, 500)
+                return
+            new_item = {
+                'id': item_id,
+                'path': rel_path,
+                'filename': clean_name,
+                'size': len(raw_bytes),
+                'mime': mime,
+                'createdAt': datetime.now().isoformat(timespec='seconds'),
+                'uploadedToSupabase': False,
+                'supabaseError': ''
+            }
+            with LOCK:
+                items = read_originals_index()
+                items.insert(0, new_item)
+                write_originals_index(items)
+            threading.Thread(target=try_supabase_upload_for_item, args=(item_id,), daemon=True).start()
+            self.send_json({'ok': True, 'id': item_id, 'path': rel_path})
+            return
+
+        if path == '/api/supabase-config':
+            if not self.is_local():
+                self.send_json({'ok': False, 'error': '매장 컴퓨터에서만 설정할 수 있습니다.'}, 403)
+                return
+            url = str(body.get('url') or '').strip()
+            key = str(body.get('serviceKey') or '').strip()
+            bucket = str(body.get('bucket') or 'originals').strip() or 'originals'
+            test_url = os.environ.get('SDH_SUPABASE_TEST_URL')
+            url_valid = False
+            if test_url and url == test_url:
+                url_valid = True
+            elif SUPABASE_URL_RE.match(url):
+                url_valid = True
+            if not url_valid:
+                self.send_json({'ok': False, 'error': '올바른 Supabase URL(https://<project>.supabase.co)을 입력해 주세요.'}, 400)
+                return
+            old_cfg = read_json_file(SUPABASE_FILE, {})
+            if not key and old_cfg.get('serviceKey'):
+                key = old_cfg['serviceKey']
+            write_json_file(SUPABASE_FILE, {'url': url, 'serviceKey': key, 'bucket': bucket})
+            self.send_json({'ok': True})
+            return
+
+        if path == '/api/supabase-upload-pending':
+            if not self.is_admin():
+                self.send_json({'ok': False, 'error': '관리자만 실행할 수 있습니다.'}, 403)
+                return
+            with LOCK:
+                items = read_originals_index()
+            pending = [x for x in items if not x.get('uploadedToSupabase')]
+            uploaded = 0
+            failed = 0
+            for p in pending:
+                rel_path = p.get('path')
+                abs_path = os.path.join(ORIGINALS_DIR, rel_path)
+                ok, err = upload_file_to_supabase(rel_path, abs_path, p.get('mime'))
+                with LOCK:
+                    curr_items = read_originals_index()
+                    curr_t = next((x for x in curr_items if x.get('id') == p.get('id')), None)
+                    if curr_t:
+                        curr_t['uploadedToSupabase'] = ok
+                        curr_t['supabaseError'] = err if not ok else ''
+                        write_originals_index(curr_items)
+                if ok:
+                    uploaded += 1
+                else:
+                    failed += 1
+            self.send_json({'ok': True, 'uploaded': uploaded, 'failed': failed, 'total': len(pending)})
+            return
+
         if path == '/api/review-media':
             order_num = str(body.get('orderNumber') or '').strip().upper()
             phone = re.sub(r'\D', '', str(body.get('phone') or ''))
@@ -928,7 +1234,10 @@ def main():
     ap = argparse.ArgumentParser(description='설담화 로컬 서버 (사이트 + DATA 폴더 CSV 저장소)')
     ap.add_argument('--port', type=int, default=5500)
     ap.add_argument('--lan', action='store_true', help='같은 와이파이의 다른 기기에서도 접속 허용')
+    ap.add_argument('--import-originals', metavar='FOLDER', help='지정한 폴더의 원본 사진들을 DATA/originals/site/로 복사하고 종료합니다.')
     args = ap.parse_args()
+    if args.import_originals:
+        import_originals(args.import_originals)
     os.makedirs(BACKUP, exist_ok=True)
     host = '0.0.0.0' if args.lan else '127.0.0.1'
     server = ThreadingHTTPServer((host, args.port), Handler)

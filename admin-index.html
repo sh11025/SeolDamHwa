@@ -11,21 +11,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
   
-  <script src="assets/js/data-store.js?v=88"></script>
-  <script src="assets/js/products-data.js?v=88"></script>
-  <script src="assets/js/flowers-data.js?v=88"></script>
-  <script src="assets/js/site-theme.js?v=88"></script>
-  <script src="assets/js/site-settings.js?v=88"></script>
-  <script src="assets/js/popups.js?v=88"></script>
-  <script src="assets/js/finance-data.js?v=88"></script>
-  <script src="assets/js/integrations.js?v=88"></script>
-  <script src="assets/js/admin-tools.js?v=88"></script>
-  <script src="assets/js/site-pages.js?v=88"></script>
-  <script src="assets/js/image-library.js?v=88"></script>
-  <script src="assets/js/restock.js?v=88"></script>
-  <script src="assets/js/csv-db.js?v=88"></script>
-  <script src="assets/js/data-sync.js?v=88"></script>
-  <script src="assets/js/coupons.js?v=88"></script>
+  <script src="assets/js/data-store.js?v=89"></script>
+  <script src="assets/js/products-data.js?v=89"></script>
+  <script src="assets/js/flowers-data.js?v=89"></script>
+  <script src="assets/js/site-theme.js?v=89"></script>
+  <script src="assets/js/site-settings.js?v=89"></script>
+  <script src="assets/js/popups.js?v=89"></script>
+  <script src="assets/js/finance-data.js?v=89"></script>
+  <script src="assets/js/integrations.js?v=89"></script>
+  <script src="assets/js/admin-tools.js?v=89"></script>
+  <script src="assets/js/site-pages.js?v=89"></script>
+  <script src="assets/js/image-library.js?v=89"></script>
+  <script src="assets/js/restock.js?v=89"></script>
+  <script src="assets/js/csv-db.js?v=89"></script>
+  <script src="assets/js/data-sync.js?v=89"></script>
+  <script src="assets/js/coupons.js?v=89"></script>
   <!-- 운송장 바코드: JsBarcode -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
   <!-- 차트: Chart.js -->
@@ -413,7 +413,7 @@
     }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=88">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=89">
 </head>
 <body class="min-h-screen flex flex-col selection:bg-seal-red/15 selection:text-seal-red">
   <!-- 1. 관리자 상단 헤더 (Admin Top Bar) -->
@@ -1090,6 +1090,7 @@
         <!-- 연동 탭 바 -->
         <nav role="tablist" aria-label="연동 및 데이터 항목" class="admin-tab-bar sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-hanji/95 backdrop-blur-xs border-b border-ink-black/10 flex items-center gap-2 overflow-x-auto whitespace-nowrap mb-6">
           <button type="button" role="tab" data-panel-btn="integrations:backup" aria-selected="true" onclick="showPanelTab('integrations', 'backup')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-ink-black text-white border-ink-black">백업</button>
+          <button type="button" role="tab" data-panel-btn="integrations:originals" aria-selected="false" onclick="showPanelTab('integrations', 'originals')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">원본 사진</button>
           <button type="button" role="tab" data-panel-btn="integrations:server" aria-selected="false" onclick="showPanelTab('integrations', 'server')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">서버·비밀번호</button>
           <button type="button" role="tab" data-panel-btn="integrations:discord" aria-selected="false" onclick="showPanelTab('integrations', 'discord')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">디스코드</button>
           <button type="button" role="tab" data-panel-btn="integrations:ai" aria-selected="false" onclick="showPanelTab('integrations', 'ai')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">AI 도우미</button>
@@ -1108,7 +1109,7 @@
               <span id="full-backup-last-time" class="text-xs text-ink-gray"></span>
             </div>
             <p id="full-backup-desc" class="text-xs text-ink-gray leading-relaxed">
-              모든 데이터(CSV 표 전체)와 손님이 올린 후기 사진·영상을 하나의 압축 파일(.zip)로 내려받습니다. USB나 다른 안전한 곳에 정기적으로 보관하세요.
+              모든 데이터(CSV 표 전체)와 손님이 올린 후기 사진·영상을 하나의 압축 파일(.zip)로 내려받습니다. (원본 사진은 포함되지 않아요) USB나 다른 안전한 곳에 정기적으로 보관하세요.
             </p>
             <div class="flex flex-wrap items-center gap-3">
               <button type="button" id="btn-full-backup" onclick="downloadFullBackup()" class="px-4 py-2 bg-seal-red text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red/90 disabled:opacity-50 disabled:cursor-not-allowed">
@@ -1153,6 +1154,105 @@
               </label>
             </div>
             <p id="backup-message" class="text-xs text-ink-gray"></p>
+          </div>
+        </div>
+
+        <!-- 원본 사진 탭 -->
+        <div data-panel-tab="integrations:originals" class="hidden space-y-6">
+          <div id="originals-static-hint" class="hidden admin-card p-5 rounded-sm text-sm space-y-2">
+            <h2 class="text-base font-bold text-ink-black">원본 사진 보관</h2>
+            <p class="text-ink-gray">서버 모드(<code>python server.py</code>)로 실행했을 때 원본 사진 보관함과 Supabase Storage 백업을 관리할 수 있어요.</p>
+          </div>
+
+          <div id="originals-server-content" class="space-y-6">
+            <!-- 요약 카드 -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="admin-card p-4 rounded-sm">
+                <p class="text-xs text-ink-gray font-medium">총 원본 사진</p>
+                <p class="text-xl font-extrabold text-ink-black mt-1"><span id="originals-total-count">0</span><span class="text-xs font-normal text-ink-gray ml-1">장</span></p>
+              </div>
+              <div class="admin-card p-4 rounded-sm">
+                <p class="text-xs text-ink-gray font-medium">대기 중 (클라우드 미업로드)</p>
+                <p class="text-xl font-extrabold text-seal-red mt-1"><span id="originals-pending-count">0</span><span class="text-xs font-normal text-ink-gray ml-1">장</span></p>
+              </div>
+              <div class="admin-card p-4 rounded-sm">
+                <p class="text-xs text-ink-gray font-medium">보관 총 용량</p>
+                <p class="text-xl font-extrabold text-ink-black mt-1"><span id="originals-total-size">0.0</span><span class="text-xs font-normal text-ink-gray ml-1">MB</span></p>
+              </div>
+              <div class="admin-card p-4 rounded-sm">
+                <p class="text-xs text-ink-gray font-medium">Supabase Storage</p>
+                <p class="mt-1"><span id="originals-supabase-status" class="text-xs px-2 py-0.5 rounded font-bold bg-gray-100 text-gray-700">확인 중</span></p>
+              </div>
+            </div>
+
+            <!-- 대기 원본 올리기 액션 카드 -->
+            <div class="admin-card p-5 rounded-sm space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <h2 class="text-base font-bold text-ink-black">클라우드 Storage 백업</h2>
+                <span id="originals-upload-progress" class="text-xs font-bold text-ink-gray"></span>
+              </div>
+              <p class="text-xs text-ink-gray leading-relaxed">
+                도장 낙관이 들어가지 않은 원본 사진은 서버(<code>DATA/originals/</code>)에 안전하게 보관돼요. Supabase Storage 연결 시 클라우드 Private Bucket에도 자동으로 안전 백업돼요.
+              </p>
+              <div class="flex flex-wrap items-center gap-3">
+                <button type="button" id="btn-upload-pending-originals" onclick="handleUploadPendingOriginals()" class="px-4 py-2 bg-seal-red text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red/90 disabled:opacity-50 disabled:cursor-not-allowed">
+                  대기 중인 원본 올리기
+                </button>
+                <span id="originals-upload-status-text" class="text-xs text-ink-gray"></span>
+              </div>
+            </div>
+
+            <!-- Supabase Storage 연결 설정 카드 -->
+            <div class="admin-card p-5 rounded-sm space-y-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h2 class="text-base font-bold text-ink-black">Supabase Storage 연결</h2>
+                  <p class="text-xs text-ink-gray mt-0.5">외부 비공개 버킷(Private Bucket)에 원본 사진을 백업해요. 서비스 롤 키(Service Role Key)는 서버 파일(<code>DATA/.supabase.json</code>)에만 저장되고 외부에 절대 노출되지 않아요.</p>
+                </div>
+              </div>
+
+              <!-- 로컬 전용 설정 폼 -->
+              <div id="supabase-local-config" class="space-y-3">
+                <form id="supabase-config-form" onsubmit="saveSupabaseConfig(event)" class="space-y-3">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <label for="supabase-url-input" class="block font-bold text-ink-black mb-1">Supabase Project URL</label>
+                      <input type="text" id="supabase-url-input" placeholder="https://xyzcompany.supabase.co" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs font-mono text-xs">
+                    </div>
+                    <div>
+                      <label for="supabase-bucket-input" class="block font-bold text-ink-black mb-1">Storage Bucket 이름</label>
+                      <input type="text" id="supabase-bucket-input" placeholder="originals" value="originals" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs font-mono text-xs">
+                    </div>
+                  </div>
+                  <div>
+                    <label for="supabase-key-input" class="block font-bold text-ink-black mb-1 text-xs">Service Role Key (비공개 서버 키)</label>
+                    <input type="password" id="supabase-key-input" autocomplete="off" placeholder="키를 변경하려면 새 서비스 키를 입력하세요 (저장 후 입력창은 비워집니다)" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs font-mono text-xs">
+                    <p class="text-[11px] text-ink-light mt-1">※ 보안을 위해 한 번 저장된 키는 브라우저로 다시 전달되지 않으며 화면에 표시되지 않습니다.</p>
+                  </div>
+                  <div class="flex items-center gap-3 pt-1">
+                    <button type="submit" id="btn-save-supabase-config" class="px-4 py-2 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red text-xs">
+                      설정 저장
+                    </button>
+                    <span id="supabase-config-msg" class="text-xs"></span>
+                  </div>
+                </form>
+              </div>
+
+              <!-- 원격/휴대폰 접속 시 안내 -->
+              <div id="supabase-remote-notice" class="hidden p-3.5 bg-[#FAF7F2] border border-ink-black/10 rounded-xs text-xs text-ink-gray">
+                🔒 보안을 위해 Supabase Storage 접속 정보는 <strong class="text-ink-black">매장 컴퓨터에서 설정해 주세요</strong>.
+              </div>
+            </div>
+
+            <!-- 원본 사진 보관 목록 -->
+            <div class="admin-card p-5 rounded-sm space-y-3">
+              <div class="flex items-center justify-between">
+                <h2 class="text-base font-bold text-ink-black">보관된 원본 사진 목록</h2>
+                <button type="button" onclick="renderOriginalsSection()" class="text-xs text-ink-gray hover:text-ink-black cursor-pointer underline">새로고침</button>
+              </div>
+              <div id="originals-list-container" class="space-y-2"></div>
+              <p id="originals-empty-msg" class="text-xs text-ink-gray py-4 text-center">아직 보관된 원본 사진이 없어요.</p>
+            </div>
           </div>
         </div>
 
@@ -2005,19 +2105,19 @@
 
   <!-- JavaScript: Admin 로직 & 쇼핑몰 데이터 양방향 실시간 동기화 -->
   <!-- 관리자 화면 동작 (화면별 파일, 순서 중요) -->
-  <script src="assets/js/admin/admin-dashboard.js?v=88"></script>
-  <script src="assets/js/admin/admin-products.js?v=88"></script>
-  <script src="assets/js/admin/admin-orders.js?v=88"></script>
-  <script src="assets/js/admin/admin-inquiries.js?v=88"></script>
-  <script src="assets/js/admin/admin-product-modal.js?v=88"></script>
-  <script src="assets/js/admin/admin-flowers.js?v=88"></script>
-  <script src="assets/js/admin/admin-coupons.js?v=88"></script>
-  <script src="assets/js/admin/admin-settings.js?v=88"></script>
-  <script src="assets/js/admin/admin-popups.js?v=88"></script>
-  <script src="assets/js/admin/admin-finance.js?v=88"></script>
-  <script src="assets/js/admin/admin-integrations.js?v=88"></script>
-  <script src="assets/js/admin/admin-pages.js?v=88"></script>
-  <script src="assets/js/admin/admin-tools-ui.js?v=88"></script>
+  <script src="assets/js/admin/admin-dashboard.js?v=89"></script>
+  <script src="assets/js/admin/admin-products.js?v=89"></script>
+  <script src="assets/js/admin/admin-orders.js?v=89"></script>
+  <script src="assets/js/admin/admin-inquiries.js?v=89"></script>
+  <script src="assets/js/admin/admin-product-modal.js?v=89"></script>
+  <script src="assets/js/admin/admin-flowers.js?v=89"></script>
+  <script src="assets/js/admin/admin-coupons.js?v=89"></script>
+  <script src="assets/js/admin/admin-settings.js?v=89"></script>
+  <script src="assets/js/admin/admin-popups.js?v=89"></script>
+  <script src="assets/js/admin/admin-finance.js?v=89"></script>
+  <script src="assets/js/admin/admin-integrations.js?v=89"></script>
+  <script src="assets/js/admin/admin-pages.js?v=89"></script>
+  <script src="assets/js/admin/admin-tools-ui.js?v=89"></script>
 
   <!-- 슬라이드 편집 모달 -->
   <div id="slide-edit-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-black/60 hidden">

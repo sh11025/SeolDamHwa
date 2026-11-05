@@ -26,6 +26,9 @@ DATA/flowers.csv.tmp
 DATA/*.tmp
 # 서버 자동 백업 (개인정보 포함)
 DATA/backup/
+# 원본 사진 및 Supabase 접속 정보 (서버 전용, Git 및 백업 제외)
+DATA/originals/
+DATA/.supabase.json
 
 # 사용자 압축 파일
 *.zip

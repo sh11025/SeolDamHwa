@@ -121,7 +121,35 @@ function resizeImageFile(file) {
   });
 }
 
+// 원본 사진 서버 보관 (/api/originals)
+async function uploadOriginalImage(file) {
+  if (!window.SDH_SERVER_MODE) return true;
+  try {
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const res = String(reader.result || '');
+        const comma = res.indexOf(',');
+        resolve(comma !== -1 ? res.slice(comma + 1) : res);
+      };
+      reader.onerror = () => reject(new Error('READ_FAIL'));
+      reader.readAsDataURL(file);
+    });
+    const resp = await fetch('/api/originals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: file.name, data: base64 })
+    });
+    const data = await resp.json().catch(() => ({}));
+    return !!(data && data.ok);
+  } catch (e) {
+    return false;
+  }
+}
+
 async function saveUploadedImage(file) {
+  // 원본 전송을 리사이즈와 병렬로 시작
+  const origPromise = window.SDH_SERVER_MODE ? uploadOriginalImage(file) : Promise.resolve(true);
   const { dataUrl, width, height } = await resizeImageFile(file);
   const list = loadImageLibrary();
   const entry = {
@@ -138,6 +166,13 @@ async function saveUploadedImage(file) {
   } catch (e) {
     throw new Error('FULL');
   }
+  let originalSaved = true;
+  try {
+    originalSaved = await origPromise;
+  } catch (e) {
+    originalSaved = false;
+  }
+  entry.originalSaved = originalSaved;
   return entry;
 }
 
@@ -225,11 +260,15 @@ async function handleImageUpload(input) {
   input.value = '';
   const msg = document.getElementById('image-picker-message');
   let last = null;
+  let anyOriginalFailed = false;
   for (const f of files) {
     msg.innerText = `${f.name} 줄이는 중…`;
     msg.className = 'text-xs text-ink-gray';
     try {
       last = await saveUploadedImage(f);
+      if (last && last.originalSaved === false) {
+        anyOriginalFailed = true;
+      }
     } catch (e) {
       const reason = e.message === 'TYPE' ? '사진 파일(JPG·PNG·WEBP)만 올릴 수 있어요.'
         : e.message === 'FULL' ? '저장 공간이 가득 찼어요. 안 쓰는 사진을 지운 뒤 다시 올려 주세요.'
@@ -242,7 +281,11 @@ async function handleImageUpload(input) {
   }
   renderImagePicker();
   if (last) {
-    msg.innerText = files.length > 1 ? `${files.length}장을 올렸어요. 쓸 사진을 눌러 고르세요.` : '올렸어요. 사진을 눌러 고르세요.';
-    msg.className = 'text-xs text-emerald-700 font-bold';
+    let successText = files.length > 1 ? `${files.length}장을 올렸어요. 쓸 사진을 눌러 고르세요.` : '올렸어요. 사진을 눌러 고르세요.';
+    if (anyOriginalFailed) {
+      successText += ' (원본은 저장하지 못했어요)';
+    }
+    msg.innerText = successText;
+    msg.className = anyOriginalFailed ? 'text-xs text-amber-800 font-bold' : 'text-xs text-emerald-700 font-bold';
   }
 }

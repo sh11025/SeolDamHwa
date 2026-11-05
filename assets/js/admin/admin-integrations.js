@@ -37,6 +37,7 @@ function renderIntegrations() {
   const pd = document.getElementById('production-date');
   if (pd && !pd.value) pd.value = addDays(financeToday(), 1);
   renderAiRows();
+  renderOriginalsSection();
 }
 
 function renderAiRows() {
@@ -216,5 +217,219 @@ async function aiDraftProductCopy(btn) {
   } finally {
     btn.disabled = false;
     btn.innerText = original;
+  }
+}
+
+/* ---------- 원본 사진 및 Supabase Storage 관리 ---------- */
+
+let originalsLoading = false;
+
+async function renderOriginalsSection() {
+  const isServer = !!window.SDH_SERVER_MODE;
+  const staticHint = document.getElementById('originals-static-hint');
+  const serverContent = document.getElementById('originals-server-content');
+  if (!isServer) {
+    if (staticHint) staticHint.classList.remove('hidden');
+    if (serverContent) serverContent.classList.add('hidden');
+    return;
+  }
+  if (staticHint) staticHint.classList.add('hidden');
+  if (serverContent) serverContent.classList.remove('hidden');
+
+  if (originalsLoading) return;
+  originalsLoading = true;
+
+  try {
+    // 1. 세션 정보 조회 (로컬 여부 확인)
+    const sessionRes = await fetch('/api/session').then(r => r.json()).catch(() => ({}));
+    const isLocal = !!(sessionRes && sessionRes.local);
+    const localConfig = document.getElementById('supabase-local-config');
+    const remoteNotice = document.getElementById('supabase-remote-notice');
+    if (localConfig) localConfig.classList.toggle('hidden', !isLocal);
+    if (remoteNotice) remoteNotice.classList.toggle('hidden', isLocal);
+
+    // 2. Supabase 설정 조회
+    const cfgRes = await fetch('/api/supabase-config').then(r => r.json()).catch(() => ({}));
+    const cfg = (cfgRes && cfgRes.ok) ? cfgRes : { configured: false, url: '', bucket: 'originals' };
+    const statusBadge = document.getElementById('originals-supabase-status');
+    if (statusBadge) {
+      if (cfg.configured) {
+        statusBadge.textContent = `연결됨 (${cfg.url})`;
+        statusBadge.className = 'text-xs px-2 py-0.5 rounded font-bold bg-emerald-100 text-emerald-800';
+      } else {
+        statusBadge.textContent = '연결 안 됨';
+        statusBadge.className = 'text-xs px-2 py-0.5 rounded font-bold bg-gray-100 text-gray-700';
+      }
+    }
+    const urlInput = document.getElementById('supabase-url-input');
+    const bucketInput = document.getElementById('supabase-bucket-input');
+    if (urlInput && document.activeElement !== urlInput) urlInput.value = cfg.url || '';
+    if (bucketInput && document.activeElement !== bucketInput) bucketInput.value = cfg.bucket || 'originals';
+
+    // 3. 원본 사진 목록 조회
+    const origRes = await fetch('/api/originals').then(r => r.json()).catch(() => ({}));
+    const items = (origRes && origRes.ok && Array.isArray(origRes.items)) ? origRes.items : [];
+
+    const totalCount = items.length;
+    const pendingCount = items.filter(x => !x.uploadedToSupabase).length;
+    const totalBytes = items.reduce((acc, x) => acc + (x.size || 0), 0);
+    const totalMb = (totalBytes / (1024 * 1024)).toFixed(1);
+
+    const elTotal = document.getElementById('originals-total-count');
+    const elPending = document.getElementById('originals-pending-count');
+    const elSize = document.getElementById('originals-total-size');
+    if (elTotal) elTotal.textContent = String(totalCount);
+    if (elPending) elPending.textContent = String(pendingCount);
+    if (elSize) elSize.textContent = String(totalMb);
+
+    // 대기 원본 올리기 버튼 제어
+    const btnUpload = document.getElementById('btn-upload-pending-originals');
+    const uploadStatusText = document.getElementById('originals-upload-status-text');
+    if (btnUpload && uploadStatusText) {
+      if (!cfg.configured) {
+        btnUpload.disabled = true;
+        uploadStatusText.textContent = 'Supabase 연결 설정이 필요해요.';
+      } else if (pendingCount === 0) {
+        btnUpload.disabled = true;
+        uploadStatusText.textContent = '모든 원본이 클라우드에 백업되어 있어요.';
+      } else {
+        btnUpload.disabled = false;
+        uploadStatusText.textContent = `${pendingCount}장의 원본이 대기 중이에요.`;
+      }
+    }
+
+    // 4. 원본 사진 목록 렌더링 (createElement)
+    const listContainer = document.getElementById('originals-list-container');
+    const emptyMsg = document.getElementById('originals-empty-msg');
+    if (listContainer) {
+      listContainer.innerHTML = '';
+      if (emptyMsg) emptyMsg.classList.toggle('hidden', items.length > 0);
+
+      items.forEach(it => {
+        const row = document.createElement('div');
+        row.className = 'flex flex-wrap items-center justify-between p-3 bg-white border border-ink-black/10 rounded-xs text-xs gap-2';
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'flex items-center gap-2.5 min-w-0';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'font-bold text-ink-black truncate max-w-[200px] sm:max-w-[320px]';
+        nameSpan.textContent = it.filename || it.name || it.path || '사진';
+        infoDiv.appendChild(nameSpan);
+
+        const sizeSpan = document.createElement('span');
+        sizeSpan.className = 'text-ink-gray';
+        const sz = it.size ? (it.size > 1024 * 1024 ? `${(it.size / 1024 / 1024).toFixed(1)} MB` : `${Math.round(it.size / 1024)} KB`) : '';
+        sizeSpan.textContent = sz;
+        infoDiv.appendChild(sizeSpan);
+
+        if (it.createdAt) {
+          const dateSpan = document.createElement('span');
+          dateSpan.className = 'text-ink-light hidden sm:inline';
+          dateSpan.textContent = it.createdAt.replace('T', ' ');
+          infoDiv.appendChild(dateSpan);
+        }
+
+        row.appendChild(infoDiv);
+
+        const actionDiv = document.createElement('div');
+        actionDiv.className = 'flex items-center gap-3 shrink-0';
+
+        const badge = document.createElement('span');
+        if (it.uploadedToSupabase) {
+          badge.className = 'px-1.5 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800';
+          badge.textContent = '클라우드 백업됨';
+        } else {
+          badge.className = 'px-1.5 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800';
+          badge.textContent = '대기 중';
+        }
+        actionDiv.appendChild(badge);
+
+        if (it.path) {
+          const link = document.createElement('a');
+          link.href = `/api/originals/${it.path}`;
+          link.target = '_blank';
+          link.rel = 'noopener';
+          link.className = 'text-seal-red hover:underline font-bold';
+          link.textContent = '원본 보기';
+          actionDiv.appendChild(link);
+        }
+
+        row.appendChild(actionDiv);
+        listContainer.appendChild(row);
+      });
+    }
+  } catch (err) {
+    console.error('renderOriginalsSection error:', err);
+  } finally {
+    originalsLoading = false;
+  }
+}
+
+async function saveSupabaseConfig(e) {
+  if (e) e.preventDefault();
+  const urlInput = document.getElementById('supabase-url-input');
+  const keyInput = document.getElementById('supabase-key-input');
+  const bucketInput = document.getElementById('supabase-bucket-input');
+  const msgEl = document.getElementById('supabase-config-msg');
+  if (!urlInput || !msgEl) return;
+
+  const url = urlInput.value.trim();
+  const serviceKey = keyInput ? keyInput.value.trim() : '';
+  const bucket = bucketInput ? bucketInput.value.trim() : 'originals';
+
+  msgEl.textContent = '저장 중…';
+  msgEl.className = 'text-xs text-ink-gray';
+
+  try {
+    const res = await fetch('/api/supabase-config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url, serviceKey, bucket })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (data.ok) {
+      if (keyInput) keyInput.value = ''; // 키 입력창 비움 (보안)
+      msgEl.textContent = '설정을 저장했어요.';
+      msgEl.className = 'text-xs text-emerald-700 font-bold';
+      await renderOriginalsSection();
+    } else {
+      msgEl.textContent = data.error || '저장하지 못했어요.';
+      msgEl.className = 'text-xs text-seal-red font-bold';
+    }
+  } catch (err) {
+    msgEl.textContent = '서버 통신에 실패했어요.';
+    msgEl.className = 'text-xs text-seal-red font-bold';
+  }
+}
+
+async function handleUploadPendingOriginals() {
+  const btn = document.getElementById('btn-upload-pending-originals');
+  const progress = document.getElementById('originals-upload-progress');
+  const statusText = document.getElementById('originals-upload-status-text');
+  if (!btn) return;
+
+  btn.disabled = true;
+  if (progress) progress.textContent = '올리는 중…';
+
+  try {
+    const res = await fetch('/api/supabase-upload-pending', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    const data = await res.json().catch(() => ({}));
+    if (data.ok) {
+      if (statusText) {
+        statusText.textContent = `${data.uploaded}장 올림` + (data.failed > 0 ? `, ${data.failed}장 실패` : '');
+      }
+    } else {
+      if (statusText) statusText.textContent = data.error || '업로드 실패';
+    }
+  } catch (err) {
+    if (statusText) statusText.textContent = '업로드 중 오류 발생';
+  } finally {
+    if (progress) progress.textContent = '';
+    await renderOriginalsSection();
   }
 }

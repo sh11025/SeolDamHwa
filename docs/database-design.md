@@ -492,6 +492,10 @@
    - `review-media`: 손님이 올리는 후기 사진 및 짧은 영상
      - **보안 규칙**: 사장님이 후기를 승인(`status = 'approved'`)하기 전까지는 **비공개(Private)** 상태로 보관되며, 승인된 후기의 미디어만 일반 손님에게 공개됩니다.
      - 파일 제한: 사진 최대 3장 (장당 300KB 이하 JPEG, 긴 축 1000px 이하로 브라우저 압축), 영상 최대 1개 (30초 이내, 20MB 이하, mp4/webm/mov).
+   - `originals`: **비공개(Private) 원본 사진 보관소**
+     - **보안 정책(RLS/Storage Policy)**: Public Read 정책 없음. Anon 및 Authenticated 정책 일체 없음. 오직 서버 권한의 `service_role` 키로만 업로드 및 조회가 가능합니다.
+     - **운영 원칙**: 쇼핑몰 노출용 사진은 도장 낙관이 합성된 상태로 공개 버킷(`product-photos` 등)에 올라가며, 무낙관 고화질 원본은 본 `originals` 비공개 버킷에 안전하게 백업 보관됩니다.
+     - **실 서비스 전환(Going Live) 시 보안 주의사항**: `service_role` 키는 반드시 서버 환경(`DATA/.supabase.json` 또는 서버 환경변수)에만 존재해야 하며, 브라우저·CSV·로그·백업 파일·Git 어디에도 절대 노출되어서는 안 됩니다. 만약 향후 로컬 `server.py`를 제거하고 완전한 서버리스 환경으로 이전할 경우, 이 원본 업로드 처리는 브라우저 코드가 아닌 **Supabase Edge Function**으로 이전하여 서버 키를 보호해야 합니다.
 
 ---
 

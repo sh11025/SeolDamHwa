@@ -213,6 +213,11 @@ function showPanelTab(panel, name) {
     if (typeof renderServerAdmin === 'function') renderServerAdmin();
   }
 
+  // integrations:originals 탭 원본 사진 렌더링
+  if (panel === 'integrations' && name === 'originals') {
+    if (typeof renderOriginalsSection === 'function') renderOriginalsSection();
+  }
+
   // 2. 버튼 활성 스타일 및 접근성 속성 갱신
   document.querySelectorAll(`[data-panel-btn^="${panel}:"]`).forEach(btn => {
     const on = btn.dataset.panelBtn === `${panel}:${name}`;
