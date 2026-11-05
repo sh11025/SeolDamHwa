@@ -569,19 +569,26 @@ function buildLetterCard(r) {
   return card;
 }
 
+function shopVisibleReviews() {
+  const allRevs = typeof loadReviews === 'function' ? loadReviews() : [];
+  const isPreview = (typeof isPreviewMode !== 'undefined' && Boolean(isPreviewMode)) ||
+                    (typeof window !== 'undefined' && window.location && new URLSearchParams(window.location.search).get('preview') === '1');
+  const sampleAllowed = isPreview || (typeof loadProducts === 'function' && loadProducts().some(p => String(p.id).startsWith('sample-') && p.visibility !== 'private'));
+
+  return allRevs.filter(r => {
+    if (!r.isSample) {
+      return r.status === 'approved' || !r.status;
+    }
+    return r.status === 'approved' && sampleAllowed;
+  });
+}
+
 function renderHomeReviewsSlider() {
   const sec = document.getElementById('home-reviews-section');
   const track = document.getElementById('home-reviews-track') || document.getElementById('home-reviews-slider');
   if (!sec || !track) return;
 
-  const allRevs = typeof loadReviews === 'function' ? loadReviews() : [];
-  const approved = allRevs.filter(r => r.status === 'approved' || (!r.status && !r.isSample));
-
-  const isPreview = (typeof isPreviewMode !== 'undefined' && isPreviewMode) ||
-                    (new URLSearchParams(window.location.search).get('preview') === '1');
-
-  // 실제 보여줄 후기 목록 결정: 미리보기가 아니면 샘플 후기 제외
-  const list = (isPreview ? approved : approved.filter(r => !r.isSample))
+  const list = shopVisibleReviews()
     .slice()
     .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
     .slice(0, 10);
@@ -644,8 +651,7 @@ function setReviewFilter(filter) {
   currentReviewFilter = filter;
   currentReviewPage = 1;
 
-  const allRevs = typeof loadReviews === 'function' ? loadReviews() : [];
-  const approved = allRevs.filter(r => r.status === 'approved' || (!r.status && !r.isSample));
+  const approved = shopVisibleReviews();
   renderReviewFilterChips(approved);
   renderReviewsList();
 }
@@ -663,8 +669,7 @@ function renderReviewFilterChips(approved) {
 
   const currentLang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'ko';
   if (!approved) {
-    const allRevs = typeof loadReviews === 'function' ? loadReviews() : [];
-    approved = allRevs.filter(r => r.status === 'approved' || (!r.status && !r.isSample));
+    approved = shopVisibleReviews();
   }
 
   // 1. "전체" 칩
@@ -715,8 +720,7 @@ function renderReviewFilterChips(approved) {
 }
 
 function renderReviewsPage() {
-  const allRevs = typeof loadReviews === 'function' ? loadReviews() : [];
-  const approved = allRevs.filter(r => r.status === 'approved' || (!r.status && !r.isSample));
+  const approved = shopVisibleReviews();
 
   // 통계 계산
   const total = approved.length;
@@ -765,8 +769,7 @@ function renderReviewsList() {
   const pagesWrap = document.getElementById('reviews-pages');
   if (!grid) return;
 
-  const allRevs = typeof loadReviews === 'function' ? loadReviews() : [];
-  let list = allRevs.filter(r => r.status === 'approved' || (!r.status && !r.isSample));
+  let list = shopVisibleReviews();
 
   // 필터 적용
   if (currentReviewFilter === 'media') {

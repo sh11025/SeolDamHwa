@@ -23,7 +23,8 @@ function renderIntegrations() {
   if (sampleStatus) {
     const sOrders = loadOrders().filter(o => o.isSample).length;
     const sExp = loadExpenses().filter(e => e.isSample).length;
-    sampleStatus.innerText = hasSampleData() ? `지금 예시 데이터가 들어 있어요 (예시 주문 ${sOrders}건 · 예시 지출 ${sExp}건).` : '지금은 예시 데이터가 없어요.';
+    const sRevs = (typeof loadReviews === 'function' ? loadReviews() : []).filter(r => r.isSample).length;
+    sampleStatus.innerText = hasSampleData() ? `지금 예시 데이터가 들어 있어요 (예시 주문 ${sOrders}건 · 예시 지출 ${sExp}건 · 예시 후기 ${sRevs}건).` : '지금은 예시 데이터가 없어요.';
   }
   const cfg = loadIntegrations();
   const whO = document.getElementById('discord-webhook-order');
@@ -67,12 +68,12 @@ function handleAddSampleData() {
   const showInShop = !!(document.getElementById('sample-show-in-shop') || {}).checked;
   const r = addSampleData({ showInShop });
   refreshAllAdminViews();
-  alert(`예시 데이터를 넣었어요.\n상품 ${r.products}개(${r.showInShop ? '쇼핑몰에도 보임' : '관리자에서만 보임'}) · 주문 ${r.orders}건 · 지출 ${r.expenses}건 · 상담 ${r.inquiries}건`);
+  alert(`예시 데이터를 넣었어요.\n상품 ${r.products}개(${r.showInShop ? '쇼핑몰에도 보임' : '관리자에서만 보임'}) · 주문 ${r.orders}건 · 지출 ${r.expenses}건 · 상담 ${r.inquiries}건 · 후기 ${r.reviews}건`);
 }
 
 function handleRemoveSampleData() {
   if (!hasSampleData()) { alert('지울 예시 데이터가 없어요.'); return; }
-  if (!confirm('[예시]가 붙은 상품·주문·지출·상담을 모두 지울까요?\n실제 데이터는 그대로 남아요.')) return;
+  if (!confirm('[예시]가 붙은 상품·주문·지출·상담·후기를 모두 지울까요?\n실제 데이터는 그대로 남아요.')) return;
   removeSampleData();
   refreshAllAdminViews();
 }

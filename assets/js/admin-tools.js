@@ -148,7 +148,9 @@ function hasSampleData() {
   return products.some(p => String(p.id).startsWith(SAMPLE_PRODUCT_PREFIX))
     || loadOrders().some(o => o.isSample)
     || loadExpenses().some(e => e.isSample)
-    || loadInquiries().some(i => i.isSample);
+    || loadInquiries().some(i => i.isSample)
+    || (typeof loadRestock === 'function' && loadRestock().some(r => r.isSample))
+    || (typeof loadReviews === 'function' && loadReviews().some(r => r.isSample));
 }
 
 function sampleProductsVisible() {
@@ -260,21 +262,185 @@ function addSampleData({ showInShop = true } = {}) {
     saveRestock(rs);
   }
 
-  // 예시 후기 6건 (승인 상태, 이름 없음)
+  // 예시 후기 10건 (사연 대상별 꽃 편지 디자인 확인용, 이름 없음)
   if (typeof saveReviews === 'function') {
     const revs = typeof loadReviews === 'function' ? loadReviews() : [];
     revs.unshift(
-      { id: 'rev-sample-1', orderId: 'ord-sample-1', orderNumber: 'SDH-SAMPLE-01', productId: 'sample-lily', productName: '백옥 백합 & 백장미 다발', rating: 5, text: '[예시] 부모님 결혼기념일 선물로 보내드렸는데, 꽃이 너무 신선하고 보자기 포장이 우아하다고 정말 좋아하셨어요.', photos: [], video: '', status: 'approved', adminReply: '부모님의 특별한 날에 함께할 수 있어 영광이었습니다. 늘 행복 가득하시길 바랍니다.', replyAt: `${addDays(today, -1)}T14:00:00`, createdAt: `${addDays(today, -2)}T09:30:00`, isSample: true },
-      { id: 'rev-sample-2', orderId: 'ord-sample-2', orderNumber: 'SDH-SAMPLE-02', productId: 'sample-basket', productName: '단아한 설담화 꽃바구니', rating: 5, text: '[예시] 승진 축하 자리로 보냈는데 한지 장식이 고급스러워서 받는 분이 감동하셨다고 연락이 왔네요. 배송도 시간 맞춰 잘 왔습니다.', photos: [], video: '', status: 'approved', adminReply: '', replyAt: '', createdAt: `${addDays(today, -4)}T11:15:00`, isSample: true },
-      { id: 'rev-sample-3', orderId: 'ord-sample-3', orderNumber: 'SDH-SAMPLE-03', productId: 'sample-peony', productName: '자줏빛 모란 화병 꽂이', rating: 5, text: '[예시] 사진보다 실물이 훨씬 화사하고 꽃향기가 은은하게 퍼져서 거실 분위기가 확 살았습니다.', photos: [], video: '', status: 'approved', adminReply: '', replyAt: '', createdAt: `${addDays(today, -6)}T16:40:00`, isSample: true },
-      { id: 'rev-sample-4', orderId: 'ord-sample-4', orderNumber: 'SDH-SAMPLE-04', productId: 'sample-hydrangea', productName: '청아한 수국 꽃다발', rating: 4, text: '[예시] 친구 생일 선물로 전했는데 색감이 은은하고 예뻤어요. 물올림 카드도 함께 와서 오래 감상할 수 있을 것 같아요.', photos: [], video: '', status: 'approved', adminReply: '소중한 친구분 생일에 기쁨이 되셨기를 바라며, 시원한 물로 갈아주시면 오래 보실 수 있습니다.', replyAt: `${addDays(today, -8)}T10:30:00`, createdAt: `${addDays(today, -9)}T13:20:00`, isSample: true },
-      { id: 'rev-sample-5', orderId: 'ord-sample-5', orderNumber: 'SDH-SAMPLE-05', productId: 'sample-norigaevase', productName: '전통 노리개 화병 세트', rating: 5, text: '[예시] 스승의 날 감사 인사로 드렸는데 전통 노리개 포인트가 너무 기품 있어 보여서 뿌듯했습니다.', photos: [], video: '', status: 'approved', adminReply: '', replyAt: '', createdAt: `${addDays(today, -12)}T15:00:00`, isSample: true },
-      { id: 'rev-sample-6', orderId: 'ord-sample-6', orderNumber: 'SDH-SAMPLE-06', productId: 'sample-wildflower', productName: '소담한 들꽃 한아름', rating: 5, text: '[예시] 집들이 선물로 급하게 주문했는데 퀵 배송도 빠르고 꽃 구성도 자연스럽고 정갈했어요.', photos: [], video: '', status: 'approved', adminReply: '', replyAt: '', createdAt: `${addDays(today, -15)}T18:10:00`, isSample: true }
+      {
+        id: 'rev-sample-1',
+        orderId: 'ord-sample-1',
+        orderNumber: 'SDH-SAMPLE-01',
+        productId: 'sample-chrysanthemum-basket',
+        productName: '[예시] 소국 꽃바구니',
+        recipient: 'parents',
+        rating: 5,
+        text: '[예시] 부모님 결혼기념일에 맞춰 보내드렸는데 보자기 포장이 너무 곱고 정갈해서 어머니께서 눈시울을 붉히셨어요. 은은한 국화 향이 온 집안에 가득해 온 가족이 행복한 저녁을 보냈습니다.',
+        photos: ['assets/images/products/norigae-basket.jpg', 'assets/images/story_bojagi_gift.jpg', 'assets/images/story_bojagi_bouquet.jpg'],
+        video: '',
+        status: 'approved',
+        adminReply: '소중한 부모님의 기념일에 설담화가 따뜻한 기억을 더해드릴 수 있어 기쁩니다. 두 분 늘 건강하시고 평안하시기를 바랍니다.',
+        replyAt: `${addDays(today, -1)}T15:00:00`,
+        createdAt: `${addDays(today, -2)}T10:30:00`,
+        isSample: true
+      },
+      {
+        id: 'rev-sample-2',
+        orderId: 'ord-sample-2',
+        orderNumber: 'SDH-SAMPLE-02',
+        productId: 'sample-peony-armful',
+        productName: '[예시] 작약 한아름',
+        recipient: 'lover',
+        rating: 5,
+        text: '[예시] 3주년 기념일 선물로 준비했는데 꽃잎 하나하나 상한 곳 없이 싱싱하게 도착했어요. 분홍 작약의 우아한 자태에 여자친구가 정말 감동받았다고 하네요.',
+        photos: ['assets/images/products/pale-pink-rose.jpg'],
+        video: '',
+        status: 'approved',
+        adminReply: '',
+        replyAt: '',
+        createdAt: `${addDays(today, -5)}T14:20:00`,
+        isSample: true
+      },
+      {
+        id: 'rev-sample-3',
+        orderId: 'ord-sample-3',
+        orderNumber: 'SDH-SAMPLE-03',
+        productId: 'sample-mini-bouquet',
+        productName: '[예시] 데일리 미니 꽃다발',
+        recipient: 'friend',
+        rating: 5,
+        text: '[예시] 오랜 친구의 첫 개인전을 축하하기 위해 주문했습니다. 갤러리 조명 아래서 꽃의 색감이 어찌나 단아하게 어우러지는지 다들 어디서 맞췄냐고 물어보더라고요. 카드에 적어주신 축하 문구도 손글씨 느낌으로 정성스럽게 담아주셔서 친구가 액자 옆에 고이 세워두었습니다. 덕분에 전시 첫날이 더욱 화사하고 빛나는 자리가 되었네요. 정성 가득한 꽃 지어주셔서 진심으로 감사드려요.',
+        photos: ['assets/images/products/signature-bouquet.jpg', 'assets/images/products/creamy-sunshine.jpg'],
+        video: '',
+        status: 'approved',
+        adminReply: '친구분의 뜻깊은 첫 전시를 함께 축하할 수 있어 저희에게도 큰 보람이었습니다. 따뜻한 말씀에 힘입어 언제나 정성을 다하겠습니다.',
+        replyAt: `${addDays(today, -6)}T17:00:00`,
+        createdAt: `${addDays(today, -7)}T11:45:00`,
+        isSample: true
+      },
+      {
+        id: 'rev-sample-4',
+        orderId: 'ord-sample-4',
+        orderNumber: 'SDH-SAMPLE-04',
+        productId: 'sample-sunflower',
+        productName: '[예시] 해바라기 축하 꽃다발',
+        recipient: 'celebrate',
+        rating: 5,
+        text: '[예시] 동생의 취업 성공 파티를 위해 주문했는데 해바라기가 활짝 피어나는 모습처럼 힘찬 기운이 전해졌어요. 노란 꽃송이가 주는 벅찬 응원이 그대로 느껴져서 뜻깊었습니다.',
+        photos: [],
+        video: 'assets/videos/blooming_flower.mp4',
+        status: 'approved',
+        adminReply: '',
+        replyAt: '',
+        createdAt: `${addDays(today, -10)}T16:10:00`,
+        isSample: true
+      },
+      {
+        id: 'rev-sample-5',
+        orderId: 'ord-sample-5',
+        orderNumber: 'SDH-SAMPLE-05',
+        productId: 'sample-x08',
+        productName: '[예시] 백합 위로의 꽃다발',
+        recipient: 'comfort',
+        rating: 4,
+        text: '[예시] 힘든 시기 곁에 머무는 따스한 위로가 되었습니다.',
+        photos: [],
+        video: '',
+        status: 'approved',
+        adminReply: '',
+        replyAt: '',
+        createdAt: `${addDays(today, -13)}T09:15:00`,
+        isSample: true
+      },
+      {
+        id: 'rev-sample-6',
+        orderId: 'ord-sample-6',
+        orderNumber: 'SDH-SAMPLE-06',
+        productId: 'sample-subscription',
+        productName: '[예시] 계절 꽃 정기 배송 (월 4회)',
+        recipient: 'self',
+        rating: 5,
+        text: '[예시] 바쁜 일상 속 나에게 건네는 향기로운 쉼표 하나.',
+        photos: [],
+        video: '',
+        status: 'approved',
+        adminReply: '온전히 자신을 돌보는 그 고요한 쉼의 시간에 설담화가 함께할 수 있어 참 기쁩니다.',
+        replyAt: `${addDays(today, -15)}T11:00:00`,
+        createdAt: `${addDays(today, -16)}T18:30:00`,
+        isSample: true
+      },
+      {
+        id: 'rev-sample-7',
+        orderId: 'ord-sample-7',
+        orderNumber: 'SDH-SAMPLE-07',
+        productId: 'sample-x07',
+        productName: '[예시] 카네이션 어버이날 꽃바구니',
+        recipient: 'parents',
+        rating: 5,
+        text: '[예시] 멀리 떨어져 지내다 보니 늘 마음 한편이 죄송스러웠는데, 어버이날을 맞아 정성스러운 꽃바구니로 안부를 대신 전할 수 있었습니다. 전화기 너머로 카네이션 꽃이 너무나 싱싱하고 예쁘다며 아이처럼 기뻐하시는 아버지와 어머니 목소리를 듣는 순간 코끝이 찡해졌습니다. 매번 믿고 맡길 수 있을 만큼 한결같이 단아하고 품격 있는 꽃을 지어주셔서 진심으로 고맙습니다.',
+        photos: [],
+        video: '',
+        status: 'approved',
+        adminReply: '',
+        replyAt: '',
+        createdAt: `${addDays(today, -20)}T13:40:00`,
+        isSample: true
+      },
+      {
+        id: 'rev-sample-8',
+        orderId: 'ord-sample-8',
+        orderNumber: 'SDH-SAMPLE-08',
+        productId: 'sample-rose-100',
+        productName: '[예시] 프러포즈 장미 100송이',
+        recipient: 'other',
+        rating: 4,
+        text: '[예시] 오랜 시간 동안 소중한 인연을 이어온 은사님께 전해드렸습니다. 화려하기만 한 꽃보다 깊이 있고 차분한 구성이라 자리의 무게에 참 잘 어울렸습니다.',
+        photos: [],
+        video: '',
+        status: 'approved',
+        adminReply: '',
+        replyAt: '',
+        createdAt: `${addDays(today, -23)}T15:50:00`,
+        isSample: true
+      },
+      {
+        id: 'rev-sample-9',
+        orderId: 'ord-sample-9',
+        orderNumber: 'SDH-SAMPLE-09',
+        productId: 'sample-orchid',
+        productName: '[예시] 동양란 개업 화분',
+        recipient: 'celebrate',
+        rating: 5,
+        text: '[예시] 선배의 새 사무실 개업을 축하드리며 보낸 동양란입니다. 잎선이 곧고 단단해서 서재 한편의 품격을 더해준다고 무척 고마워하시네요. 배송도 흐트러짐 없이 안전하게 잘 도착했습니다.',
+        photos: ['assets/images/products/royal-blue-garden.jpg'],
+        video: '',
+        status: 'approved',
+        adminReply: '',
+        replyAt: '',
+        createdAt: `${addDays(today, -26)}T10:05:00`,
+        isSample: true
+      },
+      {
+        id: 'rev-sample-10',
+        orderId: 'ord-sample-10',
+        orderNumber: 'SDH-SAMPLE-10',
+        productId: 'sample-x01',
+        productName: '[예시] 튤립 봄 인사 꽃다발',
+        recipient: 'friend',
+        rating: 5,
+        text: '[예시] 새집으로 이사한 친구에게 봄기운을 선물하고 싶어 튤립 다발을 건넸습니다. 봉오리가 단정해서 식탁 위에 두니 집안 분위기가 금세 싱그러워졌다고 하네요.',
+        photos: [],
+        video: '',
+        status: 'pending',
+        adminReply: '',
+        replyAt: '',
+        createdAt: `${addDays(today, -29)}T14:30:00`,
+        isSample: true
+      }
     );
     saveReviews(revs);
   }
 
-  return { products: SAMPLE_PRODUCTS.length, orders: seq, expenses: ex, inquiries: 3, reviews: 6, showInShop };
+  return { products: SAMPLE_PRODUCTS.length, orders: seq, expenses: ex, inquiries: 3, reviews: 10, showInShop };
 }
 
 function removeSampleData() {

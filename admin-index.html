@@ -11,21 +11,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
   
-  <script src="assets/js/data-store.js?v=89"></script>
-  <script src="assets/js/products-data.js?v=89"></script>
-  <script src="assets/js/flowers-data.js?v=89"></script>
-  <script src="assets/js/site-theme.js?v=89"></script>
-  <script src="assets/js/site-settings.js?v=89"></script>
-  <script src="assets/js/popups.js?v=89"></script>
-  <script src="assets/js/finance-data.js?v=89"></script>
-  <script src="assets/js/integrations.js?v=89"></script>
-  <script src="assets/js/admin-tools.js?v=89"></script>
-  <script src="assets/js/site-pages.js?v=89"></script>
-  <script src="assets/js/image-library.js?v=89"></script>
-  <script src="assets/js/restock.js?v=89"></script>
-  <script src="assets/js/csv-db.js?v=89"></script>
-  <script src="assets/js/data-sync.js?v=89"></script>
-  <script src="assets/js/coupons.js?v=89"></script>
+  <script src="assets/js/data-store.js?v=90"></script>
+  <script src="assets/js/products-data.js?v=90"></script>
+  <script src="assets/js/flowers-data.js?v=90"></script>
+  <script src="assets/js/site-theme.js?v=90"></script>
+  <script src="assets/js/site-settings.js?v=90"></script>
+  <script src="assets/js/popups.js?v=90"></script>
+  <script src="assets/js/finance-data.js?v=90"></script>
+  <script src="assets/js/integrations.js?v=90"></script>
+  <script src="assets/js/admin-tools.js?v=90"></script>
+  <script src="assets/js/site-pages.js?v=90"></script>
+  <script src="assets/js/image-library.js?v=90"></script>
+  <script src="assets/js/restock.js?v=90"></script>
+  <script src="assets/js/csv-db.js?v=90"></script>
+  <script src="assets/js/data-sync.js?v=90"></script>
+  <script src="assets/js/coupons.js?v=90"></script>
   <!-- 운송장 바코드: JsBarcode -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
   <!-- 차트: Chart.js -->
@@ -413,7 +413,7 @@
     }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=89">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=90">
 </head>
 <body class="min-h-screen flex flex-col selection:bg-seal-red/15 selection:text-seal-red">
   <!-- 1. 관리자 상단 헤더 (Admin Top Bar) -->
@@ -1350,7 +1350,7 @@
         <div data-panel-tab="integrations:sample" class="hidden space-y-6">
           <div class="admin-card p-5 rounded-sm space-y-3">
             <h2 class="text-base font-bold text-ink-black">예시 데이터</h2>
-            <p class="text-ink-gray leading-relaxed">버튼 <strong class="text-ink-black">한 번</strong>이면 연습용 데이터가 한꺼번에 들어가요: 꽃다발·꽃바구니·화병꽂이·드라이·웨딩·화분·굿즈 7가지 종류에 골고루 <strong class="text-ink-black">예시 상품 41개</strong>(7천원~25만원, 품절·품절 임박, 아주 긴 이름, 사진 여러 장, 깨진 사진, 비공개·예약 등 화면 점검용 포함), <strong class="text-ink-black">최근 90일 주문</strong>, 석 달치 지출, 상담 문의 3건. 이름 앞에 <strong class="text-ink-black">[예시]</strong>가 붙어요.</p>
+            <p class="text-ink-gray leading-relaxed">버튼 <strong class="text-ink-black">한 번</strong>이면 연습용 데이터가 한꺼번에 들어가요: 꽃다발·꽃바구니·화병꽂이·드라이·웨딩·화분·굿즈 7가지 종류에 골고루 <strong class="text-ink-black">예시 상품 41개</strong>(7천원~25만원, 품절·품절 임박, 아주 긴 이름, 사진 여러 장, 깨진 사진, 비공개·예약 등 화면 점검용 포함), <strong class="text-ink-black">최근 90일 주문</strong>, 석 달치 지출, 상담 문의 3건, <strong class="text-ink-black">꽃 편지(후기) 10건</strong>. 이름 앞에 <strong class="text-ink-black">[예시]</strong>가 붙어요.</p>
             <label class="flex items-start gap-2 cursor-pointer">
               <input type="checkbox" id="sample-show-in-shop" checked class="mt-0.5 w-4 h-4">
               <span>예시 상품을 <strong>쇼핑몰에도 보이기</strong> <span class="text-xs text-ink-gray">(갤러리·맞춤 담화 예산 구간·품절 표시를 확인할 때. 실제 오픈 전에는 꼭 지워 주세요)</span></span>
@@ -2105,19 +2105,19 @@
 
   <!-- JavaScript: Admin 로직 & 쇼핑몰 데이터 양방향 실시간 동기화 -->
   <!-- 관리자 화면 동작 (화면별 파일, 순서 중요) -->
-  <script src="assets/js/admin/admin-dashboard.js?v=89"></script>
-  <script src="assets/js/admin/admin-products.js?v=89"></script>
-  <script src="assets/js/admin/admin-orders.js?v=89"></script>
-  <script src="assets/js/admin/admin-inquiries.js?v=89"></script>
-  <script src="assets/js/admin/admin-product-modal.js?v=89"></script>
-  <script src="assets/js/admin/admin-flowers.js?v=89"></script>
-  <script src="assets/js/admin/admin-coupons.js?v=89"></script>
-  <script src="assets/js/admin/admin-settings.js?v=89"></script>
-  <script src="assets/js/admin/admin-popups.js?v=89"></script>
-  <script src="assets/js/admin/admin-finance.js?v=89"></script>
-  <script src="assets/js/admin/admin-integrations.js?v=89"></script>
-  <script src="assets/js/admin/admin-pages.js?v=89"></script>
-  <script src="assets/js/admin/admin-tools-ui.js?v=89"></script>
+  <script src="assets/js/admin/admin-dashboard.js?v=90"></script>
+  <script src="assets/js/admin/admin-products.js?v=90"></script>
+  <script src="assets/js/admin/admin-orders.js?v=90"></script>
+  <script src="assets/js/admin/admin-inquiries.js?v=90"></script>
+  <script src="assets/js/admin/admin-product-modal.js?v=90"></script>
+  <script src="assets/js/admin/admin-flowers.js?v=90"></script>
+  <script src="assets/js/admin/admin-coupons.js?v=90"></script>
+  <script src="assets/js/admin/admin-settings.js?v=90"></script>
+  <script src="assets/js/admin/admin-popups.js?v=90"></script>
+  <script src="assets/js/admin/admin-finance.js?v=90"></script>
+  <script src="assets/js/admin/admin-integrations.js?v=90"></script>
+  <script src="assets/js/admin/admin-pages.js?v=90"></script>
+  <script src="assets/js/admin/admin-tools-ui.js?v=90"></script>
 
   <!-- 슬라이드 편집 모달 -->
   <div id="slide-edit-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-black/60 hidden">
