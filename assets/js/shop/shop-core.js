@@ -594,8 +594,8 @@ function renderHomeReviewsSlider() {
 
   if (list.length === 0) {
     // 후기가 없을 때: 섹션 표시 유지, 좌우 화살표 숨김, 빈 편지 스타일 카드 1장 표시
-    if (prevBtn) prevBtn.classList.add('hidden');
-    if (nextBtn) nextBtn.classList.add('hidden');
+    if (prevBtn) prevBtn.style.display = 'none';
+    if (nextBtn) nextBtn.style.display = 'none';
 
     const emptyCard = document.createElement('article');
     emptyCard.className = 'letter-paper rounded-lg p-5 border border-ink-black/10 shadow-xs flex flex-col justify-between min-h-[220px] select-none text-left w-[280px] sm:w-[320px] shrink-0 snap-start';
@@ -628,9 +628,9 @@ function renderHomeReviewsSlider() {
     return;
   }
 
-  // 후기가 있을 때: 화살표 노출
-  if (prevBtn) prevBtn.classList.remove('hidden');
-  if (nextBtn) nextBtn.classList.remove('hidden');
+  // 후기가 있을 때: 화살표 노출 (index.html의 hidden md:flex에 위임)
+  if (prevBtn) prevBtn.style.display = '';
+  if (nextBtn) nextBtn.style.display = '';
 
   list.forEach(r => {
     const card = buildLetterCard(r);
