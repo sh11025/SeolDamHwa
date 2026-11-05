@@ -234,6 +234,73 @@ function showPanelTab(panel, name) {
   } else if (panel === 'coupons' && name === 'history') {
     if (typeof renderCouponStats === 'function') renderCouponStats();
   }
+
+  // 4. 모바일 카드 테이블 라벨 갱신
+  observeCardTables();
+}
+
+// 모바일 카드 뷰: thead th의 텍스트를 각 행 td의 data-label 속성으로 복사
+function labelTableCells(table) {
+  if (!table) return;
+  const ths = Array.from(table.querySelectorAll('thead th')).map(th => th.innerText.trim());
+  if (!ths.length) return;
+  const rows = table.querySelectorAll('tbody tr');
+  rows.forEach(tr => {
+    const cells = Array.from(tr.children).filter(el => el.tagName === 'TD');
+    cells.forEach((td, idx) => {
+      if (td.hasAttribute('colspan')) {
+        td.removeAttribute('data-label');
+        return;
+      }
+      const label = ths[idx] || '';
+      if (label) {
+        td.setAttribute('data-label', label);
+      } else {
+        td.removeAttribute('data-label');
+      }
+    });
+  });
+}
+
+function observeCardTables() {
+  const tables = document.querySelectorAll('table.admin-card-table');
+  tables.forEach(table => {
+    labelTableCells(table);
+    const tbody = table.querySelector('tbody');
+    if (tbody && !tbody._cardObserver) {
+      const observer = new MutationObserver(() => {
+        labelTableCells(table);
+      });
+      observer.observe(tbody, { childList: true, subtree: false });
+      tbody._cardObserver = observer;
+    }
+  });
+}
+
+// DOM에 새로 추가되는 admin-card-table 자동 감지
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', () => {
+    observeCardTables();
+  });
+  if (typeof MutationObserver !== 'undefined') {
+    const tableBodyObserver = new MutationObserver(mutations => {
+      let shouldRefresh = false;
+      for (const m of mutations) {
+        if (m.addedNodes.length) {
+          shouldRefresh = true;
+          break;
+        }
+      }
+      if (shouldRefresh) observeCardTables();
+    });
+    if (document.body) {
+      tableBodyObserver.observe(document.body, { childList: true, subtree: true });
+    } else {
+      document.addEventListener('DOMContentLoaded', () => {
+        tableBodyObserver.observe(document.body, { childList: true, subtree: true });
+      });
+    }
+  }
 }
 
 // 탭 분할된 폼 유효성 검사 헬퍼 (숨겨진 required 필드로 인한 무반응 제출 방지)
@@ -288,6 +355,8 @@ function switchAdminTab(tabName) {
     showPanelTab(tabName, chosen);
   }
 
+  if (tabName === 'products') { try { renderProductsTable(); } catch (e) { console.error('renderProductsTable error:', e); } }
+  if (tabName === 'orders') { try { renderOrdersList(); } catch (e) { console.error('renderOrdersList error:', e); } }
   if (tabName === 'popups') { try { initPopupsAdmin(); } catch (e) { console.error('initPopupsAdmin error:', e); } }
   if (tabName === 'dashboard') { try { renderDashboard(); } catch (e) { console.error('renderDashboard error:', e); } }
   if (tabName === 'finance') { try { renderFinance(); } catch (e) { console.error('renderFinance error:', e); } }
@@ -299,6 +368,7 @@ function switchAdminTab(tabName) {
   if (tabName === 'pages') { try { renderPagesAdmin(); } catch (e) { console.error('renderPagesAdmin error:', e); } }
   if (tabName === 'integrations') { try { refreshCsvStatus(); renderServerAdmin(); renderFullBackupUI(); } catch (e) {} }
   if (tabName === 'integrations') { try { renderIntegrations(); } catch (e) { console.error('renderIntegrations error:', e); } }
+  try { observeCardTables(); } catch (e) {}
 }
 
 // 60초마다 상품 목록 자동 새로고침 (예약 공개 전환 반영, 현재 필터 탭 유지)

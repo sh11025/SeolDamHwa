@@ -114,28 +114,28 @@ function renderOrdersList() {
           ${['preparing', 'packaged', 'delivering', 'completed'].map(st => `<option value="${st}" ${o.status === st ? 'selected' : ''}>${ORDER_STATUS_LABELS[st]}</option>`).join('')}
         </select>`;
     const row = `
-      <tr class="border-b border-ink-black/5 ${soon ? 'bg-amber-50/70' : ''} ${isCancelled ? 'opacity-55' : ''} hover:bg-[#F3EDE3]/50">
-        <td class="py-2 pl-3 pr-1"><input type="checkbox" class="order-check w-4 h-4" data-id="${o.id}" ${checkedOrders.has(o.id) ? 'checked' : ''} onchange="toggleOrderCheck('${o.id}', this.checked)" aria-label="${escapeHtml(o.orderNumber)} 선택"></td>
-        <td class="py-2 px-2 whitespace-nowrap cursor-pointer" onclick="toggleOrderExpand('${o.id}')">
+      <tr class="order-summary-row border-b border-ink-black/5 ${soon ? 'bg-amber-50/70' : ''} ${isCancelled ? 'opacity-55' : ''} hover:bg-[#F3EDE3]/50">
+        <td class="order-col-check py-2 pl-3 pr-1"><input type="checkbox" class="order-check w-4 h-4" data-id="${o.id}" ${checkedOrders.has(o.id) ? 'checked' : ''} onchange="toggleOrderCheck('${o.id}', this.checked)" aria-label="${escapeHtml(o.orderNumber)} 선택"></td>
+        <td class="order-col-date py-2 px-2 whitespace-nowrap cursor-pointer" onclick="toggleOrderExpand('${o.id}')">
           ${soon ? `<span class="px-1.5 py-0.5 mr-1 rounded text-[11px] font-bold bg-amber-200 text-amber-900">${soon}</span>` : ''}<span class="font-bold text-ink-black">${escapeHtml(d ? shortDate(d) + ' (' + weekdayLabel(d) + ')' : o.deliveryDate)}</span>
           <span class="block text-[11px] text-ink-gray">${escapeHtml(time)}</span>
         </td>
-        <td class="py-2 px-2 cursor-pointer" onclick="toggleOrderExpand('${o.id}')">
+        <td class="order-col-no py-2 px-2 cursor-pointer" onclick="toggleOrderExpand('${o.id}')">
           <span class="font-mono text-xs ${isCancelled ? 'line-through' : ''}">${escapeHtml(o.orderNumber)}</span>
           <span class="block text-[11px] text-ink-gray">${escapeHtml(getOrderDate(o))} 접수</span>
           ${o.reviewRequestedAt ? `<span class="inline-block mt-0.5 px-1 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800" title="후기 요청: ${escapeHtml(o.reviewRequestedAt)}">후기 요청함</span>` : ''}
         </td>
-        <td class="py-2 px-2 font-bold text-ink-black cursor-pointer" onclick="toggleOrderExpand('${o.id}')">${escapeHtml(orderRecipient(o).name)}${o.deliveryMethod === 'pickup' ? ' <span class="text-[10px] font-bold px-1 rounded bg-blue-100 text-blue-800">픽업</span>' : ''}</td>
-        <td class="py-2 px-2 text-ink-black cursor-pointer max-w-[220px] truncate" onclick="toggleOrderExpand('${o.id}')" title="${escapeHtml(items.map(i => i.product && i.product.name).join(', '))}">${escapeHtml(first)}${items.length > 1 ? ` <span class="text-ink-gray">외 ${items.length - 1}</span>` : ''}</td>
-        <td class="py-2 px-2 text-right font-bold whitespace-nowrap">${isCancelled ? `<s>${formatWon(o.totalAmount)}</s>` : formatWon(o.totalAmount)}</td>
-        <td class="py-2 px-2">${statusSelect}</td>
-        <td class="py-2 px-2 text-xs whitespace-nowrap">${(() => {
+        <td class="order-col-recipient py-2 px-2 font-bold text-ink-black cursor-pointer" onclick="toggleOrderExpand('${o.id}')">${escapeHtml(orderRecipient(o).name)}${o.deliveryMethod === 'pickup' ? ' <span class="text-[10px] font-bold px-1 rounded bg-blue-100 text-blue-800">픽업</span>' : ''}</td>
+        <td class="order-col-items py-2 px-2 text-ink-black cursor-pointer max-w-[220px] truncate" onclick="toggleOrderExpand('${o.id}')" title="${escapeHtml(items.map(i => i.product && i.product.name).join(', '))}">${escapeHtml(first)}${items.length > 1 ? ` <span class="text-ink-gray">외 ${items.length - 1}</span>` : ''}</td>
+        <td class="order-col-amount py-2 px-2 text-right font-bold whitespace-nowrap cursor-pointer" onclick="toggleOrderExpand('${o.id}')">${isCancelled ? `<s>${formatWon(o.totalAmount)}</s>` : formatWon(o.totalAmount)}</td>
+        <td class="order-col-status py-2 px-2">${statusSelect}</td>
+        <td class="order-col-tracking py-2 px-2 text-xs whitespace-nowrap">${(() => {
           if (!o.trackingNumber) return o.courier ? escapeHtml(o.courier) : '<span class="text-ink-light">-</span>';
           const trkUrl = typeof getCourierTrackingUrl === 'function' ? getCourierTrackingUrl(o.courier, o.trackingNumber) : '';
           return `<span class="text-ink-black">${escapeHtml(o.courier || '')}</span>
             <span class="block font-mono text-ink-gray">${trkUrl ? `<a href="${trkUrl}" target="_blank" rel="noopener noreferrer" class="hover:underline hover:text-seal-red inline-flex items-center gap-0.5">${escapeHtml(o.trackingNumber)} <span class="text-[9px]">↗</span></a>` : escapeHtml(o.trackingNumber)}</span>`;
         })()}</td>
-        <td class="py-2 px-2 text-center"><button type="button" onclick="toggleOrderExpand('${o.id}')" class="text-ink-gray hover:text-seal-red cursor-pointer" aria-label="자세히" aria-expanded="${open}">${open ? '▴' : '▾'}</button></td>
+        <td class="order-col-toggle py-2 px-2 text-center"><button type="button" onclick="toggleOrderExpand('${o.id}')" class="text-ink-gray hover:text-seal-red cursor-pointer" aria-label="자세히" aria-expanded="${open}">${open ? '▴' : '▾'}</button></td>
       </tr>`;
     if (!open) return row;
 
@@ -158,15 +158,15 @@ function renderOrdersList() {
           </div>
           <pre class="w-full text-xs p-2 bg-[#FAF7F2] border border-ink-black/10 rounded font-sans whitespace-pre-wrap leading-relaxed select-all">${escapeHtml(msgText)}</pre>
           <div class="flex flex-wrap items-center gap-2 pt-1 text-xs">
-            <button type="button" onclick="copyOrderMessage('${o.id}', '${msgPanelType}')" class="px-3 py-1 bg-ink-black text-white font-bold rounded-xs hover:bg-seal-red cursor-pointer">문구 복사</button>
-            ${cleanPhone ? `<a href="sms:${escapeHtml(cleanPhone)}?body=${smsBodyEncoded}" onclick="if (${isReview}) markReviewRequested('${o.id}')" class="px-3 py-1 border border-ink-black/20 text-ink-black font-bold rounded-xs hover:border-ink-black bg-white inline-block">문자 앱 열기</a>` : '<span class="text-[11px] text-ink-light">주문자 번호 없음</span>'}
-            <button type="button" onclick="toggleOrderMsgPanel('${o.id}', '')" class="ml-auto text-ink-gray hover:text-seal-red cursor-pointer">닫기</button>
+            <button type="button" onclick="copyOrderMessage('${o.id}', '${msgPanelType}')" class="min-h-[40px] px-3 py-1.5 bg-ink-black text-white font-bold rounded-xs hover:bg-seal-red cursor-pointer inline-flex items-center justify-center">문구 복사</button>
+            ${cleanPhone ? `<a href="sms:${escapeHtml(cleanPhone)}?body=${smsBodyEncoded}" onclick="if (${isReview}) markReviewRequested('${o.id}')" class="min-h-[40px] px-3 py-1.5 border border-ink-black/20 text-ink-black font-bold rounded-xs hover:border-ink-black bg-white inline-flex items-center justify-center">문자 앱 열기</a>` : '<span class="text-[11px] text-ink-light">주문자 번호 없음</span>'}
+            <button type="button" onclick="toggleOrderMsgPanel('${o.id}', '')" class="min-h-[40px] px-2 ml-auto text-ink-gray hover:text-seal-red cursor-pointer inline-flex items-center">닫기</button>
           </div>
         </div>`;
     }
 
     return row + `
-      <tr class="bg-[#FAF7F2] border-b border-ink-black/10">
+      <tr class="order-detail-row bg-[#FAF7F2] border-b border-ink-black/10">
         <td></td>
         <td colspan="8" class="py-3 px-2">
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">

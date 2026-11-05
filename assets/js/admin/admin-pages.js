@@ -396,17 +396,27 @@ function renderRestockList() {
         ${w.length ? `<a href="sms:${escapeHtml(phones)}?body=${encodeURIComponent(smsBody)}" class="ml-auto px-3 py-1.5 text-xs font-bold rounded-xs bg-ink-black text-white hover:bg-seal-red">대기 ${w.length}명에게 문자로 알리기</a>
           <button type="button" onclick="markRestockNotified('${escapeHtml(pid)}')" class="px-3 py-1.5 text-xs font-bold rounded-xs border border-ink-black/20 bg-white cursor-pointer hover:border-ink-black">모두 알림 완료</button>` : ''}
       </div>
-      <table class="w-full text-left text-sm">
-        <tbody class="divide-y divide-ink-black/5">${rs.map(r => `
-          <tr class="${r.status === 'waiting' ? '' : 'opacity-50'}">
-            <td class="py-1.5 pr-2">${escapeHtml(r.name || '-')}</td>
-            <td class="py-1.5 pr-2"><a href="tel:${escapeHtml(normalizePhone(r.phone))}" class="underline">${escapeHtml(r.phone)}</a></td>
-            <td class="py-1.5 pr-2 text-xs text-ink-gray">${escapeHtml(r.createdDate || '')} 신청</td>
-            <td class="py-1.5 text-right text-xs">${r.status === 'waiting'
-              ? `<button type="button" onclick="markRestockNotified('${escapeHtml(pid)}', '${escapeHtml(r.id)}')" class="underline text-ink-gray cursor-pointer">알림 완료</button>`
-              : '<span class="font-bold text-emerald-700">알림 완료</span>'}</td>
-          </tr>`).join('')}</tbody>
-      </table>
+      <div class="overflow-x-auto">
+        <table class="admin-card-table w-full text-left text-sm">
+          <thead>
+            <tr class="bg-[#EFECE6] border-b border-ink-black/10 text-ink-gray text-xs font-bold">
+              <th class="py-2 pr-2">신청자</th>
+              <th class="py-2 pr-2">연락처</th>
+              <th class="py-2 pr-2">신청일</th>
+              <th class="py-2 text-right">상태</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-ink-black/5">${rs.map(r => `
+            <tr class="${r.status === 'waiting' ? '' : 'opacity-50'}">
+              <td class="py-1.5 pr-2">${escapeHtml(r.name || '-')}</td>
+              <td class="py-1.5 pr-2"><a href="tel:${escapeHtml(normalizePhone(r.phone))}" class="underline">${escapeHtml(r.phone)}</a></td>
+              <td class="py-1.5 pr-2 text-xs text-ink-gray">${escapeHtml(r.createdDate || '')} 신청</td>
+              <td class="py-1.5 text-right text-xs">${r.status === 'waiting'
+                ? `<button type="button" onclick="markRestockNotified('${escapeHtml(pid)}', '${escapeHtml(r.id)}')" class="underline text-ink-gray cursor-pointer">알림 완료</button>`
+                : '<span class="font-bold text-emerald-700">알림 완료</span>'}</td>
+            </tr>`).join('')}</tbody>
+        </table>
+      </div>
     </div>`;
   }).join('');
 }
