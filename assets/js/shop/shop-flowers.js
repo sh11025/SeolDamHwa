@@ -70,7 +70,7 @@ function buildFlowerGuideSection(p, makeTitle) {
     const ft = flowerText(f, lang);
     const d = document.createElement('details');
     d.id = `pdp-guide-${f.id}`;
-    d.className = 'group bg-white/70 border border-ink-black/10 rounded-xs scroll-mt-24';
+    d.className = 'group bg-white/70 border border-ink-black/10 rounded-xs scroll-mt-24 xl:scroll-mt-28';
     if (i === 0) d.open = true;
     const sm = document.createElement('summary');
     sm.className = 'cursor-pointer select-none px-5 py-3.5 flex items-center gap-3';

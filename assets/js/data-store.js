@@ -254,7 +254,7 @@ const REVIEW_RECIPIENTS = Object.freeze([
 ]);
 
 function getReviewRecipientLabel(code, lang) {
-  const currentLang = lang || (typeof getLanguage === 'function' ? getLanguage() : 'ko');
+  const currentLang = lang || (typeof getCurrentLang === 'function' ? getCurrentLang() : 'ko');
   const found = REVIEW_RECIPIENTS.find(r => r.code === code) || REVIEW_RECIPIENTS.find(r => r.code === 'other');
   return (found && found[currentLang]) || (found && found.ko) || '전하는 마음';
 }

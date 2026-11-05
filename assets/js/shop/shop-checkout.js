@@ -1056,8 +1056,9 @@ function setReviewRecipient(code) {
 function renderReviewRecipientChips() {
   const container = document.getElementById('review-recipient-chips');
   if (!container) return;
+  const currentSelected = (document.getElementById('review-recipient') || {}).value || '';
   container.innerHTML = '';
-  const currentLang = typeof getLanguage === 'function' ? getLanguage() : 'ko';
+  const currentLang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'ko';
   const recipients = typeof REVIEW_RECIPIENTS !== 'undefined' ? REVIEW_RECIPIENTS : [];
 
   recipients.forEach(item => {
@@ -1069,6 +1070,9 @@ function renderReviewRecipientChips() {
     btn.onclick = () => setReviewRecipient(item.code);
     container.appendChild(btn);
   });
+  if (currentSelected) {
+    setReviewRecipient(currentSelected);
+  }
 }
 
 function openReviewModal(order, item) {

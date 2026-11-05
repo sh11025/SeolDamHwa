@@ -580,17 +580,57 @@ function renderHomeReviewsSlider() {
   const isPreview = (typeof isPreviewMode !== 'undefined' && isPreviewMode) ||
                     (new URLSearchParams(window.location.search).get('preview') === '1');
 
-  // 승인된 후기가 없거나, 모두 예시 후기인데 미리보기가 아니면 섹션 숨김
-  const realCount = approved.filter(r => !r.isSample).length;
-  if (approved.length === 0 || (!isPreview && realCount === 0 && approved.every(r => r.isSample))) {
-    sec.classList.add('hidden');
+  // 실제 보여줄 후기 목록 결정: 미리보기가 아니면 샘플 후기 제외
+  const list = (isPreview ? approved : approved.filter(r => !r.isSample))
+    .slice()
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .slice(0, 10);
+
+  const prevBtn = document.getElementById('home-reviews-prev');
+  const nextBtn = document.getElementById('home-reviews-next');
+
+  sec.classList.remove('hidden');
+  track.innerHTML = '';
+
+  if (list.length === 0) {
+    // 후기가 없을 때: 섹션 표시 유지, 좌우 화살표 숨김, 빈 편지 스타일 카드 1장 표시
+    if (prevBtn) prevBtn.classList.add('hidden');
+    if (nextBtn) nextBtn.classList.add('hidden');
+
+    const emptyCard = document.createElement('article');
+    emptyCard.className = 'letter-paper rounded-lg p-5 border border-ink-black/10 shadow-xs flex flex-col justify-between min-h-[220px] select-none text-left w-[280px] sm:w-[320px] shrink-0 snap-start';
+
+    const body = document.createElement('div');
+    body.className = 'space-y-2';
+
+    const emptyTitle = document.createElement('p');
+    emptyTitle.className = 'font-serif text-ink-black text-sm sm:text-base font-bold leading-relaxed';
+    emptyTitle.textContent = typeof t === 'function' ? t('empty_reviews_title', '아직 게시된 후기가 없어요.') : '아직 게시된 후기가 없어요.';
+
+    const emptySub = document.createElement('p');
+    emptySub.className = 'text-xs sm:text-sm text-ink-gray leading-relaxed';
+    emptySub.textContent = typeof t === 'function' ? t('empty_reviews_sub', '첫 번째 꽃 편지를 기다리고 있어요.') : '첫 번째 꽃 편지를 기다리고 있어요.';
+
+    body.appendChild(emptyTitle);
+    body.appendChild(emptySub);
+    emptyCard.appendChild(body);
+
+    const footerBox = document.createElement('div');
+    footerBox.className = 'pt-4 mt-auto border-t border-ink-black/10 flex items-center justify-end';
+    const sealImg = document.createElement('img');
+    sealImg.src = 'assets/images/seal.svg';
+    sealImg.alt = '인장';
+    sealImg.className = 'w-6 h-6 seal-stamp opacity-90 shrink-0 inline-block';
+    footerBox.appendChild(sealImg);
+    emptyCard.appendChild(footerBox);
+
+    track.appendChild(emptyCard);
     return;
   }
-  sec.classList.remove('hidden');
 
-  // 최신순 10개
-  const list = approved.slice().sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).slice(0, 10);
-  track.innerHTML = '';
+  // 후기가 있을 때: 화살표 노출
+  if (prevBtn) prevBtn.classList.remove('hidden');
+  if (nextBtn) nextBtn.classList.remove('hidden');
 
   list.forEach(r => {
     const card = buildLetterCard(r);
@@ -621,7 +661,11 @@ function renderReviewFilterChips(approved) {
   if (!container) return;
   container.innerHTML = '';
 
-  const currentLang = typeof getLanguage === 'function' ? getLanguage() : 'ko';
+  const currentLang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'ko';
+  if (!approved) {
+    const allRevs = typeof loadReviews === 'function' ? loadReviews() : [];
+    approved = allRevs.filter(r => r.status === 'approved' || (!r.status && !r.isSample));
+  }
 
   // 1. "전체" 칩
   const allBtn = document.createElement('button');

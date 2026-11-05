@@ -11,21 +11,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
   
-  <script src="assets/js/data-store.js?v=83"></script>
-  <script src="assets/js/products-data.js?v=83"></script>
-  <script src="assets/js/flowers-data.js?v=83"></script>
-  <script src="assets/js/site-theme.js?v=83"></script>
-  <script src="assets/js/site-settings.js?v=83"></script>
-  <script src="assets/js/popups.js?v=83"></script>
-  <script src="assets/js/finance-data.js?v=83"></script>
-  <script src="assets/js/integrations.js?v=83"></script>
-  <script src="assets/js/admin-tools.js?v=83"></script>
-  <script src="assets/js/site-pages.js?v=83"></script>
-  <script src="assets/js/image-library.js?v=83"></script>
-  <script src="assets/js/restock.js?v=83"></script>
-  <script src="assets/js/csv-db.js?v=83"></script>
-  <script src="assets/js/data-sync.js?v=83"></script>
-  <script src="assets/js/coupons.js?v=83"></script>
+  <script src="assets/js/data-store.js?v=84"></script>
+  <script src="assets/js/products-data.js?v=84"></script>
+  <script src="assets/js/flowers-data.js?v=84"></script>
+  <script src="assets/js/site-theme.js?v=84"></script>
+  <script src="assets/js/site-settings.js?v=84"></script>
+  <script src="assets/js/popups.js?v=84"></script>
+  <script src="assets/js/finance-data.js?v=84"></script>
+  <script src="assets/js/integrations.js?v=84"></script>
+  <script src="assets/js/admin-tools.js?v=84"></script>
+  <script src="assets/js/site-pages.js?v=84"></script>
+  <script src="assets/js/image-library.js?v=84"></script>
+  <script src="assets/js/restock.js?v=84"></script>
+  <script src="assets/js/csv-db.js?v=84"></script>
+  <script src="assets/js/data-sync.js?v=84"></script>
+  <script src="assets/js/coupons.js?v=84"></script>
   <!-- 운송장 바코드: JsBarcode -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
   <!-- 차트: Chart.js -->
@@ -189,14 +189,33 @@
       /* 주문 화면 전용 카드 배치 (#admin-orders-table) */
       #admin-orders-table tbody tr.order-summary-row {
         display: grid;
-        grid-template-columns: 1fr auto auto;
+        grid-template-columns: auto 1fr auto auto;
         grid-template-areas:
-          "date status amount"
-          "orderno recipient recipient"
-          "items items items"
-          "tracking tracking tracking";
+          "check date status amount"
+          "orderno orderno recipient recipient"
+          "items items items items"
+          "tracking tracking tracking tracking";
         gap: 6px 8px;
         align-items: center;
+        cursor: pointer;
+      }
+      #admin-orders-table .order-col-check {
+        grid-area: check;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        min-width: 40px;
+        height: 40px;
+        min-height: 40px;
+        padding: 0 !important;
+        border-bottom: none !important;
+        cursor: pointer;
+      }
+      #admin-orders-table .order-col-check::before { display: none !important; }
+      #admin-orders-table .order-col-check input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
         cursor: pointer;
       }
       #admin-orders-table .order-col-date {
@@ -217,6 +236,10 @@
         padding: 0 !important;
       }
       #admin-orders-table .order-col-status::before { display: none !important; }
+      #admin-orders-table .order-col-status select {
+        min-height: 40px;
+        height: 40px;
+      }
       #admin-orders-table .order-col-amount {
         grid-area: amount;
         display: flex;
@@ -250,8 +273,14 @@
       #admin-orders-table .order-col-recipient::before { display: none !important; }
       #admin-orders-table .order-col-items {
         grid-area: items;
-        display: flex;
-        align-items: center;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal !important;
+        max-width: none !important;
+        width: 100% !important;
         border-top: 1px dashed rgba(26, 26, 26, 0.08);
         border-bottom: none !important;
         padding-top: 4px !important;
@@ -271,7 +300,6 @@
       #admin-orders-table .order-col-tracking:has(.text-ink-light) {
         display: none !important;
       }
-      #admin-orders-table .order-col-check,
       #admin-orders-table .order-col-toggle {
         display: none !important;
       }
@@ -296,8 +324,24 @@
       }
 
       /* 터치 타겟 최소 40px */
-      button, a.btn, input[type="button"], input[type="submit"], [data-panel-btn], .sidebar-btn {
+      button, a.btn, input:not([type="checkbox"]):not([type="radio"]), select, [data-panel-btn], .sidebar-btn {
         min-height: 40px;
+      }
+
+      /* 상품 카드의 재고 조절 버튼 및 수정/미리보기 버튼 */
+      #admin-products-table [role="group"] button,
+      #admin-products-table [role="group"] span {
+        min-height: 40px;
+        min-width: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #admin-products-table td button {
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
 
       /* 모달 375px 맞춤 및 자체 스크롤 */
@@ -369,7 +413,7 @@
     }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=83">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=84">
 </head>
 <body class="min-h-screen flex flex-col selection:bg-seal-red/15 selection:text-seal-red">
   <!-- 1. 관리자 상단 헤더 (Admin Top Bar) -->
@@ -1961,19 +2005,19 @@
 
   <!-- JavaScript: Admin 로직 & 쇼핑몰 데이터 양방향 실시간 동기화 -->
   <!-- 관리자 화면 동작 (화면별 파일, 순서 중요) -->
-  <script src="assets/js/admin/admin-dashboard.js?v=83"></script>
-  <script src="assets/js/admin/admin-products.js?v=83"></script>
-  <script src="assets/js/admin/admin-orders.js?v=83"></script>
-  <script src="assets/js/admin/admin-inquiries.js?v=83"></script>
-  <script src="assets/js/admin/admin-product-modal.js?v=83"></script>
-  <script src="assets/js/admin/admin-flowers.js?v=83"></script>
-  <script src="assets/js/admin/admin-coupons.js?v=83"></script>
-  <script src="assets/js/admin/admin-settings.js?v=83"></script>
-  <script src="assets/js/admin/admin-popups.js?v=83"></script>
-  <script src="assets/js/admin/admin-finance.js?v=83"></script>
-  <script src="assets/js/admin/admin-integrations.js?v=83"></script>
-  <script src="assets/js/admin/admin-pages.js?v=83"></script>
-  <script src="assets/js/admin/admin-tools-ui.js?v=83"></script>
+  <script src="assets/js/admin/admin-dashboard.js?v=84"></script>
+  <script src="assets/js/admin/admin-products.js?v=84"></script>
+  <script src="assets/js/admin/admin-orders.js?v=84"></script>
+  <script src="assets/js/admin/admin-inquiries.js?v=84"></script>
+  <script src="assets/js/admin/admin-product-modal.js?v=84"></script>
+  <script src="assets/js/admin/admin-flowers.js?v=84"></script>
+  <script src="assets/js/admin/admin-coupons.js?v=84"></script>
+  <script src="assets/js/admin/admin-settings.js?v=84"></script>
+  <script src="assets/js/admin/admin-popups.js?v=84"></script>
+  <script src="assets/js/admin/admin-finance.js?v=84"></script>
+  <script src="assets/js/admin/admin-integrations.js?v=84"></script>
+  <script src="assets/js/admin/admin-pages.js?v=84"></script>
+  <script src="assets/js/admin/admin-tools-ui.js?v=84"></script>
 
   <!-- 슬라이드 편집 모달 -->
   <div id="slide-edit-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-black/60 hidden">

@@ -115,7 +115,7 @@ function renderOrdersList() {
         </select>`;
     const row = `
       <tr class="order-summary-row border-b border-ink-black/5 ${soon ? 'bg-amber-50/70' : ''} ${isCancelled ? 'opacity-55' : ''} hover:bg-[#F3EDE3]/50">
-        <td class="order-col-check py-2 pl-3 pr-1"><input type="checkbox" class="order-check w-4 h-4" data-id="${o.id}" ${checkedOrders.has(o.id) ? 'checked' : ''} onchange="toggleOrderCheck('${o.id}', this.checked)" aria-label="${escapeHtml(o.orderNumber)} 선택"></td>
+        <td class="order-col-check py-2 pl-3 pr-1" onclick="event.stopPropagation()"><input type="checkbox" class="order-check w-4 h-4 cursor-pointer" data-id="${o.id}" ${checkedOrders.has(o.id) ? 'checked' : ''} onchange="toggleOrderCheck('${o.id}', this.checked)" onclick="event.stopPropagation()" aria-label="${escapeHtml(o.orderNumber)} 선택"></td>
         <td class="order-col-date py-2 px-2 whitespace-nowrap cursor-pointer" onclick="toggleOrderExpand('${o.id}')">
           ${soon ? `<span class="px-1.5 py-0.5 mr-1 rounded text-[11px] font-bold bg-amber-200 text-amber-900">${soon}</span>` : ''}<span class="font-bold text-ink-black">${escapeHtml(d ? shortDate(d) + ' (' + weekdayLabel(d) + ')' : o.deliveryDate)}</span>
           <span class="block text-[11px] text-ink-gray">${escapeHtml(time)}</span>

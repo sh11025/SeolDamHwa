@@ -206,7 +206,7 @@ function renderGuideMedia(id) {
   const page = id !== 'location' && typeof loadPages === 'function' ? loadPages()[id] : null;
   renderPageMediaInto(box, page ? page.media : { images: [], video: '' }, { locked: true, column: true });
   const hasMedia = !box.classList.contains('hidden');
-  if (hasMedia) box.classList.add('order-first', 'lg:order-2', 'lg:sticky', 'lg:top-24', 'self-start');
+  if (hasMedia) box.classList.add('order-first', 'lg:order-2', 'lg:sticky', 'lg:top-24', 'xl:top-[7.75rem]', 'self-start');
   const layout = document.getElementById('guide-layout');
   if (layout) layout.classList.toggle('lg:grid-cols-2', hasMedia);
   // PC는 양옆 여백이 넓으니 사진·영상이 있는 안내만 넓게 (글만 있는 안내는 읽기 좋은 폭 그대로)

@@ -470,7 +470,9 @@ const I18N = {
     letter_reply_title: "설담화의 답장",
     letter_video_badge: "영상",
     filter_story_all: "전체",
-    filter_story_media: "사진·영상"
+    filter_story_media: "사진·영상",
+    empty_reviews_title: "아직 게시된 후기가 없어요.",
+    empty_reviews_sub: "첫 번째 꽃 편지를 기다리고 있어요."
   },
 
   en: {
@@ -941,7 +943,9 @@ const I18N = {
     letter_reply_title: "SeolDamHwa's Reply",
     letter_video_badge: "Video",
     filter_story_all: "All",
-    filter_story_media: "Photos & Videos"
+    filter_story_media: "Photos & Videos",
+    empty_reviews_title: "No reviews published yet.",
+    empty_reviews_sub: "Waiting for the first flower letter."
   },
 
   ja: {
@@ -1412,7 +1416,9 @@ const I18N = {
     letter_reply_title: "説談花からのお返事",
     letter_video_badge: "動画",
     filter_story_all: "すべて",
-    filter_story_media: "写真・動画"
+    filter_story_media: "写真・動画",
+    empty_reviews_title: "まだ公開されたレビューがありません。",
+    empty_reviews_sub: "最初のお花のお手紙をお待ちしています。"
   }
 };
 
@@ -1727,6 +1733,20 @@ function applyLanguage(lang = getCurrentLang()) {
   }
   if (typeof renderCurrentPopupSlide === 'function') {
     renderCurrentPopupSlide();
+  }
+  // 10. 꽃 편지 (후기) 컴포넌트 언어 즉시 반영
+  if (typeof renderHomeReviewsSlider === 'function') {
+    renderHomeReviewsSlider();
+  }
+  if (typeof renderReviewsPage === 'function') {
+    renderReviewsPage();
+  }
+  if (typeof renderReviewRecipientChips === 'function') {
+    renderReviewRecipientChips();
+  }
+  const letterModal = document.getElementById('modal-letter');
+  if (letterModal && !letterModal.classList.contains('hidden') && typeof currentLetterList !== 'undefined' && typeof currentLetterIndex !== 'undefined' && currentLetterList && currentLetterList[currentLetterIndex] && typeof renderLetterModalContent === 'function') {
+    renderLetterModalContent(currentLetterList[currentLetterIndex]);
   }
 }
 
