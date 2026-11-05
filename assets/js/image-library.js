@@ -7,6 +7,41 @@ var IMAGE_LIBRARY_KEY = DataStore.KEYS.images;
 const IMAGE_MAX_SIDE = 1200;
 const IMAGE_QUALITY = 0.82;
 
+let cachedSealImage = null;
+let sealImageLoadPromise = null;
+
+function isWatermarkEnabled() {
+  try {
+    return sessionStorage.getItem('sdh_watermark_enabled') !== 'false';
+  } catch (e) {
+    return true;
+  }
+}
+
+function toggleWatermarkPreference(checked) {
+  try {
+    sessionStorage.setItem('sdh_watermark_enabled', checked ? 'true' : 'false');
+  } catch (e) {}
+}
+
+function loadSealImage() {
+  if (cachedSealImage) return Promise.resolve(cachedSealImage);
+  if (sealImageLoadPromise) return sealImageLoadPromise;
+  sealImageLoadPromise = new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      cachedSealImage = img;
+      resolve(img);
+    };
+    img.onerror = () => {
+      console.warn('설담화 도장 이미지(assets/images/seal.svg) 로드에 실패했습니다. 도장 없이 진행합니다.');
+      resolve(null);
+    };
+    img.src = 'assets/images/seal.svg';
+  });
+  return sealImageLoadPromise;
+}
+
 // 사이트에 이미 있는 사진
 const SITE_IMAGES = [
   { src: 'assets/images/products/signature-bouquet.jpg', name: '시그니처 꽃다발' },
@@ -58,7 +93,27 @@ function resizeImageFile(file) {
         ctx.fillStyle = '#FFFFFF'; // 투명 PNG도 흰 바탕으로
         ctx.fillRect(0, 0, w, h);
         ctx.drawImage(img, 0, 0, w, h);
-        resolve({ dataUrl: canvas.toDataURL('image/jpeg', IMAGE_QUALITY), width: w, height: h });
+        const applyWatermark = isWatermarkEnabled();
+        if (applyWatermark) {
+          loadSealImage().then(sealImg => {
+            if (sealImg) {
+              const shorter = Math.min(w, h);
+              const sealSize = Math.round(shorter * 0.09);
+              const margin = Math.round(shorter * 0.03);
+              const x = w - margin - sealSize;
+              const y = h - margin - sealSize;
+              ctx.save();
+              ctx.globalAlpha = 0.5;
+              ctx.drawImage(sealImg, x, y, sealSize, sealSize);
+              ctx.restore();
+            }
+            resolve({ dataUrl: canvas.toDataURL('image/jpeg', IMAGE_QUALITY), width: w, height: h });
+          }).catch(() => {
+            resolve({ dataUrl: canvas.toDataURL('image/jpeg', IMAGE_QUALITY), width: w, height: h });
+          });
+        } else {
+          resolve({ dataUrl: canvas.toDataURL('image/jpeg', IMAGE_QUALITY), width: w, height: h });
+        }
       };
       img.src = reader.result;
     };
@@ -95,6 +150,10 @@ let imagePickerCallback = null;
 
 function openImagePicker(onPick) {
   imagePickerCallback = onPick;
+  const cb = document.getElementById('image-picker-watermark-checkbox');
+  if (cb) {
+    cb.checked = isWatermarkEnabled();
+  }
   renderImagePicker();
   document.getElementById('image-picker-modal').classList.remove('hidden');
 }

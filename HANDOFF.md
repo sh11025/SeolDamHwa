@@ -1,6 +1,6 @@
 # 설담화 작업 이어받기 안내 (HANDOFF)
 
-> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-05 [88]
+> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-05 [89]
 
 ## 1. 프로젝트 한눈에
 - `index.html`: 손님 쇼핑몰 / `admin-index.html`: 관리자 센터. 둘 다 Tailwind CDN + 순수 JS, 데이터는 브라우저 `localStorage`(키 `seoldamhwa_*`).
@@ -29,13 +29,18 @@
   - `csv-db.js` CSV 데이터베이스(DATA 폴더): `CSV_TABLES`에 표 구조, 관리자 '연동·데이터'에서 폴더 연결·저장·불러오기·자동 저장. 표 설명은 `DATA/README.md`, 향후 Supabase 이전 상세 설계는 `docs/database-design.md`와 `docs/supabase-schema.sql` 참고.
   - 관리자 전용: `finance-data.js`(매출·지출·주문 도우미, `orderRecipient/orderOrderer`), `admin-tools.js`(예시 데이터·백업·AI Claude/GPT/Gemini), `image-library.js`(사진 고르기·올리기)
 - 주문 데이터: `ordererName/Phone`(주문자), `recipientName/Phone`(받는 분), `customerName/phone`(예전 호환=주문자), `deliveryMethod/Fee`, `itemsTotal`, `totalAmount`(배송비 포함), `status`(preparing/packaged/delivering/completed/cancelled), `courier/trackingNumber`, `isSample`. 주문 제출 시 `orderSubmitting` 가드 플래그(`shop-checkout.js`)로 더블 클릭 중복 주문을 방지.
+- 사진 및 미디어 보호:
+  - [89] 쇼핑몰(`index.html`)의 모든 `img`, `video`, 모달 뷰어 우클릭 및 드래그 방지 (`assets/js/shop/shop-media-guard.js`, `-webkit-touch-callout: none`, `controlslist="nodownload"`). 관리자 화면은 정상 작동.
+  - 사이트 사진 9장의 원본(낙관 없음)은 바탕화면 `C:\Users\504-19\Desktop\SeolDamHwa_originals` 폴더에 원본 해상도와 구조 그대로 보존됨.
+  - 사이트 신규/교체 사진 등록 시 반드시 우측 하단에 설담화 도장(`assets/images/seal.svg`) 낙관(짧은 변의 9% 크기, 3% 여백, 50% 투명도)을 적용할 것. 관리자 이미지 라이브러리(`image-library.js`) 업로드 시 기본 '설담화 도장 넣기' 옵션을 통해 자동 합성 지원.
+  - 푸터 하단에 다국어 미디어 저작권 문구(`footer_media_copyright`) 배치.
 - 관리자 모바일 화면: [83]의 5개 패널 탭 분할 및 [84] 모바일 최적화로 휴대폰에서도 관리자 센터를 원활히 사용 가능 (768px 미만 테이블 자동 카드 변환, 주문 화면 카드화 및 터치 펼침, 폼 입력 폰트 16px+, 터치 타겟 40px+, 모달 375px 맞춤, LAN 접속 시 비밀번호 로그인).
 
 ## 2. 작업 방식 (꼭 지키기)
 0. **화면 클래스(Tailwind)를 새로 쓰거나 바꾸면 꼭 `npm run build:css`** (처음 한 번은 `npm install`). 예전 CDN 대신 `assets/css/tailwind.css`를 미리 만들어 쓰므로, 다시 만들지 않으면 새 클래스는 화면에 안 먹어요. 설정은 `tailwind.config.js`, 원본은 `src/tailwind.css`. 고치는 중에는 `npm run watch:css`를 켜 두면 저장할 때마다 자동으로 만들어져요.
    - **JS·CSS 파일을 바꾸면 커밋 전에 `npm run bump`** (브라우저가 옛 파일을 섞어 쓰지 않게).
 1. 바꾸기 전 `git status` 확인, 끝나면 커밋 (커밋 메시지 끝에 공동 작성자 줄).
-2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[89]**.
+2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[90]**.
 3. 검증: `python -m http.server 5500`로 띄우고 브라우저에서 직접 클릭. 서버 모드 및 손님 기기 기능은 `python server.py --port 5600 --lan`으로 임시 DATA 사본(`SDH_DATA_DIR`)을 사용하고, 모의 API 호출 대신 실제 LAN IP 주소와 실기기/CDP 브라우저 조작(버튼 클릭, 폼 전송)으로 검증할 것. 매번 확인할 것
    - 인라인 스크립트 문법(`node --check`), 모든 `getElementById` id 존재
    - 버튼이 부르는 함수가 모두 있는지: 콘솔에서 `[...new Set([...document.documentElement.outerHTML.matchAll(/on\w+="([A-Za-z_]\w*)\(/g)].map(m=>m[1]))].filter(n=>typeof window[n]!=='function')` → `[]` (예외: `if`)
