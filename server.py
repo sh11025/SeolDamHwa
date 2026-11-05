@@ -39,6 +39,7 @@ SUPABASE_FILE = os.path.join(DATA, '.supabase.json')
 ORIGINALS_INDEX_FILE = os.path.join(ORIGINALS_DIR, 'index.json')
 MAX_ORIGINAL_SIZE = 25 * 1024 * 1024  # 25MB
 SUPABASE_URL_RE = re.compile(r'^https://[a-z0-9-]+\.supabase\.co$')
+BUCKET_RE = re.compile(r'^[a-z0-9][a-z0-9._-]{1,62}$')
 
 TABLES = {
     'products': 'products.csv', 'orders': 'orders.csv', 'order_items': 'order_items.csv',
@@ -153,6 +154,17 @@ def upload_file_to_supabase(rel_path, abs_path, mime_type):
                 return True, ''
             return False, f'http-{resp.status}'
     except urllib.error.HTTPError as e:
+        # 중복 업로드(이미 존재): HTTP 409, 또는 400 Duplicate / statusCode 409 본문일 때 성공으로 간주
+        if e.code == 409:
+            return True, ''
+        if e.code == 400:
+            try:
+                err_bytes = e.read()
+                err_text = err_bytes.decode('utf-8', errors='ignore')
+                if 'Duplicate' in err_text or '"statusCode":"409"' in err_text or '"statusCode": "409"' in err_text or '"statusCode":409' in err_text:
+                    return True, ''
+            except Exception:
+                pass
         return False, f'http-{e.code}'
     except Exception as e:
         return False, type(e).__name__
@@ -222,6 +234,20 @@ def import_originals(folder_path):
             rel_path = f'site/{clean_name}'
             if os.path.exists(dest_path):
                 skipped += 1
+                item_id = f'orig-site-{clean_name}'
+                if rel_path not in existing_paths:
+                    sz = os.path.getsize(dest_path)
+                    items.append({
+                        'id': item_id,
+                        'path': rel_path,
+                        'filename': clean_name,
+                        'size': sz,
+                        'mime': mime,
+                        'createdAt': datetime.now().isoformat(timespec='seconds'),
+                        'uploadedToSupabase': False,
+                        'supabaseError': ''
+                    })
+                    existing_paths.add(rel_path)
                 continue
             shutil.copy2(src_path, dest_path)
             copied += 1
@@ -672,6 +698,29 @@ class Handler(SimpleHTTPRequestHandler):
         SESSIONS.pop(tok, None)
         return False
 
+    def is_cross_site_request(self):
+        """외부 웹사이트에서 유입된 Cross-Site 요청(CSRF 등)인지 판별"""
+        sec_fetch = (self.headers.get('Sec-Fetch-Site') or '').strip().lower()
+        if sec_fetch in ('cross-site', 'same-site'):
+            return True
+
+        origin = self.headers.get('Origin')
+        if origin is not None:
+            origin_val = origin.strip().lower()
+            if origin_val == 'null':
+                return True
+            try:
+                parsed = urlparse(origin_val)
+                origin_host = parsed.netloc
+            except Exception:
+                return True
+
+            host_hdr = (self.headers.get('Host') or '').strip().lower()
+            if not origin_host or not host_hdr or origin_host != host_hdr:
+                return True
+
+        return False
+
     def end_headers(self):
         self.send_header('Cache-Control', 'no-store')  # 고친 파일이 바로 보이게
         super().end_headers()
@@ -877,6 +926,9 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_json({'ok': True, 'items': items})
             return
         if path.startswith('/api/originals/'):
+            if not self.is_admin():
+                self.send_error(403)
+                return
             subpath = path[len('/api/originals/'):].lstrip('/')
             if not subpath or '..' in subpath:
                 self.send_error(404)
@@ -887,9 +939,6 @@ class Handler(SimpleHTTPRequestHandler):
                 return
             if not os.path.exists(full_path) or not os.path.isfile(full_path):
                 self.send_error(404)
-                return
-            if not self.is_admin():
-                self.send_error(403)
                 return
             ctype = 'application/octet-stream'
             lower_f = full_path.lower()
@@ -922,6 +971,9 @@ class Handler(SimpleHTTPRequestHandler):
         super().do_GET()
 
     def do_POST(self):
+        if self.is_cross_site_request():
+            self.send_json({'ok': False, 'error': '외부 사이트의 요청은 허용되지 않습니다.'}, 403)
+            return
         path = urlparse(self.path).path
         try:
             body = self.read_json()
@@ -997,6 +1049,12 @@ class Handler(SimpleHTTPRequestHandler):
             url = str(body.get('url') or '').strip()
             key = str(body.get('serviceKey') or '').strip()
             bucket = str(body.get('bucket') or 'originals').strip() or 'originals'
+
+            # Bucket 이름 검증 (영문소문자/숫자 시작, 영소문자/숫자/._- 허용, 2~63자)
+            if not BUCKET_RE.match(bucket):
+                self.send_json({'ok': False, 'error': '올바른 버킷 이름을 입력해 주세요.'}, 400)
+                return
+
             test_url = os.environ.get('SDH_SUPABASE_TEST_URL')
             url_valid = False
             if test_url and url == test_url:
@@ -1006,9 +1064,20 @@ class Handler(SimpleHTTPRequestHandler):
             if not url_valid:
                 self.send_json({'ok': False, 'error': '올바른 Supabase URL(https://<project>.supabase.co)을 입력해 주세요.'}, 400)
                 return
+
             old_cfg = read_json_file(SUPABASE_FILE, {})
-            if not key and old_cfg.get('serviceKey'):
-                key = old_cfg['serviceKey']
+            old_url = str(old_cfg.get('url') or '').strip()
+            old_bucket = str(old_cfg.get('bucket') or 'originals').strip() or 'originals'
+
+            # URL이나 bucket이 기존과 다르면 key 필수!
+            if url != old_url or bucket != old_bucket:
+                if not key:
+                    self.send_json({'ok': False, 'error': '주소를 바꾸면 키도 다시 넣어 주세요.'}, 400)
+                    return
+            else:
+                if not key and old_cfg.get('serviceKey'):
+                    key = old_cfg['serviceKey']
+
             write_json_file(SUPABASE_FILE, {'url': url, 'serviceKey': key, 'bucket': bucket})
             self.send_json({'ok': True})
             return
