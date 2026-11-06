@@ -1085,7 +1085,7 @@
     </div>
 
     <!-- 후기 작성 모달 (주문 조회 화면에서 호출) -->
-    <div id="modal-review" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+    <div id="modal-review" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
       <div class="relative bg-hanji border border-ink-black/10 rounded-sm w-full max-w-lg p-6 md:p-8 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
         <button type="button" onclick="closeReviewModal()" aria-label="닫기" class="absolute top-4 right-4 text-ink-gray hover:text-ink-black text-xl font-bold p-1 cursor-pointer">✕</button>
         <div class="border-b border-ink-black/10 pb-3 space-y-1">
@@ -1165,7 +1165,7 @@
     </div>
 
     <!-- 사진 크게 보기 모달 (상품 사진 및 후기 사진 확대 공용 뷰어) -->
-    <div id="modal-review-photo" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xs select-none" onclick="closeReviewPhotoModal()">
+    <div id="modal-review-photo" class="hidden fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/85 backdrop-blur-xs select-none" onclick="closeReviewPhotoModal()">
       <div class="relative max-w-4xl max-h-[90vh] flex flex-col items-center justify-center" onclick="event.stopPropagation()">
         <!-- 상단 컨트롤 (카운터 & 닫기 버튼) -->
         <div class="absolute -top-10 left-0 right-0 flex items-center justify-between text-white text-xs">

@@ -1,13 +1,13 @@
 # 설담화 작업 이어받기 안내 (HANDOFF)
 
-> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-05 [93]
+> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-06 [94]
 
 ## 1. 프로젝트 한눈에
 - `index.html`: 손님 쇼핑몰 / `admin-index.html`: 관리자 센터. 둘 다 Tailwind CDN + 순수 JS, 데이터는 브라우저 `localStorage`(키 `seoldamhwa_*`).
 - [37]부터 화면 코드가 파일로 나뉨: 쇼핑몰 `assets/js/shop/*.js`(core→product→product-page→checkout→nav→curation→inquiry→guide→settings→browse→flowers→dictionary→router→chat 순서로 불러옴), 관리자 `assets/js/admin/*.js`(dashboard→…→tools-ui). 일반 script라 함수는 전역 공유, **불러오는 순서를 바꾸지 말 것**.
 - 쇼핑몰 주소: `shop-router.js` — `switchView(view)`는 화면+주소를 함께 바꾸고, 실제 화면 그리기는 `showView(view)`. 새 페이지는 `SHOP_ROUTES['이름'] = params => {...}` 로 등록. 지금 주소: `#/`, `#/story`, `#/custom`, `#/guide/<탭>`, `#/flowers/<종류>`, `#/dictionary`(꽃 사전), `#/flower/<id>`, `#/wishlist`, `#/checkout`, `#/reviews`(꽃 편지함). 머리글 네비 및 모바일 메뉴에 리뷰(`nav-reviews`) 버튼 지원. 1280px 이상에서는 [88]에서 로고를 중심으로 좌우 탭 간격(xl 40px, 2xl 56px)과 로고 이격 거리(xl 56px, 2xl 72px)가 완벽한 거울 대칭(`[언어] ... [좌측 3탭] 로고 [우측 3탭] ... [아이콘]`)으로 정돈되었으며, 탭 글씨 17px(600), 로고 텍스트 40px, 낙관 38px, 언어 라벨 14px, 우측 아이콘 24px로 대화면에 최적화됨.
 - 손님 후기(`reviews` 표 / 꽃 편지함):
-  - 배송 완료(`status === 'completed'`) 주문 손님이 주문 조회 화면에서 품목별로 작성 (`shop-checkout.js` `openReviewModal`).
+  - 배송 완료(`status === 'completed'`) 주문 손님이 주문 조회 화면에서 품목별로 작성 (`shop-checkout.js` `openReviewModal`). [94]에서 주문 조회 창(`order-lookup-modal`, z-[60]) 위에 정상 노출되도록 후기 작성 모달(`modal-review`)을 `z-[70]`, 사진 확대 모달(`modal-review-photo`)을 `z-[80]`으로 보정.
   - 사연 대상(`recipient`, 7종: `parents`, `lover`, `friend`, `celebrate`, `comfort`, `self`, `other`) 필수 선택. 누락 시 제출 불가.
   - 사장님 승인제(`pending` → `approved` / `hidden`), 작성자 이름은 일체 저장·표시하지 않음.
   - 사진(최대 3장, 브라우저에서 1000px·300KB 이하 리사이즈 후 압축, JSON 문자열이 아닌 순수 배열 저장), 영상(최대 1개, 30초·20MB 이하).
@@ -43,7 +43,7 @@
 0. **화면 클래스(Tailwind)를 새로 쓰거나 바꾸면 꼭 `npm run build:css`** (처음 한 번은 `npm install`). 예전 CDN 대신 `assets/css/tailwind.css`를 미리 만들어 쓰므로, 다시 만들지 않으면 새 클래스는 화면에 안 먹어요. 설정은 `tailwind.config.js`, 원본은 `src/tailwind.css`. 고치는 중에는 `npm run watch:css`를 켜 두면 저장할 때마다 자동으로 만들어져요.
    - **JS·CSS 파일을 바꾸면 커밋 전에 `npm run bump`** (브라우저가 옛 파일을 섞어 쓰지 않게).
 1. 바꾸기 전 `git status` 확인, 끝나면 커밋 (커밋 메시지 끝에 공동 작성자 줄).
-2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[94]**.
+2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[95]**.
 3. 검증: `python -m http.server 5500`로 띄우고 브라우저에서 직접 클릭. 서버 모드 및 손님 기기 기능은 `python server.py --port 5600 --lan`으로 임시 DATA 사본(`SDH_DATA_DIR`)을 사용하고, 모의 API 호출 대신 실제 LAN IP 주소와 실기기/CDP 브라우저 조작(버튼 클릭, 폼 전송)으로 검증할 것. 매번 확인할 것
    - 인라인 스크립트 문법(`node --check`), 모든 `getElementById` id 존재
    - 버튼이 부르는 함수가 모두 있는지: 콘솔에서 `[...new Set([...document.documentElement.outerHTML.matchAll(/on\w+="([A-Za-z_]\w*)\(/g)].map(m=>m[1]))].filter(n=>typeof window[n]!=='function')` → `[]` (예외: `if`)
