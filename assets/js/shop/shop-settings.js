@@ -357,11 +357,13 @@ document.addEventListener('DOMContentLoaded', () => {
       return r;
     };
   }
-  const originalShowView = showView;
-  showView = function (...args) {
-    const r = originalShowView.apply(this, args);
-    updateLocationSection();
-    if (typeof updatePopupVisibility === 'function') updatePopupVisibility();
-    return r;
-  };
+  const originalShowView = typeof showView === 'function' ? showView : null;
+  if (originalShowView) {
+    showView = function (...args) {
+      const r = originalShowView.apply(this, args);
+      updateLocationSection();
+      if (typeof updatePopupVisibility === 'function') updatePopupVisibility();
+      return r;
+    };
+  }
 });
