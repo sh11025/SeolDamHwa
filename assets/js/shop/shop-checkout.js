@@ -588,7 +588,7 @@ function renderOrderReceiptToBlob(order) {
     // 제목
     ctx.fillStyle = '#1C1917';
     ctx.font = 'bold 21px "Noto Serif KR", "Batang", serif';
-    ctx.fillText(coT('receipt_title', '설담화 주문 영수증'), w / 2, y);
+    ctx.fillText(coT('receipt_title', '설담화 주문 확인서'), w / 2, y);
 
     y += 24;
     // 슬로건
@@ -725,7 +725,7 @@ function renderOrderReceiptToBlob(order) {
     drawDivider(y);
     y += 24;
 
-    // 최종 결제 금액 박스
+    // 총 주문 금액 박스
     ctx.fillStyle = '#F4EDE4';
     ctx.fillRect(pad, y - 16, innerW, 44);
     ctx.strokeStyle = '#E2DCD2';
@@ -735,7 +735,7 @@ function renderOrderReceiptToBlob(order) {
     ctx.textAlign = 'left';
     ctx.fillStyle = '#1C1917';
     ctx.font = 'bold 15px "Noto Serif KR", "Batang", serif';
-    ctx.fillText(coT('receipt_total', '최종 결제 금액'), pad + 16, y + 10);
+    ctx.fillText(coT('receipt_total', '총 주문 금액'), pad + 16, y + 10);
 
     ctx.textAlign = 'right';
     ctx.fillStyle = '#8B2222';
@@ -798,7 +798,7 @@ async function saveOrderReceiptImage(btn) {
 
   try {
     const blob = await renderOrderReceiptToBlob(order);
-    if (!blob) throw new Error('Failed to create receipt image blob');
+    if (!blob) throw new Error('Failed to create order confirmation image blob');
     const fileName = `${coT('receipt_file_name_prefix', '설담화_주문_')}${order.orderNumber}.png`;
     const file = new File([blob], fileName, { type: 'image/png' });
 
@@ -806,7 +806,7 @@ async function saveOrderReceiptImage(btn) {
       try {
         await navigator.share({
           files: [file],
-          title: coT('receipt_title', '설담화 주문 영수증'),
+          title: coT('receipt_title', '설담화 주문 확인서'),
           text: `${order.orderNumber}`
         });
         return;
@@ -825,8 +825,8 @@ async function saveOrderReceiptImage(btn) {
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch (err) {
-    console.error('영수증 이미지 저장 오류:', err);
-    alert(coT('receipt_save_fail', '영수증 이미지를 저장하지 못했어요.'));
+    console.error('주문 확인서 이미지 저장 오류:', err);
+    alert(coT('receipt_save_fail', '주문 확인서 이미지를 저장하지 못했어요.'));
   } finally {
     if (btn) {
       btn.disabled = false;
