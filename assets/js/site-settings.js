@@ -39,6 +39,12 @@ const KOREAN_HOLIDAYS = [
   { date: "2027-12-27", name: "성탄절 대체공휴일" }
 ];
 
+// 기본 포장 옵션 목록 (관리자 > 매장 설정 > 포장에서 수정 가능)
+const DEFAULT_PACKAGING = [
+  { id: 'pkg-hanji', name: '기본 단아 한지 포장', desc: '한지와 면 끈으로 단정하게 감싸요', price: 0, enabled: true, photo: '' },
+  { id: 'pkg-silk', name: '전통 실크 본견 보자기 & 노리개 포장', desc: '실크 보자기로 매듭을 짓고 작은 노리개를 달아 드려요', price: 15000, enabled: true, photo: '' }
+];
+
 const DEFAULT_SETTINGS = {
   phone: '02-764-1920',
   hours: '평일 10:00 - 18:00',
@@ -63,6 +69,7 @@ const DEFAULT_SETTINGS = {
     dailyLimit: 0,      // 하루 기본 주문 상한 (0 = 무제한)
     dateLimits: []      // 특정일 주문 상한 [{ date: "YYYY-MM-DD", limit: 20 }, ...]
   },
+  packaging: DEFAULT_PACKAGING,
   weeklyHours: DEFAULT_WEEKLY_HOURS,
   closures: [],            // [ { date: "YYYY-MM-DD", reason: "" }, ... ]
   holidayClosed: true,     // 공휴일 휴무 여부 (기본: true)
@@ -214,6 +221,22 @@ function loadSettings() {
     // 마이그레이션: closures가 없으면 빈 배열
     if (!merged.closures || !Array.isArray(merged.closures)) {
       merged.closures = [];
+    }
+    // 마이그레이션: 포장 옵션 목록 (없거나 비어있으면 기본값, 필드 보장 및 최소 1개 활성화)
+    if (!Array.isArray(merged.packaging) || merged.packaging.length === 0) {
+      merged.packaging = JSON.parse(JSON.stringify(DEFAULT_PACKAGING));
+    } else {
+      merged.packaging = merged.packaging.map((p, idx) => ({
+        id: String(p && p.id ? p.id : `pkg-${idx + 1}`),
+        name: String(p && p.name ? p.name : '포장 옵션'),
+        desc: String((p && p.desc) || ''),
+        price: typeof (p && p.price) === 'number' ? Math.max(0, Math.round(p.price)) : (parseInt(p && p.price, 10) || 0),
+        enabled: !p || p.enabled !== false,
+        photo: String((p && p.photo) || '')
+      }));
+      if (!merged.packaging.some(p => p.enabled)) {
+        merged.packaging[0].enabled = true;
+      }
     }
     // 마이그레이션: 공휴일 설정 기본값 보장
     if (merged.holidayClosed === undefined) {
@@ -486,6 +509,15 @@ function calcDeliveryFee(methodId, itemsTotal, settings = loadSettings()) {
   if (!m || methodId === 'pickup') return 0;
   if (d.freeOver > 0 && itemsTotal >= d.freeOver) return 0;
   return Number(m.fee) || 0;
+}
+
+/**
+ * 켜져 있는(활성화된) 포장 옵션 목록 반환 (첫 번째가 기본값)
+ */
+function getEnabledPackaging(settings = loadSettings()) {
+  const list = (settings && Array.isArray(settings.packaging)) ? settings.packaging : DEFAULT_PACKAGING;
+  const enabled = list.filter(p => p && p.enabled);
+  return enabled.length > 0 ? enabled : [DEFAULT_PACKAGING[0]];
 }
 
 /**

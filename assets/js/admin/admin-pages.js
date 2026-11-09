@@ -44,6 +44,8 @@ function fillPageEditor(id) {
   badge.innerText = pg.edited ? '직접 고친 문구' : '처음 문구 (초안)';
   badge.className = `text-xs px-2 py-0.5 rounded font-bold ${pg.edited ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-700'}`;
   document.getElementById('page-legal-note').classList.toggle('hidden', pg.group !== 'legal');
+  const notice = document.getElementById('page-new-default-notice');
+  if (notice) notice.classList.toggle('hidden', !pg.edited);
   editPageMedia = pg.group === 'guide' ? { ...pg.media, images: pg.media.images.slice() } : null;
   document.getElementById('page-media-editor').classList.toggle('hidden', !editPageMedia);
   if (editPageMedia) {

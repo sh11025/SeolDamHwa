@@ -78,7 +78,7 @@ function handleSearch(val) {
 
 // 정성 안내 화면 탭
 let currentGuideTab = 'bojagi';
-const GUIDE_TITLE_KEYS = { bojagi: 'footer_link_bojagi', care: 'footer_link_care', delivery: 'footer_link_delivery', refund: 'footer_link_refund', location: 'guide_location' };
+const GUIDE_TITLE_KEYS = { bojagi: 'footer_link_bojagi', care: 'footer_link_care', delivery: 'footer_link_delivery', refund: 'footer_link_refund', faq: 'guide_faq', location: 'guide_location' };
 
 function showGuideTab(id) {
   if (typeof loadPages !== 'function' || !GUIDE_TITLE_KEYS[id]) return;
@@ -121,7 +121,7 @@ function openInfoPage(id) {
   const page = loadPages()[id];
   if (!page) return;
   const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'ko';
-  const titleKey = { bojagi: 'footer_link_bojagi', care: 'footer_link_care', delivery: 'footer_link_delivery', refund: 'footer_link_refund', terms: 'footer_terms', privacy: 'footer_privacy' }[id];
+  const titleKey = { bojagi: 'footer_link_bojagi', care: 'footer_link_care', delivery: 'footer_link_delivery', refund: 'footer_link_refund', faq: 'guide_faq', terms: 'footer_terms', privacy: 'footer_privacy' }[id];
   document.getElementById('info-page-title').textContent = lang !== 'ko' && typeof t === 'function' ? t(titleKey, page.title) : page.title;
   const note = document.getElementById('info-page-lang-note');
   note.textContent = typeof t === 'function' ? t('page_korean_only', '') : '';
@@ -161,7 +161,14 @@ function renderBusinessInfo() {
 }
 
 // 다른 창/탭과 실시간 동기화 (Live Sync)
-window.addEventListener('seoldamhwa_settings_updated', () => { renderSiteSettings(); renderBusinessInfo(); });
+window.addEventListener('seoldamhwa_settings_updated', () => {
+  renderSiteSettings();
+  renderBusinessInfo();
+  const gView = document.getElementById('view-guide');
+  if (gView && !gView.classList.contains('hidden') && typeof showGuideTab === 'function') {
+    showGuideTab(currentGuideTab);
+  }
+});
 window.addEventListener('storage', (e) => {
   if (e.key === 'seoldamhwa_products') {
     renderProducts(currentCategory);
@@ -173,6 +180,10 @@ window.addEventListener('storage', (e) => {
   if (e.key === 'seoldamhwa_settings') {
     renderSiteSettings();
     renderBusinessInfo();
+    const gView = document.getElementById('view-guide');
+    if (gView && !gView.classList.contains('hidden') && typeof showGuideTab === 'function') {
+      showGuideTab(currentGuideTab);
+    }
   }
   if (e.key === 'seoldamhwa_pages' && !document.getElementById('view-guide').classList.contains('hidden')) {
     showGuideTab(currentGuideTab);

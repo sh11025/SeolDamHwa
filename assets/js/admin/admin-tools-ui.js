@@ -206,6 +206,9 @@ function showPanelTab(panel, name) {
     const SETTINGS_FORM_TABS = ['contact', 'hours', 'holidays', 'location'];
     const card = document.getElementById('settings-main-card');
     if (card) card.classList.toggle('hidden', !SETTINGS_FORM_TABS.includes(name));
+    if (name === 'packaging' && typeof renderPackagingSettings === 'function') {
+      renderPackagingSettings();
+    }
   }
 
   // integrations:server 탭 정적 모드 안내

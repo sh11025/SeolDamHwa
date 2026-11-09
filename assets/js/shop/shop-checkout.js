@@ -2,6 +2,18 @@
 // 설담화 쇼핑몰: 장바구니·주문서(받는 분·배송 방법·주소 찾기)·주문 완료·주문 조회
 // index.html에서 순서대로 불러옵니다 (함수는 전역으로 공유).
 
+// 포장 옵션 표시명 헬퍼 (옛 주문/장바구니는 optionPrice 기준 폴백)
+function getPackagingLabel(item) {
+  if (!item) return '';
+  if (item.optionName) return item.optionName;
+  if (typeof item.optionPrice === 'number') {
+    return item.optionPrice === 0
+      ? (typeof t === 'function' ? t('pdp_package_basic', '기본 단아 한지 포장') : '기본 단아 한지 포장')
+      : (typeof t === 'function' ? t('pdp_package_silk', '전통 실크 본견 보자기 & 노리개 포장') : '전통 실크 본견 보자기 & 노리개 포장');
+  }
+  return '';
+}
+
 function updateCartUI() {
   saveCart();
   const container = document.getElementById('cart-items-container');
@@ -35,9 +47,7 @@ function updateCartUI() {
     subtotal += itemTotal;
     const tp = typeof tProduct === 'function' ? tProduct(item.product) : item.product;
 
-    const optDisplay = item.optionPrice === 0
-      ? (typeof t === 'function' ? t('pdp_package_basic', '기본 단아 한지 포장') : '기본 단아 한지 포장')
-      : (typeof t === 'function' ? t('pdp_package_silk', '전통 실크 본견 보자기 & 노리개 포장') : '전통 실크 본견 보자기 & 노리개 포장');
+    const optDisplay = getPackagingLabel(item);
 
     const el = document.createElement('div');
     el.className = 'p-3 bg-[#FAF7F2] border border-ink-black/10 rounded-xs flex gap-3';
@@ -456,6 +466,13 @@ function showOrderComplete(order) {
     [coT('co_recipient_title', '받으시는 분'), order.recipientName],
     [order.deliveryMethod === 'pickup' ? coT('co_pickup_date_short', '픽업일') : coT('co_delivery_date_short', '배송일'), order.deliveryDate],
     [coT('co_method_title', '배송 방법'), order.deliveryMethodLabel],
+    [coT('lookup_items', '상품'), (order.items || []).map(i => {
+      const pName = (typeof tProduct === 'function' && i.product ? tProduct(i.product) : i.product).name;
+      const size = i.sizeLabel ? ` (${i.sizeLabel})` : '';
+      const pkg = getPackagingLabel(i);
+      const pkgStr = pkg ? ` [${pkg}]` : '';
+      return `${pName}${size}${pkgStr} × ${i.quantity}`;
+    }).join(', ')],
     ...(order.couponCode ? [[coT('co_coupon_discount', '쿠폰 할인'), `-${formatPrice(order.couponDiscount)} (${order.couponCode})`]] : []),
     [coT('checkout_total_label', '최종 결제 금액'), formatPrice(order.totalAmount)]
   ];
@@ -637,7 +654,8 @@ function renderOrderReceiptToBlob(order) {
         name = i.name || '';
       }
       const size = i.sizeLabel ? ` (${i.sizeLabel})` : '';
-      const opt = i.optionName ? ` [${i.optionName}]` : '';
+      const optLabel = getPackagingLabel(i);
+      const opt = optLabel ? ` [${optLabel}]` : '';
       const fullName = `${name}${size}${opt}`;
       const qtyText = `x ${i.quantity || 1}`;
       const priceVal = i.subtotal !== undefined ? i.subtotal : ((i.price || 0) * (i.quantity || 1));
@@ -885,7 +903,13 @@ function runOrderLookup(e) {
     [coT('co_order_number', '주문번호'), o.orderNumber],
     [coT('co_recipient_title', '받으시는 분'), o.recipientName || o.customerName],
     [o.deliveryMethod === 'pickup' ? coT('co_pickup_date_short', '픽업일') : coT('co_delivery_date_short', '배송일'), o.deliveryDate],
-    [coT('lookup_items', '상품'), (o.items || []).map(i => `${(typeof tProduct === 'function' ? tProduct(i.product) : i.product).name}${i.sizeLabel ? ` (${i.sizeLabel})` : ''} × ${i.quantity}`).join(', ')],
+    [coT('lookup_items', '상품'), (o.items || []).map(i => {
+      const pName = (typeof tProduct === 'function' && i.product ? tProduct(i.product) : i.product).name;
+      const size = i.sizeLabel ? ` (${i.sizeLabel})` : '';
+      const pkg = getPackagingLabel(i);
+      const pkgStr = pkg ? ` [${pkg}]` : '';
+      return `${pName}${size}${pkgStr} × ${i.quantity}`;
+    }).join(', ')],
     [coT('checkout_total_label', '최종 결제 금액'), formatPrice(o.totalAmount)]
   ];
   if (o.trackingNumber || o.courier) info.push([coT('lookup_tracking', '운송장'), `${o.courier || ''} ${o.trackingNumber || ''}`.trim()]);
@@ -1012,9 +1036,7 @@ function openCheckoutModal() {
     const itemTotal = (item.price + item.optionPrice) * item.quantity;
     subtotal += itemTotal;
     const tp = typeof tProduct === 'function' ? tProduct(item.product) : item.product;
-    const optDisplay = item.optionPrice === 0
-      ? (typeof t === 'function' ? t('pdp_package_basic', '기본 단아 한지 포장') : '기본 단아 한지 포장')
-      : (typeof t === 'function' ? t('pdp_package_silk', '전통 실크 본견 보자기 & 노리개 포장') : '전통 실크 본견 보자기 & 노리개 포장');
+    const optDisplay = getPackagingLabel(item);
 
     const row = document.createElement('div');
     row.className = 'flex justify-between text-xs py-1 text-ink-gray border-b border-ink-black/5';
@@ -1256,6 +1278,23 @@ async function submitCustomerOrder(e) {
     }
 
     const settings = loadSettings();
+
+    // 포장 옵션 및 가격 재확인 (재고 재확인처럼 설정 변경 시 stale price 거절)
+    const currentPkgList = (settings && Array.isArray(settings.packaging)) ? settings.packaging : (typeof DEFAULT_PACKAGING !== 'undefined' ? DEFAULT_PACKAGING : []);
+    let pkgChanged = false;
+    cart.forEach(item => {
+      if (item.packagingId) {
+        const found = currentPkgList.find(p => p.id === item.packagingId);
+        if (!found || !found.enabled || Number(found.price) !== Number(item.optionPrice)) {
+          pkgChanged = true;
+        }
+      }
+    });
+    if (pkgChanged) {
+      alert(typeof t === 'function' ? t('packaging_price_changed', '선택하신 포장 옵션의 가격이나 구성이 변경되었습니다. 장바구니에서 다시 확인해 주세요.') : '선택하신 포장 옵션의 가격이나 구성이 변경되었습니다. 장바구니에서 다시 확인해 주세요.');
+      toggleCartDrawer(true);
+      return;
+    }
     const timeVal = document.getElementById('order-delivery-time').value;
     const deliveryDate = deliveryNeedsTime(method) ? `${dateVal} ${timeVal}` : dateVal;
     const orderNumber = makeOrderNumber();

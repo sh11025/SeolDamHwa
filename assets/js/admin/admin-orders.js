@@ -186,7 +186,7 @@ function renderOrdersList() {
             </div>
             <div class="space-y-1">
               <p class="font-bold text-ink-gray">주문 상품</p>
-              ${items.map(i => `<p class="text-ink-black">• ${escapeHtml(i.product && i.product.name)}${i.sizeLabel ? ` (${escapeHtml(i.sizeLabel)})` : ''} × ${Number(i.quantity) || 1}<span class="block pl-3 text-ink-gray">${escapeHtml(i.optionName || '기본 포장')}</span></p>`).join('')}
+              ${items.map(i => `<p class="text-ink-black">• ${escapeHtml(i.product && i.product.name)}${i.sizeLabel ? ` (${escapeHtml(i.sizeLabel)})` : ''} × ${Number(i.quantity) || 1}<span class="block pl-3 text-ink-gray">${escapeHtml(i.optionName || (i.optionPrice === 0 ? '기본 단아 한지 포장' : '전통 실크 본견 보자기 & 노리개 포장'))}</span></p>`).join('')}
               <p class="pt-1 text-ink-gray">접수 ${escapeHtml(getOrderDate(o))} ${escapeHtml(o.createdAt || '')}</p>
             </div>
             <div class="space-y-2">
@@ -250,7 +250,10 @@ function printLabels(ids) {
   sheet.innerHTML = `<div class="label-grid">${targets.map(o => {
     const d = getDeliveryDate(o);
     const time = String(o.deliveryDate || '').slice(d.length).trim();
-    const items = (o.items || []).map(i => `${escapeHtml(i.product && i.product.name)}${i.sizeLabel ? `(${escapeHtml(i.sizeLabel)})` : ''} ×${Number(i.quantity) || 1}`).join(', ');
+    const items = (o.items || []).map(i => {
+      const pkg = i.optionName || (i.optionPrice === 0 ? '기본 단아 한지 포장' : '전통 실크 본견 보자기 & 노리개 포장');
+      return `${escapeHtml(i.product && i.product.name)}${i.sizeLabel ? `(${escapeHtml(i.sizeLabel)})` : ''} [${escapeHtml(pkg)}] ×${Number(i.quantity) || 1}`;
+    }).join(', ');
     return `<div class="ship-label">
       <div class="sl-top">
         <div class="sl-brand"><img src="assets/images/seal.svg" alt=""><span>${escapeHtml(senderName)}</span></div>

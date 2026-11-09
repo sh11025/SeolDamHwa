@@ -114,7 +114,8 @@ function discordItemLines(items) {
   return (items || []).map(i => {
     const name = discordSafe(i.product && i.product.name, 60) || '꽃 상품';
     const size = i.sizeLabel ? ` · ${discordSafe(i.sizeLabel, 20)}` : '';
-    const opt = i.optionName ? `\n　└ ${discordSafe(i.optionName, 40)}` : '';
+    const pkg = i.optionName || (i.optionPrice === 0 ? '기본 단아 한지 포장' : '전통 실크 본견 보자기 & 노리개 포장');
+    const opt = pkg ? `\n　└ ${discordSafe(pkg, 40)}` : '';
     return `🌷 **${name}**${size} × ${Number(i.quantity) || 1}${opt}`;
   }).join('\n') || '-';
 }
@@ -213,7 +214,10 @@ function buildProductionMessage(orders, dateStr) {
     title: `🕘 ${discordPlain(time, 40)} · ${os.length}건`,
     color: DISCORD_COLORS.slot,
     description: os.map((o, idx) => {
-      const items = (o.items || []).map(i => `${discordSafe(i.product && i.product.name, 40)}${i.sizeLabel ? `(${discordSafe(i.sizeLabel, 10)})` : ''} × ${Number(i.quantity) || 1} — ${discordSafe(i.optionName || '기본 포장', 30)}`).join('\n　');
+      const items = (o.items || []).map(i => {
+        const pkg = i.optionName || (i.optionPrice === 0 ? '기본 단아 한지 포장' : '전통 실크 본견 보자기 & 노리개 포장');
+        return `${discordSafe(i.product && i.product.name, 40)}${i.sizeLabel ? `(${discordSafe(i.sizeLabel, 10)})` : ''} × ${Number(i.quantity) || 1} — ${discordSafe(pkg, 30)}`;
+      }).join('\n　');
       const tags = [o.deliveryMethod === 'pickup' ? '🏪 픽업' : '', o.hideSender ? '🤫 이름 생략' : ''].filter(Boolean).join(' · ');
       return `**${idx + 1}. ${discordSafe(o.orderNumber, 30)}**${tags ? ` ${tags}` : ''}\n　${items}${o.message ? `\n　✉️ _${discordSafe(o.message, 150)}_` : ''}${o.request ? `\n　📝 ${discordSafe(o.request, 80)}` : ''}`;
     }).join('\n\n').slice(0, 4000)

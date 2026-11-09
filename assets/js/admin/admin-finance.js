@@ -313,7 +313,10 @@ function generateExcelReport() {
 
   periodOrders.forEach(o => {
     const items = o.items || [];
-    const itemDesc = items.map(i => `${i.product && i.product.name ? i.product.name : ''}${i.sizeLabel ? `(${i.sizeLabel})` : ''} [${i.optionName || '기본'}]`).join(', ');
+    const itemDesc = items.map(i => {
+      const pkg = i.optionName || (i.optionPrice === 0 ? '기본 단아 한지 포장' : '전통 실크 본견 보자기 & 노리개 포장');
+      return `${i.product && i.product.name ? i.product.name : ''}${i.sizeLabel ? `(${i.sizeLabel})` : ''} [${pkg}]`;
+    }).join(', ');
     const totalQty = items.reduce((s, i) => s + (Number(i.quantity) || 1), 0);
     const statusLabel = o.status === 'cancelled' ? '주문 취소' : (ORDER_STATUS_LABELS[o.status] || o.status);
     orderRows.push([

@@ -488,6 +488,231 @@ function removeCustomHoliday(dateStr) {
   renderHolidaysList();
 }
 
+// ----------------------------------------------------
+// 8. 포장 옵션 관리 (Packaging Settings)
+// ----------------------------------------------------
+function renderPackagingSettings() {
+  const listEl = document.getElementById('admin-packaging-list');
+  if (!listEl) return;
+  const s = typeof loadSettings === 'function' ? loadSettings() : {};
+  const list = (s && Array.isArray(s.packaging)) ? s.packaging : (typeof DEFAULT_PACKAGING !== 'undefined' ? DEFAULT_PACKAGING : []);
+
+  if (!list.length) {
+    listEl.innerHTML = '<p class="text-xs text-ink-gray py-4 text-center">등록된 포장 옵션이 없습니다.</p>';
+    return;
+  }
+
+  // 첫 번째 활성화된 옵션 인덱스 (기본값)
+  const firstEnabledIdx = list.findIndex(p => p.enabled);
+
+  listEl.innerHTML = list.map((pkg, idx) => {
+    const isFirstEnabled = idx === firstEnabledIdx;
+    const priceText = Number(pkg.price) === 0 ? '무료' : `+${Number(pkg.price).toLocaleString()}원`;
+    const photoHtml = pkg.photo
+      ? `<img src="${escapeHtml(pkg.photo)}" alt="" class="w-12 h-12 object-cover rounded-xs border border-ink-black/10 shrink-0">`
+      : `<div class="w-12 h-12 rounded-xs border border-dashed border-ink-black/20 bg-hanji/40 flex items-center justify-center text-ink-gray/40 text-[11px] shrink-0">사진 없음</div>`;
+
+    return `
+      <div class="p-3 bg-white border border-ink-black/15 rounded-xs flex flex-wrap items-center justify-between gap-3 ${pkg.enabled ? '' : 'opacity-60 bg-gray-50'}">
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          <div class="flex flex-col gap-0.5 shrink-0">
+            <button type="button" onclick="movePackagingOption('${pkg.id}', -1)" ${idx === 0 ? 'disabled' : ''} class="w-6 h-5 border border-ink-black/20 rounded-xs text-[10px] flex items-center justify-center hover:bg-gray-100 disabled:opacity-20 cursor-pointer" aria-label="위로 이동">▲</button>
+            <button type="button" onclick="movePackagingOption('${pkg.id}', 1)" ${idx === list.length - 1 ? 'disabled' : ''} class="w-6 h-5 border border-ink-black/20 rounded-xs text-[10px] flex items-center justify-center hover:bg-gray-100 disabled:opacity-20 cursor-pointer" aria-label="아래로 이동">▼</button>
+          </div>
+          ${photoHtml}
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="font-bold text-ink-black text-xs">${escapeHtml(pkg.name)}</span>
+              <span class="font-bold text-seal-red text-xs font-mono">${priceText}</span>
+              ${isFirstEnabled ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-seal-red text-white">기본 옵션</span>' : ''}
+              ${pkg.enabled ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">사용 중</span>' : '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">미사용</span>'}
+            </div>
+            ${pkg.desc ? `<p class="text-[11px] text-ink-gray truncate mt-0.5">${escapeHtml(pkg.desc)}</p>` : ''}
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button type="button" onclick="togglePackagingOption('${pkg.id}')" class="px-2.5 py-1 text-xs font-bold border border-ink-black/20 rounded-xs hover:border-ink-black cursor-pointer bg-white">${pkg.enabled ? '끄기' : '켜기'}</button>
+          <button type="button" onclick="openPackagingModal('${pkg.id}')" class="px-2.5 py-1 text-xs font-bold border border-ink-black/20 rounded-xs hover:border-ink-black cursor-pointer bg-white">수정</button>
+          <button type="button" onclick="deletePackagingOption('${pkg.id}')" class="px-2.5 py-1 text-xs font-bold border border-seal-red/30 text-seal-red rounded-xs hover:bg-seal-red/10 cursor-pointer bg-white">삭제</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openPackagingModal(pkgId) {
+  const modal = document.getElementById('modal-packaging');
+  if (!modal) return;
+  const s = typeof loadSettings === 'function' ? loadSettings() : {};
+  const list = (s && Array.isArray(s.packaging)) ? s.packaging : (typeof DEFAULT_PACKAGING !== 'undefined' ? DEFAULT_PACKAGING : []);
+  const pkg = pkgId ? list.find(p => p.id === pkgId) : null;
+
+  document.getElementById('modal-packaging-title').innerText = pkg ? '포장 옵션 수정' : '새 포장 옵션 추가';
+  document.getElementById('pkg-id').value = pkg ? pkg.id : '';
+  document.getElementById('pkg-name').value = pkg ? pkg.name : '';
+  document.getElementById('pkg-desc').value = pkg ? (pkg.desc || '') : '';
+  document.getElementById('pkg-price').value = pkg ? (pkg.price || 0) : 0;
+  document.getElementById('pkg-photo').value = pkg ? (pkg.photo || '') : '';
+  document.getElementById('pkg-enabled').checked = pkg ? (pkg.enabled !== false) : true;
+
+  const preview = document.getElementById('pkg-photo-preview');
+  if (preview) {
+    if (pkg && pkg.photo) {
+      preview.src = pkg.photo;
+      preview.classList.remove('hidden');
+    } else {
+      preview.src = '';
+      preview.classList.add('hidden');
+    }
+  }
+
+  modal.classList.remove('hidden');
+}
+
+function closePackagingModal() {
+  const modal = document.getElementById('modal-packaging');
+  if (modal) modal.classList.add('hidden');
+}
+
+function pickPackagingPhoto() {
+  if (typeof openImagePicker === 'function') {
+    openImagePicker(src => {
+      const inp = document.getElementById('pkg-photo');
+      if (inp) inp.value = src;
+      const preview = document.getElementById('pkg-photo-preview');
+      if (preview) {
+        preview.src = src;
+        preview.classList.remove('hidden');
+      }
+    });
+  }
+}
+
+function savePackagingOption(e) {
+  e.preventDefault();
+  const idInput = document.getElementById('pkg-id');
+  const nameInput = document.getElementById('pkg-name');
+  const descInput = document.getElementById('pkg-desc');
+  const priceInput = document.getElementById('pkg-price');
+  const photoInput = document.getElementById('pkg-photo');
+  const enabledInput = document.getElementById('pkg-enabled');
+
+  const name = nameInput.value.trim();
+  if (!name) {
+    alert('포장 옵션 이름을 입력해 주세요.');
+    return;
+  }
+  const price = Math.max(0, parseInt(priceInput.value, 10) || 0);
+  const desc = descInput.value.trim();
+  const photo = photoInput.value.trim();
+  const enabled = enabledInput.checked;
+
+  const s = typeof loadSettings === 'function' ? loadSettings() : {};
+  let list = (s && Array.isArray(s.packaging)) ? [...s.packaging] : (typeof DEFAULT_PACKAGING !== 'undefined' ? [...DEFAULT_PACKAGING] : []);
+
+  const existingId = idInput.value;
+  if (existingId) {
+    const idx = list.findIndex(p => p.id === existingId);
+    if (idx !== -1) {
+      // 끄는 경우 최소 1개 활성화 검증
+      if (!enabled && list.filter(p => p.enabled && p.id !== existingId).length === 0) {
+        alert('최소 1개의 포장 옵션은 사용 중이어야 합니다.');
+        return;
+      }
+      list[idx] = { ...list[idx], name, desc, price, photo, enabled };
+    }
+  } else {
+    const newId = `pkg-${Date.now()}`;
+    list.push({ id: newId, name, desc, price, photo, enabled });
+  }
+
+  // 최소 1개 활성화 보장
+  if (!list.some(p => p.enabled)) {
+    list[0].enabled = true;
+  }
+
+  if (typeof saveSettings === 'function') {
+    saveSettings({ packaging: list });
+  } else {
+    DataStore.write(DataStore.KEYS.settings, { ...s, packaging: list });
+  }
+
+  closePackagingModal();
+  renderPackagingSettings();
+}
+
+function togglePackagingOption(pkgId) {
+  const s = typeof loadSettings === 'function' ? loadSettings() : {};
+  let list = (s && Array.isArray(s.packaging)) ? [...s.packaging] : (typeof DEFAULT_PACKAGING !== 'undefined' ? [...DEFAULT_PACKAGING] : []);
+  const item = list.find(p => p.id === pkgId);
+  if (!item) return;
+
+  if (item.enabled) {
+    const enabledCount = list.filter(p => p.enabled).length;
+    if (enabledCount <= 1) {
+      alert('최소 1개의 포장 옵션은 사용 중이어야 합니다.');
+      return;
+    }
+  }
+  item.enabled = !item.enabled;
+
+  if (typeof saveSettings === 'function') {
+    saveSettings({ packaging: list });
+  } else {
+    DataStore.write(DataStore.KEYS.settings, { ...s, packaging: list });
+  }
+  renderPackagingSettings();
+}
+
+function deletePackagingOption(pkgId) {
+  const s = typeof loadSettings === 'function' ? loadSettings() : {};
+  let list = (s && Array.isArray(s.packaging)) ? [...s.packaging] : (typeof DEFAULT_PACKAGING !== 'undefined' ? [...DEFAULT_PACKAGING] : []);
+  const item = list.find(p => p.id === pkgId);
+  if (!item) return;
+
+  if (item.enabled) {
+    const enabledCount = list.filter(p => p.enabled).length;
+    if (enabledCount <= 1) {
+      alert('최소 1개의 포장 옵션은 사용 중이어야 합니다.');
+      return;
+    }
+  }
+
+  if (!confirm(`'${item.name}' 포장 옵션을 삭제하시겠습니까?`)) return;
+
+  list = list.filter(p => p.id !== pkgId);
+  if (!list.some(p => p.enabled) && list.length > 0) {
+    list[0].enabled = true;
+  }
+
+  if (typeof saveSettings === 'function') {
+    saveSettings({ packaging: list });
+  } else {
+    DataStore.write(DataStore.KEYS.settings, { ...s, packaging: list });
+  }
+  renderPackagingSettings();
+}
+
+function movePackagingOption(pkgId, dir) {
+  const s = typeof loadSettings === 'function' ? loadSettings() : {};
+  let list = (s && Array.isArray(s.packaging)) ? [...s.packaging] : (typeof DEFAULT_PACKAGING !== 'undefined' ? [...DEFAULT_PACKAGING] : []);
+  const idx = list.findIndex(p => p.id === pkgId);
+  if (idx === -1) return;
+  const targetIdx = idx + dir;
+  if (targetIdx < 0 || targetIdx >= list.length) return;
+
+  const temp = list[idx];
+  list[idx] = list[targetIdx];
+  list[targetIdx] = temp;
+
+  if (typeof saveSettings === 'function') {
+    saveSettings({ packaging: list });
+  } else {
+    DataStore.write(DataStore.KEYS.settings, { ...s, packaging: list });
+  }
+  renderPackagingSettings();
+}
+
 // 6. 탭 전환
 
 // ----------------------------------------------------

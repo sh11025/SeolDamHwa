@@ -30,12 +30,17 @@ function renderProductPage(productId, isPreview = false) {
   document.getElementById('pdp-meaning').innerText = `${meaningPrefix}${tp.flowerMeaning}`;
   document.getElementById('pdp-desc').innerText = tp.description || '';
   document.getElementById('pdp-qty').innerText = '1';
-  document.getElementById('pdp-package-opt').value = '0';
 
+  // 활성화된 포장 옵션 목록 렌더링 (첫 번째 활성 옵션이 기본값)
   const pkgOpt = document.getElementById('pdp-package-opt');
-  if (pkgOpt && pkgOpt.options && pkgOpt.options.length >= 2) {
-    pkgOpt.options[0].text = typeof t === 'function' ? t('pdp_package_basic', '기본 단아 한지 포장 (무료)') : '기본 단아 한지 포장 (무료)';
-    pkgOpt.options[1].text = typeof t === 'function' ? t('pdp_package_silk', '전통 실크 본견 보자기 & 노리개 포장 (+15,000원)') : '전통 실크 본견 보자기 & 노리개 포장 (+15,000원)';
+  if (pkgOpt) {
+    const s = typeof loadSettings === 'function' ? loadSettings() : {};
+    const pkgList = typeof getEnabledPackaging === 'function' ? getEnabledPackaging(s) : (typeof DEFAULT_PACKAGING !== 'undefined' ? DEFAULT_PACKAGING : []);
+    pkgOpt.innerHTML = pkgList.map(p => {
+      const priceText = p.price === 0 ? (typeof t === 'function' ? t('co_free', '무료') : '무료') : `+${formatPrice(p.price)}`;
+      return `<option value="${p.id}" data-price="${p.price}" data-name="${p.name}">${p.name} (${priceText})</option>`;
+    }).join('');
+    pkgOpt.selectedIndex = 0;
   }
 
   const stockNoticeEl = document.getElementById('pdp-stock-notice');
@@ -204,7 +209,9 @@ function resetPDPButtons() {
 function updatePDPPrice() {
   if (!currentSelectedProduct || currentSelectedProduct.inquiryOnly) return;
   const basePrice = currentSelectedSize ? currentSelectedSize.price : (currentSelectedProduct.price || 0);
-  const pkgVal = parseInt(document.getElementById('pdp-package-opt')?.value || '0', 10);
+  const optSelect = document.getElementById('pdp-package-opt');
+  const selOpt = optSelect && optSelect.selectedIndex >= 0 ? optSelect.options[optSelect.selectedIndex] : null;
+  const pkgVal = selOpt ? (parseInt(selOpt.dataset.price, 10) || 0) : 0;
   const unitPrice = basePrice + pkgVal;
   const totalPrice = unitPrice * currentQty;
 
@@ -253,10 +260,10 @@ function addToCartFromPDP() {
   }
 
   const optSelect = document.getElementById('pdp-package-opt');
-  const optPrice = Number(optSelect ? optSelect.value : 0);
-  const optName = (optPrice === 15000)
-    ? '전통 실크 본견 보자기 & 노리개 포장'
-    : '기본 단아 한지 포장';
+  const selOpt = optSelect && optSelect.selectedIndex >= 0 ? optSelect.options[optSelect.selectedIndex] : null;
+  const packagingId = selOpt ? selOpt.value : '';
+  const optPrice = selOpt ? (parseInt(selOpt.dataset.price, 10) || 0) : 0;
+  const optName = selOpt ? (selOpt.dataset.name || (optPrice === 15000 ? '전통 실크 본견 보자기 & 노리개 포장' : '기본 단아 한지 포장')) : '기본 단아 한지 포장';
 
   const basePrice = currentSelectedSize ? currentSelectedSize.price : (currentSelectedProduct.price || 0);
 
@@ -276,6 +283,7 @@ function addToCartFromPDP() {
     product: currentSelectedProduct,
     sizeLabel: currentSelectedSize ? currentSelectedSize.label : null,
     price: basePrice,
+    packagingId: packagingId,
     optionName: optName,
     optionPrice: optPrice,
     quantity: currentQty
@@ -299,10 +307,10 @@ function buyNowFromPDP() {
   }
 
   const optSelect = document.getElementById('pdp-package-opt');
-  const optPrice = Number(optSelect ? optSelect.value : 0);
-  const optName = (optPrice === 15000)
-    ? '전통 실크 본견 보자기 & 노리개 포장'
-    : '기본 단아 한지 포장';
+  const selOpt = optSelect && optSelect.selectedIndex >= 0 ? optSelect.options[optSelect.selectedIndex] : null;
+  const packagingId = selOpt ? selOpt.value : '';
+  const optPrice = selOpt ? (parseInt(selOpt.dataset.price, 10) || 0) : 0;
+  const optName = selOpt ? (selOpt.dataset.name || (optPrice === 15000 ? '전통 실크 본견 보자기 & 노리개 포장' : '기본 단아 한지 포장')) : '기본 단아 한지 포장';
 
   const basePrice = currentSelectedSize ? currentSelectedSize.price : (currentSelectedProduct.price || 0);
   const stock = currentSelectedProduct.stockQuantity;
@@ -312,6 +320,7 @@ function buyNowFromPDP() {
     product: currentSelectedProduct,
     sizeLabel: currentSelectedSize ? currentSelectedSize.label : null,
     price: basePrice,
+    packagingId: packagingId,
     optionName: optName,
     optionPrice: optPrice,
     quantity: currentQty

@@ -19,6 +19,16 @@ const SHOP_ROUTES = {
     if (typeof openOrderLookup === 'function') {
       openOrderLookup(ordNo);
     }
+  },
+  privacy: () => {
+    if (typeof openInfoPage === 'function') openInfoPage('privacy');
+  },
+  terms: () => {
+    if (typeof openInfoPage === 'function') openInfoPage('terms');
+  },
+  legal: params => {
+    const pageId = params[0] || 'privacy';
+    if (typeof openInfoPage === 'function') openInfoPage(pageId);
   }
 };
 let routerSkipHash = null;

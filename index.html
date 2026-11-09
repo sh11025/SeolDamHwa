@@ -25,8 +25,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
   
   <!-- 관리자에서 고른 사이트 색을 첫 화면부터 입힘 -->
-  <script src="assets/js/data-store.js?v=96"></script>
-  <script src="assets/js/site-theme.js?v=96"></script>
+  <script src="assets/js/data-store.js?v=97"></script>
+  <script src="assets/js/site-theme.js?v=97"></script>
   <script>try { applySiteTheme((DataStore.read(DataStore.KEYS.settings, null) || {}).theme); } catch (e) { /* 기본 색 */ }</script>
   <script>
 
@@ -358,7 +358,7 @@
     .info-page-body .page-ul li { margin: 3px 0; }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=96">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=97">
 </head>
 <body class="selection:bg-seal-red/15 selection:text-seal-red min-h-screen flex flex-col">
   <!-- 상품 미리보기 모드 상단 고정 배너 -->
@@ -1021,6 +1021,7 @@
         <button type="button" role="tab" data-guide="care" onclick="showGuideTab('care')" data-i18n="footer_link_care" class="guide-tab px-4 py-2 rounded-full border text-sm font-bold cursor-pointer">생화 관리 팁</button>
         <button type="button" role="tab" data-guide="delivery" onclick="showGuideTab('delivery')" data-i18n="footer_link_delivery" class="guide-tab px-4 py-2 rounded-full border text-sm font-bold cursor-pointer">배송 안내</button>
         <button type="button" role="tab" data-guide="refund" onclick="showGuideTab('refund')" data-i18n="footer_link_refund" class="guide-tab px-4 py-2 rounded-full border text-sm font-bold cursor-pointer">교환·환불 안내</button>
+        <button type="button" role="tab" data-guide="faq" onclick="showGuideTab('faq')" data-i18n="guide_faq" class="guide-tab px-4 py-2 rounded-full border text-sm font-bold cursor-pointer">자주 묻는 질문</button>
         <button type="button" role="tab" data-guide="location" id="guide-tab-location" onclick="showGuideTab('location')" data-i18n="guide_location" class="guide-tab hidden px-4 py-2 rounded-full border text-sm font-bold cursor-pointer">오시는 길</button>
       </div>
       <article class="relative bg-white/70 border border-ink-black/10 rounded-sm p-6 md:p-10 shadow-xs">
@@ -1715,6 +1716,7 @@
               <li><button type="button" onclick="openGuide('care')" data-i18n="footer_link_care" class="hover:text-seal-red cursor-pointer text-left">생화 관리 팁</button></li>
               <li><button type="button" onclick="openGuide('delivery')" data-i18n="footer_link_delivery" class="hover:text-seal-red cursor-pointer text-left">배송 안내</button></li>
               <li><button type="button" onclick="openGuide('refund')" data-i18n="footer_link_refund" class="hover:text-seal-red cursor-pointer text-left">교환·환불 안내</button></li>
+              <li><button type="button" onclick="openGuide('faq')" data-i18n="guide_faq" class="hover:text-seal-red cursor-pointer text-left">자주 묻는 질문</button></li>
               <li id="footer-location-link" class="hidden"><button type="button" onclick="openGuide('location')" data-i18n="guide_location" class="hover:text-seal-red cursor-pointer text-left">오시는 길</button></li>
             </ul>
           </div>
@@ -1948,34 +1950,34 @@
   </div>
 
   <!-- 상품 데이터 및 공통 스토리지 스크립트 -->
-  <script src="assets/js/products-data.js?v=96"></script>
-  <script src="assets/js/flowers-data.js?v=96"></script>
-  <script src="assets/js/i18n.js?v=96"></script>
-  <script src="assets/js/site-settings.js?v=96"></script>
-  <script src="assets/js/popups.js?v=96"></script>
-  <script src="assets/js/integrations.js?v=96"></script>
-  <script src="assets/js/site-pages.js?v=96"></script>
-  <script src="assets/js/restock.js?v=96"></script>
-  <script src="assets/js/csv-db.js?v=96"></script>
-  <script src="assets/js/data-sync.js?v=96"></script>
-  <script src="assets/js/coupons.js?v=96"></script>
+  <script src="assets/js/products-data.js?v=97"></script>
+  <script src="assets/js/flowers-data.js?v=97"></script>
+  <script src="assets/js/i18n.js?v=97"></script>
+  <script src="assets/js/site-settings.js?v=97"></script>
+  <script src="assets/js/popups.js?v=97"></script>
+  <script src="assets/js/integrations.js?v=97"></script>
+  <script src="assets/js/site-pages.js?v=97"></script>
+  <script src="assets/js/restock.js?v=97"></script>
+  <script src="assets/js/csv-db.js?v=97"></script>
+  <script src="assets/js/data-sync.js?v=97"></script>
+  <script src="assets/js/coupons.js?v=97"></script>
 
   <!-- JavaScript: 쇼핑몰 동작 & 인터랙션 로직 -->
   <!-- 쇼핑몰 화면 동작 (화면별 파일, 순서 중요) -->
-  <script src="assets/js/shop/shop-core.js?v=96"></script>
-  <script src="assets/js/shop/shop-product.js?v=96"></script>
-  <script src="assets/js/shop/shop-product-page.js?v=96"></script>
-  <script src="assets/js/shop/shop-checkout.js?v=96"></script>
-  <script src="assets/js/shop/shop-nav.js?v=96"></script>
-  <script src="assets/js/shop/shop-curation.js?v=96"></script>
-  <script src="assets/js/shop/shop-inquiry.js?v=96"></script>
-  <script src="assets/js/shop/shop-guide.js?v=96"></script>
-  <script src="assets/js/shop/shop-settings.js?v=96"></script>
-  <script src="assets/js/shop/shop-browse.js?v=96"></script>
-  <script src="assets/js/shop/shop-flowers.js?v=96"></script>
-  <script src="assets/js/shop/shop-dictionary.js?v=96"></script>
-  <script src="assets/js/shop/shop-router.js?v=96"></script>
-  <script src="assets/js/shop/shop-chat.js?v=96"></script>
-  <script src="assets/js/shop/shop-media-guard.js?v=96"></script>
+  <script src="assets/js/shop/shop-core.js?v=97"></script>
+  <script src="assets/js/shop/shop-product.js?v=97"></script>
+  <script src="assets/js/shop/shop-product-page.js?v=97"></script>
+  <script src="assets/js/shop/shop-checkout.js?v=97"></script>
+  <script src="assets/js/shop/shop-nav.js?v=97"></script>
+  <script src="assets/js/shop/shop-curation.js?v=97"></script>
+  <script src="assets/js/shop/shop-inquiry.js?v=97"></script>
+  <script src="assets/js/shop/shop-guide.js?v=97"></script>
+  <script src="assets/js/shop/shop-settings.js?v=97"></script>
+  <script src="assets/js/shop/shop-browse.js?v=97"></script>
+  <script src="assets/js/shop/shop-flowers.js?v=97"></script>
+  <script src="assets/js/shop/shop-dictionary.js?v=97"></script>
+  <script src="assets/js/shop/shop-router.js?v=97"></script>
+  <script src="assets/js/shop/shop-chat.js?v=97"></script>
+  <script src="assets/js/shop/shop-media-guard.js?v=97"></script>
 </body>
 </html>
