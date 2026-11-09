@@ -448,16 +448,16 @@ function buildLetterCard(r) {
 
   // 카드 기본 컨테이너 스타일 (동일 높이, flex column, justify-between)
   const baseBg = isShortText ? 'bg-seal-soft border-seal-red/25' : 'bg-[#FAF7F2] border-ink-black/10';
-  card.className = `border rounded-sm overflow-hidden cursor-pointer hover:border-seal-red/40 transition-all flex flex-col justify-between h-[340px] relative group shadow-2xs ${baseBg}`;
+  card.className = `border rounded-sm overflow-hidden cursor-pointer hover:border-seal-red/40 transition-all flex flex-col justify-between h-full min-h-[320px] relative group shadow-2xs ${baseBg}`;
 
   // 상단 영역 (사진이 있는 경우 사진, 없는 경우 헤더)
   const topWrap = document.createElement('div');
   topWrap.className = 'flex flex-col flex-1';
 
   if (hasPhoto) {
-    // 1. 사진 있음: 상단에 첫 사진 (4:3 비율, loading="lazy", decoding="async", reviewMediaUrl 사용)
+    // 1. 사진 있음: 상단에 첫 사진 (고정 높이 h-44 sm:h-48, loading="lazy", decoding="async", reviewMediaUrl 사용)
     const photoBox = document.createElement('div');
-    photoBox.className = 'relative w-full aspect-[4/3] bg-ink-black/5 overflow-hidden shrink-0';
+    photoBox.className = 'relative w-full h-44 sm:h-48 bg-ink-black/5 overflow-hidden shrink-0';
 
     const img = document.createElement('img');
     const firstUrl = typeof reviewMediaUrl === 'function' ? reviewMediaUrl(photoArr[0]) : photoArr[0];
@@ -475,20 +475,20 @@ function buildLetterCard(r) {
     bodyBox.className = 'p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3';
 
     const textEl = document.createElement('p');
-    textEl.className = 'font-serif text-xs sm:text-sm text-ink-black leading-relaxed line-clamp-3';
+    textEl.className = 'font-serif text-xs sm:text-sm text-ink-black leading-relaxed line-clamp-2';
     textEl.textContent = textRaw;
     bodyBox.appendChild(textEl);
 
     // 별점
     const starsBox = document.createElement('div');
-    starsBox.className = 'text-amber-500 text-xs font-bold tracking-tight';
+    starsBox.className = 'text-amber-500 text-xs font-bold tracking-tight shrink-0';
     starsBox.textContent = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
     bodyBox.appendChild(starsBox);
 
     topWrap.appendChild(bodyBox);
 
   } else if (isLongText) {
-    // 2. 사진 없음, 긴 글 (41자 이상): 글이 메인, 더 큰 명조체 (최대 7줄), 작은 상품명 상단
+    // 2. 사진 없음, 긴 글 (41자 이상): 글이 메인, 더 큰 명조체, 작은 상품명 상단
     const bodyBox = document.createElement('div');
     bodyBox.className = 'p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-3';
 
@@ -498,12 +498,12 @@ function buildLetterCard(r) {
     bodyBox.appendChild(headerEl);
 
     const textEl = document.createElement('p');
-    textEl.className = 'font-serif text-sm sm:text-base text-ink-black leading-relaxed line-clamp-6 sm:line-clamp-7 flex-1';
+    textEl.className = 'font-serif text-sm sm:text-base text-ink-black leading-relaxed line-clamp-5 flex-1';
     textEl.textContent = textRaw;
     bodyBox.appendChild(textEl);
 
     const starsBox = document.createElement('div');
-    starsBox.className = 'text-amber-500 text-xs font-bold tracking-tight pt-1';
+    starsBox.className = 'text-amber-500 text-xs font-bold tracking-tight pt-1 shrink-0';
     starsBox.textContent = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
     bodyBox.appendChild(starsBox);
 
@@ -525,7 +525,7 @@ function buildLetterCard(r) {
     bodyBox.appendChild(textEl);
 
     const starsBox = document.createElement('div');
-    starsBox.className = 'text-amber-500 text-xs font-bold tracking-tight text-center pt-1';
+    starsBox.className = 'text-amber-500 text-xs font-bold tracking-tight text-center pt-1 shrink-0';
     starsBox.textContent = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
     bodyBox.appendChild(starsBox);
 
@@ -536,7 +536,7 @@ function buildLetterCard(r) {
 
   // 하단 푸터 영역: 사연 라벨 좌측, 인장 도장 우측 고정 위치
   const footerBox = document.createElement('div');
-  footerBox.className = 'px-4 sm:px-5 py-3 border-t border-ink-black/5 flex items-center justify-between gap-2 mt-auto';
+  footerBox.className = 'px-4 sm:px-5 py-3 border-t border-ink-black/5 flex items-center justify-between gap-2 mt-auto shrink-0';
 
   // 좌측: 사연 라벨 & 동영상 뱃지
   const leftGroup = document.createElement('div');
@@ -642,6 +642,7 @@ function renderHomeReviewsSlider() {
   list.forEach(r => {
     const card = buildLetterCard(r);
     card.classList.add('w-[280px]', 'sm:w-[320px]', 'shrink-0', 'snap-start');
+    card.classList.replace('h-full', 'h-auto');
     card.onclick = () => openLetterModal(r, list);
     track.appendChild(card);
   });
