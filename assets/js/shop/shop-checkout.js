@@ -60,7 +60,7 @@ function updateCartUI() {
             <button onclick="removeFromCart(${index})" class="text-ink-light hover:text-seal-red cursor-pointer">✕</button>
           </div>
           ${item.sizeLabel ? `<p class="text-[11px] text-seal-red font-medium mt-0.5">${sizePrefix}${item.sizeLabel}</p>` : ''}
-          <p class="text-[11px] text-ink-gray mt-0.5">${optDisplay}</p>
+          <p class="text-[11px] text-ink-gray mt-0.5">${htmlText(optDisplay)}</p>
         </div>
         <div class="flex justify-between items-baseline mt-2">
           <span class="text-ink-gray">${qtyLabel}: ${item.quantity}</span>
@@ -1045,7 +1045,7 @@ function openCheckoutModal() {
         <span class="font-bold text-ink-black">${htmlText(tp.name)}</span>
         ${item.sizeLabel ? `<span class="text-seal-red text-[11px]"> (${item.sizeLabel})</span>` : ''}
         <span> × ${item.quantity}</span>
-        <div class="text-[11px] text-ink-light">${optDisplay}</div>
+        <div class="text-[11px] text-ink-light">${htmlText(optDisplay)}</div>
       </div>
       <span class="font-bold text-ink-black">${formatPrice(itemTotal)}</span>
     `;

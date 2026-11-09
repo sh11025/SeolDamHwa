@@ -36,10 +36,17 @@ function renderProductPage(productId, isPreview = false) {
   if (pkgOpt) {
     const s = typeof loadSettings === 'function' ? loadSettings() : {};
     const pkgList = typeof getEnabledPackaging === 'function' ? getEnabledPackaging(s) : (typeof DEFAULT_PACKAGING !== 'undefined' ? DEFAULT_PACKAGING : []);
-    pkgOpt.innerHTML = pkgList.map(p => {
+    // 옵션 이름에 따옴표·꺾쇠·& 가 있어도 그대로 보이고 저장되도록 HTML 문자열이 아닌 DOM 속성으로 만듭니다
+    pkgOpt.textContent = '';
+    pkgList.forEach(p => {
       const priceText = p.price === 0 ? (typeof t === 'function' ? t('co_free', '무료') : '무료') : `+${formatPrice(p.price)}`;
-      return `<option value="${p.id}" data-price="${p.price}" data-name="${p.name}">${p.name} (${priceText})</option>`;
-    }).join('');
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.dataset.price = String(p.price);
+      opt.dataset.name = p.name;
+      opt.textContent = `${p.name} (${priceText})`;
+      pkgOpt.appendChild(opt);
+    });
     pkgOpt.selectedIndex = 0;
   }
 
