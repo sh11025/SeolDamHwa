@@ -248,8 +248,11 @@ function importCsvTables(files) {
       } catch (e) { /* 깨진 줄은 건너뜀 */ }
     });
     if (Object.keys(s).length) {
-      if (typeof saveSettings === 'function') saveSettings(s);
-      else DataStore.write(DataStore.KEYS.settings, s);
+      DataStore.write(DataStore.KEYS.settings, s);
+      const updated = typeof loadSettings === 'function' ? loadSettings() : s;
+      if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+        window.dispatchEvent(new CustomEvent('seoldamhwa_settings_updated', { detail: updated }));
+      }
     }
     if (has('popups.csv') && typeof savePopups === 'function') {
       const slides = csvToTable('popups', files['popups.csv']);

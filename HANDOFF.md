@@ -1,6 +1,6 @@
 # 설담화 작업 이어받기 안내 (HANDOFF)
 
-> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-09 [101]
+> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-09 [102]
 
 ## 1. 프로젝트 한눈에
 - `index.html`: 손님 쇼핑몰 / `admin-index.html`: 관리자 센터. 둘 다 Tailwind CDN + 순수 JS, 데이터는 브라우저 `localStorage`(키 `seoldamhwa_*`).
@@ -54,11 +54,17 @@
   - 포장명 특수문자 처리: `#pdp-package-opt` 옵션을 `createElement` 및 DOM dataset/textContent로 생성하여 따옴표 잘림 방지, 장바구니/주문서 HTML 삽입 시 `htmlText()` 이스케이프 적용, 엑셀/디스코드/라벨/주문조회 전 구간 원문 안전 표기.
   - FAQ 답변 일치: 카드 메시지 글자 수 100자→200자, 익명 선물(카드에 보내는 분 이름 생략) 단일 범위 설명, 주문 조회 위치(모든 페이지 하단 고객센터 밴드 및 주문 완료 화면) 교정.
 
+- [102] DATA 폴더 설정 불러오기 시 브라우저 잔여 설정 덮어쓰기 적용:
+  - `csv-db.js` `importCsvTables()`에서 `settings.csv` 처리 시 `saveSettings(s)`(브라우저 잔존 설정과 병합) 대신 `DataStore.write(DataStore.KEYS.settings, s)`를 직접 호출하여 서버 설정 파일 내용으로 완전 교체(덮어쓰기).
+  - 다른 기기에서 가져온 `settings.csv`나 예전 백업 복원 시 브라우저에 남아있던 stale 커스텀 설정(포장 옵션 등)이 잔류하지 않고 삭제되며, 관리자에서 다른 설정(전화번호 등) 저장 시 stale 키가 서버 파일로 재오염되는 현상 방지.
+  - `saveSettings(partial)` 자체는 그대로 두어 관리자 각 탭(연락처, 배송, 포장 등)의 부분 저장은 정상 유지되며, `seoldamhwa_settings_updated` 이벤트 발송 및 상점 가이드 등 리스너 알림 보장.
+  - 비어있거나 깨진 `settings.csv` 방어 가드 및 초기 연결 모달 "[취소] 이 브라우저 내용을 DATA 폴더에 저장"(`useBrowser = true`) 동작 정상 보존.
+
 ## 2. 작업 방식 (꼭 지키기)
 0. **화면 클래스(Tailwind)를 새로 쓰거나 바꾸면 꼭 `npm run build:css`** (처음 한 번은 `npm install`). 예전 CDN 대신 `assets/css/tailwind.css`를 미리 만들어 쓰므로, 다시 만들지 않으면 새 클래스는 화면에 안 먹어요. 설정은 `tailwind.config.js`, 원본은 `src/tailwind.css`. 고치는 중에는 `npm run watch:css`를 켜 두면 저장할 때마다 자동으로 만들어져요.
    - **JS·CSS 파일을 바꾸면 커밋 전에 `npm run bump`** (브라우저가 옛 파일을 섞어 쓰지 않게).
 1. 바꾸기 전 `git status` 확인, 끝나면 커밋 (커밋 메시지 끝에 공동 작성자 줄).
-2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[102]**.
+2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[103]**.
 3. 검증: `python -m http.server 5500`로 띄우고 브라우저에서 직접 클릭. 서버 모드 및 손님 기기 기능은 `python server.py --port 5600 --lan`으로 임시 DATA 사본(`SDH_DATA_DIR`)을 사용하고, 모의 API 호출 대신 실제 LAN IP 주소와 실기기/CDP 브라우저 조작(버튼 클릭, 폼 전송)으로 검증할 것. 매번 확인할 것
    - 인라인 스크립트 문법(`node --check`), 모든 `getElementById` id 존재
    - 버튼이 부르는 함수가 모두 있는지: 콘솔에서 `[...new Set([...document.documentElement.outerHTML.matchAll(/on\w+="([A-Za-z_]\w*)\(/g)].map(m=>m[1]))].filter(n=>typeof window[n]!=='function')` → `[]` (예외: `if`)
