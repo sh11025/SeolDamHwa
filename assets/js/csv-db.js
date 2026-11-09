@@ -9,7 +9,12 @@ const CSV_TABLES = {
     columns: ['id', 'name', 'englishName', 'category', 'price', 'sizes', 'inquiryOnly', 'poeticLine', 'flowerMeaning', 'description', 'stockQuantity', 'image', 'visibility', 'publishAt', 'curationTags', 'hideOnHome', 'homeOrder', 'images', 'flowers'],
     json: ['sizes', 'curationTags', 'images', 'flowers'], bool: ['inquiryOnly', 'hideOnHome'], num: ['price', 'stockQuantity', 'homeOrder'],
     read: () => loadProducts(),
-    write: rows => saveProducts(rows)
+    write: rows => {
+      saveProducts(rows);
+      if (typeof DATA_VERSION !== 'undefined') {
+        DataStore.writeRaw(DataStore.KEYS.dataVersion, String(DATA_VERSION));
+      }
+    }
   },
   orders: {
     file: 'orders.csv',
@@ -92,7 +97,14 @@ const CSV_TABLES = {
     columns: ['id', 'name', 'nameEn', 'nameJa', 'meaning', 'meaningEn', 'meaningJa', 'months', 'yearRound', 'colors', 'care', 'image', 'guideText', 'guideImages', 'guideVideo'],
     json: ['months', 'guideImages'], bool: ['yearRound'],
     read: () => (typeof loadFlowers === 'function' ? loadFlowers() : []),
-    write: rows => (typeof saveFlowers === 'function' ? saveFlowers(rows.map(r => ({ ...r, months: Array.isArray(r.months) ? r.months : [] }))) : DataStore.write(DataStore.KEYS.flowers, rows.map(r => ({ ...r, months: Array.isArray(r.months) ? r.months : [] }))))
+    write: rows => {
+      const cleanRows = rows.map(r => ({ ...r, months: Array.isArray(r.months) ? r.months : [] }));
+      if (typeof saveFlowers === 'function') saveFlowers(cleanRows);
+      else DataStore.write(DataStore.KEYS.flowers, cleanRows);
+      if (typeof FLOWER_DEFAULTS_VERSION !== 'undefined') {
+        DataStore.writeRaw(DataStore.KEYS.flowersVersion, String(FLOWER_DEFAULTS_VERSION));
+      }
+    }
   },
   coupons: {
     file: 'coupons.csv',
@@ -207,6 +219,12 @@ function importCsvTables(files) {
     CSV_TABLES[name].write(rows);
     result.push(`${f} ${rows.length}줄`);
   });
+  if (has('products.csv') && typeof DATA_VERSION !== 'undefined') {
+    DataStore.writeRaw(DataStore.KEYS.dataVersion, String(DATA_VERSION));
+  }
+  if (has('flowers.csv') && typeof FLOWER_DEFAULTS_VERSION !== 'undefined') {
+    DataStore.writeRaw(DataStore.KEYS.flowersVersion, String(FLOWER_DEFAULTS_VERSION));
+  }
   if (has('orders.csv')) {
     const orders = csvToTable('orders', files['orders.csv']);
     const items = has('order_items.csv') ? csvToTable('order_items', files['order_items.csv']) : [];

@@ -9,7 +9,7 @@ const DataSync = (() => {
   const KEYS = { order_items: r => `${r.orderId}#${r.lineNo}`, settings: r => String(r.key), coupons: r => String(r.code) };
   const keyOf = (table, row) => (KEYS[table] ? KEYS[table](row) : String(row.id));
   const SYNCED_FLAG = 'seoldamhwa_server_synced';
-  const IGNORE = /_(lang|csv_autosave|popup_dismissed_date|ai_settings|ai_key|integrations|server_synced|wishlist|recent|cart)$/;
+  const IGNORE = /_(lang|csv_autosave|popup_dismissed_date|ai_settings|ai_key|integrations|server_synced|wishlist|recent|cart|data_version|flowers_version)$/;
 
   let enabled = false;
   let local = false;
