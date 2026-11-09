@@ -191,6 +191,19 @@ function renderTodayTasks(orders, products, inquiries, today) {
       }
     }
   }
+
+  const privHintEl = document.getElementById('today-tasks-privacy-hint');
+  if (privHintEl) {
+    const preview = typeof getPrivacyCleanupPreview === 'function' ? getPrivacyCleanupPreview() : null;
+    const totalPending = preview ? (preview.orders.count + preview.inquiries.count + preview.restock.count) : 0;
+    if (totalPending > 0) {
+      privHintEl.innerHTML = `🔒 5년 지난 주문 ${preview.orders.count}건 등 보관 기간이 지난 개인정보가 총 ${totalPending}건 있습니다. <button type="button" onclick="switchAdminTab('integrations'); showPanelTab('integrations', 'privacy');" class="underline font-bold hover:text-seal-red cursor-pointer">개인정보 정리 바로가기 →</button>`;
+      privHintEl.classList.remove('hidden');
+    } else {
+      privHintEl.classList.add('hidden');
+      privHintEl.textContent = '';
+    }
+  }
 }
 
 function goTodayTask(kind, arg) {

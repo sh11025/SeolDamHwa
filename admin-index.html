@@ -12,25 +12,27 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
   
-  <script src="assets/js/data-store.js?v=95"></script>
-  <script src="assets/js/products-data.js?v=95"></script>
-  <script src="assets/js/flowers-data.js?v=95"></script>
-  <script src="assets/js/site-theme.js?v=95"></script>
-  <script src="assets/js/site-settings.js?v=95"></script>
-  <script src="assets/js/popups.js?v=95"></script>
-  <script src="assets/js/finance-data.js?v=95"></script>
-  <script src="assets/js/integrations.js?v=95"></script>
-  <script src="assets/js/admin-tools.js?v=95"></script>
-  <script src="assets/js/site-pages.js?v=95"></script>
-  <script src="assets/js/image-library.js?v=95"></script>
-  <script src="assets/js/restock.js?v=95"></script>
-  <script src="assets/js/csv-db.js?v=95"></script>
-  <script src="assets/js/data-sync.js?v=95"></script>
-  <script src="assets/js/coupons.js?v=95"></script>
+  <script src="assets/js/data-store.js?v=96"></script>
+  <script src="assets/js/products-data.js?v=96"></script>
+  <script src="assets/js/flowers-data.js?v=96"></script>
+  <script src="assets/js/site-theme.js?v=96"></script>
+  <script src="assets/js/site-settings.js?v=96"></script>
+  <script src="assets/js/popups.js?v=96"></script>
+  <script src="assets/js/finance-data.js?v=96"></script>
+  <script src="assets/js/integrations.js?v=96"></script>
+  <script src="assets/js/admin-tools.js?v=96"></script>
+  <script src="assets/js/site-pages.js?v=96"></script>
+  <script src="assets/js/image-library.js?v=96"></script>
+  <script src="assets/js/restock.js?v=96"></script>
+  <script src="assets/js/csv-db.js?v=96"></script>
+  <script src="assets/js/data-sync.js?v=96"></script>
+  <script src="assets/js/coupons.js?v=96"></script>
   <!-- 운송장 바코드: JsBarcode -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
   <!-- 차트: Chart.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <!-- 엑셀 생성: SheetJS (xlsx 0.18.5) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <style>
     body {
@@ -414,7 +416,7 @@
     }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=95">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=96">
 </head>
 <body class="min-h-screen flex flex-col selection:bg-seal-red/15 selection:text-seal-red">
   <!-- 1. 관리자 상단 헤더 (Admin Top Bar) -->
@@ -599,8 +601,9 @@
               <h2 class="text-base font-extrabold text-ink-black">오늘 할 일</h2>
               <p id="today-tasks-date" class="text-xs text-ink-gray"></p>
             </div>
-            <div id="today-tasks" class="grid grid-cols-2 md:grid-cols-5 gap-2"></div>
+            <div id="today-tasks" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2"></div>
             <p id="today-tasks-backup-hint" class="hidden text-xs text-seal-red font-medium mt-3 pt-2.5 border-t border-ink-black/5 leading-relaxed"></p>
+            <p id="today-tasks-privacy-hint" class="hidden text-xs text-amber-800 font-medium mt-2 pt-2 border-t border-ink-black/5 leading-relaxed"></p>
           </div>
 
           <div id="dashboard-empty-cta" class="hidden admin-card p-5 rounded-sm flex flex-wrap items-center justify-between gap-3 border-dashed">
@@ -993,7 +996,10 @@
             <h1 class="text-2xl font-extrabold text-ink-black tracking-tight">매출·지출 관리</h1>
             <p class="text-sm text-ink-gray mt-1">꽃 사입, 포장재, 배송비 같은 지출을 적어 두면 대시보드와 PDF 리포트에 순이익이 계산돼요.</p>
           </div>
-          <button type="button" onclick="openReportModal()" class="jakae-btn px-4 py-2 rounded-sm text-sm font-bold cursor-pointer">PDF 리포트 만들기</button>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="openReportModal('excel')" class="px-4 py-2 bg-emerald-800 text-white hover:bg-emerald-700 rounded-sm text-sm font-bold cursor-pointer">엑셀로 받기</button>
+            <button type="button" onclick="openReportModal('pdf')" class="jakae-btn px-4 py-2 rounded-sm text-sm font-bold cursor-pointer">PDF 리포트 만들기</button>
+          </div>
         </div>
 
         <!-- 매출·지출 탭 바 -->
@@ -1091,6 +1097,7 @@
         <!-- 연동 탭 바 -->
         <nav role="tablist" aria-label="연동 및 데이터 항목" class="admin-tab-bar sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-hanji/95 backdrop-blur-xs border-b border-ink-black/10 flex items-center gap-2 overflow-x-auto whitespace-nowrap mb-6">
           <button type="button" role="tab" data-panel-btn="integrations:backup" aria-selected="true" onclick="showPanelTab('integrations', 'backup')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-ink-black text-white border-ink-black">백업</button>
+          <button type="button" role="tab" data-panel-btn="integrations:privacy" aria-selected="false" onclick="showPanelTab('integrations', 'privacy')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">개인정보 정리</button>
           <button type="button" role="tab" data-panel-btn="integrations:originals" aria-selected="false" onclick="showPanelTab('integrations', 'originals')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">원본 사진</button>
           <button type="button" role="tab" data-panel-btn="integrations:server" aria-selected="false" onclick="showPanelTab('integrations', 'server')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">서버·비밀번호</button>
           <button type="button" role="tab" data-panel-btn="integrations:discord" aria-selected="false" onclick="showPanelTab('integrations', 'discord')" class="px-3 py-1.5 rounded-full border font-bold cursor-pointer text-xs shrink-0 bg-white border-ink-black/15 hover:border-seal-red hover:text-seal-red">디스코드</button>
@@ -1155,6 +1162,56 @@
               </label>
             </div>
             <p id="backup-message" class="text-xs text-ink-gray"></p>
+          </div>
+        </div>
+
+        <!-- 개인정보 정리 탭 -->
+        <div data-panel-tab="integrations:privacy" class="hidden space-y-6">
+          <div class="admin-card p-5 rounded-sm space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h2 class="text-base font-bold text-ink-black">오래된 개인정보 정리 (개인정보 보호법 준수)</h2>
+              <span id="privacy-total-count" class="text-xs font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-700">확인 중</span>
+            </div>
+            <p class="text-xs text-ink-gray leading-relaxed">
+              설담화 개인정보처리방침에 약속된 보관 기간(주문 5년, 상담 마친 날부터 1년, 재입고 알림 완료/취소 시)이 경과한 개인정보를 안전하게 정리합니다.<br>
+              주문 데이터는 주문자·받는 분의 성함, 연락처, 주소, 카드 메시지 등 식별 정보만 삭제되며, 결제 금액, 품목, 상태 등 정산·통계를 위한 기록은 그대로 유지됩니다.
+            </p>
+            <div class="p-3 bg-amber-50/80 border border-amber-200/60 rounded-xs text-xs text-amber-900 leading-relaxed space-y-1">
+              <p class="font-bold">💡 데이터 안전 안내</p>
+              <p>서버 모드에서는 정리 작업을 실행하기 직전 자동으로 서버 백업을 생성하므로 필요한 경우 [서버 백업]에서 복원할 수 있습니다. 단, 정리 실행 이전에 생성된 이전 서버 백업 파일이나 사장님이 PC에 다운로드해 둔 백업 파일에는 과거 개인정보가 남아 있을 수 있습니다.</p>
+            </div>
+
+            <!-- 정리 대상 현황 (미리보기) -->
+            <div id="privacy-cleanup-content" class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              <div class="p-4 bg-white border border-ink-black/10 rounded-xs space-y-1">
+                <p class="text-xs font-bold text-ink-gray">5년 지난 주문</p>
+                <p id="privacy-orders-count" class="text-2xl font-extrabold text-seal-red">0건</p>
+                <p id="privacy-orders-date" class="text-[11px] text-ink-light">확인 중</p>
+                <p class="text-[11px] text-ink-gray pt-1">이름·연락처·주소·메시지 삭제 (금액·품목 보존)</p>
+              </div>
+              <div class="p-4 bg-white border border-ink-black/10 rounded-xs space-y-1">
+                <p class="text-xs font-bold text-ink-gray">1년 지난 완료 상담</p>
+                <p id="privacy-inquiries-count" class="text-2xl font-extrabold text-seal-red">0건</p>
+                <p id="privacy-inquiries-date" class="text-[11px] text-ink-light">확인 중</p>
+                <p class="text-[11px] text-ink-gray pt-1">완료 처리 후 1년 지난 상담 문의 행 완전 삭제</p>
+              </div>
+              <div class="p-4 bg-white border border-ink-black/10 rounded-xs space-y-1">
+                <p class="text-xs font-bold text-ink-gray">완료된 재입고 신청</p>
+                <p id="privacy-restock-count" class="text-2xl font-extrabold text-seal-red">0건</p>
+                <p id="privacy-restock-date" class="text-[11px] text-ink-light">확인 중</p>
+                <p class="text-[11px] text-ink-gray pt-1">알림 발송 완료 또는 취소된 신청 행 완전 삭제</p>
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-ink-black/10 flex flex-wrap items-center gap-3">
+              <button type="button" id="btn-run-privacy-cleanup" onclick="handleRunPrivacyCleanup()" class="px-5 py-2.5 bg-seal-red text-white text-sm font-bold rounded-xs cursor-pointer hover:bg-seal-red/90 disabled:opacity-40 disabled:cursor-not-allowed">
+                개인정보 정리 실행
+              </button>
+              <button type="button" onclick="renderPrivacyCleanupTab()" class="px-3 py-2 border border-ink-black/20 bg-white text-xs font-bold rounded-xs cursor-pointer hover:border-ink-black">
+                새로고침
+              </button>
+              <p id="privacy-cleanup-msg" class="text-xs font-bold text-ink-black"></p>
+            </div>
           </div>
         </div>
 
@@ -2106,19 +2163,19 @@
 
   <!-- JavaScript: Admin 로직 & 쇼핑몰 데이터 양방향 실시간 동기화 -->
   <!-- 관리자 화면 동작 (화면별 파일, 순서 중요) -->
-  <script src="assets/js/admin/admin-dashboard.js?v=95"></script>
-  <script src="assets/js/admin/admin-products.js?v=95"></script>
-  <script src="assets/js/admin/admin-orders.js?v=95"></script>
-  <script src="assets/js/admin/admin-inquiries.js?v=95"></script>
-  <script src="assets/js/admin/admin-product-modal.js?v=95"></script>
-  <script src="assets/js/admin/admin-flowers.js?v=95"></script>
-  <script src="assets/js/admin/admin-coupons.js?v=95"></script>
-  <script src="assets/js/admin/admin-settings.js?v=95"></script>
-  <script src="assets/js/admin/admin-popups.js?v=95"></script>
-  <script src="assets/js/admin/admin-finance.js?v=95"></script>
-  <script src="assets/js/admin/admin-integrations.js?v=95"></script>
-  <script src="assets/js/admin/admin-pages.js?v=95"></script>
-  <script src="assets/js/admin/admin-tools-ui.js?v=95"></script>
+  <script src="assets/js/admin/admin-dashboard.js?v=96"></script>
+  <script src="assets/js/admin/admin-products.js?v=96"></script>
+  <script src="assets/js/admin/admin-orders.js?v=96"></script>
+  <script src="assets/js/admin/admin-inquiries.js?v=96"></script>
+  <script src="assets/js/admin/admin-product-modal.js?v=96"></script>
+  <script src="assets/js/admin/admin-flowers.js?v=96"></script>
+  <script src="assets/js/admin/admin-coupons.js?v=96"></script>
+  <script src="assets/js/admin/admin-settings.js?v=96"></script>
+  <script src="assets/js/admin/admin-popups.js?v=96"></script>
+  <script src="assets/js/admin/admin-finance.js?v=96"></script>
+  <script src="assets/js/admin/admin-integrations.js?v=96"></script>
+  <script src="assets/js/admin/admin-pages.js?v=96"></script>
+  <script src="assets/js/admin/admin-tools-ui.js?v=96"></script>
 
   <!-- 슬라이드 편집 모달 -->
   <div id="slide-edit-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-black/60 hidden">
@@ -2255,9 +2312,12 @@
         <label class="block space-y-1"><span class="font-bold">시작일</span><input type="date" id="report-from" class="w-full border border-ink-black/20 p-2 rounded-xs"></label>
         <label class="block space-y-1"><span class="font-bold">종료일</span><input type="date" id="report-to" class="w-full border border-ink-black/20 p-2 rounded-xs"></label>
       </div>
-      <p class="text-xs text-ink-gray leading-relaxed">[PDF 저장]을 누르면 인쇄 창이 열려요. 대상(프린터)을 <strong class="text-ink-black">'PDF로 저장'</strong>으로 고른 뒤 저장하세요.</p>
+      <p class="text-xs text-ink-gray leading-relaxed">[엑셀 받기]는 선택한 기간의 주문·지출·월별 합계를 엑셀(.xlsx) 파일로 내려받고, [PDF 저장]은 인쇄 창을 엽니다.</p>
       <p id="report-error" class="hidden text-xs text-seal-red font-bold"></p>
-      <button type="button" onclick="generateReport()" class="w-full py-3 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">PDF 저장</button>
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" onclick="generateExcelReport()" class="py-3 bg-emerald-800 text-white font-bold rounded-xs cursor-pointer hover:bg-emerald-700">엑셀 다운로드 (.xlsx)</button>
+        <button type="button" onclick="generateReport()" class="py-3 bg-ink-black text-white font-bold rounded-xs cursor-pointer hover:bg-seal-red">PDF 저장</button>
+      </div>
     </div>
   </div>
 

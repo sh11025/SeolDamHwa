@@ -18,7 +18,7 @@ const CSV_TABLES = {
   },
   orders: {
     file: 'orders.csv',
-    columns: ['id', 'orderNumber', 'createdDate', 'createdAt', 'status', 'ordererName', 'ordererPhone', 'recipientName', 'recipientPhone', 'customerName', 'phone', 'zipcode', 'address', 'deliveryMethod', 'deliveryMethodLabel', 'deliveryFee', 'itemsTotal', 'totalAmount', 'deliveryDate', 'message', 'hideSender', 'request', 'courier', 'trackingNumber', 'statusBeforeCancel', 'isSample', 'couponCode', 'couponDiscount', 'reviewRequestedAt'],
+    columns: ['id', 'orderNumber', 'createdDate', 'createdAt', 'status', 'ordererName', 'ordererPhone', 'recipientName', 'recipientPhone', 'customerName', 'phone', 'zipcode', 'address', 'deliveryMethod', 'deliveryMethodLabel', 'deliveryFee', 'itemsTotal', 'totalAmount', 'deliveryDate', 'message', 'hideSender', 'request', 'courier', 'trackingNumber', 'statusBeforeCancel', 'isSample', 'couponCode', 'couponDiscount', 'reviewRequestedAt', 'personalInfoClearedAt'],
     bool: ['hideSender', 'isSample'], num: ['deliveryFee', 'itemsTotal', 'totalAmount', 'couponDiscount'],
     read: () => loadOrders(),
     write: null // order_items와 합쳐서 저장 (아래 importCsvTables)

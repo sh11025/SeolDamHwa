@@ -283,3 +283,130 @@ function generateReport() {
   Promise.all(imgs.map(img => img.complete ? Promise.resolve() : new Promise(r => { img.onload = img.onerror = r; })))
     .then(() => setTimeout(() => window.print(), 50));
 }
+
+function generateExcelReport() {
+  if (typeof XLSX === 'undefined') {
+    alert('엑셀 라이브러리(SheetJS)를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.');
+    return;
+  }
+  const from = document.getElementById('report-from').value;
+  const to = document.getElementById('report-to').value;
+  const errEl = document.getElementById('report-error');
+  const showErr = msg => { errEl.innerText = msg; errEl.classList.remove('hidden'); };
+  if (!from || !to) return showErr('시작일과 종료일을 모두 골라 주세요.');
+  if (from > to) return showErr('시작일이 종료일보다 늦어요.');
+  if (daysBetween(from, to) > 366) return showErr('리포트는 최대 1년까지 만들 수 있어요.');
+
+  // 1. 주문 시트 (전화번호, 주소, 카드 메시지, 주문자명 제외 - 회계용)
+  const allOrders = (typeof loadAdminOrders === 'function' ? loadAdminOrders() : loadOrders())
+    .filter(o => !o.isSample);
+  const periodOrders = allOrders
+    .filter(o => {
+      const d = getOrderDate(o);
+      return d >= from && d <= to;
+    })
+    .sort((a, b) => String(a.id).localeCompare(String(b.id)));
+
+  const orderRows = [
+    ['주문번호', '주문일', '배송(픽업)일', '배송방법', '주문상품(사이즈/포장)', '수량', '상품금액', '배송비', '쿠폰할인', '최종결제금액', '상태']
+  ];
+
+  periodOrders.forEach(o => {
+    const items = o.items || [];
+    const itemDesc = items.map(i => `${i.product && i.product.name ? i.product.name : ''}${i.sizeLabel ? `(${i.sizeLabel})` : ''} [${i.optionName || '기본'}]`).join(', ');
+    const totalQty = items.reduce((s, i) => s + (Number(i.quantity) || 1), 0);
+    const statusLabel = o.status === 'cancelled' ? '주문 취소' : (ORDER_STATUS_LABELS[o.status] || o.status);
+    orderRows.push([
+      o.orderNumber || '',
+      getOrderDate(o),
+      getDeliveryDate(o) || o.deliveryDate || '',
+      o.deliveryMethodLabel || o.deliveryMethod || '',
+      itemDesc,
+      totalQty,
+      o.itemsTotal || 0,
+      o.deliveryFee || 0,
+      o.couponDiscount || 0,
+      o.totalAmount || 0,
+      statusLabel
+    ]);
+  });
+
+  // 2. 지출 시트
+  const allExpenses = (typeof loadExpenses === 'function' ? loadExpenses() : [])
+    .filter(e => !e.isSample);
+  const periodExpenses = allExpenses
+    .filter(e => e.date >= from && e.date <= to)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const expenseRows = [
+    ['일자', '분류', '금액', '결제수단', '메모']
+  ];
+  periodExpenses.forEach(e => {
+    expenseRows.push([
+      e.date || '',
+      e.category || '',
+      Number(e.amount) || 0,
+      e.method || '',
+      e.memo || ''
+    ]);
+  });
+
+  // 3. 월별 합계 시트 (화면의 통계 숫자와 정확히 일치)
+  const validOrders = periodOrders.filter(o => o.status !== 'cancelled');
+  const monthMap = new Map();
+
+  let curMonth = from.slice(0, 7);
+  const endMonth = to.slice(0, 7);
+  while (curMonth <= endMonth) {
+    monthMap.set(curMonth, { orderCount: 0, sales: 0, expenses: 0, profit: 0 });
+    const [y, m] = curMonth.split('-').map(Number);
+    const nextM = m === 12 ? 1 : m + 1;
+    const nextY = m === 12 ? y + 1 : y;
+    curMonth = `${nextY}-${String(nextM).padStart(2, '0')}`;
+  }
+
+  validOrders.forEach(o => {
+    const ym = getOrderDate(o).slice(0, 7);
+    if (!monthMap.has(ym)) monthMap.set(ym, { orderCount: 0, sales: 0, expenses: 0, profit: 0 });
+    const s = monthMap.get(ym);
+    s.orderCount += 1;
+    s.sales += (Number(o.totalAmount) || 0);
+  });
+
+  periodExpenses.forEach(e => {
+    const ym = (e.date || '').slice(0, 7);
+    if (!monthMap.has(ym)) monthMap.set(ym, { orderCount: 0, sales: 0, expenses: 0, profit: 0 });
+    const s = monthMap.get(ym);
+    s.expenses += (Number(e.amount) || 0);
+  });
+
+  const summaryRows = [
+    ['월', '주문건수', '매출액', '지출액', '순이익']
+  ];
+  [...monthMap.keys()].sort().forEach(ym => {
+    const s = monthMap.get(ym);
+    s.profit = s.sales - s.expenses;
+    summaryRows.push([
+      ym,
+      s.orderCount,
+      s.sales,
+      s.expenses,
+      s.profit
+    ]);
+  });
+
+  const wb = XLSX.utils.book_new();
+  const wsOrders = XLSX.utils.aoa_to_sheet(orderRows);
+  const wsExpenses = XLSX.utils.aoa_to_sheet(expenseRows);
+  const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows);
+
+  XLSX.utils.book_append_sheet(wb, wsOrders, '주문');
+  XLSX.utils.book_append_sheet(wb, wsExpenses, '지출');
+  XLSX.utils.book_append_sheet(wb, wsSummary, '월별 합계');
+
+  const fileMonth = from.slice(0, 7) === to.slice(0, 7) ? from.slice(0, 7) : `${from}_${to}`;
+  const fileName = `설담화_매출_${fileMonth}.xlsx`;
+
+  XLSX.writeFile(wb, fileName);
+  closeReportModal();
+}

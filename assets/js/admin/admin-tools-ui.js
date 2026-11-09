@@ -218,6 +218,11 @@ function showPanelTab(panel, name) {
     if (typeof renderOriginalsSection === 'function') renderOriginalsSection();
   }
 
+  // integrations:privacy 탭 개인정보 정리 렌더링
+  if (panel === 'integrations' && name === 'privacy') {
+    if (typeof renderPrivacyCleanupTab === 'function') renderPrivacyCleanupTab();
+  }
+
   // 2. 버튼 활성 스타일 및 접근성 속성 갱신
   document.querySelectorAll(`[data-panel-btn^="${panel}:"]`).forEach(btn => {
     const on = btn.dataset.panelBtn === `${panel}:${name}`;

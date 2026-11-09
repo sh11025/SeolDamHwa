@@ -123,9 +123,10 @@ function renderOrdersList() {
         <td class="order-col-no py-2 px-2 cursor-pointer" onclick="toggleOrderExpand('${o.id}')">
           <span class="font-mono text-xs ${isCancelled ? 'line-through' : ''}">${escapeHtml(o.orderNumber)}</span>
           <span class="block text-[11px] text-ink-gray">${escapeHtml(getOrderDate(o))} 접수</span>
+          ${o.personalInfoClearedAt ? `<span class="inline-block mt-0.5 px-1 py-0.2 rounded text-[10px] font-bold bg-gray-200 text-gray-700">개인정보 정리됨</span>` : ''}
           ${o.reviewRequestedAt ? `<span class="inline-block mt-0.5 px-1 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800" title="후기 요청: ${escapeHtml(o.reviewRequestedAt)}">후기 요청함</span>` : ''}
         </td>
-        <td class="order-col-recipient py-2 px-2 font-bold text-ink-black cursor-pointer" onclick="toggleOrderExpand('${o.id}')">${escapeHtml(orderRecipient(o).name)}${o.deliveryMethod === 'pickup' ? ' <span class="text-[10px] font-bold px-1 rounded bg-blue-100 text-blue-800">픽업</span>' : ''}</td>
+        <td class="order-col-recipient py-2 px-2 font-bold text-ink-black cursor-pointer" onclick="toggleOrderExpand('${o.id}')">${o.personalInfoClearedAt ? '<span class="text-ink-gray font-normal">개인정보 정리됨</span>' : escapeHtml(orderRecipient(o).name)}${o.deliveryMethod === 'pickup' ? ' <span class="text-[10px] font-bold px-1 rounded bg-blue-100 text-blue-800">픽업</span>' : ''}</td>
         <td class="order-col-items py-2 px-2 text-ink-black cursor-pointer max-w-[220px] truncate" onclick="toggleOrderExpand('${o.id}')" title="${escapeHtml(items.map(i => i.product && i.product.name).join(', '))}">${escapeHtml(first)}${items.length > 1 ? ` <span class="text-ink-gray">외 ${items.length - 1}</span>` : ''}</td>
         <td class="order-col-amount py-2 px-2 text-right font-bold whitespace-nowrap cursor-pointer" onclick="toggleOrderExpand('${o.id}')">${isCancelled ? `<s>${formatWon(o.totalAmount)}</s>` : formatWon(o.totalAmount)}</td>
         <td class="order-col-status py-2 px-2">${statusSelect}</td>
@@ -172,9 +173,11 @@ function renderOrdersList() {
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
             <div class="space-y-1">
               <p class="font-bold text-ink-gray">받는 분</p>
+              ${o.personalInfoClearedAt ? `<p class="text-xs text-ink-gray font-bold p-2 bg-white rounded border border-ink-black/10">🔒 보관 기간(5년) 경과로 개인정보가 정리되었습니다. (${escapeHtml(o.personalInfoClearedAt.slice(0, 10))})</p>` : `
               <p class="text-sm font-bold text-ink-black">${escapeHtml(orderRecipient(o).name)} · <a href="tel:${escapeHtml(orderRecipient(o).phone)}" class="underline">${escapeHtml(orderRecipient(o).phone)}</a></p>
               <p class="text-ink-black">${o.zipcode ? `(${escapeHtml(o.zipcode)}) ` : ''}${escapeHtml(o.address)}</p>
               ${o.ordererName && (o.ordererName !== o.recipientName || o.ordererPhone !== o.recipientPhone) ? `<p class="pt-1 text-ink-gray">주문하신 분: <span class="text-ink-black font-bold">${escapeHtml(o.ordererName)}</span> · <a href="tel:${escapeHtml(o.ordererPhone)}" class="underline">${escapeHtml(o.ordererPhone)}</a></p>` : ''}
+              `}
               ${o.deliveryMethodLabel ? `<p class="text-ink-gray">배송: <span class="text-ink-black font-bold">${escapeHtml(o.deliveryMethodLabel)}</span>${typeof o.deliveryFee === 'number' ? ` · 배송비 ${formatWon(o.deliveryFee)}` : ''}</p>` : ''}
               ${o.couponCode ? `<p class="text-ink-gray">쿠폰: <span class="text-seal-red font-bold">-${formatWon(o.couponDiscount || 0)}</span> <span class="font-mono">${escapeHtml(o.couponCode)}</span></p>` : ''}
               ${o.request ? `<p class="text-ink-gray">요청: <span class="text-ink-black">${escapeHtml(o.request)}</span></p>` : ''}

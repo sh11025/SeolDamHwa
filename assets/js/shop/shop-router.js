@@ -6,6 +6,13 @@
 const ROUTE_HASHES = { shop: '#/', story: '#/story', custom: '#/custom', guide: '#/guide', reviews: '#/reviews' };
 // 다른 화면(상품 상세·결제·꽃 둘러보기)은 각 파일에서 SHOP_ROUTES에 등록
 const SHOP_ROUTES = {
+  lookup: params => {
+    showView('shop');
+    const ordNo = params[0] || '';
+    if (typeof openOrderLookup === 'function') {
+      openOrderLookup(ordNo);
+    }
+  },
   review: params => {
     showView('shop');
     const ordNo = params[0] || '';

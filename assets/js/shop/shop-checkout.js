@@ -432,7 +432,22 @@ function openAddressSearch() {
 }
 
 // 주문 완료 화면
+let lastCompletedOrder = null;
+
+function getDoneOrder() {
+  if (lastCompletedOrder) return lastCompletedOrder;
+  const numEl = document.getElementById('done-order-number');
+  const num = numEl ? numEl.innerText.trim() : '';
+  if (num && typeof loadOrders === 'function') {
+    const list = loadOrders();
+    const found = list.find(o => o.orderNumber === num);
+    if (found) return found;
+  }
+  return null;
+}
+
 function showOrderComplete(order) {
+  lastCompletedOrder = order;
   document.getElementById('checkout-form').classList.add('hidden');
   const done = document.getElementById('order-complete');
   done.classList.remove('hidden');
@@ -462,11 +477,344 @@ function showOrderComplete(order) {
 }
 
 function copyDoneOrderNumber(btn) {
-  const num = document.getElementById('done-order-number').innerText;
-  navigator.clipboard.writeText(num).then(() => {
-    btn.innerText = coT('co_copied', '복사했어요');
-    setTimeout(() => { btn.innerText = coT('co_copy', '복사하기'); }, 1500);
-  }).catch(() => {});
+  const numEl = document.getElementById('done-order-number');
+  const num = numEl ? numEl.innerText.trim() : '';
+  if (!num) return;
+
+  const confirmEl = document.getElementById('done-copy-confirm');
+  const showConfirm = () => {
+    if (confirmEl) {
+      confirmEl.classList.remove('hidden');
+      setTimeout(() => { confirmEl.classList.add('hidden'); }, 2000);
+    }
+    if (btn) {
+      btn.innerText = coT('receipt_copied_confirm', '주문번호를 복사했어요.');
+      setTimeout(() => {
+        btn.innerText = coT('receipt_copy_order_number', '주문번호 복사');
+      }, 2000);
+    }
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(num).then(showConfirm).catch(() => {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = num;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showConfirm();
+      } catch (e) {}
+    });
+  } else {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = num;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showConfirm();
+    } catch (e) {}
+  }
+}
+
+function renderOrderReceiptToBlob(order) {
+  return new Promise(resolve => {
+    const scale = 2;
+    const w = 600;
+    const pad = 36;
+    const innerW = w - pad * 2;
+
+    const items = order.items || [];
+    const estH = Math.max(680, 520 + items.length * 44);
+    const canvas = document.createElement('canvas');
+    canvas.width = w * scale;
+    canvas.height = estH * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(scale, scale);
+
+    // 1. 배경
+    ctx.fillStyle = '#FAF7F2';
+    ctx.fillRect(0, 0, w, estH);
+
+    // 테두리
+    ctx.strokeStyle = '#D6CEBE';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(12, 12, w - 24, estH - 24);
+
+    // 안쪽 테두리
+    ctx.strokeStyle = 'rgba(139, 34, 34, 0.2)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(18, 18, w - 36, estH - 36);
+
+    let y = pad + 14;
+
+    // 설담화 인장 스탬프
+    const sealSize = 34;
+    const sealX = w / 2 - sealSize / 2;
+    const sealY = y;
+    ctx.strokeStyle = '#8B2222';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(sealX, sealY, sealSize, sealSize);
+
+    ctx.fillStyle = '#8B2222';
+    ctx.font = 'bold 12px "Noto Serif KR", "Batang", serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('說談', w / 2, sealY + 11);
+    ctx.fillText('花', w / 2, sealY + 24);
+
+    y += sealSize + 18;
+
+    // 제목
+    ctx.fillStyle = '#1C1917';
+    ctx.font = 'bold 21px "Noto Serif KR", "Batang", serif';
+    ctx.fillText(coT('receipt_title', '설담화 주문 영수증'), w / 2, y);
+
+    y += 24;
+    // 슬로건
+    ctx.fillStyle = '#78716C';
+    ctx.font = '12px "Pretendard", "Noto Sans JP", sans-serif';
+    ctx.fillText(coT('receipt_footer_slogan', '꽃으로 마음을 전하는 설담화'), w / 2, y);
+
+    y += 20;
+
+    // 구분선
+    function drawDivider(lineY, style = 'solid') {
+      ctx.save();
+      ctx.strokeStyle = '#E2DCD2';
+      ctx.lineWidth = 1;
+      if (style === 'dashed') ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(pad, lineY);
+      ctx.lineTo(w - pad, lineY);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    drawDivider(y);
+    y += 20;
+
+    // 주문 메타 정보 (전화번호, 주소, 주문자명/받는분 이름 등 개인식별정보 절대 미포함)
+    const metaRows = [
+      [coT('receipt_order_number', '주문번호'), order.orderNumber, '#8B2222', true],
+      [coT('receipt_order_date', '주문일시'), order.createdDate || (order.createdAt ? order.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10))],
+      [coT('receipt_delivery_date', '배송(픽업)일'), order.deliveryDate || '-'],
+      [coT('receipt_delivery_method', '배송 방법'), order.deliveryMethodLabel || order.deliveryMethod || '-']
+    ];
+
+    metaRows.forEach(([lbl, val, valColor, isMono]) => {
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#78716C';
+      ctx.font = '13px "Pretendard", "Noto Sans JP", sans-serif';
+      ctx.fillText(lbl, pad, y);
+
+      ctx.textAlign = 'right';
+      ctx.fillStyle = valColor || '#1C1917';
+      ctx.font = isMono ? 'bold 14px "Courier New", monospace' : 'bold 13px "Pretendard", "Noto Sans JP", sans-serif';
+      ctx.fillText(val, w - pad, y);
+      y += 24;
+    });
+
+    y += 4;
+    drawDivider(y);
+    y += 22;
+
+    // 상품 내역
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#1C1917';
+    ctx.font = 'bold 14px "Noto Serif KR", "Batang", serif';
+    ctx.fillText(coT('receipt_items', '주문 상품'), pad, y);
+    y += 20;
+
+    items.forEach(i => {
+      let name = '';
+      if (i.product) {
+        name = (typeof tProduct === 'function' ? tProduct(i.product).name : i.product.name) || i.product.id || '';
+      } else {
+        name = i.name || '';
+      }
+      const size = i.sizeLabel ? ` (${i.sizeLabel})` : '';
+      const opt = i.optionName ? ` [${i.optionName}]` : '';
+      const fullName = `${name}${size}${opt}`;
+      const qtyText = `x ${i.quantity || 1}`;
+      const priceVal = i.subtotal !== undefined ? i.subtotal : ((i.price || 0) * (i.quantity || 1));
+      const priceText = formatPrice(priceVal);
+
+      // 상품명 + 금액
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#1C1917';
+      ctx.font = '13px "Pretendard", "Noto Sans JP", sans-serif';
+
+      let displayName = fullName;
+      if (ctx.measureText(displayName).width > innerW - 120) {
+        while (displayName.length > 4 && ctx.measureText(displayName + '…').width > innerW - 120) {
+          displayName = displayName.slice(0, -1);
+        }
+        displayName += '…';
+      }
+      ctx.fillText(displayName, pad, y);
+
+      ctx.textAlign = 'right';
+      ctx.font = 'bold 13px "Pretendard", "Noto Sans JP", sans-serif';
+      ctx.fillText(priceText, w - pad, y);
+
+      y += 18;
+      // 수량
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#78716C';
+      ctx.font = '12px "Pretendard", "Noto Sans JP", sans-serif';
+      ctx.fillText(qtyText, pad + 6, y);
+
+      y += 22;
+    });
+
+    if (items.length === 0) {
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#78716C';
+      ctx.font = '13px "Pretendard", sans-serif';
+      ctx.fillText('-', pad, y);
+      y += 24;
+    }
+
+    y += 4;
+    drawDivider(y, 'dashed');
+    y += 20;
+
+    // 금액 요약
+    const amountRows = [
+      [coT('receipt_items_total', '상품 합계'), formatPrice(order.itemsTotal || 0)],
+      ...(typeof order.deliveryFee === 'number' ? [[coT('receipt_delivery_fee', '배송비'), order.deliveryFee === 0 ? coT('co_free', '무료') : `+${formatPrice(order.deliveryFee)}`]] : []),
+      ...(order.couponDiscount ? [[coT('receipt_coupon_discount', '쿠폰 할인'), `-${formatPrice(order.couponDiscount)}`]] : [])
+    ];
+
+    amountRows.forEach(([lbl, val]) => {
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#78716C';
+      ctx.font = '13px "Pretendard", "Noto Sans JP", sans-serif';
+      ctx.fillText(lbl, pad, y);
+
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#1C1917';
+      ctx.font = '13px "Pretendard", "Noto Sans JP", sans-serif';
+      ctx.fillText(val, w - pad, y);
+      y += 22;
+    });
+
+    y += 6;
+    drawDivider(y);
+    y += 24;
+
+    // 최종 결제 금액 박스
+    ctx.fillStyle = '#F4EDE4';
+    ctx.fillRect(pad, y - 16, innerW, 44);
+    ctx.strokeStyle = '#E2DCD2';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(pad, y - 16, innerW, 44);
+
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#1C1917';
+    ctx.font = 'bold 15px "Noto Serif KR", "Batang", serif';
+    ctx.fillText(coT('receipt_total', '최종 결제 금액'), pad + 16, y + 10);
+
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#8B2222';
+    ctx.font = 'bold 18px "Pretendard", "Noto Sans JP", sans-serif';
+    ctx.fillText(formatPrice(order.totalAmount || 0), w - pad - 16, y + 10);
+
+    y += 48;
+
+    // 주문 조회 주소
+    const settings = typeof loadSettings === 'function' ? loadSettings() : {};
+    const rawShopUrl = (settings.shopUrl || '').trim().replace(/\/+$/, '');
+    const baseOrigin = `${location.origin}${location.pathname}`.replace(/index\.html$/, '').replace(/\/+$/, '');
+    const baseUrl = rawShopUrl || baseOrigin;
+    const lookupUrl = `${baseUrl}/#/lookup/${encodeURIComponent(order.orderNumber)}`;
+
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#78716C';
+    ctx.font = '11px "Pretendard", "Noto Sans JP", sans-serif';
+    ctx.fillText(coT('receipt_lookup_guide', '주문 조회 주소'), pad, y);
+
+    y += 18;
+    ctx.fillStyle = '#1C1917';
+    ctx.font = '11px "Courier New", monospace';
+    let displayUrl = lookupUrl;
+    if (ctx.measureText(displayUrl).width > innerW) {
+      while (displayUrl.length > 10 && ctx.measureText(displayUrl + '…').width > innerW) {
+        displayUrl = displayUrl.slice(0, -1);
+      }
+      displayUrl += '…';
+    }
+    ctx.fillText(displayUrl, pad, y);
+
+    y += 28;
+    drawDivider(y);
+    y += 22;
+
+    // 하단 정보
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#A8A29E';
+    ctx.font = '11px "Pretendard", "Noto Sans JP", sans-serif';
+    ctx.fillText(`SeolDamHwa · ${new Date().toISOString().slice(0, 10)}`, w / 2, y);
+
+    canvas.toBlob(blob => {
+      resolve(blob);
+    }, 'image/png');
+  });
+}
+
+async function saveOrderReceiptImage(btn) {
+  const order = getDoneOrder();
+  if (!order) {
+    alert(coT('receipt_error_no_order', '주문 정보를 찾지 못했어요.'));
+    return;
+  }
+  const origText = btn ? btn.innerText : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = coT('receipt_saving', '이미지 생성 중…');
+  }
+
+  try {
+    const blob = await renderOrderReceiptToBlob(order);
+    if (!blob) throw new Error('Failed to create receipt image blob');
+    const fileName = `${coT('receipt_file_name_prefix', '설담화_주문_')}${order.orderNumber}.png`;
+    const file = new File([blob], fileName, { type: 'image/png' });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: coT('receipt_title', '설담화 주문 영수증'),
+          text: `${order.orderNumber}`
+        });
+        return;
+      } catch (err) {
+        if (err && err.name === 'AbortError') return;
+      }
+    }
+
+    // 파일 다운로드
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (err) {
+    console.error('영수증 이미지 저장 오류:', err);
+    alert(coT('receipt_save_fail', '영수증 이미지를 저장하지 못했어요.'));
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerText = origText || coT('receipt_save_image', '이미지로 저장');
+    }
+  }
 }
 
 // ---- 주문 조회 ----

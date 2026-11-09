@@ -434,3 +434,177 @@ async function handleUploadPendingOriginals() {
     await renderOriginalsSection();
   }
 }
+
+/* ---------- 개인정보 정리 (보관 기간 경과 데이터 정리) ---------- */
+function getPrivacyCleanupPreview() {
+  const now = new Date();
+  const cutoff5y = new Date(now.getFullYear() - 5, now.getMonth(), now.getDate()).toISOString().slice(0, 10);
+  const cutoff1y = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()).toISOString().slice(0, 10);
+
+  // 1. 주문: 5년 지난 주문 (sample 제외, 이미 정리된 주문 제외)
+  const allOrders = typeof loadAdminOrders === 'function' ? loadAdminOrders() : (typeof loadOrders === 'function' ? loadOrders() : []);
+  const oldOrders = allOrders.filter(o => {
+    if (o.isSample || o.personalInfoClearedAt) return false;
+    const d = typeof getOrderDate === 'function' ? getOrderDate(o) : (o.createdDate || (o.createdAt || '').slice(0, 10));
+    return d && d < cutoff5y;
+  });
+  const oldestOrderDate = oldOrders.length ? oldOrders.reduce((min, o) => {
+    const d = typeof getOrderDate === 'function' ? getOrderDate(o) : (o.createdDate || '');
+    return (!min || (d && d < min)) ? d : min;
+  }, '') : '-';
+
+  // 2. 상담: 완료 후 1년 지난 상담 (sample 제외)
+  const allInq = typeof loadAdminInquiries === 'function' ? loadAdminInquiries() : (typeof loadInquiries === 'function' ? loadInquiries() : []);
+  const oldInquiries = allInq.filter(i => {
+    if (i.isSample) return false;
+    if (i.status !== 'done' && i.status !== 'contacted') return false;
+    const finishDate = i.contactedAt ? i.contactedAt.slice(0, 10) : (i.createdDate || '');
+    return finishDate && finishDate < cutoff1y;
+  });
+  const oldestInquiryDate = oldInquiries.length ? oldInquiries.reduce((min, i) => {
+    const d = i.contactedAt ? i.contactedAt.slice(0, 10) : (i.createdDate || '');
+    return (!min || (d && d < min)) ? d : min;
+  }, '') : '-';
+
+  // 3. 재입고: 알림 완료 또는 취소된 신청 (sample 제외)
+  const allRestock = typeof loadRestock === 'function' ? loadRestock() : [];
+  const finishedRestock = allRestock.filter(r => {
+    if (r.isSample) return false;
+    return r.status === 'notified' || r.status === 'cancelled' || r.status !== 'waiting';
+  });
+  const oldestRestockDate = finishedRestock.length ? finishedRestock.reduce((min, r) => {
+    const d = r.createdDate || '';
+    return (!min || (d && d < min)) ? d : min;
+  }, '') : '-';
+
+  return {
+    cutoff5y,
+    cutoff1y,
+    orders: { count: oldOrders.length, oldestDate: oldestOrderDate, list: oldOrders },
+    inquiries: { count: oldInquiries.length, oldestDate: oldestInquiryDate, list: oldInquiries },
+    restock: { count: finishedRestock.length, oldestDate: oldestRestockDate, list: finishedRestock }
+  };
+}
+
+function renderPrivacyCleanupTab() {
+  const preview = getPrivacyCleanupPreview();
+  const total = preview.orders.count + preview.inquiries.count + preview.restock.count;
+
+  const orderCountEl = document.getElementById('privacy-orders-count');
+  const orderDateEl = document.getElementById('privacy-orders-date');
+  const inqCountEl = document.getElementById('privacy-inquiries-count');
+  const inqDateEl = document.getElementById('privacy-inquiries-date');
+  const restockCountEl = document.getElementById('privacy-restock-count');
+  const restockDateEl = document.getElementById('privacy-restock-date');
+  const totalCountEl = document.getElementById('privacy-total-count');
+  const btn = document.getElementById('btn-run-privacy-cleanup');
+
+  if (orderCountEl) orderCountEl.textContent = `${preview.orders.count}건`;
+  if (orderDateEl) orderDateEl.textContent = preview.orders.count ? `(가장 오래된 접수일: ${preview.orders.oldestDate})` : '(정리 대상 없음)';
+  if (inqCountEl) inqCountEl.textContent = `${preview.inquiries.count}건`;
+  if (inqDateEl) inqDateEl.textContent = preview.inquiries.count ? `(가장 오래된 완료일: ${preview.inquiries.oldestDate})` : '(정리 대상 없음)';
+  if (restockCountEl) restockCountEl.textContent = `${preview.restock.count}건`;
+  if (restockDateEl) restockDateEl.textContent = preview.restock.count ? `(가장 오래된 신청일: ${preview.restock.oldestDate})` : '(정리 대상 없음)';
+  if (totalCountEl) totalCountEl.textContent = `총 ${total}건`;
+
+  if (btn) {
+    btn.disabled = total === 0;
+  }
+}
+
+async function handleRunPrivacyCleanup() {
+  const preview = getPrivacyCleanupPreview();
+  const total = preview.orders.count + preview.inquiries.count + preview.restock.count;
+  if (total === 0) {
+    alert('지금은 정리할 개인정보 데이터가 없어요.');
+    return;
+  }
+
+  const confirmMsg = `보관 기간이 지난 개인정보 ${total}건을 지금 정리할까요?\n\n- 5년 지난 주문: ${preview.orders.count}건 (이름·연락처·주소 등 식별정보 삭제, 매출·품목 보존)\n- 1년 지난 완료 상담: ${preview.inquiries.count}건 (완전 삭제)\n- 완료된 재입고 신청: ${preview.restock.count}건 (완전 삭제)\n\n⚠️ 이 작업은 되돌릴 수 없습니다. 계속하시겠습니까?`;
+  if (!confirm(confirmMsg)) return;
+
+  const btn = document.getElementById('btn-run-privacy-cleanup');
+  const msgEl = document.getElementById('privacy-cleanup-msg');
+  if (btn) btn.disabled = true;
+  if (msgEl) {
+    msgEl.textContent = '개인정보 정리 중…';
+    msgEl.className = 'text-xs text-ink-gray font-bold';
+  }
+
+  try {
+    // 서버 모드인 경우 자동 백업 실행
+    if (window.SDH_SERVER_MODE && typeof buildAllCsv === 'function') {
+      try {
+        await fetch('/api/backup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ label: 'before-privacy-cleanup', files: buildAllCsv() })
+        });
+      } catch (e) {
+        console.warn('정리 전 자동 백업 생성 실패 (계속 진행):', e);
+      }
+    }
+
+    const nowIso = new Date().toISOString();
+
+    // 1. 주문 정리: 개인 식별 정보 지우고 정산/금액/품목 정보 유지
+    if (preview.orders.count > 0) {
+      const targetIds = new Set(preview.orders.list.map(o => o.id));
+      const orders = typeof loadAdminOrders === 'function' ? loadAdminOrders() : loadOrders();
+      const updatedOrders = orders.map(o => {
+        if (!targetIds.has(o.id)) return o;
+        return {
+          ...o,
+          ordererName: '',
+          ordererPhone: '',
+          recipientName: '',
+          recipientPhone: '',
+          customerName: '',
+          phone: '',
+          zipcode: '',
+          address: '',
+          message: '',
+          request: '',
+          personalInfoClearedAt: nowIso
+        };
+      });
+      saveOrders(updatedOrders);
+    }
+
+    // 2. 상담 문의 삭제
+    if (preview.inquiries.count > 0) {
+      const targetIds = new Set(preview.inquiries.list.map(i => i.id));
+      const inqs = typeof loadAdminInquiries === 'function' ? loadAdminInquiries() : loadInquiries();
+      const updatedInqs = inqs.filter(i => !targetIds.has(i.id));
+      saveInquiries(updatedInqs);
+    }
+
+    // 3. 재입고 신청 삭제
+    if (preview.restock.count > 0) {
+      const targetIds = new Set(preview.restock.list.map(r => r.id));
+      const restockList = typeof loadRestock === 'function' ? loadRestock() : [];
+      const updatedRestock = restockList.filter(r => !targetIds.has(r.id));
+      saveRestock(updatedRestock);
+    }
+
+    if (msgEl) {
+      msgEl.textContent = `✅ 개인정보 ${total}건 정리를 완료했어요. (주문 ${preview.orders.count}건 정리, 상담 ${preview.inquiries.count}건 삭제, 재입고 ${preview.restock.count}건 삭제)`;
+      msgEl.className = 'text-xs text-emerald-700 font-bold';
+    }
+
+    // 화면 갱신
+    renderPrivacyCleanupTab();
+    if (typeof refreshAllAdminViews === 'function') refreshAllAdminViews();
+    if (typeof renderTodayTasks === 'function') {
+      const today = typeof financeToday === 'function' ? financeToday() : new Date().toISOString().slice(0, 10);
+      renderTodayTasks(loadOrders(), loadProducts(), loadInquiries(), today);
+    }
+  } catch (err) {
+    if (msgEl) {
+      msgEl.textContent = `정리 중 오류가 발생했어요: ${err.message || err}`;
+      msgEl.className = 'text-xs text-seal-red font-bold';
+    }
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
