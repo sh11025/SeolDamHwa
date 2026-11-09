@@ -1,6 +1,6 @@
 # 설담화 작업 이어받기 안내 (HANDOFF)
 
-> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-09 [102]
+> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-09 [103]
 
 ## 1. 프로젝트 한눈에
 - `index.html`: 손님 쇼핑몰 / `admin-index.html`: 관리자 센터. 둘 다 Tailwind CDN + 순수 JS, 데이터는 브라우저 `localStorage`(키 `seoldamhwa_*`).
@@ -32,6 +32,7 @@
 - 사진 및 미디어 보호:
   - [89] 쇼핑몰(`index.html`)의 모든 `img`, `video`, 모달 뷰어 우클릭 및 드래그 방지 (`assets/js/shop/shop-media-guard.js`, `-webkit-touch-callout: none`, `controlslist="nodownload"`). 관리자 화면은 정상 작동.
   - 사이트 사진 9장의 원본(낙관 없음)은 바탕화면 `C:\Users\504-19\Desktop\SeolDamHwa_originals` 폴더에 원본 해상도와 구조 그대로 보존됨.
+  - 구 React 프로토타입(`SeolDamHwa_Webpage-main`)의 고유 이미지 11장(`category_basket.jpg`, `category_bouquet.jpg`, `category_space.jpg`, `example1~4.jpg`, `hanji_bg.jpg`, `vision_new1~2.png`, `설로고.png`)은 바탕화면 `C:\Users\504-19\Desktop\SeolDamHwa_prototype_media` 폴더에 원본 해상도 및 SHA-256 해시 일치 상태로 안전하게 보존됨 (구 프로토타입 폴더는 [103]에서 정리 완료).
   - 사이트 신규/교체 사진 등록 시 반드시 우측 하단에 설담화 도장(`assets/images/seal.svg`) 낙관(짧은 변의 9% 크기, 3% 여백, 50% 투명도)을 적용할 것. 관리자 이미지 라이브러리(`image-library.js`) 업로드 시 기본 '설담화 도장 넣기' 옵션을 통해 자동 합성 지원.
   - [90] 관리자 사진 업로드 시 무낙관 고화질 원본은 서버 `DATA/originals/` 폴더에 안전하게 보관됨 (`index.json`으로 상태 관리, 전체 백업 zip 제외). 관리자 센터 '연동·데이터 > 원본 사진' 탭에서 Supabase Storage(Private Bucket `originals`) 접속 정보(`DATA/.supabase.json`)를 설정하면 클라우드에 비공개 자동 백업 지원. 기존 9장 원본은 `python server.py --import-originals "C:\Users\504-19\Desktop\SeolDamHwa_originals"`로 일괄 등록 가능.
   - [91] 외부 사이트 요청 차단(CSRF 방지) 및 원본 보관소 보안 강화: `server.py`의 모든 `do_POST` 최상단에서 `is_cross_site_request()`(Sec-Fetch-Site cross-site/same-site 차단, Origin Host 불일치 및 null 차단) 검사 적용. Supabase 설정 시 URL/버킷 변경 시 서비스키 재입력 강제 및 버킷 이름 정규식 검증(`^[a-z0-9][a-z0-9._-]{1,62}$`). 원본 다운로드 `GET /api/originals/<path>` 비인가 요청 시 파일 존재 여부와 무관하게 403 즉시 반환(정보 유출 방지). 원본 업로드 시 중복 응답(409 및 400 Duplicate) 업로드 완료 처리. `--import-originals` 실행 시 `index.json` 유실 시에도 기존 디스크 파일 재인덱싱 복구 지원.
@@ -60,11 +61,16 @@
   - `saveSettings(partial)` 자체는 그대로 두어 관리자 각 탭(연락처, 배송, 포장 등)의 부분 저장은 정상 유지되며, `seoldamhwa_settings_updated` 이벤트 발송 및 상점 가이드 등 리스너 알림 보장.
   - 비어있거나 깨진 `settings.csv` 방어 가드 및 초기 연결 모달 "[취소] 이 브라우저 내용을 DATA 폴더에 저장"(`useBrowser = true`) 동작 정상 보존.
 
+- [103] 관리자 오픈 준비 점검 카드 신설, 환불 안내 중복 연락처 정리, 구 프로토타입 미디어 보존:
+  - 관리자 대시보드 상단에 오늘 할 일 위 '오픈 준비 점검' 카드(`renderOpenChecklist`) 신설: 매장 주소(임시 주소 판별), 연락처(전화·이메일), 사업자 정보(대표·사업자번호·통신판매업·소재지·개인정보책임자 미비 항목 명시), 관리자 비밀번호(서버 모드 전용 `/api/session` 연동), 예시 데이터(상품·주문·후기 잔여 개수 노출 및 삭제 탭 연동), 판매 상품(공개 비예시 상품 유무) 6개 항목을 실시간 검사하여 미비 항목만 노출하고 각 탭 바로가기 제공. 모든 항목 충족 시 카드는 자동으로 숨겨짐. 375px 모바일 무스크롤 지원.
+  - 교환·환불 안내(`refund`) 기본 페이지 본문 끝의 `문의: {전화} · {이메일}` 중복 줄 제거 (하단 고객센터 밴드와 일치).
+  - 구 React 프로토타입 폴더(`SeolDamHwa_Webpage-main`) 완전 삭제 및 고유 이미지 11장 바탕화면 `SeolDamHwa_prototype_media`에 SHA-256 일치 보존, `.gitignore` 정리.
+
 ## 2. 작업 방식 (꼭 지키기)
 0. **화면 클래스(Tailwind)를 새로 쓰거나 바꾸면 꼭 `npm run build:css`** (처음 한 번은 `npm install`). 예전 CDN 대신 `assets/css/tailwind.css`를 미리 만들어 쓰므로, 다시 만들지 않으면 새 클래스는 화면에 안 먹어요. 설정은 `tailwind.config.js`, 원본은 `src/tailwind.css`. 고치는 중에는 `npm run watch:css`를 켜 두면 저장할 때마다 자동으로 만들어져요.
    - **JS·CSS 파일을 바꾸면 커밋 전에 `npm run bump`** (브라우저가 옛 파일을 섞어 쓰지 않게).
 1. 바꾸기 전 `git status` 확인, 끝나면 커밋 (커밋 메시지 끝에 공동 작성자 줄).
-2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[103]**.
+2. 변경 기록: `changelog/YYYY-MM-DD.md` 맨 위에 `## [번호] 제목 (HH:MM)` + 쉬운 한국어 3줄 이하 + `확인:` 1줄, `CHANGELOG.md` 건수 갱신. 다음 번호는 **[104]**.
 3. 검증: `python -m http.server 5500`로 띄우고 브라우저에서 직접 클릭. 서버 모드 및 손님 기기 기능은 `python server.py --port 5600 --lan`으로 임시 DATA 사본(`SDH_DATA_DIR`)을 사용하고, 모의 API 호출 대신 실제 LAN IP 주소와 실기기/CDP 브라우저 조작(버튼 클릭, 폼 전송)으로 검증할 것. 매번 확인할 것
    - 인라인 스크립트 문법(`node --check`), 모든 `getElementById` id 존재
    - 버튼이 부르는 함수가 모두 있는지: 콘솔에서 `[...new Set([...document.documentElement.outerHTML.matchAll(/on\w+="([A-Za-z_]\w*)\(/g)].map(m=>m[1]))].filter(n=>typeof window[n]!=='function')` → `[]` (예외: `if`)

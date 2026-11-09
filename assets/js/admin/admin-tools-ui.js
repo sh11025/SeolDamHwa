@@ -408,6 +408,7 @@ async function renderServerAdmin() {
     st.textContent = ses.hasPassword ? '정해져 있음' : '아직 없음';
     st.className = `ml-1 text-[11px] font-bold ${ses.hasPassword ? 'text-emerald-700' : 'text-amber-700'}`;
     document.getElementById('server-logout-btn').classList.toggle('hidden', ses.local);
+    if (typeof updateServerSessionCache === 'function') updateServerSessionCache(ses);
   } catch (e) { /* 서버가 잠깐 꺼져 있음 */ }
   const box = document.getElementById('server-backup-list');
   try {
