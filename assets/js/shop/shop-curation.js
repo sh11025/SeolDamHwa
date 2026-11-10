@@ -606,7 +606,7 @@ function renderCurationResults(topItems, soldOutProduct, hasExactBudget) {
       <div class="corner-tl"></div><div class="corner-tr"></div><div class="corner-bl"></div><div class="corner-br"></div>
       <div class="space-y-3">
         <div class="relative aspect-[4/3] rounded-xs overflow-hidden bg-[#ECE8E1]">
-          <img loading="lazy" decoding="async" src="${p.image}" alt="${tp.name}" class="w-full h-full object-cover">
+          <img loading="lazy" decoding="async" src="${p.image}" alt="${htmlText(tp.name)}" class="w-full h-full object-cover">
           ${isBest ? `
             <span class="absolute top-2.5 left-2.5 bg-seal-red text-white text-[11px] font-bold px-2.5 py-1 rounded-xs shadow">
               ${bestBadgeText}
@@ -625,10 +625,10 @@ function renderCurationResults(topItems, soldOutProduct, hasExactBudget) {
 
         <div class="space-y-1">
           <span class="inline-block text-[11px] font-bold text-seal-red bg-seal-red/10 px-2 py-0.5 rounded-full">
-            ${item.reason}
+            ${htmlText(item.reason)}
           </span>
-          <h4 class="font-bold text-base text-ink-black">${tp.name}</h4>
-          <p class="font-serif text-xs text-seal-red italic line-clamp-1">"${tp.poeticLine}"</p>
+          <h4 class="font-bold text-base text-ink-black">${htmlText(tp.name)}</h4>
+          <p class="font-serif text-xs text-seal-red italic line-clamp-1">"${htmlText(tp.poeticLine)}"</p>
           <p class="font-bold text-sm text-ink-black pt-1">${priceText}</p>
         </div>
       </div>

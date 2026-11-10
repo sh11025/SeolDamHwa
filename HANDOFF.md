@@ -1,6 +1,6 @@
 # 설담화 작업 이어받기 안내 (HANDOFF)
 
-> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-09 [104]
+> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-10 [105] (다음 커밋: [106])
 
 ## 1. 프로젝트 한눈에
 - `index.html`: 손님 쇼핑몰 / `admin-index.html`: 관리자 센터. 둘 다 Tailwind CDN + 순수 JS, 데이터는 브라우저 `localStorage`(키 `seoldamhwa_*`).
@@ -69,6 +69,12 @@
   - [103]에서 추가했던 대시보드 상단 '오픈 준비 점검' 카드 및 관련 스크립트(`renderOpenChecklist`, `updateServerSessionCache` 등) 전면 제거 (기존 '오늘 할 일' 및 대시보드 기본 화면 복원).
   - 환불 안내 중복 줄 제거 및 프로토타입 미디어 보존은 그대로 유지.
   - 전용 CSS 클래스 정리(`npm run build:css`) 및 캐시 버스터 버전 갱신.
+
+- [105] 서버 기반 재고 검증 및 원자적 차감, 화면 이스케이프 보강, 관리자 다운로드 CSRF 보호:
+  - 서버 측 재고 제어(`server.py`): 손님 기기(`not local`)의 `/api/sync` 내 `products` 변경 요청을 무시(no-op, applied 0, rejected [])하여 임의 재고 조작 원천 차단. 주문 접수 시 동일 요청 내 `order_items`를 합산하여 `products.csv`의 숫자 재고 & 비상담형 상품에 대해 원자적으로 재고 확인 및 차감(LOCK 내 처리). 재고 부족 시 주문 전체와 아이템을 전혀 쓰지 않고 `orders: '{상품명}' 재고가 부족합니다 (남은 수량: {남은수량}개)` 거절. 마지막 1개 동시 주문 시 정확히 1건만 통과, 재고 0 유지(음수 방지). 관리자(`local`) 직접 수정 동작은 그대로 보존.
+  - 체크아웃 프론트엔드(`shop-checkout.js`): 재고 부족 거절 시 로컬 주문 즉시 롤백, 서버로부터 최신 상품 정보 새로고침(`DataSync.pull()`), 결제 모달 닫기 및 장바구니 드로어 복귀(`toggleCheckoutModal(false); toggleCartDrawer(true)`), 3개 국어 다국어 안내(`co_stock_insufficient`: KO "방금 다른 분이 주문해서 재고가 부족해요. 장바구니를 확인해 주세요.", EN, JA) 알림.
+  - 이스케이프 강화: `admin-settings.js`의 휴일명(`escapeHtml(h.name)`), 임시 휴무 사유(`escapeHtml(c.reason)`), `shop-product.js`의 사이즈 옵션 라벨(`createElement` + `textContent`), `shop-checkout.js`의 장바구니/주문요약 사이즈 라벨(`htmlText(item.sizeLabel)`) 및 이미지 경로(`htmlText(item.product.image)`), `shop-inquiry.js`의 상품 옵션(`createElement` + `textContent`), `shop-curation.js` 및 `shop-guide.js`의 상품명·시구 구절(`htmlText()`) 보강.
+  - CSRF 보안 강화(`server.py`): `GET /api/full-backup`, `GET /api/backups`, `GET /api/originals`, `GET /api/originals/*`에 `is_cross_site_request()`(Sec-Fetch-Site cross-site/same-site) 검사를 추가하여 403 차단. 손님 기기가 필요한 `/api/csv`, `/api/session`, `/api/review-media`, 주문 조회 경로는 정상 유지.
 
 ## 2. 작업 방식 (꼭 지키기)
 0. **화면 클래스(Tailwind)를 새로 쓰거나 바꾸면 꼭 `npm run build:css`** (처음 한 번은 `npm install`). 예전 CDN 대신 `assets/css/tailwind.css`를 미리 만들어 쓰므로, 다시 만들지 않으면 새 클래스는 화면에 안 먹어요. 설정은 `tailwind.config.js`, 원본은 `src/tailwind.css`. 고치는 중에는 `npm run watch:css`를 켜 두면 저장할 때마다 자동으로 만들어져요.

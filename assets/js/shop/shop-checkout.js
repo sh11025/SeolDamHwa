@@ -2,6 +2,12 @@
 // 설담화 쇼핑몰: 장바구니·주문서(받는 분·배송 방법·주소 찾기)·주문 완료·주문 조회
 // index.html에서 순서대로 불러옵니다 (함수는 전역으로 공유).
 
+if (typeof escapeHtml !== 'function') {
+  window.escapeHtml = typeof htmlText === 'function' ? htmlText : function(s) {
+    return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  };
+}
+
 // 포장 옵션 표시명 헬퍼 (옛 주문/장바구니는 optionPrice 기준 폴백)
 function getPackagingLabel(item) {
   if (!item) return '';
@@ -52,14 +58,14 @@ function updateCartUI() {
     const el = document.createElement('div');
     el.className = 'p-3 bg-[#FAF7F2] border border-ink-black/10 rounded-xs flex gap-3';
     el.innerHTML = `
-      <img src="${item.product.image}" class="w-16 h-20 object-cover border border-ink-black/10">
+      <img src="${escapeHtml(item.product.image)}" class="w-16 h-20 object-cover border border-ink-black/10">
       <div class="flex-1 flex flex-col justify-between py-0.5 text-xs">
         <div>
           <div class="flex justify-between font-bold text-ink-black">
             <span>${htmlText(tp.name)}</span>
             <button onclick="removeFromCart(${index})" class="text-ink-light hover:text-seal-red cursor-pointer">✕</button>
           </div>
-          ${item.sizeLabel ? `<p class="text-[11px] text-seal-red font-medium mt-0.5">${sizePrefix}${item.sizeLabel}</p>` : ''}
+          ${item.sizeLabel ? `<p class="text-[11px] text-seal-red font-medium mt-0.5">${sizePrefix}${htmlText(item.sizeLabel)}</p>` : ''}
           <p class="text-[11px] text-ink-gray mt-0.5">${htmlText(optDisplay)}</p>
         </div>
         <div class="flex justify-between items-baseline mt-2">
@@ -1043,7 +1049,7 @@ function openCheckoutModal() {
     row.innerHTML = `
       <div>
         <span class="font-bold text-ink-black">${htmlText(tp.name)}</span>
-        ${item.sizeLabel ? `<span class="text-seal-red text-[11px]"> (${item.sizeLabel})</span>` : ''}
+        ${item.sizeLabel ? `<span class="text-seal-red text-[11px]"> (${htmlText(item.sizeLabel)})</span>` : ''}
         <span> × ${item.quantity}</span>
         <div class="text-[11px] text-ink-light">${htmlText(optDisplay)}</div>
       </div>
@@ -1369,6 +1375,16 @@ async function submitCustomerOrder(e) {
           // 서버에서 거절된 경우 로컬 롤백
           const rolledBack = loadOrders().filter(o => o.orderNumber !== orderNumber);
           saveOrders(rolledBack);
+          const stockRejection = syncRes.rejected.find(r => r.startsWith('orders:') && (r.includes('재고') || r.includes('stock')));
+          if (stockRejection) {
+            if (typeof DataSync !== 'undefined' && typeof DataSync.pull === 'function') {
+              try { await DataSync.pull(); } catch (e) { /* 무시 */ }
+            }
+            toggleCheckoutModal(false);
+            toggleCartDrawer(true);
+            alert(coT('co_stock_insufficient', '방금 다른 분이 주문해서 재고가 부족해요. 장바구니를 확인해 주세요.'));
+            return;
+          }
           const fullRejection = syncRes.rejected.find(r => r.startsWith('orders:') && r.includes('주문이 마감'));
           if (fullRejection) {
             if (typeof syncServerFullDates === 'function') await syncServerFullDates();

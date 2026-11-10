@@ -213,7 +213,7 @@ function renderClosuresList() {
       <div class="flex items-center gap-2">
         <span class="font-mono font-bold ${isPast ? 'line-through text-gray-400' : 'text-ink-black'}">${c.date}</span>
         <span class="text-[11px] ${isPast ? 'text-gray-400' : 'text-ink-gray'}">${weekdayLabel}</span>
-        <span class="text-xs ${isPast ? 'text-gray-400' : 'text-seal-red font-medium'}">${c.reason || '임시 휴무'}</span>
+        <span class="text-xs ${isPast ? 'text-gray-400' : 'text-seal-red font-medium'}">${escapeHtml(c.reason || '임시 휴무')}</span>
         ${isPast ? '<span class="text-[10px] px-1.5 py-0.2 rounded-xs bg-gray-200 text-gray-600">지난 날짜</span>' : ''}
       </div>
       <button type="button" onclick="removeClosureDate(${idx})" class="text-ink-light hover:text-seal-red text-xs px-2 py-1 rounded-xs hover:bg-black/5 cursor-pointer font-bold">
@@ -415,7 +415,7 @@ function renderHolidaysList() {
     row.innerHTML = `
       <div class="flex items-center gap-2">
         <span class="font-mono font-bold text-ink-black">${h.date} (${weekdayName})</span>
-        <span class="font-bold text-ink-charcoal">${h.name}</span>
+        <span class="font-bold text-ink-charcoal">${escapeHtml(h.name)}</span>
         ${isCustom ? '<span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-bold">사용자 추가</span>' : ''}
         ${h.optional ? '<span class="bg-gray-100 text-gray-700 text-[10px] px-1.5 py-0.5 rounded font-bold">기본 영업</span>' : ''}
       </div>

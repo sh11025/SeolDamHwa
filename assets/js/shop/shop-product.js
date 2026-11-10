@@ -80,10 +80,14 @@ function renderProductPage(productId, isPreview = false) {
     if (prod.sizes && prod.sizes.length > 0) {
       if (sizeContainer) sizeContainer.classList.remove('hidden');
       const recLabel = typeof t === 'function' ? t('size_recommended_label', '추천') : '추천';
-      sizeSelect.innerHTML = prod.sizes.map((s, idx) => {
+      sizeSelect.innerHTML = '';
+      prod.sizes.forEach((s, idx) => {
+        const opt = document.createElement('option');
+        opt.value = String(idx);
         const recBadge = s.recommended ? ` · ${recLabel}` : '';
-        return `<option value="${idx}">${s.label} - ${formatPrice(s.price)}${recBadge}</option>`;
-      }).join('');
+        opt.textContent = `${s.label} - ${formatPrice(s.price)}${recBadge}`;
+        sizeSelect.appendChild(opt);
+      });
       
       const recIdx = prod.sizes.findIndex(s => s.recommended);
       const defaultIdx = recIdx !== -1 ? recIdx : 0;

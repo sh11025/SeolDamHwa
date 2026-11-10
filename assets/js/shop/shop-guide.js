@@ -65,8 +65,8 @@ function handleSearch(val) {
       <div class="flex items-center gap-3">
         <img loading="lazy" decoding="async" src="${p.image}" class="w-10 h-10 object-cover rounded-xs border border-ink-black/10">
         <div>
-          <p class="font-bold text-ink-black">${tp.name}</p>
-          <p class="font-serif text-seal-red text-[11px] italic">"${tp.poeticLine}"</p>
+          <p class="font-bold text-ink-black">${htmlText(tp.name)}</p>
+          <p class="font-serif text-seal-red text-[11px] italic">"${htmlText(tp.poeticLine)}"</p>
         </div>
       </div>
       <span class="font-bold text-ink-black text-xs">${priceText}</span>

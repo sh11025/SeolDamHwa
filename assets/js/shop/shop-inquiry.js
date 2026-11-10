@@ -23,9 +23,13 @@ function initInquiryProductOptions() {
   if (!select) return;
   const prevVal = select.value;
   const products = loadProducts().filter(p => typeof isProductVisible === 'function' ? isProductVisible(p) : true);
-  select.innerHTML = products.map(p => `
-    <option value="${p.id}">${p.name}</option>
-  `).join('');
+  select.innerHTML = '';
+  products.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.name;
+    select.appendChild(opt);
+  });
   if (prevVal && products.some(p => p.id === prevVal)) {
     select.value = prevVal;
   }

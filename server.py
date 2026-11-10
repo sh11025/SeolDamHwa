@@ -414,7 +414,9 @@ def apply_change(change, local):
     table = change.get('table')
     if table not in TABLES:
         return 0, [f'{table}: 모르는 표']
-    if not local and table not in REMOTE_INSERT_TABLES and table != 'products':
+    if not local and table == 'products':
+        return 0, []
+    if not local and table not in REMOTE_INSERT_TABLES:
         return 0, [f'{table}: 이 기기에서는 바꿀 수 없음']
     existing = read_table(table)
     header, rows = existing if existing else (list(change.get('columns') or []), [])
@@ -459,16 +461,6 @@ def apply_change(change, local):
                 if oid not in orders_ids:
                     rejected.append('order_items: 일치하는 주문(orders)이 없습니다')
                     continue
-            if table == 'products':
-                # 손님 기기: 이미 있는 상품의 재고를 줄이는 것만
-                old = index.get(k)
-                try:
-                    if old is not None and int(float(row.get('stockQuantity') or 0)) <= int(float(old.get('stockQuantity') or 0)):
-                        old['stockQuantity'] = row.get('stockQuantity')
-                        applied += 1
-                except ValueError:
-                    pass
-                continue
             if table == 'orders':
                 # 1. orderNumber 유효성 및 중복 검사
                 onum = str(row.get('orderNumber') or '').strip().upper()
@@ -871,6 +863,9 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_json({'ok': True, 'dates': get_server_full_dates()})
             return
         if path == '/api/full-backup':
+            if self.is_cross_site_request():
+                self.send_json({'ok': False, 'error': '외부 사이트 요청은 허용되지 않습니다.'}, 403)
+                return
             if not self.is_admin():
                 self.send_json({'ok': False, 'error': '관리자만'}, 403)
                 return
@@ -902,6 +897,9 @@ class Handler(SimpleHTTPRequestHandler):
             self.wfile.write(content)
             return
         if path == '/api/backups':
+            if self.is_cross_site_request():
+                self.send_json({'ok': False, 'error': '외부 사이트 요청은 허용되지 않습니다.'}, 403)
+                return
             if not self.is_admin():
                 self.send_json({'ok': False, 'error': '관리자만'}, 403)
                 return
@@ -934,6 +932,9 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_json({'ok': True, 'local': local, 'readable': readable, 'files': files})
             return
         if path == '/api/originals':
+            if self.is_cross_site_request():
+                self.send_json({'ok': False, 'error': '외부 사이트 요청은 허용되지 않습니다.'}, 403)
+                return
             if not self.is_admin():
                 self.send_json({'ok': False, 'error': '관리자만 접근할 수 있습니다.'}, 403)
                 return
@@ -942,6 +943,9 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_json({'ok': True, 'items': items})
             return
         if path.startswith('/api/originals/'):
+            if self.is_cross_site_request():
+                self.send_error(403)
+                return
             if not self.is_admin():
                 self.send_error(403)
                 return
@@ -1275,6 +1279,147 @@ class Handler(SimpleHTTPRequestHandler):
                     if t == 'order_items': return 2
                     return 1
                 changes.sort(key=change_sort_key)
+
+                if not local:
+                    # 손님 기기: products 변경은 반영하지 않고 깨끗이 무시
+                    changes = [c for c in changes if c.get('table') != 'products']
+
+                    orders_change = next((c for c in changes if c.get('table') == 'orders'), None)
+                    items_change = next((c for c in changes if c.get('table') == 'order_items'), None)
+                    if orders_change and (orders_change.get('upserts') or []):
+                        prod_data = read_table('products')
+                        prod_header, prod_rows = prod_data if prod_data else ([], [])
+                        prod_index = {str(p.get('id') or '').strip(): p for p in prod_rows}
+
+                        existing_orders = read_table('orders')
+                        existing_order_nums = set()
+                        if existing_orders:
+                            for eo in existing_orders[1]:
+                                on = str(eo.get('orderNumber') or '').strip().upper()
+                                if on: existing_order_nums.add(on)
+
+                        full_dates = _get_server_full_dates()
+                        all_items = list(items_change.get('upserts') or []) if items_change else []
+
+                        accepted_orders = []
+                        accepted_order_ids = set()
+                        products_modified = False
+
+                        for ord_row in orders_change.get('upserts') or []:
+                            ord_row = {k: ('' if v is None else str(v)) for k, v in ord_row.items()}
+                            ord_id = str(ord_row.get('id') or '').strip()
+                            onum = str(ord_row.get('orderNumber') or '').strip().upper()
+
+                            # 유효성 검사
+                            if not re.match(r'^[A-Za-z0-9_-]{1,80}$', ord_id):
+                                rejected.append('orders: 잘못된 ID 형식입니다')
+                                continue
+                            if not re.match(r'^[A-Za-z0-9-]{1,40}$', onum):
+                                rejected.append('orders: 잘못된 주문번호 형식입니다')
+                                continue
+                            if onum in existing_order_nums:
+                                rejected.append(f'orders:{onum} 이미 접수된 주문번호입니다')
+                                continue
+                            name = str(ord_row.get('ordererName') or ord_row.get('customerName') or '').strip()
+                            phone = str(ord_row.get('ordererPhone') or ord_row.get('phone') or '').strip()
+                            if not name or not phone:
+                                rejected.append('orders: 주문자 이름 또는 연락처가 비어 있습니다')
+                                continue
+                            invalid_money = False
+                            for mf in ('totalAmount', 'itemsTotal', 'deliveryFee'):
+                                val_str = str(ord_row.get(mf, '')).strip()
+                                try:
+                                    if float(val_str) < 0:
+                                        invalid_money = True
+                                        break
+                                except (ValueError, TypeError):
+                                    invalid_money = True
+                                    break
+                            if invalid_money:
+                                rejected.append('orders: 금액 항목(totalAmount, itemsTotal, deliveryFee)은 0 이상의 숫자여야 합니다')
+                                continue
+                            raw_deliv = str(ord_row.get('deliveryDate') or '').strip()
+                            if not raw_deliv:
+                                rejected.append('orders: 배송일이 비어 있습니다')
+                                continue
+                            deliv_date = raw_deliv.split()[0]
+                            if deliv_date and deliv_date in full_dates:
+                                rejected.append(f'orders: {deliv_date} 배송일은 주문이 마감되었습니다')
+                                continue
+
+                            # 주문에 연결된 items 추출
+                            matching_items = [it for it in all_items if str(it.get('orderId') or '').strip() == ord_id]
+
+                            # 재고 검사 (수량 집계)
+                            req_quantities = {}
+                            item_prod_names = {}
+                            stock_err = None
+                            for it in matching_items:
+                                pid = str(it.get('productId') or '').strip()
+                                if not pid or not re.match(r'^[A-Za-z0-9_-]{1,80}$', pid):
+                                    stock_err = 'order_items: 잘못된 상품 번호 형식입니다'
+                                    break
+                                try:
+                                    qty = int(float(it.get('quantity') or 1))
+                                except (ValueError, TypeError):
+                                    qty = 1
+                                if qty <= 0:
+                                    qty = 1
+                                req_quantities[pid] = req_quantities.get(pid, 0) + qty
+                                if pid not in item_prod_names:
+                                    item_prod_names[pid] = str(it.get('productName') or it.get('name') or pid).strip()
+
+                            if stock_err:
+                                rejected.append(stock_err)
+                                continue
+
+                            for pid, req_qty in req_quantities.items():
+                                p = prod_index.get(pid)
+                                p_name = str((p.get('name') if p else None) or item_prod_names.get(pid) or pid).strip()
+                                if p:
+                                    is_inquiry = str(p.get('inquiryOnly') or '').strip().lower() in ('true', '1', 'yes')
+                                    if not is_inquiry:
+                                        raw_stock = p.get('stockQuantity')
+                                        if raw_stock is not None and str(raw_stock).strip() != '':
+                                            try:
+                                                curr_stock = int(float(raw_stock))
+                                                if curr_stock < req_qty:
+                                                    stock_err = f"orders: '{p_name}' 재고가 부족합니다 (남은 수량: {max(0, curr_stock)}개)"
+                                                    break
+                                            except (ValueError, TypeError):
+                                                pass
+
+                            if stock_err:
+                                rejected.append(stock_err)
+                                continue
+
+                            # 재고 차감 (합격한 주문)
+                            for pid, req_qty in req_quantities.items():
+                                p = prod_index.get(pid)
+                                if p:
+                                    is_inquiry = str(p.get('inquiryOnly') or '').strip().lower() in ('true', '1', 'yes')
+                                    if not is_inquiry:
+                                        raw_stock = p.get('stockQuantity')
+                                        if raw_stock is not None and str(raw_stock).strip() != '':
+                                            try:
+                                                curr_stock = int(float(raw_stock))
+                                                new_stock = max(0, curr_stock - req_qty)
+                                                p['stockQuantity'] = str(new_stock)
+                                                products_modified = True
+                                            except (ValueError, TypeError):
+                                                pass
+
+                            existing_order_nums.add(onum)
+                            accepted_orders.append(ord_row)
+                            accepted_order_ids.add(ord_id)
+
+                        if products_modified:
+                            write_table('products', prod_header, prod_rows)
+
+                        orders_change['upserts'] = accepted_orders
+                        if items_change:
+                            items_change['upserts'] = [it for it in all_items if str(it.get('orderId') or '').strip() in accepted_order_ids]
+
                 for change in changes:
                     n, r = apply_change(change, local)
                     total += n
