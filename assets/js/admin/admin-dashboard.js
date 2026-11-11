@@ -306,6 +306,13 @@ function renderDashboard() {
     `;
     recentContainer.appendChild(tr);
   });
+
+  if (typeof renderDashboardTodayQuickpanel === 'function') {
+    renderDashboardTodayQuickpanel();
+  }
+  if (typeof updateStatusMinibar === 'function') {
+    updateStatusMinibar();
+  }
 }
 
 function renderDashboardCharts(range, today) {

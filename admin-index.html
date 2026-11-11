@@ -12,21 +12,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
   
-  <script src="assets/js/data-store.js?v=107"></script>
-  <script src="assets/js/products-data.js?v=107"></script>
-  <script src="assets/js/flowers-data.js?v=107"></script>
-  <script src="assets/js/site-theme.js?v=107"></script>
-  <script src="assets/js/site-settings.js?v=107"></script>
-  <script src="assets/js/popups.js?v=107"></script>
-  <script src="assets/js/finance-data.js?v=107"></script>
-  <script src="assets/js/integrations.js?v=107"></script>
-  <script src="assets/js/admin-tools.js?v=107"></script>
-  <script src="assets/js/site-pages.js?v=107"></script>
-  <script src="assets/js/image-library.js?v=107"></script>
-  <script src="assets/js/restock.js?v=107"></script>
-  <script src="assets/js/csv-db.js?v=107"></script>
-  <script src="assets/js/data-sync.js?v=107"></script>
-  <script src="assets/js/coupons.js?v=107"></script>
+  <script src="assets/js/data-store.js?v=108"></script>
+  <script src="assets/js/products-data.js?v=108"></script>
+  <script src="assets/js/flowers-data.js?v=108"></script>
+  <script src="assets/js/site-theme.js?v=108"></script>
+  <script src="assets/js/site-settings.js?v=108"></script>
+  <script src="assets/js/popups.js?v=108"></script>
+  <script src="assets/js/finance-data.js?v=108"></script>
+  <script src="assets/js/integrations.js?v=108"></script>
+  <script src="assets/js/admin-tools.js?v=108"></script>
+  <script src="assets/js/site-pages.js?v=108"></script>
+  <script src="assets/js/image-library.js?v=108"></script>
+  <script src="assets/js/restock.js?v=108"></script>
+  <script src="assets/js/csv-db.js?v=108"></script>
+  <script src="assets/js/data-sync.js?v=108"></script>
+  <script src="assets/js/coupons.js?v=108"></script>
   <!-- 운송장 바코드: JsBarcode -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
   <!-- 차트: Chart.js -->
@@ -416,11 +416,11 @@
     }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=107">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=108">
 </head>
 <body class="min-h-screen flex flex-col selection:bg-seal-red/15 selection:text-seal-red">
   <!-- 1. 관리자 상단 헤더 (Admin Top Bar) -->
-  <header class="bg-ink-black text-hanji px-4 sm:px-6 py-3.5 flex items-center justify-between border-b border-black/20 sticky top-0 z-30 shadow-sm">
+  <header class="bg-ink-black text-hanji px-4 sm:px-6 py-3 flex items-center justify-between border-b border-black/20 sticky top-0 z-30 shadow-sm">
     <div class="flex items-center gap-3 sm:gap-4">
       <!-- 휴대폰·태블릿: 왼쪽 메뉴 열기 -->
       <button type="button" id="admin-menu-btn" onclick="toggleAdminMenu()" aria-controls="admin-sidebar" aria-expanded="false" aria-label="메뉴 열기" class="lg:hidden -ml-1 p-2 rounded-sm hover:bg-white/10 cursor-pointer">
@@ -435,17 +435,42 @@
         전용 관리자 센터
       </span>
 
+      <!-- 🔍 스마트 전역 통합 검색 버튼 (Ctrl+K) -->
+      <button type="button" onclick="openCommandPalette()" class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-sm bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-xs font-bold border border-white/15 cursor-pointer transition-colors" title="전체 검색 단축키: Ctrl + K (또는 / 키)">
+        <svg class="w-3.5 h-3.5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <span>주문·상품·메뉴 빠른 검색</span>
+        <kbd class="px-1.5 py-0.2 rounded bg-black/40 text-[10px] text-white/60 font-mono">Ctrl K</kbd>
+      </button>
     </div>
 
     <div class="flex items-center gap-2">
-    <button type="button" id="admin-sound-btn" onclick="toggleAdminSound()" aria-pressed="true" class="hidden sm:inline-flex items-center px-3 py-1.5 rounded-sm text-xs font-bold border border-white/25 hover:bg-white/10 cursor-pointer">🔔 새 주문 소리 켜짐</button>
-    <!-- 고객 쇼핑몰 바로가기 링크 -->
-    <a href="index.html" class="flex items-center gap-2 bg-[#FAF7F2] text-ink-black hover:bg-seal-red hover:text-white px-3.5 py-1.5 rounded-sm text-xs font-bold transition-all shadow-xs">
-      <span>쇼핑몰 보기</span>
-      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-    </a>
+      <!-- 모바일용 검색 아이콘 버튼 -->
+      <button type="button" onclick="openCommandPalette()" class="md:hidden p-2 text-white/80 hover:text-white rounded-sm hover:bg-white/10 cursor-pointer" aria-label="통합 검색">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      </button>
+      <button type="button" id="admin-sound-btn" onclick="toggleAdminSound()" aria-pressed="true" class="hidden sm:inline-flex items-center px-3 py-1.5 rounded-sm text-xs font-bold border border-white/25 hover:bg-white/10 cursor-pointer">🔔 새 주문 소리 켜짐</button>
+      <!-- 고객 쇼핑몰 바로가기 링크 -->
+      <a href="index.html" class="flex items-center gap-2 bg-[#FAF7F2] text-ink-black hover:bg-seal-red hover:text-white px-3.5 py-1.5 rounded-sm text-xs font-bold transition-all shadow-xs">
+        <span>쇼핑몰 보기</span>
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+      </a>
     </div>
   </header>
+
+  <!-- 1-1. 상단 매장 현황 요약 미니 밴드 (Status Bar) -->
+  <aside id="admin-status-minibar" class="bg-[#FAF7F2]/95 backdrop-blur-xs border-b border-ink-black/10 px-4 sm:px-6 py-2 flex flex-wrap items-center justify-between gap-2 text-xs text-ink-black sticky top-[53px] z-20 shadow-xs" aria-label="매장 요약 현황">
+    <div id="minibar-stats" class="flex flex-wrap items-center gap-2 sm:gap-3 font-bold">
+      <!-- admin-quick.js updateStatusMinibar 에서 실시간 렌더링 -->
+      <span class="text-ink-gray text-xs">매장 현황 확인 중...</span>
+    </div>
+    <div class="flex items-center gap-2.5 text-[11px] text-ink-gray">
+      <span id="minibar-clock" class="font-mono font-bold text-ink-black">--:--:--</span>
+      <button type="button" onclick="refreshAdminData()" class="hover:text-seal-red cursor-pointer inline-flex items-center gap-1 font-bold" title="데이터 새로고침">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        <span class="hidden sm:inline">새로고침</span>
+      </button>
+    </div>
+  </aside>
 
   <div class="flex-1 flex flex-col lg:flex-row">
     <!-- 2. 좌측 사이드바 내비게이션: PC는 왼쪽에 고정, 휴대폰·태블릿(1024px 미만)은 ☰로 여닫는 서랍 -->
@@ -559,8 +584,14 @@
         </nav>
       </div>
 
-      <!-- 사이드바 하단 정보 -->
-      <div class="pt-6 border-t border-ink-black/10 text-xs text-ink-gray space-y-2">
+      <!-- 사이드바 하단 정보 & 사용 설명서 버튼 -->
+      <div class="pt-4 border-t border-ink-black/10 text-xs text-ink-gray space-y-3">
+        <!-- 📖 초보 사장님 사용 설명서 버튼 -->
+        <button type="button" onclick="openAdminManualModal()" class="w-full jakae-btn py-2.5 px-3 rounded-sm text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow-md transition-all">
+          <span class="text-base">📖</span>
+          <span>초보 사장님 사용 설명서</span>
+        </button>
+
         <p class="font-bold text-ink-black flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           쇼핑몰 실시간 동기화 중
@@ -571,8 +602,8 @@
       </div>
     </aside>
 
-    <!-- 3. 메인 콘텐츠 영역 (Main Content Area) -->
-    <main class="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 xl:p-10 overflow-y-auto">
+    <!-- 3. 메인 콘텐츠 영역 (Main Content Area, 모바일 하단바 여백 확보) -->
+    <main class="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 xl:p-10 pb-24 lg:pb-10 overflow-y-auto">
       <div id="sample-data-banner" class="hidden mb-6 px-4 py-3 rounded-sm bg-amber-50 border border-amber-300 text-sm text-amber-900 flex flex-wrap items-center justify-between gap-2">
         <span><strong>예시 데이터가 들어 있어요.</strong> <span id="sample-banner-shop" class="hidden font-bold text-seal-red">예시 상품이 쇼핑몰에도 보이는 중이에요.</span> 실제 운영 전에 꼭 지워 주세요.</span>
         <button type="button" onclick="handleRemoveSampleData()" class="px-3 py-1.5 bg-white border border-amber-400 rounded-xs font-bold cursor-pointer hover:bg-amber-100">예시 데이터 모두 지우기</button>
@@ -605,6 +636,9 @@
             <p id="today-tasks-backup-hint" class="hidden text-xs text-seal-red font-medium mt-3 pt-2.5 border-t border-ink-black/5 leading-relaxed"></p>
             <p id="today-tasks-privacy-hint" class="hidden text-xs text-amber-800 font-medium mt-2 pt-2 border-t border-ink-black/5 leading-relaxed"></p>
           </div>
+
+          <!-- 오늘의 출고·제작 원스톱 퀵패널 (admin-quick.js renderDashboardTodayQuickpanel) -->
+          <div id="dashboard-today-quickpanel"></div>
 
           <div id="dashboard-empty-cta" class="hidden admin-card p-5 rounded-sm flex flex-wrap items-center justify-between gap-3 border-dashed">
             <div>
@@ -781,24 +815,58 @@
         <!-- 종류별 나누기 (괄호 안 = 상품 수). admin-products.js renderProductCategoryFilter -->
         <div id="prod-cat-filter" class="flex flex-wrap items-center gap-1.5" role="group" aria-label="상품 종류"></div>
 
-        <!-- 🌸 쇼핑몰 메인 '이달의 추천 꽃' 설정 카드 -->
-        <div class="admin-card p-4 rounded-sm bg-[#FAF7F2] border border-seal-red/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-          <div class="flex items-center gap-3">
-            <span class="w-9 h-9 rounded-full bg-seal-red/10 text-seal-red flex items-center justify-center font-bold text-lg shrink-0">🌸</span>
-            <div>
-              <div class="flex items-center gap-2">
-                <h3 class="text-sm font-extrabold text-ink-black">쇼핑몰 메인 '이달의 추천 꽃'</h3>
-                <span id="featured-prod-badge" class="px-2 py-0.5 rounded text-[11px] font-bold bg-[#FAF0E6] text-seal-red border border-seal-red/30">설정 중...</span>
+        <!-- 🌸 쇼핑몰 메인 '이달의 추천 꽃' 비주얼 설정 카드 -->
+        <div id="featured-product-card-container" class="admin-card p-4 sm:p-5 rounded-sm bg-[#FAF7F2] border border-seal-red/30 shadow-xs space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-ink-black/10 pb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-full bg-seal-red/10 text-seal-red flex items-center justify-center font-bold text-base shrink-0">🌸</span>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="text-sm font-extrabold text-ink-black">쇼핑몰 메인 '이달의 추천 꽃'</h3>
+                  <span id="featured-prod-badge" class="px-2 py-0.5 rounded text-[11px] font-bold bg-[#FAF0E6] text-seal-red border border-seal-red/30">설정 중...</span>
+                </div>
+                <p class="text-xs text-ink-gray mt-0.5">쇼핑몰 첫 화면 상단의 메인 배너 버튼으로 손님에게 가장 먼저 선보일 대표 꽃이에요.</p>
               </div>
-              <p class="text-xs text-ink-gray mt-0.5">쇼핑몰 상단 첫 화면의 [이달의 추천 : ○○○ 보기] 버튼으로 연결될 대표 상품이에요.</p>
             </div>
+            <!-- 사진 보며 추천 꽃 고르기 팝업 버튼 -->
+            <button type="button" onclick="openFeaturedPickerModal()" class="jakae-btn px-3.5 py-1.5 rounded-xs text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap">
+              <span>🎨</span>
+              <span>사진 보며 추천 꽃 고르기</span>
+            </button>
           </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <select id="featured-prod-select" class="bg-white border border-ink-black/25 py-1.5 px-2.5 rounded-xs text-xs font-bold min-w-[190px]" aria-label="이달의 추천 꽃 선택">
-              <option value="">불러오는 중...</option>
-            </select>
-            <button type="button" onclick="saveFeaturedProductFromSelect()" class="px-3.5 py-1.5 bg-ink-black text-white hover:bg-seal-red rounded-xs text-xs font-bold cursor-pointer transition-colors">지정하기</button>
-            <button type="button" onclick="resetFeaturedProduct()" class="px-2.5 py-1.5 bg-white border border-ink-black/20 text-ink-gray hover:text-ink-black rounded-xs text-xs font-bold cursor-pointer" title="홈 제철 꽃 1순위로 자동 선택">기본값</button>
+
+          <!-- 현재 추천 꽃 상세 비주얼 + 실제 메인 버튼 미리보기 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
+            <!-- 좌측: 현재 추천 상품 썸네일 & 설명 -->
+            <div class="flex items-center gap-3 p-3 bg-white rounded-xs border border-ink-black/10">
+              <img id="featured-prod-preview-img" src="assets/images/placeholder.png" alt="" class="w-14 h-16 object-cover rounded-xs border border-ink-black/10 shrink-0">
+              <div class="min-w-0 flex-1 text-xs">
+                <p id="featured-prod-preview-name" class="font-extrabold text-sm text-ink-black truncate">-</p>
+                <p id="featured-prod-preview-poetic" class="text-[11px] font-serif text-seal-red italic truncate mt-0.5">-</p>
+                <p id="featured-prod-preview-price" class="text-[11px] font-bold text-ink-gray mt-1">-</p>
+              </div>
+            </div>
+
+            <!-- 우측: 쇼핑몰 메인 버튼 실제 모양 & 드롭다운 빠른 선택 -->
+            <div class="p-3 bg-white rounded-xs border border-ink-black/10 space-y-2 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-ink-gray text-[11px]">실제 손님 화면에 뜨는 버튼:</span>
+                <span class="text-[10px] text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded font-mono font-bold">LIVE</span>
+              </div>
+              <!-- 실제 쇼핑몰 자개 펄 버튼 실시간 렌더링 -->
+              <div class="py-1">
+                <span id="featured-hero-btn-preview" class="inline-block jakae-btn px-4 py-2 rounded-xs text-xs font-bold shadow-xs">
+                  🌸 이달의 추천 꽃 보기
+                </span>
+              </div>
+              <div class="flex items-center gap-2 pt-1 border-t border-ink-black/5">
+                <select id="featured-prod-select" class="flex-1 min-w-0 bg-[#FAF7F2] border border-ink-black/20 py-1.5 px-2 rounded-xs text-xs font-bold" aria-label="이달의 추천 꽃 빠른 선택">
+                  <option value="">불러오는 중...</option>
+                </select>
+                <button type="button" onclick="saveFeaturedProductFromSelect()" class="px-3 py-1.5 bg-ink-black text-white hover:bg-seal-red rounded-xs text-xs font-bold cursor-pointer transition-colors whitespace-nowrap">지정</button>
+                <button type="button" onclick="resetFeaturedProduct()" class="px-2.5 py-1.5 bg-white border border-ink-black/20 text-ink-gray hover:text-ink-black rounded-xs text-xs font-bold cursor-pointer whitespace-nowrap" title="홈 제철 꽃 1순위로 자동 선택">기본값</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1769,6 +1837,9 @@
                   </button>
                 </div>
 
+                <!-- 2-2-1) 달력에서 원클릭 휴무일 지정 (admin-quick.js renderHolidayCalendar) -->
+                <div id="holiday-quick-calendar"></div>
+
                 <!-- 신규 임시 휴무 추가 폼 -->
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2.5 bg-[#FAF7F2] border border-ink-black/15 rounded-xs">
                   <input type="date" id="new-closure-date" aria-label="임시 휴무 날짜" class="bg-white border border-ink-black/20 p-2 rounded-xs text-xs font-bold text-ink-black focus:border-seal-red">
@@ -2243,19 +2314,20 @@
 
   <!-- JavaScript: Admin 로직 & 쇼핑몰 데이터 양방향 실시간 동기화 -->
   <!-- 관리자 화면 동작 (화면별 파일, 순서 중요) -->
-  <script src="assets/js/admin/admin-dashboard.js?v=107"></script>
-  <script src="assets/js/admin/admin-products.js?v=107"></script>
-  <script src="assets/js/admin/admin-orders.js?v=107"></script>
-  <script src="assets/js/admin/admin-inquiries.js?v=107"></script>
-  <script src="assets/js/admin/admin-product-modal.js?v=107"></script>
-  <script src="assets/js/admin/admin-flowers.js?v=107"></script>
-  <script src="assets/js/admin/admin-coupons.js?v=107"></script>
-  <script src="assets/js/admin/admin-settings.js?v=107"></script>
-  <script src="assets/js/admin/admin-popups.js?v=107"></script>
-  <script src="assets/js/admin/admin-finance.js?v=107"></script>
-  <script src="assets/js/admin/admin-integrations.js?v=107"></script>
-  <script src="assets/js/admin/admin-pages.js?v=107"></script>
-  <script src="assets/js/admin/admin-tools-ui.js?v=107"></script>
+  <script src="assets/js/admin/admin-dashboard.js?v=108"></script>
+  <script src="assets/js/admin/admin-products.js?v=108"></script>
+  <script src="assets/js/admin/admin-orders.js?v=108"></script>
+  <script src="assets/js/admin/admin-inquiries.js?v=108"></script>
+  <script src="assets/js/admin/admin-product-modal.js?v=108"></script>
+  <script src="assets/js/admin/admin-flowers.js?v=108"></script>
+  <script src="assets/js/admin/admin-coupons.js?v=108"></script>
+  <script src="assets/js/admin/admin-settings.js?v=108"></script>
+  <script src="assets/js/admin/admin-popups.js?v=108"></script>
+  <script src="assets/js/admin/admin-finance.js?v=108"></script>
+  <script src="assets/js/admin/admin-integrations.js?v=108"></script>
+  <script src="assets/js/admin/admin-pages.js?v=108"></script>
+  <script src="assets/js/admin/admin-tools-ui.js?v=108"></script>
+  <script src="assets/js/admin/admin-quick.js?v=108"></script>
 
   <!-- 슬라이드 편집 모달 -->
   <div id="slide-edit-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-black/60 hidden">
@@ -2530,6 +2602,291 @@
           <p class="font-bold text-ink-black mb-2">사이트에 있는 사진</p>
           <div id="image-picker-site" class="grid grid-cols-3 sm:grid-cols-5 gap-3"></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 모바일/스마트폰 전용 하단 고정 퀵 내비게이션 바 (1024px 미만 전용) -->
+  <nav id="admin-bottom-nav" class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-[#FAF7F2]/95 backdrop-blur border-t border-ink-black/15 flex items-center justify-around px-2 py-1.5 shadow-lg select-none" aria-label="모바일 하단 메뉴">
+    <button type="button" onclick="switchAdminTab('dashboard')" data-bottom-tab="dashboard" class="flex flex-col items-center gap-0.5 p-1 text-ink-black hover:text-seal-red font-bold text-[10px] cursor-pointer">
+      <span class="text-base leading-none">🏠</span>
+      <span>대시보드</span>
+    </button>
+    <button type="button" onclick="switchAdminTab('orders'); if (typeof setOrderViewMode === 'function') setOrderViewMode('timeline');" data-bottom-tab="timeline" class="flex flex-col items-center gap-0.5 p-1 text-ink-black hover:text-seal-red font-bold text-[10px] cursor-pointer relative">
+      <span class="text-base leading-none">⏰</span>
+      <span>시간표</span>
+      <span id="bottom-timeline-badge" class="hidden absolute top-0 right-2 w-2 h-2 rounded-full bg-seal-red animate-pulse"></span>
+    </button>
+    <button type="button" onclick="switchAdminTab('orders'); if (typeof setOrderViewMode === 'function') setOrderViewMode('list');" data-bottom-tab="orders" class="flex flex-col items-center gap-0.5 p-1 text-ink-black hover:text-seal-red font-bold text-[10px] cursor-pointer relative">
+      <span class="text-base leading-none">📦</span>
+      <span>주문관리</span>
+      <span id="bottom-order-badge" class="hidden absolute -top-0.5 right-1 px-1 rounded-full text-[9px] bg-seal-red text-white">0</span>
+    </button>
+    <button type="button" onclick="switchAdminTab('reviews')" data-bottom-tab="reviews" class="flex flex-col items-center gap-0.5 p-1 text-ink-black hover:text-seal-red font-bold text-[10px] cursor-pointer relative">
+      <span class="text-base leading-none">💬</span>
+      <span>상담</span>
+      <span id="bottom-inq-badge" class="hidden absolute top-0 right-2 w-2 h-2 rounded-full bg-amber-500"></span>
+    </button>
+    <button type="button" onclick="toggleAdminMenu(true)" class="flex flex-col items-center gap-0.5 p-1 text-ink-black hover:text-seal-red font-bold text-[10px] cursor-pointer">
+      <span class="text-base leading-none">☰</span>
+      <span>전체메뉴</span>
+    </button>
+  </nav>
+
+  <!-- 🔍 스마트 전역 통합 검색 모달 (Ctrl + K) -->
+  <div id="admin-search-modal" class="fixed inset-0 z-[75] bg-ink-black/60 hidden flex items-start justify-center p-4 pt-16 sm:pt-24" role="dialog" aria-modal="true" aria-labelledby="admin-search-title">
+    <div class="bg-white w-full max-w-xl rounded-sm shadow-2xl border border-ink-black/20 overflow-hidden flex flex-col max-h-[80vh] animate-in fade-in zoom-in-95 duration-100">
+      <!-- 검색 입력창 -->
+      <div class="p-3.5 border-b border-ink-black/10 flex items-center gap-2.5 bg-[#FAF7F2]">
+        <svg class="w-5 h-5 text-seal-red shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" id="admin-search-input" oninput="renderSearchResults(this.value)" onkeydown="handleSearchKeydown(event)" placeholder="주문자 이름, 전화번호 뒷자리, 주문번호, 상품명, 메뉴 검색..." class="flex-1 min-w-0 bg-transparent text-sm font-bold text-ink-black placeholder:text-ink-light focus:outline-none">
+        <kbd class="px-1.5 py-0.5 text-[10px] rounded bg-ink-black/10 text-ink-gray font-mono">ESC 닫기</kbd>
+        <button type="button" onclick="closeCommandPalette()" class="text-ink-gray hover:text-ink-black text-xl leading-none px-1 cursor-pointer">&times;</button>
+      </div>
+
+      <!-- 검색 결과 목록 -->
+      <div id="admin-search-results" class="overflow-y-auto flex-1 max-h-[60vh] divide-y divide-ink-black/5"></div>
+
+      <!-- 모달 하단 팁 안내 -->
+      <div class="px-4 py-2.5 bg-[#FAF7F2] border-t border-ink-black/10 flex items-center justify-between text-[11px] text-ink-gray">
+        <span>선택: <kbd class="px-1 py-0.2 rounded bg-black/5 font-mono">↑</kbd> <kbd class="px-1 py-0.2 rounded bg-black/5 font-mono">↓</kbd> · 이동: <kbd class="px-1 py-0.2 rounded bg-black/5 font-mono">Enter</kbd></span>
+        <span>설담화 스마트 퀵 검색</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🎨 이달의 추천 꽃 비주얼 갤러리 선택기 모달 -->
+  <div id="modal-featured-picker" class="fixed inset-0 z-[70] bg-ink-black/60 hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="featured-picker-title">
+    <div class="bg-white rounded-sm max-w-4xl w-full p-5 space-y-4 shadow-2xl border border-ink-black/20 text-sm max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-ink-black/10 pb-3">
+        <div>
+          <h3 id="featured-picker-title" class="font-extrabold text-base text-ink-black flex items-center gap-1.5">
+            <span>🌸</span>
+            <span>쇼핑몰 메인 '이달의 추천 꽃' 선택</span>
+          </h3>
+          <p class="text-xs text-ink-gray mt-0.5">꽃 사진과 글귀를 보며, 쇼핑몰 첫 화면 상단 버튼으로 연결될 대표 꽃을 골라주세요.</p>
+        </div>
+        <button type="button" onclick="closeFeaturedPickerModal()" class="text-2xl leading-none text-ink-gray hover:text-ink-black cursor-pointer p-1" aria-label="닫기">&times;</button>
+      </div>
+
+      <!-- 바둑판형 상품 카드 갤러리 -->
+      <div id="featured-picker-grid" class="overflow-y-auto flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 p-1">
+        <!-- admin-quick.js openFeaturedPickerModal 에서 동적 렌더링 -->
+      </div>
+
+      <div class="flex items-center justify-between pt-3 border-t border-ink-black/10 text-xs">
+        <span class="text-ink-gray">원하는 꽃의 [이 꽃으로 추천 변경하기]를 누르면 즉시 쇼핑몰 메인에 반영됩니다.</span>
+        <button type="button" onclick="closeFeaturedPickerModal()" class="px-4 py-1.5 border border-ink-black/20 bg-white rounded-xs font-bold text-ink-gray hover:bg-gray-50 cursor-pointer">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📖 초보 사장님을 위한 상세 사용 설명서 모달 -->
+  <div id="admin-manual-modal" class="fixed inset-0 z-[80] bg-ink-black/70 hidden flex items-center justify-center p-3 sm:p-5" role="dialog" aria-modal="true" aria-labelledby="manual-modal-title">
+    <div class="bg-[#FAF7F2] rounded-sm max-w-5xl w-full h-[90vh] shadow-2xl border border-ink-black/20 flex flex-col overflow-hidden text-sm">
+      <!-- 모달 헤더 -->
+      <div class="px-5 py-4 bg-ink-black text-white flex items-center justify-between border-b border-ink-black/10 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">📖</span>
+          <div>
+            <h3 id="manual-modal-title" class="font-extrabold text-base text-white">초보 사장님을 위한 설담화 관리자 센터 사용 설명서</h3>
+            <p class="text-xs text-white/70 mt-0.5">코딩을 모르셔도 매일 매장을 쉽고 편안하게 운영하실 수 있도록 안내해 드려요.</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeAdminManualModal()" class="text-2xl leading-none text-white/70 hover:text-white cursor-pointer px-2" aria-label="닫기">&times;</button>
+      </div>
+
+      <!-- 모달 본문 (좌측 목차 + 우측 상세 설명) -->
+      <div class="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
+        <!-- 좌측 목차 내비게이션 -->
+        <nav class="w-full md:w-64 bg-white border-r border-ink-black/10 p-3 space-y-1.5 shrink-0 overflow-y-auto" aria-label="설명서 목차">
+          <p class="px-2 py-1 text-[11px] font-bold text-seal-red">운영 가이드 목차</p>
+          <button type="button" data-chapter="routine" onclick="showManualChapter('routine')" class="manual-nav-btn is-active">
+            <span>⏰ 매일의 운영 루틴</span>
+            <span>›</span>
+          </button>
+          <button type="button" data-chapter="timeline" onclick="showManualChapter('timeline')" class="manual-nav-btn">
+            <span>📋 오늘 제작 시간표</span>
+            <span>›</span>
+          </button>
+          <button type="button" data-chapter="featured" onclick="showManualChapter('featured')" class="manual-nav-btn">
+            <span>🌸 이달의 추천 꽃</span>
+            <span>›</span>
+          </button>
+          <button type="button" data-chapter="shipping" onclick="showManualChapter('shipping')" class="manual-nav-btn">
+            <span>🚚 배송·픽업 안내 문자</span>
+            <span>›</span>
+          </button>
+          <button type="button" data-chapter="holiday" onclick="showManualChapter('holiday')" class="manual-nav-btn">
+            <span>📅 쉬는 날 달력 지정</span>
+            <span>›</span>
+          </button>
+          <button type="button" data-chapter="tips" onclick="showManualChapter('tips')" class="manual-nav-btn">
+            <span>💡 단골 관리 & 유용한 꿀팁</span>
+            <span>›</span>
+          </button>
+        </nav>
+
+        <!-- 우측 챕터별 내용 영역 -->
+        <div class="flex-1 p-5 sm:p-7 overflow-y-auto bg-white space-y-6 leading-relaxed text-ink-black">
+          
+          <!-- 챕터 1: 매일의 운영 루틴 -->
+          <div id="manual-chapter-routine" class="manual-chapter-content space-y-4">
+            <div class="border-b border-ink-black/10 pb-3">
+              <span class="px-2 py-0.5 rounded bg-seal-red text-white text-[10px] font-bold">1장</span>
+              <h4 class="text-xl font-extrabold text-ink-black mt-1">⏰ 매일의 매장 운영 3단계 루틴</h4>
+              <p class="text-xs text-ink-gray mt-1">출근해서 퇴근할 때까지 관리자 센터를 어떻게 쓰는지 순서대로 따라해보세요.</p>
+            </div>
+
+            <div class="space-y-4 text-xs">
+              <div class="p-4 bg-[#FAF7F2] rounded-sm border border-ink-black/10 space-y-2">
+                <h5 class="font-extrabold text-sm text-seal-red flex items-center gap-1.5">
+                  <span>1단계. 아침 출근 (현황 파악)</span>
+                </h5>
+                <p>• 관리자 센터 상단 바를 보시면 <strong>"⏰ 오늘 출고 N건"</strong>과 <strong>"💬 상담 N건"</strong>이 한눈에 보입니다.</p>
+                <p>• 대시보드 화면 바로 아래에 있는 <strong>[오늘의 출고·제작 원스톱 퀵패널]</strong>에서 오늘 나갈 꽃다발과 시간을 빠르게 확인합니다.</p>
+              </div>
+
+              <div class="p-4 bg-[#FAF7F2] rounded-sm border border-ink-black/10 space-y-2">
+                <h5 class="font-extrabold text-sm text-seal-red flex items-center gap-1.5">
+                  <span>2단계. 낮 작업 시간 (꽃 만들기 & 포장)</span>
+                </h5>
+                <p>• 주문 관리 탭의 <strong>[⏰ 오늘 제작·출고 시간표]</strong> 뷰를 열어두고 작업합니다.</p>
+                <p>• 오전(10~13시), 오후(14~18시), 저녁(18~21시) 시간대별로 카드 메시지와 실크 보자기 포장 여부를 확인하며 꽃을 제작합니다.</p>
+                <p>• 포장이 끝난 꽃다발은 카드 우측 상단의 <strong>[🌸 제작 완료]</strong> 버튼을 콕 누르면 초록색 <strong>[✅ 포장 완료]</strong>로 바뀌어 누락을 방지합니다.</p>
+              </div>
+
+              <div class="p-4 bg-[#FAF7F2] rounded-sm border border-ink-black/10 space-y-2">
+                <h5 class="font-extrabold text-sm text-seal-red flex items-center gap-1.5">
+                  <span>3단계. 오후 출고 및 퇴근 (알림 발송 & 정산)</span>
+                </h5>
+                <p>• 택배 주문은 <strong>[송장 일괄 입력]</strong> 도구로 한 번에 송장을 넣고 '배송 중'으로 변경합니다.</p>
+                <p>• 매장 픽업 손님에게는 주문 상세의 <strong>[🏪 픽업 준비완료 안내]</strong> 버튼을 눌러 문자 앱으로 완성 알림을 보냅니다.</p>
+                <p>• 퇴근 전 <strong>'매출·지출 관리'</strong> 탭에서 오늘 발생한 꽃 사입비나 부자재 지출을 한 줄 적어두면 순이익이 자동 계산됩니다.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 챕터 2: 오늘 제작 시간표 -->
+          <div id="manual-chapter-timeline" class="manual-chapter-content hidden space-y-4">
+            <div class="border-b border-ink-black/10 pb-3">
+              <span class="px-2 py-0.5 rounded bg-seal-red text-white text-[10px] font-bold">2장</span>
+              <h4 class="text-xl font-extrabold text-ink-black mt-1">📋 오늘 제작 시간표 보드 활용법</h4>
+              <p class="text-xs text-ink-gray mt-1">스마트폰이나 태블릿을 작업대에 올려두고 종이 출력 없이 꽃을 만드는 방법입니다.</p>
+            </div>
+
+            <div class="space-y-3 text-xs leading-relaxed">
+              <p>• <strong>어디서 보나요?</strong> 관리자 센터 상단에서 <strong>[주문 및 배송 관리]</strong>로 이동한 뒤, <strong>[⏰ 오늘 제작·출고 시간표]</strong> 버튼을 누르시면 됩니다.</p>
+              <p>• <strong>시간대별 자동 정돈</strong>: 손님이 요청하신 희망 시간에 따라 <strong>오전 / 오후 / 저녁 / 택배(시간 미지정)</strong> 4개 영역으로 주문 카드가 자동 분류됩니다.</p>
+              <p>• <strong>보자기 포장 강조</strong>: 손님이 전통 실크 보자기 포장을 신청하신 경우, 노란색 <strong>[🎀 실크 보자기 & 노리개 포장]</strong> 뱃지가 눈에 띄게 강조되어 포장 실수를 예방합니다.</p>
+              <p>• <strong>카드 메시지 확인</strong>: 카드의 붉은색 따옴표 칸에 손님이 적으신 카드 문구가 바로 보여, 꽃을 꽂으면서 편지 카드를 바로 작성하실 수 있습니다.</p>
+              <p>• <strong>제작 완료 체크</strong>: 제작이 끝난 주문의 <strong>[🌸 제작 완료]</strong>를 누르면 포장 완료 상태로 변경되며 카드가 차분한 톤으로 바뀌어 남은 작업만 또렷이 보입니다.</p>
+            </div>
+          </div>
+
+          <!-- 챕터 3: 이달의 추천 꽃 -->
+          <div id="manual-chapter-featured" class="manual-chapter-content hidden space-y-4">
+            <div class="border-b border-ink-black/10 pb-3">
+              <span class="px-2 py-0.5 rounded bg-seal-red text-white text-[10px] font-bold">3장</span>
+              <h4 class="text-xl font-extrabold text-ink-black mt-1">🌸 '이달의 추천 꽃' & 상품 관리 가이드</h4>
+              <p class="text-xs text-ink-gray mt-1">쇼핑몰 첫 화면 메인 버튼에 띄울 대표 꽃을 마음대로 바꾸는 방법입니다.</p>
+            </div>
+
+            <div class="space-y-4 text-xs">
+              <div class="p-3.5 bg-amber-50 rounded-sm border border-amber-200 space-y-1.5">
+                <p class="font-extrabold text-ink-black">Q. 쇼핑몰 첫 화면의 [이달의 추천 : ○○○ 보기] 버튼은 어디서 바꾸나요?</p>
+                <p>1. <strong>[상품 및 한 줄 글귀 관리]</strong> 탭으로 이동합니다.</p>
+                <p>2. 상품 목록 맨 위에 있는 <strong>[🌸 쇼핑몰 메인 '이달의 추천 꽃']</strong> 카드를 봅니다.</p>
+                <p>3. <strong>[🎨 사진 보며 추천 꽃 고르기]</strong> 버튼을 누르면 전체 꽃 사진이 바둑판처럼 펼쳐집니다.</p>
+                <p>4. 원하는 꽃 카드의 <strong>[이 꽃으로 추천 변경하기]</strong> 버튼을 누르면 즉시 손님 화면에 반영됩니다!</p>
+              </div>
+
+              <div class="space-y-2">
+                <h5 class="font-bold text-sm text-ink-black">꽃 상품 재고와 품절 관리</h5>
+                <p>• <strong>품절 처리</strong>: 꽃 시장에서 특정 꽃이 수급되지 않을 때는 상품 목록에서 수량을 <strong>0</strong>으로 줄이시면 쇼핑몰에 자동으로 '일시 품절' 표시가 뜨고 주문이 막힙니다.</p>
+                <p>• <strong>재입고 알림 손님</strong>: 재고가 0이었다가 숫자를 올리면 "이 상품을 기다리는 손님이 N명 있어요" 알림이 뜨며, 바로 연락처를 확인하실 수 있습니다.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 챕터 4: 배송·픽업 안내 문자 -->
+          <div id="manual-chapter-shipping" class="manual-chapter-content hidden space-y-4">
+            <div class="border-b border-ink-black/10 pb-3">
+              <span class="px-2 py-0.5 rounded bg-seal-red text-white text-[10px] font-bold">4장</span>
+              <h4 class="text-xl font-extrabold text-ink-black mt-1">🚚 배송·픽업 알림 문자 & 운송장 일괄 처리</h4>
+              <p class="text-xs text-ink-gray mt-1">손님에게 친절한 문자를 원클릭으로 보내고, 여러 건의 송장번호를 빠르게 넣는 방법입니다.</p>
+            </div>
+
+            <div class="space-y-3 text-xs leading-relaxed">
+              <div class="p-3.5 bg-white border border-ink-black/15 rounded-sm space-y-2">
+                <p class="font-bold text-ink-black text-sm">🏪 매장 픽업 손님 준비완료 문자 보내기</p>
+                <p>1. 주문 목록에서 해당 픽업 주문의 줄을 눌러 상세 정보를 펼칩니다.</p>
+                <p>2. <strong>[🏪 픽업 준비완료 안내]</strong> 버튼을 누르면 정중한 완성 안내 문구가 펼쳐집니다.</p>
+                <p>3. <strong>[문자 앱 열기]</strong>를 누르면 스마트폰의 문자 앱이 열리면서 손님의 전화번호와 문구가 자동 세팅되어 [전송]만 누르시면 됩니다. (PC에서는 [문구 복사] 가능)</p>
+              </div>
+
+              <div class="p-3.5 bg-white border border-ink-black/15 rounded-sm space-y-2">
+                <p class="font-bold text-ink-black text-sm">📦 여러 주문 운송장 번호 한 번에 넣기</p>
+                <p>1. 오늘 발송할 택배 주문들의 앞쪽 <strong>체크박스</strong>를 여러 개 체크합니다.</p>
+                <p>2. 표 위에 나타나는 노란색 툴바에서 <strong>[📦 송장 일괄 입력]</strong> 버튼을 누릅니다.</p>
+                <p>3. 택배사(예: CJ대한통운)를 일괄 지정하고 송장번호를 순서대로 적은 뒤 <strong>[일괄 저장하기]</strong>를 누르면 모두 자동으로 '배송 중'으로 바뀝니다.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 챕터 5: 쉬는 날 달력 지정 -->
+          <div id="manual-chapter-holiday" class="manual-chapter-content hidden space-y-4">
+            <div class="border-b border-ink-black/10 pb-3">
+              <span class="px-2 py-0.5 rounded bg-seal-red text-white text-[10px] font-bold">5장</span>
+              <h4 class="text-xl font-extrabold text-ink-black mt-1">📅 쉬는 날(임시 휴무) 달력에서 지정하는 법</h4>
+              <p class="text-xs text-ink-gray mt-1">명절, 집안 행사, 매장 공사 등으로 특정 날짜에 주문을 받지 않는 방법입니다.</p>
+            </div>
+
+            <div class="space-y-3 text-xs leading-relaxed">
+              <p>• <strong>어디서 설정하나요?</strong> <strong>[매장 정보 설정]</strong> > <strong>[공휴일·임시 휴무]</strong> 탭으로 이동합니다.</p>
+              <p>• <strong>달력에서 콕 찍기</strong>: 상단에 나오는 <strong>'달력에서 쉬는 날 콕 찍기'</strong> 화면에서 쉬고 싶은 날짜(흰색 칸)를 클릭합니다.</p>
+              <p>• <strong>사유 입력</strong>: 팝업창에 '추석 연휴', '개인 사정' 등 사유를 적고 확인을 누르면 빨간색으로 바뀌면서 휴무일로 등록됩니다.</p>
+              <p>• <strong>효과</strong>: 사장님이 휴무로 지정하신 날짜는 쇼핑몰 손님의 배송 희망일 달력에서 자동으로 선택이 불가능해져서 당황스러운 주문을 사전에 차단합니다.</p>
+              <p>• <strong>취소하기</strong>: 빨간색으로 표시된 날짜를 다시 클릭하시면 "임시 휴무를 해제할까요?" 묻고 정상 영업일로 되돌아옵니다.</p>
+            </div>
+          </div>
+
+          <!-- 챕터 6: 단골 관리 & 꿀팁 -->
+          <div id="manual-chapter-tips" class="manual-chapter-content hidden space-y-4">
+            <div class="border-b border-ink-black/10 pb-3">
+              <span class="px-2 py-0.5 rounded bg-seal-red text-white text-[10px] font-bold">6장</span>
+              <h4 class="text-xl font-extrabold text-ink-black mt-1">💡 단골 손님 관리 & 유용한 꿀팁</h4>
+              <p class="text-xs text-ink-gray mt-1">설담화를 더 똑똑하고 편리하게 사용하는 실전 노하우입니다.</p>
+            </div>
+
+            <div class="space-y-4 text-xs">
+              <div class="p-3.5 bg-[#FAF0E6] rounded-sm border border-seal-red/20 space-y-1.5">
+                <p class="font-extrabold text-seal-red text-sm">🌸 단골 손님 뱃지 활용법</p>
+                <p>• 손님이 과거에 주문했던 전화번호로 다시 주문하면, 주문 목록과 시간표에 자동으로 <strong>[🌸 단골 · 2회차 (총 18만원)]</strong> 뱃지가 뜹니다.</p>
+                <p>• 단골 손님께는 꽃을 만드실 때 한 송이 더 풍성하게 넣어드리거나, 작은 노리개 사은품을 동봉해 드리면 손님의 감동과 재구매율이 크게 높아집니다.</p>
+                <p>• 주문 상세 아래쪽의 <strong>[📝 사장님 비공개 메모]</strong>에 "단골 사은품 노리개 동봉함"이라고 적어두시면 사장님만 보실 수 있습니다.</p>
+              </div>
+
+              <div class="p-3.5 bg-white rounded-sm border border-ink-black/10 space-y-1.5">
+                <p class="font-extrabold text-ink-black text-sm">🔍 키보드 빠른 검색 (Ctrl + K)</p>
+                <p>• 컴퓨터에서 일하시다가 키보드의 <strong>Ctrl 키와 K 키</strong>를 동시에 누르시면 언제든 검색창이 뜹니다.</p>
+                <p>• 손님 이름이나 전화번호 뒷자리만 치시면 해당 주문을 1초 만에 찾아 바로 펼쳐줍니다.</p>
+              </div>
+
+              <div class="p-3.5 bg-white rounded-sm border border-ink-black/10 space-y-1.5">
+                <p class="font-extrabold text-ink-black text-sm">🔔 새 주문 소리 알림 켜두기</p>
+                <p>• 상단 헤더의 <strong>[🔔 새 주문 소리 켜짐]</strong> 버튼을 켜두시면 다른 탭을 보거나 매장에서 음악을 틀어두어도 새 주문이 들어올 때 은은한 종소리가 울립니다.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 모달 푸터 -->
+      <div class="px-5 py-3 bg-[#FAF7F2] border-t border-ink-black/10 flex items-center justify-between text-xs text-ink-gray shrink-0">
+        <span>궁금하신 점이 있거나 새로운 기능이 필요하시면 언제든 말씀해 주세요.</span>
+        <button type="button" onclick="closeAdminManualModal()" class="px-4 py-1.5 bg-ink-black text-white rounded-xs font-bold hover:bg-seal-red cursor-pointer">설명서 닫기</button>
       </div>
     </div>
   </div>

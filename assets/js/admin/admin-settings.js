@@ -222,6 +222,10 @@ function renderClosuresList() {
     `;
     container.appendChild(row);
   });
+
+  if (typeof renderHolidayCalendar === 'function') {
+    renderHolidayCalendar();
+  }
 }
 
 function addClosureDate() {
