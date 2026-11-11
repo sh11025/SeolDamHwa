@@ -1,6 +1,6 @@
 # 설담화 작업 이어받기 안내 (HANDOFF)
 
-> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-11 [111] (다음 커밋: [112])
+> 다음 작업자(Claude / Antigravity / 사람)가 바로 이어서 할 수 있도록 정리한 문서입니다. 마지막 업데이트: 2026-11-11 [112] (다음 커밋: [113])
 
 ## 1. 프로젝트 한눈에
 - `index.html`: 손님 쇼핑몰 / `admin-index.html`: 관리자 센터. 둘 다 Tailwind CDN + 순수 JS, 데이터는 브라우저 `localStorage`(키 `seoldamhwa_*`).

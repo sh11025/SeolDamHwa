@@ -1,68 +1,187 @@
 # 설담화 (說談花)
 
-현대적 한국 전통(Modern Oriental / 힙 트래디셔널) 꽃 셀렉트샵 **설담화(說談花)** 웹 애플리케이션입니다.  
-손님을 위한 온라인 쇼핑몰과 사장님을 위한 관리자 센터로 구성되어 있으며, 로컬 환경에서 간편하게 실행하고 매장 내부망(Wi-Fi)을 통해 여러 기기에서 실시간으로 함께 사용할 수 있습니다.
+> **"꽃에 이야기를 담고, 마음에 온기를 전합니다."**  
+> 한국 전통 한옥의 단아함과 정갈함을 현대적으로 재해석한 프리미엄 감성 꽃 셀렉트샵 **설담화(說談花)** 풀스택 웹 플랫폼입니다.  
+> 손님을 위한 온라인 쇼핑몰과 1인 플로리스트 사장님을 위한 직관적인 관리자 센터로 구성되어 있습니다.
 
 ---
 
-## 1. 프로젝트 소개
-
-- **손님 쇼핑몰 (`index.html`)**
-  - 감각적인 비움의 미학, 한옥 창살 프레임과 꽃살 무늬가 어우러진 꽃 상품 둘러보기
-  - 상황과 대상에 맞는 꽃을 추천해 주는 '맞춤 담화'
-  - 한국의 사계절 24절기와 꽃말을 담은 '꽃 사전' (62종)
-  - 배송 방법(퀵 당일, 택배, 매장 픽업) 및 희망 배송일·시간대 지정 주문
-  - 1:1 빠른 상담 문의 및 실시간 영업 상태 안내
-  - 배송 완료 주문 손님의 후기 작성(별점, 후기글, 사진 최대 3장, 영상 1개) 및 쇼핑몰 후기 목록/홈 후기 슬라이더
-
-- **사장님 관리자 센터 (`admin-index.html`)**
-  - 대시보드 실시간 주문/매출 현황 및 오늘 할 일 안내
-  - 주문 접수·배송 상태 관리 및 운송장 번호 입력
-  - 꽃 상품 등록·수정, 품절 처리 및 실시간 재고 관리
-  - 손님 후기 검수(게시 승인, 숨김, 삭제) 및 사장님 정성 답글 등록
-  - 오프라인 인쇄용 QR 쿠폰 발행 및 사용 통계 관리
-  - 꽃 사전 편집, 매장 운영시간·배송비·공휴일 및 안내 페이지 관리
-  - **관리자 센터 접속 방법:**
-    - 쇼핑몰 맨 아래 저작권 문구 끝의 은은한 **관리자** 링크를 누르거나, 브라우저 주소창에 `/admin-index.html`을 직접 입력하여 접속할 수 있습니다.
-    - 매장 컴퓨터: `http://localhost:5500/admin-index.html`로 접속 시 별도 로그인 없이 바로 열립니다.
-    - 다른 기기(휴대폰 등): 매장 쇼핑몰 주소 뒤에 `/admin-index.html`을 붙여 접속한 뒤(예: `http://192.168.x.x:5500/admin-index.html`), 관리자 비밀번호를 입력하면 열립니다.
+## 🌐 실시간 데모 (Live Demo)
+- 🌸 **손님 쇼핑몰 바로가기**: [https://sh11025.github.io/SeolDamHwa/](https://sh11025.github.io/SeolDamHwa/)
+- 🛠️ **사장님 관리자 센터 바로가기**: [https://sh11025.github.io/SeolDamHwa/admin-index.html](https://sh11025.github.io/SeolDamHwa/admin-index.html)  
+  *(쇼핑몰 메인 화면 맨 아래 푸터 저작권 문구 옆 `[관리자]` 글씨를 누르셔도 바로 열립니다)*
 
 ---
 
-## 2. 실행 방법
+# Ⅰ. 서비스 기획서 (Product Specification)
 
-설담화는 매장 환경에 맞춰 두 가지 방식으로 실행할 수 있습니다.
+## 1. 브랜드 개요 및 핵심 철학
 
-### 방법 A: 서버 모드 (권장 — 매장 운영 및 CSV 동기화)
-- **기본 실행 (이 컴퓨터에서만 사용):**
-  매장 컴퓨터에서 `start-server.bat`을 더블 클릭하여 실행합니다. (또는 터미널에서 `python server.py` 실행)
-  - 브라우저에서 `http://localhost:5500` (관리자는 `http://localhost:5500/admin-index.html`)으로 열립니다.
-  - 외부나 다른 기기에서는 접속할 수 없으며, **오직 이 매장 컴퓨터에서만** 안전하게 접속됩니다.
-  - 화면에서 수정한 상품·주문·설정 내용이 `DATA/*.csv` 파일에 실시간으로 반영됩니다.
-  - 서버는 10분에 한 번씩 `DATA/backup/` 폴더에 CSV 복사본을 자동으로 저장하며 최신 40개까지 보관합니다. (단, 손님이 올린 사진·영상이 담긴 `DATA/uploads/` 폴더는 이 백업에 포함되지 않습니다.)
-  - **전체 백업 내려받기 (`/api/full-backup`):** 관리자 센터 '연동·데이터' 탭에서 언제든 모든 CSV 데이터와 손님 후기 사진·영상을 하나의 압축 파일(`seoldamhwa-backup-YYYYMMDD.zip`)로 내려받아 USB나 다른 안전한 곳에 보관할 수 있습니다. (※ 무낙관 고화질 원본 사진은 zip 압축 메모리 보호를 위해 전체 백업에 포함되지 않으며, 서버의 `DATA/originals/` 폴더에 별도로 보존됩니다.)
-  - **원본 사진 및 Supabase Storage 클라우드 백업:** 사장님이 올리는 원본 사진은 서버(`DATA/originals/`)에 안전하게 보존되며, 관리자 센터(연동·데이터 > 원본 사진)에서 Supabase Storage(Private Bucket `originals`)를 설정하여 클라우드에 안전하게 비공개 백업할 수 있습니다.
-  *(참고: 포트 5600은 실제 운영용이 아니며, 테스트용 DATA 복사본으로 시험할 때만 사용합니다.)*
-
-- **같은 와이파이(Wi-Fi)의 휴대폰에서도 접속할 때 (`--lan` 옵션):**
-  터미널에서 `python server.py --lan`을 실행합니다.
-  - 서버가 화면에 접속 가능한 IP 주소(예: `http://192.168.x.x:5500`)를 출력해 줍니다.
-  - 같은 공유기(Wi-Fi)에 연결된 손님 스마트폰과 매장 컴퓨터 관리자 센터 간에 데이터가 실시간으로 동기화됩니다.
-  - 손님이 주문 조회를 통해 실제 사진(300KB 이하)과 동영상(20MB 이하) 후기를 업로드할 수 있으며, 서버의 `DATA/uploads/reviews/` 폴더에 보관됩니다.
-  - 사장님이 승인한 후기의 사진·영상만 외부에 안전하게 공개(anon 200)되며, 승인되지 않은 미디어는 외부 접근이 차단(HTTP 404)됩니다.
-  - 손님 스마트폰의 새 주문 접수 시 디스코드 알림이 자동으로 전송되고, 쿠폰 사용 시 즉시 사용 완료 처리됩니다.
-
-### 방법 B: 정적 서빙 모드 (단순 화면 확인)
-터미널에서 `python -m http.server 5500` 등을 실행하여 브라우저로 접속합니다.
-
-- **동작 특징:**
-  - 별도 백엔드 서버 없이 브라우저 자체 기능만으로 동작합니다.
-  - 모든 데이터는 접속한 브라우저의 `localStorage`에만 저장되며 기기 간 자동 동기화는 되지 않습니다.
-  - 사진·영상 업로드 기능은 비활성화되며, 후기 작성 창에 "사진·영상은 매장 서버로 열었을 때 올릴 수 있어요"라는 친절한 오프라인 안내가 표시됩니다.
+- **브랜드명**: 설담화 (說談花) — *말씀 설(說), 말씀 담(談), 꽃 화(花)*
+- **슬로건**: "꽃에 이야기를 담고, 마음에 온기를 전합니다."
+- **핵심 컨셉**: 한국 전통 한옥의 단아함과 정갈함을 현대적으로 재해석한 프리미엄 감성 꽃집
+- **시각적 정체성 (Visual Identity)**:
+  - **한지 질감 (韓紙)**: 따뜻하고 은은한 한지 배경 (`#FBF9F5`, 닥나무 한지 텍스처)
+  - **먹빛 붓터치 (墨)**: 묵직하고 단아한 먹빛 헤드라인 및 구분선 (`#1A1A1A`)
+  - **자개(螺鈿) & 인주(印朱)**: 오색 은은한 자개 버튼 효과 및 선명한 설담화 붉은 인장 도장 낙관
+  - **정통 포장**: 기본 단아 한지 포장 및 전통 실크 본견 보자기 & 노리개 포장
 
 ---
 
-## 3. 주요 폴더 구조
+## 2. 타겟 고객 및 사용자 페르소나
+
+1. **마음을 전하는 선물 고객 (20~40대 남녀)**
+   - 부모님 생신/환갑, 연인과의 기념일, 승진/영전, 병문안/위로 등 특별한 상황에서 품격 있는 꽃 선물을 찾는 손님
+   - "꽃만 덩그러니 가는 것이 아니라, 내 진심 어린 사연과 정성이 함께 전달되길 원하는 고객"
+2. **외국인 및 전통 문화 애호 고객**
+   - 보자기 포장, 노리개, 한국 꽃말의 정취를 경험하고 선물하고자 하는 고객 (한국어/영어/일본어 3개 국어 완벽 지원)
+3. **1인 매장 전문 플로리스트 (사장님)**
+   - 꽃 손질, 제작, 포장, 배송 준비로 손이 쉴 틈 없는 바쁜 1인 꽃집 사장님
+   - 복잡한 ERP 대신, 직관적이고 군더더기 없는 모바일/PC 통합 운영 관리 필요
+
+---
+
+# Ⅱ. 시스템 아키텍처 및 핵심 플로우
+
+## 1. 시스템 아키텍처 (System Architecture)
+
+```mermaid
+flowchart TD
+    subgraph ClientLayer ["손님 브라우저 (Shop Frontend)"]
+        ShopUI["손님 화면 (index.html)"]
+        ShopCore["쇼핑몰 코어 (shop-core.js)"]
+        ShopPDP["상품 상세 & 뷰어 (shop-product.js)"]
+        ShopOrder["장바구니 & 주문서 (shop-checkout.js)"]
+        ShopDict["꽃 사전 & 큐레이션 (shop-flowers.js)"]
+        ShopRev["꽃 편지함 (후기 뷰어)"]
+    end
+
+    subgraph AdminLayer ["사장님 브라우저 (Admin Center)"]
+        AdminUI["관리자 센터 (admin-index.html)"]
+        AdminDash["대시보드 & 오늘 할 일 (admin-dashboard.js)"]
+        AdminOrders["주문 & 배송 관리 (admin-orders.js)"]
+        AdminProds["상품 & 재고 관리 (admin-products.js)"]
+        AdminHolidays["영업일 & 배송비 설정 (admin-settings.js)"]
+        AdminReviews["후기 검수 & 답글 (admin-reviews.js)"]
+        AdminFinance["매출·지출 회계 (admin-finance.js)"]
+    end
+
+    subgraph SyncLayer ["동기화 & 저장소 엔진"]
+        DataStore["브라우저 로컬 저장소 (DataStore - localStorage)"]
+        DataSync["양방향 동기화 엔진 (data-sync.js)"]
+    end
+
+    subgraph ServerLayer ["설담화 전용 서버 (Python Server Engine)"]
+        PyServer["server.py (ThreadingHTTPServer)"]
+        LockMgr["단일 원자적 락 (threading.Lock)"]
+        StockEngine["서버 원자적 재고 검증/차감 모듈"]
+        CsrfGuard["외부 CSRF & Host 위조 방어 모듈"]
+        BackupEngine["자동 백업 & 복원 엔진 (make_backup)"]
+    end
+
+    subgraph StorageLayer ["데이터 영구 보관소 (DATA/)"]
+        CsvDB[("12개 핵심 CSV 표\n(products, orders, reviews 등)")]
+        MediaDir[("후기 사진·영상 및 원본 사진\n(uploads/, originals/)")]
+        JsonConfigs[("설정 파일\n(.admin.json, .integrations.json)")]
+    end
+
+    ShopUI --> ShopCore & ShopPDP & ShopOrder & ShopDict & ShopRev
+    AdminUI --> AdminDash & AdminOrders & AdminProds & AdminHolidays & AdminReviews & AdminFinance
+
+    ShopCore & ShopOrder & AdminOrders & AdminProds --> DataStore
+    DataStore <--> DataSync
+    DataSync <--> |REST API : /api/sync, /api/csv| PyServer
+
+    PyServer --> LockMgr
+    LockMgr --> StockEngine & CsrfGuard & BackupEngine
+    StockEngine & BackupEngine --> CsvDB & MediaDir & JsonConfigs
+```
+
+---
+
+## 2. 핵심 비즈니스 플로우: 원자적 재고 처리 흐름
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Customer as 손님 (브라우저)
+    participant Cart as 장바구니/주문서
+    participant Server as 설담화 서버 (server.py)
+    participant DB as 데이터 저장소 (products/orders.csv)
+    actor Owner as 사장님 (디스코드/관리자)
+
+    Customer->>Cart: 상품 및 포장 옵션 선택 후 담기
+    Customer->>Cart: 받는 분, 배송일, 카드 메시지 입력
+    Customer->>Cart: [주문하기] 클릭
+    Cart->>Server: POST /api/sync (주문 정보 + 주문 품목 전송)
+
+    activate Server
+    Note over Server: 단일 잠금(LOCK) 획득
+    Server->>DB: 현재 상품 재고(stockQuantity) 실시간 조회
+
+    alt 재고 부족 (다른 손님이 먼저 결제함)
+        Server-->>Cart: 거절 반환 ("orders: '{상품명}' 재고가 부족합니다 (남은 수량: 0개)")
+        deactivate Server
+        Cart->>Cart: 로컬 임시 주문 즉시 롤백
+        Cart->>Customer: 3개 국어 알림 ("방금 다른 분이 주문해서 재고가 부족해요.")
+        Cart->>Customer: 장바구니 드로어로 자동 복귀
+    else 재고 충분 (정상 주문)
+        activate Server
+        Server->>DB: 상품 재고 즉시 차감 (0 미만 방지)
+        Server->>DB: orders.csv & order_items.csv 저장
+        Server->>Owner: 디스코드 웹후크로 주문 알림 즉시 전송
+        Server-->>Cart: 주문 승인 완료 (applied: 2, rejected: [])
+        deactivate Server
+        Cart->>Customer: 장바구니 비우기 & 주문 확인서 화면 표시
+    end
+```
+
+---
+
+# Ⅲ. 기능별 구현 현황 및 진행도 (Implementation Progress)
+
+| 대분류 | 세부 기능명 | 구현 상태 | 완성도 | 핵심 특징 및 구현 상세 |
+| :--- | :--- | :---: | :---: | :--- |
+| **쇼핑몰 (손님)** | **홈 브랜드 뷰 & 큐레이션** | ✅ 완료 | 100% | 전통 한옥 모티브 레이아웃, 꽃 편지 슬라이더, 맞춤 담화 큐레이션 띠 연동 |
+| **쇼핑몰 (손님)** | **상품 탐색 & 필터링** | ✅ 완료 | 100% | 7대 카테고리(꽃다발/꽃바구니/화병/드라이/공간/화분/굿즈), 제철 꽃 태그 |
+| **쇼핑몰 (손님)** | **상품 상세(PDP) & 포장 선택** | ✅ 완료 | 100% | 한지/보자기 포장 선택지, 사이즈 선택, 꽃말 및 화병 관리법 접기 연동 |
+| **쇼핑몰 (손님)** | **12폭 병풍 꽃 사전** | ✅ 완료 | 100% | 24절기/사계절 색상 기반 꽃 사전(62종), 제철 계산기, 상품 바로가기 |
+| **쇼핑몰 (손님)** | **정갈한 체크아웃** | ✅ 완료 | 100% | 퀵/택배/픽업 선택, 휴무일/마감일 제외 14일 달력, 안심 카드 메시지 입력 |
+| **쇼핑몰 (손님)** | **주문 확인서 & 이미지 저장** | ✅ 완료 | 100% | 한지풍 주문 확인서 캔버스 이미지 생성/저장, 주문번호 원클릭 복사 |
+| **쇼핑몰 (손님)** | **꽃 편지함 (포토 후기)** | ✅ 완료 | 100% | 배송 완료 주문 손님 작성, 사진 3장·영상 1개 업로드, 7대 사연 선택 |
+| **쇼핑몰 (손님)** | **3개 국어 다국어(i18n)** | ✅ 완료 | 100% | 한국어(KO), 영어(EN), 일본어(JA) 실시간 언어 변환 및 주문서 보존 |
+| **관리자 (사장님)** | **대시보드 & 오늘 할 일** | ✅ 완료 | 100% | 오늘 배송/픽업 건수, 꽃 사입량 자동 계산, 미답변 상담 및 미승인 후기 배지 |
+| **관리자 (사장님)** | **주문 & 배송 통합 관리** | ✅ 완료 | 100% | 5단계 주문 상태 변경, 운송장 번호 입력, 택배 배송조회 연동, 후기 요청 문자 |
+| **관리자 (사장님)** | **상품 & 실시간 재고 관리** | ✅ 완료 | 100% | 상품 등록/수정/숨김, 재고 수량 편집, 사이즈 옵션 구성, 추천 태그 지정 |
+| **관리자 (사장님)** | **꽃 편지(후기) 승인 & 답글** | ✅ 완료 | 100% | 사장님 승인제(`pending`→`approved`), 사장님 답글 작성, 불량 후기 즉시 삭제 |
+| **관리자 (사장님)** | **매장 일정 & 배송 정책 설정** | ✅ 완료 | 100% | 영업시간, 정기휴일, 법정 공휴일/임시 휴무일 제어, 퀵/택배 배송비 규칙 |
+| **관리자 (사장님)** | **포장 옵션 커스텀 관리** | ✅ 완료 | 100% | 보자기/한지 포장 추가·수정·순서변경, 실시간 쇼핑몰/주문서/라벨 가격 연동 |
+| **관리자 (사장님)** | **재무 회계 & 엑셀 다운로드** | ✅ 완료 | 100% | 월별 매출·지출·순마진 Chart.js 그래프, 회계용 개인정보 제외 .xlsx 다운로드 |
+| **관리자 (사장님)** | **보안 및 개인정보 관리** | ✅ 완료 | 100% | 5년 경과 주문 식별정보 영구 파기(익명화), 1년 경과 상담·재입고 정리 |
+| **인프라 & 서버** | **서버 사이드 재고 제어** | ✅ 완료 | 100% | 손님 기기 직접 재고 조작 차단, 동시 주문 1건 승인 및 음수 재고 방지 |
+| **인프라 & 서버** | **보안 & CSRF 방어** | ✅ 완료 | 100% | 관리자 다운로드 교차출처 차단(403), Host 헤더 DNS 재바인딩 방어, PBKDF2 암호화 |
+| **인프라 & 서버** | **CSV 데이터베이스 백업** | ✅ 완료 | 100% | 10분 주기/최신 40개 자동 백업, 원본 사진 Supabase Storage 비공개 버킷 백업 |
+
+---
+
+# Ⅳ. 실행 및 운영 방법
+
+### 방법 A: GitHub Pages (정적 데모 모드 — 포트폴리오 및 시연용)
+- 별도 서버 설치 없이 브라우저 자체 `localStorage`로 구동됩니다.
+- 쇼핑몰: [https://sh11025.github.io/SeolDamHwa/](https://sh11025.github.io/SeolDamHwa/)
+- 관리자 센터: [https://sh11025.github.io/SeolDamHwa/admin-index.html](https://sh11025.github.io/SeolDamHwa/admin-index.html)
+
+### 방법 B: 서버 모드 (매장 실운영 및 CSV 실시간 동기화)
+- **로컬 실행**: 매장 PC에서 `start-server.bat` 더블 클릭 (또는 `python server.py`)
+  - 로컬 주소: `http://localhost:5500` (관리자: `http://localhost:5500/admin-index.html`)
+  - 주문·상품 변경 시 디스크 `DATA/*.csv`에 실시간 원자적 반영
+  - 10분 주기 자동 백업 (`DATA/backup/`)
+- **매장 Wi-Fi 다중 기기 연동 (`--lan` 옵션)**:
+  - `python server.py --lan` 실행 시 사장님 스마트폰 및 태블릿에서도 실시간 동기화 지원
+
+---
+
+# Ⅴ. 주요 폴더 구조
 
 ```text
 SeolDamHwa/
@@ -100,48 +219,26 @@ SeolDamHwa/
 
 ---
 
-## 4. 데이터 저장 위치
+# Ⅵ. 향후 고도화 로드맵 (Upcoming Roadmap)
 
-1. **브라우저 저장소 (`DataStore`)**
-   - 모든 화면 컴포넌트는 `assets/js/data-store.js`의 `DataStore` 객체를 통해서만 데이터를 읽고 씁니다.
-   - 키 접두사: `seoldamhwa_*` (`seoldamhwa_products`, `seoldamhwa_orders`, `seoldamhwa_reviews` 등)
-2. **DATA 폴더 CSV 파일**
-   - 서버 모드 실행 시 `DATA/*.csv` 파일로 디스크에 저장되며, 브라우저와 실시간으로 동기화됩니다.
-   - 데이터 구조는 향후 PostgreSQL/Supabase 테이블로 1:1 이관될 수 있도록 표준 규격으로 설계되었습니다.
-3. **후기 미디어 파일**
-   - 손님이 후기 등록 시 첨부한 최적화 사진(JPEG)과 동영상(MP4/WebM/MOV)은 `DATA/uploads/reviews/`에 저장됩니다.
+```mermaid
+flowchart LR
+    subgraph Step1 ["1단계 : 손님 감성 극대화"]
+        S1["카드 엽서 실시간 미리보기"] --> S2["마음 추천 문구 칩"]
+        S2 --> S3["보자기 실물 비교 카드"]
+        S3 --> S4["꽃다발 S/M/L 사이즈 가이드"]
+        S4 --> S5["기념일 퀵 예약 피커"]
+    end
 
----
+    subgraph Step2 ["2단계 : 사장님 실무 혁신"]
+        A1["단골 손님 자동 뱃지"] --> A2["사장님 전용 비밀 주문 메모"]
+        A2 --> A3["오늘의 제작 타임라인 칸반"]
+        A3 --> A4["택배 송장 일괄 처리 도구"]
+        A4 --> A5["고객 안내 문자 원클릭 복사"]
+    end
 
-## 5. Git에 절대 올리지 않는 항목 (.gitignore)
-
-손님의 개인정보와 매장 보안을 위해 다음 항목은 Git 저장소에 절대 포함되지 않습니다:
-
-- **손님 개인정보 및 주문 내역:** `DATA/orders.csv`, `DATA/order_items.csv`, `DATA/inquiries.csv`, `DATA/restock.csv`
-- **지출 및 후기 데이터:** `DATA/expenses.csv`, `DATA/reviews.csv`
-- **손님 첨부 미디어:** `DATA/uploads/`
-- **쿠폰 정보:** `DATA/coupons.csv`, `DATA/coupon_history.csv`
-- **보안 설정 파일:** `DATA/.integrations.json` (디스코드 웹후크), `DATA/.admin.json` (관리자 비밀번호 해시)
-- **서버 백업 및 임시 파일:** `DATA/backup/`, `DATA/*.tmp`, `DATA_TEST*/`
-- **프롬프트 및 압축 파일:** `prompts/`, `*.zip`
-
----
-
-## 6. 개발 및 유지보수 명령어
-
-CSS 클래스를 추가하거나 자바스크립트를 수정한 경우 아래 명령어를 사용합니다:
-
-- **Tailwind CSS 빌드:**
-  ```bash
-  npm run build:css
-  ```
-  `src/tailwind.css`와 `tailwind.config.js`를 바탕으로 `assets/css/tailwind.css`를 생성 및 최적화합니다. 작업 중 실시간 감지는 `npm run watch:css`를 사용합니다.
-
-- **브라우저 캐시 방지 버전 판올림:**
-  ```bash
-  npm run bump
-  ```
-  HTML 파일 내에 연결된 스크립트와 스타일시트의 버전 쿼리스트링(`?v=XX`)을 한 번에 올려, 손님과 사장님의 브라우저가 옛 캐시 파일과 새 파일을 섞어 쓰는 문제를 방지합니다.
+    Step1 --> Step2
+```
 
 ---
 
