@@ -113,6 +113,8 @@ function renderOrdersList() {
       : `<select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold rounded-xs border border-ink-black/15 py-1 px-1.5 ${ORDER_STATUS_STYLE[o.status] || ''}" aria-label="배송 상태">
           ${['preparing', 'packaged', 'delivering', 'completed'].map(st => `<option value="${st}" ${o.status === st ? 'selected' : ''}>${ORDER_STATUS_LABELS[st]}</option>`).join('')}
         </select>`;
+    const stats = getCustomerStats(o, all);
+    const badge = o.personalInfoClearedAt ? '' : customerBadgeHtml(stats);
     const row = `
       <tr class="order-summary-row border-b border-ink-black/5 ${soon ? 'bg-amber-50/70' : ''} ${isCancelled ? 'opacity-55' : ''} hover:bg-[#F3EDE3]/50">
         <td class="order-col-check py-2 pl-3 pr-1" onclick="event.stopPropagation()"><input type="checkbox" class="order-check w-4 h-4 cursor-pointer" data-id="${o.id}" ${checkedOrders.has(o.id) ? 'checked' : ''} onchange="toggleOrderCheck('${o.id}', this.checked)" onclick="event.stopPropagation()" aria-label="${escapeHtml(o.orderNumber)} 선택"></td>
@@ -126,7 +128,13 @@ function renderOrdersList() {
           ${o.personalInfoClearedAt ? `<span class="inline-block mt-0.5 px-1 py-0.2 rounded text-[10px] font-bold bg-gray-200 text-gray-700">개인정보 정리됨</span>` : ''}
           ${o.reviewRequestedAt ? `<span class="inline-block mt-0.5 px-1 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800" title="후기 요청: ${escapeHtml(o.reviewRequestedAt)}">후기 요청함</span>` : ''}
         </td>
-        <td class="order-col-recipient py-2 px-2 font-bold text-ink-black cursor-pointer" onclick="toggleOrderExpand('${o.id}')">${o.personalInfoClearedAt ? '<span class="text-ink-gray font-normal">개인정보 정리됨</span>' : escapeHtml(orderRecipient(o).name)}${o.deliveryMethod === 'pickup' ? ' <span class="text-[10px] font-bold px-1 rounded bg-blue-100 text-blue-800">픽업</span>' : ''}</td>
+        <td class="order-col-recipient py-2 px-2 font-bold text-ink-black cursor-pointer" onclick="toggleOrderExpand('${o.id}')">
+          <div class="flex items-center flex-wrap gap-1">
+            <span>${o.personalInfoClearedAt ? '<span class="text-ink-gray font-normal">개인정보 정리됨</span>' : escapeHtml(orderRecipient(o).name)}</span>
+            ${badge}
+            ${o.deliveryMethod === 'pickup' ? '<span class="text-[10px] font-bold px-1 rounded bg-blue-100 text-blue-800">픽업</span>' : ''}
+          </div>
+        </td>
         <td class="order-col-items py-2 px-2 text-ink-black cursor-pointer max-w-[220px] truncate" onclick="toggleOrderExpand('${o.id}')" title="${escapeHtml(items.map(i => i.product && i.product.name).join(', '))}">${escapeHtml(first)}${items.length > 1 ? ` <span class="text-ink-gray">외 ${items.length - 1}</span>` : ''}</td>
         <td class="order-col-amount py-2 px-2 text-right font-bold whitespace-nowrap cursor-pointer" onclick="toggleOrderExpand('${o.id}')">${isCancelled ? `<s>${formatWon(o.totalAmount)}</s>` : formatWon(o.totalAmount)}</td>
         <td class="order-col-status py-2 px-2">${statusSelect}</td>
@@ -172,7 +180,11 @@ function renderOrdersList() {
         <td colspan="8" class="py-3 px-2">
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
             <div class="space-y-1">
-              <p class="font-bold text-ink-gray">받는 분</p>
+              <div class="flex items-center justify-between pb-1">
+                <span class="font-bold text-ink-gray">받는 분 & 주문자</span>
+                ${badge}
+              </div>
+              ${stats.isRepeat ? `<p class="text-[11px] font-bold text-seal-red bg-[#FAF0E6] p-1.5 rounded-xs border border-seal-red/20">🌸 단골 손님입니다 (누적 ${stats.count}회차 주문 · 총 ${formatWon(stats.total)})</p>` : `<p class="text-[11px] text-emerald-800 bg-emerald-50 p-1.5 rounded-xs border border-emerald-200">🌱 첫 주문 손님입니다 (정성껏 맞이해 주세요)</p>`}
               ${o.personalInfoClearedAt ? `<p class="text-xs text-ink-gray font-bold p-2 bg-white rounded border border-ink-black/10">🔒 보관 기간(5년) 경과로 개인정보가 정리되었습니다. (${escapeHtml(o.personalInfoClearedAt.slice(0, 10))})</p>` : `
               <p class="text-sm font-bold text-ink-black">${escapeHtml(orderRecipient(o).name)} · <a href="tel:${escapeHtml(orderRecipient(o).phone)}" class="underline">${escapeHtml(orderRecipient(o).phone)}</a></p>
               <p class="text-ink-black">${o.zipcode ? `(${escapeHtml(o.zipcode)}) ` : ''}${escapeHtml(o.address)}</p>
@@ -465,6 +477,34 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', () => { try { adminAudio = adminAudio || new (window.AudioContext || window.webkitAudioContext)(); adminAudio.resume(); } catch (e) { /* 무시 */ } }, { once: true });
   renderAdminSoundButton();
 });
+
+// ---- 단골 손님 집계 및 뱃지 ----
+function getCustomerStats(order, allOrders) {
+  const phone = getOrdererPhone(order);
+  if (!phone || phone.length < 9) return { count: 1, total: Number(order.totalAmount) || 0, isRepeat: false };
+
+  // 취소되지 않은 주문 중 연락처가 일치하는 주문 집계
+  const matched = (allOrders || []).filter(o => {
+    if (o.status === 'cancelled') return false;
+    const p = getOrdererPhone(o);
+    return p && p === phone;
+  });
+
+  const count = matched.length || 1;
+  const total = matched.reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0) || (Number(order.totalAmount) || 0);
+  return {
+    count,
+    total,
+    isRepeat: count >= 2
+  };
+}
+
+function customerBadgeHtml(stats) {
+  if (stats.isRepeat) {
+    return `<span class="inline-block ml-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#FAF0E6] text-seal-red border border-seal-red/30 whitespace-nowrap" title="누적 ${stats.count}회차 주문 · 총 ${formatWon(stats.total)}">🌸 단골 · ${stats.count}회차</span>`;
+  }
+  return `<span class="inline-block ml-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap" title="설담화 첫 주문 고객님입니다">🌱 첫 주문</span>`;
+}
 
 // ---- 주문 안내 메시지 (배송 출발 및 후기 요청) ----
 function getOrdererPhone(o) {

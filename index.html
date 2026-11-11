@@ -25,8 +25,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
   
   <!-- 관리자에서 고른 사이트 색을 첫 화면부터 입힘 -->
-  <script src="assets/js/data-store.js?v=104"></script>
-  <script src="assets/js/site-theme.js?v=104"></script>
+  <script src="assets/js/data-store.js?v=106"></script>
+  <script src="assets/js/site-theme.js?v=106"></script>
   <script>try { applySiteTheme((DataStore.read(DataStore.KEYS.settings, null) || {}).theme); } catch (e) { /* 기본 색 */ }</script>
   <script>
 
@@ -358,7 +358,7 @@
     .info-page-body .page-ul li { margin: 3px 0; }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=104">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=106">
 </head>
 <body class="selection:bg-seal-red/15 selection:text-seal-red min-h-screen flex flex-col">
   <!-- 상품 미리보기 모드 상단 고정 배너 -->
@@ -1485,6 +1485,32 @@
           <label class="block"><span data-i18n="checkout_message_label" class="block font-bold text-ink-black mb-1">보자기 동봉 전통 한지 메시지</span>
             <textarea id="order-message" rows="2" maxlength="200" data-i18n-placeholder="checkout_message_placeholder" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs" placeholder="동봉할 메시지를 적어주세요."></textarea></label>
           <label class="flex items-center gap-2 cursor-pointer text-ink-black"><input type="checkbox" id="order-hide-sender" class="w-4 h-4"> <span data-i18n="co_hide_sender">카드에 보내는 분 이름을 적지 않을게요 (익명 선물)</span></label>
+
+          <!-- 보자기 동봉 전통 한지 엽서 실시간 미리보기 -->
+          <div class="p-3.5 bg-[#FAF7F2] border border-ink-black/15 rounded-xs space-y-2">
+            <div class="flex items-center justify-between text-[11px] text-ink-gray border-b border-ink-black/10 pb-1.5">
+              <span class="font-bold text-ink-black flex items-center gap-1">✉️ <span data-i18n="card_preview_title">전통 한지 엽서 미리보기</span></span>
+              <span class="text-[10px] text-seal-red font-serif" data-i18n="card_preview_subtitle">꽃과 함께 고이 동봉됩니다</span>
+            </div>
+            <div id="card-preview-paper" class="relative bg-white border border-[#E8E2D5] p-4 sm:p-5 rounded-xs shadow-xs min-h-[96px] flex flex-col justify-between select-none">
+              <!-- 전통 사각 모서리 문양 -->
+              <span class="absolute top-1.5 left-1.5 w-2 h-2 border-t border-l border-ink-black/30 pointer-events-none"></span>
+              <span class="absolute top-1.5 right-1.5 w-2 h-2 border-t border-r border-ink-black/30 pointer-events-none"></span>
+              <span class="absolute bottom-1.5 left-1.5 w-2 h-2 border-b border-l border-ink-black/30 pointer-events-none"></span>
+              <span class="absolute bottom-1.5 right-1.5 w-2 h-2 border-b border-r border-ink-black/30 pointer-events-none"></span>
+
+              <!-- 본문 메시지 -->
+              <p id="card-preview-text" class="text-xs sm:text-sm text-ink-light opacity-65 font-serif leading-relaxed whitespace-pre-wrap italic break-keep py-1">
+                "전하고 싶은 고운 마음을 적어주시면, 설담화의 전통 한지 엽서에 정갈히 담아 꽃과 함께 보내드립니다."
+              </p>
+
+              <!-- 하단 서명 & 낙관 -->
+              <div class="mt-3 pt-2 border-t border-ink-black/10 flex items-center justify-between">
+                <span id="card-preview-sender" class="text-[11px] text-ink-gray font-serif">보내는 분: 마음을 전하는 손님</span>
+                <span class="w-5 h-5 rounded-full border border-seal-red text-seal-red text-[10px] font-bold flex items-center justify-center select-none opacity-85" title="설담화 낙관">說</span>
+              </div>
+            </div>
+          </div>
           <label class="block"><span data-i18n="co_request" class="block font-bold text-ink-black mb-1">배송 요청 (선택)</span>
             <input type="text" id="order-request" maxlength="80" data-i18n-placeholder="co_request_ph" placeholder="예: 부재 시 경비실에 맡겨 주세요" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs"></label>
         </div>
@@ -1950,34 +1976,34 @@
   </div>
 
   <!-- 상품 데이터 및 공통 스토리지 스크립트 -->
-  <script src="assets/js/products-data.js?v=104"></script>
-  <script src="assets/js/flowers-data.js?v=104"></script>
-  <script src="assets/js/i18n.js?v=104"></script>
-  <script src="assets/js/site-settings.js?v=104"></script>
-  <script src="assets/js/popups.js?v=104"></script>
-  <script src="assets/js/integrations.js?v=104"></script>
-  <script src="assets/js/site-pages.js?v=104"></script>
-  <script src="assets/js/restock.js?v=104"></script>
-  <script src="assets/js/csv-db.js?v=104"></script>
-  <script src="assets/js/data-sync.js?v=104"></script>
-  <script src="assets/js/coupons.js?v=104"></script>
+  <script src="assets/js/products-data.js?v=106"></script>
+  <script src="assets/js/flowers-data.js?v=106"></script>
+  <script src="assets/js/i18n.js?v=106"></script>
+  <script src="assets/js/site-settings.js?v=106"></script>
+  <script src="assets/js/popups.js?v=106"></script>
+  <script src="assets/js/integrations.js?v=106"></script>
+  <script src="assets/js/site-pages.js?v=106"></script>
+  <script src="assets/js/restock.js?v=106"></script>
+  <script src="assets/js/csv-db.js?v=106"></script>
+  <script src="assets/js/data-sync.js?v=106"></script>
+  <script src="assets/js/coupons.js?v=106"></script>
 
   <!-- JavaScript: 쇼핑몰 동작 & 인터랙션 로직 -->
   <!-- 쇼핑몰 화면 동작 (화면별 파일, 순서 중요) -->
-  <script src="assets/js/shop/shop-core.js?v=104"></script>
-  <script src="assets/js/shop/shop-product.js?v=104"></script>
-  <script src="assets/js/shop/shop-product-page.js?v=104"></script>
-  <script src="assets/js/shop/shop-checkout.js?v=104"></script>
-  <script src="assets/js/shop/shop-nav.js?v=104"></script>
-  <script src="assets/js/shop/shop-curation.js?v=104"></script>
-  <script src="assets/js/shop/shop-inquiry.js?v=104"></script>
-  <script src="assets/js/shop/shop-guide.js?v=104"></script>
-  <script src="assets/js/shop/shop-settings.js?v=104"></script>
-  <script src="assets/js/shop/shop-browse.js?v=104"></script>
-  <script src="assets/js/shop/shop-flowers.js?v=104"></script>
-  <script src="assets/js/shop/shop-dictionary.js?v=104"></script>
-  <script src="assets/js/shop/shop-router.js?v=104"></script>
-  <script src="assets/js/shop/shop-chat.js?v=104"></script>
-  <script src="assets/js/shop/shop-media-guard.js?v=104"></script>
+  <script src="assets/js/shop/shop-core.js?v=106"></script>
+  <script src="assets/js/shop/shop-product.js?v=106"></script>
+  <script src="assets/js/shop/shop-product-page.js?v=106"></script>
+  <script src="assets/js/shop/shop-checkout.js?v=106"></script>
+  <script src="assets/js/shop/shop-nav.js?v=106"></script>
+  <script src="assets/js/shop/shop-curation.js?v=106"></script>
+  <script src="assets/js/shop/shop-inquiry.js?v=106"></script>
+  <script src="assets/js/shop/shop-guide.js?v=106"></script>
+  <script src="assets/js/shop/shop-settings.js?v=106"></script>
+  <script src="assets/js/shop/shop-browse.js?v=106"></script>
+  <script src="assets/js/shop/shop-flowers.js?v=106"></script>
+  <script src="assets/js/shop/shop-dictionary.js?v=106"></script>
+  <script src="assets/js/shop/shop-router.js?v=106"></script>
+  <script src="assets/js/shop/shop-chat.js?v=106"></script>
+  <script src="assets/js/shop/shop-media-guard.js?v=106"></script>
 </body>
 </html>

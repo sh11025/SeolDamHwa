@@ -1091,6 +1091,58 @@ function toggleCheckoutModal(open) {
   if (typeof updatePopupVisibility === 'function') updatePopupVisibility();
 }
 
+// ---- 보자기 동봉 전통 한지 엽서 실시간 미리보기 ----
+function updateCardMessagePreview() {
+  const textEl = document.getElementById('card-preview-text');
+  const senderEl = document.getElementById('card-preview-sender');
+  if (!textEl) return;
+
+  const msg = (document.getElementById('order-message')?.value || '').trim();
+  const hideSender = !!document.getElementById('order-hide-sender')?.checked;
+  const ordererName = (document.getElementById('order-orderer-name')?.value || '').trim();
+
+  if (msg) {
+    textEl.textContent = `"${msg}"`;
+    textEl.classList.remove('text-ink-light', 'opacity-65');
+    textEl.classList.add('text-ink-black');
+  } else {
+    textEl.textContent = `"${coT('card_preview_default_msg', '전하고 싶은 고운 마음을 적어주시면, 설담화의 전통 한지 엽서에 정갈히 담아 꽃과 함께 보내드립니다.')}"`;
+    textEl.classList.add('text-ink-light', 'opacity-65');
+    textEl.classList.remove('text-ink-black');
+  }
+
+  if (senderEl) {
+    if (hideSender) {
+      senderEl.textContent = `보내는 분: ${coT('co_anonymous_sender', '익명의 손님')}`;
+    } else if (ordererName) {
+      senderEl.textContent = `보내는 분: ${ordererName} 님`;
+    } else {
+      senderEl.textContent = `보내는 분: 마음을 전하는 손님`;
+    }
+  }
+}
+
+function initCardMessagePreview() {
+  const msgInput = document.getElementById('order-message');
+  const hideCheckbox = document.getElementById('order-hide-sender');
+  const ordererInput = document.getElementById('order-orderer-name');
+
+  if (msgInput && !msgInput.dataset.previewBound) {
+    msgInput.addEventListener('input', updateCardMessagePreview);
+    msgInput.dataset.previewBound = '1';
+  }
+  if (hideCheckbox && !hideCheckbox.dataset.previewBound) {
+    hideCheckbox.addEventListener('change', updateCardMessagePreview);
+    hideCheckbox.dataset.previewBound = '1';
+  }
+  if (ordererInput && !ordererInput.dataset.previewBound) {
+    ordererInput.addEventListener('input', updateCardMessagePreview);
+    ordererInput.dataset.previewBound = '1';
+  }
+
+  updateCardMessagePreview();
+}
+
 // ---- 결제 단계 (① 주문할 꽃 → ② 받는 분·배송 → ③ 확인·주문) ----
 let checkoutStep = 1;
 
@@ -1102,6 +1154,10 @@ function goCheckoutStep(n) {
     const k = Number(li.dataset.stepLabel);
     li.className = `py-2 rounded-xs border ${k === n ? 'bg-ink-black text-hanji border-ink-black' : k < n ? 'bg-[#FAF7F2] text-seal-red border-seal-red/30' : 'bg-white text-ink-gray border-ink-black/10'}`;
   });
+  if (n === 2) {
+    initCardMessagePreview();
+    updateCardMessagePreview();
+  }
   if (n === 3) renderCheckoutReview();
   const page = document.getElementById('checkout-modal');
   if (page && !page.classList.contains('hidden')) window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1926,6 +1982,12 @@ window.addEventListener('keydown', e => {
     movePhotoViewer(1);
   }
 });
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCardMessagePreview);
+} else {
+  initCardMessagePreview();
+}
 
 
 // 5. 뷰 전환 및 모바일 메뉴 제어
