@@ -194,8 +194,30 @@ function executeSearchAction(index) {
   }
 }
 
-// 전역 키보드 단축키 리스너 (Ctrl+K, Cmd+K, '/')
+// 전역 키보드 단축키 리스너 (Ctrl+K, Cmd+K, '/', Escape)
 document.addEventListener('keydown', e => {
+  // ESC 키로 열려 있는 모달 닫기 (설명서 -> 추천꽃 갤러리 -> 전역검색 순)
+  if (e.key === 'Escape') {
+    const manualModal = document.getElementById('admin-manual-modal');
+    if (manualModal && !manualModal.classList.contains('hidden')) {
+      e.preventDefault();
+      closeAdminManualModal();
+      return;
+    }
+    const featuredModal = document.getElementById('modal-featured-picker');
+    if (featuredModal && !featuredModal.classList.contains('hidden')) {
+      e.preventDefault();
+      closeFeaturedPickerModal();
+      return;
+    }
+    const searchModal = document.getElementById('admin-search-modal');
+    if (searchModal && !searchModal.classList.contains('hidden')) {
+      e.preventDefault();
+      closeCommandPalette();
+      return;
+    }
+  }
+
   if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
     e.preventDefault();
     openCommandPalette();
@@ -629,24 +651,35 @@ function openAdminManualModal() {
   const modal = document.getElementById('admin-manual-modal');
   if (modal) {
     modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
     showManualChapter('routine');
   }
 }
 
 function closeAdminManualModal() {
   const modal = document.getElementById('admin-manual-modal');
-  if (modal) modal.classList.add('hidden');
+  if (modal) {
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
 }
 
 function showManualChapter(chapterId) {
+  const targetId = chapterId || 'routine';
   document.querySelectorAll('.manual-nav-btn').forEach(btn => {
-    const isActive = btn.dataset.chapter === chapterId;
-    btn.className = `manual-nav-btn w-full text-left px-3.5 py-2.5 rounded-sm font-bold text-xs flex items-center justify-between cursor-pointer transition-all ${isActive ? 'bg-ink-black text-white shadow-xs' : 'bg-white hover:bg-amber-50 text-ink-black border border-ink-black/10'}`;
+    const isActive = btn.dataset.chapter === targetId;
+    btn.className = `manual-nav-btn w-full text-left px-3.5 py-2.5 rounded-sm font-bold text-xs flex items-center justify-between cursor-pointer transition-all ${isActive ? 'is-active bg-ink-black text-white shadow-xs' : 'bg-white hover:bg-amber-50 text-ink-black border border-ink-black/10'}`;
   });
 
   document.querySelectorAll('.manual-chapter-content').forEach(cont => {
-    cont.classList.toggle('hidden', cont.id !== `manual-chapter-${chapterId}`);
+    const match = cont.id === `manual-chapter-${targetId}`;
+    cont.classList.toggle('hidden', !match);
   });
+
+  const contentContainer = document.getElementById('manual-content-container');
+  if (contentContainer) {
+    contentContainer.scrollTop = 0;
+  }
 }
 
 
