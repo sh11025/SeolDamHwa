@@ -138,6 +138,8 @@ function openProductModal() {
   updateProductImagePreview();
   document.getElementById('edit-prod-show-home').checked = true;
   document.getElementById('edit-prod-home-order').value = '';
+  const featCbNew = document.getElementById('edit-prod-is-featured');
+  if (featCbNew) featCbNew.checked = false;
 
   // 신규 상품은 기본 비공개 (B2: NEW products default to 비공개, so the owner can check them first)
   const radios = document.getElementsByName('edit-prod-visibility');
@@ -177,6 +179,11 @@ function editProduct(prodId) {
   updateProductImagePreview();
   document.getElementById('edit-prod-show-home').checked = !prod.hideOnHome;
   document.getElementById('edit-prod-home-order').value = typeof prod.homeOrder === 'number' ? prod.homeOrder : '';
+  const featCbEdit = document.getElementById('edit-prod-is-featured');
+  if (featCbEdit) {
+    const curSettings = typeof loadSettings === 'function' ? loadSettings() : {};
+    featCbEdit.checked = (curSettings.featuredProductId === prod.id);
+  }
 
   const vis = prod.visibility || 'public';
   const radios = document.getElementsByName('edit-prod-visibility');
@@ -383,6 +390,18 @@ function doSaveProduct() {
 
   const before = prodId ? loadProducts().find(p => p.id === prodId) : null;
   saveProducts(products);
+
+  // 이달의 추천 꽃 설정 연동
+  const featCb = document.getElementById('edit-prod-is-featured');
+  if (featCb && typeof saveSettings === 'function') {
+    const curSettings = typeof loadSettings === 'function' ? loadSettings() : {};
+    if (featCb.checked) {
+      saveSettings({ featuredProductId: savedId });
+    } else if (curSettings.featuredProductId === savedId) {
+      saveSettings({ featuredProductId: '' });
+    }
+  }
+
   closeProductModal(true);
   renderProductsTable();
   renderDashboard();

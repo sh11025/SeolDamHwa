@@ -25,8 +25,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
   
   <!-- 관리자에서 고른 사이트 색을 첫 화면부터 입힘 -->
-  <script src="assets/js/data-store.js?v=106"></script>
-  <script src="assets/js/site-theme.js?v=106"></script>
+  <script src="assets/js/data-store.js?v=107"></script>
+  <script src="assets/js/site-theme.js?v=107"></script>
   <script>try { applySiteTheme((DataStore.read(DataStore.KEYS.settings, null) || {}).theme); } catch (e) { /* 기본 색 */ }</script>
   <script>
 
@@ -358,7 +358,7 @@
     .info-page-body .page-ul li { margin: 3px 0; }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=106">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=107">
 </head>
 <body class="selection:bg-seal-red/15 selection:text-seal-red min-h-screen flex flex-col">
   <!-- 상품 미리보기 모드 상단 고정 배너 -->
@@ -1312,6 +1312,11 @@
               <label data-i18n="pdp_size_label" class="block text-xs font-bold text-ink-black">크기 선택</label>
               <select id="pdp-size-select" onchange="onSizeChanged()" class="w-full bg-white border border-ink-black/20 p-2.5 text-xs font-medium rounded-xs focus:border-seal-red">
               </select>
+              <!-- 체감 사이즈 가이드 카드 -->
+              <div id="pdp-size-guide-card" class="hidden p-2.5 bg-[#FAF7F2] border border-ink-black/10 rounded-xs flex items-center gap-2 text-[11px] text-ink-gray">
+                <span class="text-xs">📏</span>
+                <span id="pdp-size-guide-text" class="flex-1 font-medium"></span>
+              </div>
             </div>
 
             <!-- 보자기 포장 옵션 선택 -->
@@ -1321,6 +1326,14 @@
                 <option value="0">기본 단아 한지 포장 (무료)</option>
                 <option value="15000">전통 실크 본견 보자기 & 노리개 포장 (+15,000원)</option>
               </select>
+              <!-- 보자기 포장 실물 비교 카드 -->
+              <div id="pdp-package-preview-card" class="p-2.5 bg-[#FAF7F2] border border-ink-black/10 rounded-xs flex items-start gap-2.5 text-[11px]">
+                <span class="text-base leading-none pt-0.5">🎁</span>
+                <div class="flex-1 space-y-0.5">
+                  <p id="pdp-package-preview-name" class="font-bold text-ink-black">기본 단아 한지 포장</p>
+                  <p id="pdp-package-preview-desc" class="text-ink-gray leading-relaxed">정갈한 백색/미색 전통 한지와 지끈으로 소박하고 단아하게 포장합니다.</p>
+                </div>
+              </div>
             </div>
 
             <!-- 수량 선택 및 재고 안내 -->
@@ -1460,7 +1473,17 @@
 
         <!-- 희망일: 달력에서 고르기, 시간대는 퀵·픽업일 때만 -->
         <div class="text-xs space-y-2">
-          <p id="co-date-label" data-i18n="co_date_label" class="block font-bold text-seal-red">생화 희망 배송일 (필수)</p>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <p id="co-date-label" data-i18n="co_date_label" class="block font-bold text-seal-red">생화 희망 배송일 (필수)</p>
+            <!-- 빠른 날짜 선택 피커 -->
+            <div class="flex items-center gap-1 flex-wrap">
+              <span class="text-[11px] text-ink-gray font-medium flex items-center gap-0.5">🗓️ <span data-i18n="co_quick_date_label">빠른 날짜:</span></span>
+              <button type="button" onclick="selectQuickDeliveryDate('tomorrow')" class="px-2 py-0.5 rounded-full border border-ink-black/20 bg-white hover:border-seal-red hover:text-seal-red text-[11px] transition-colors cursor-pointer" data-i18n="co_quick_tomorrow">내일 수령</button>
+              <button type="button" onclick="selectQuickDeliveryDate('weekend')" class="px-2 py-0.5 rounded-full border border-ink-black/20 bg-white hover:border-seal-red hover:text-seal-red text-[11px] transition-colors cursor-pointer" data-i18n="co_quick_weekend">이번 주말</button>
+              <button type="button" onclick="selectQuickDeliveryDate('parents_day')" class="px-2 py-0.5 rounded-full border border-ink-black/20 bg-white hover:border-seal-red hover:text-seal-red text-[11px] transition-colors cursor-pointer" data-i18n="co_quick_parents_day">어버이날(5/8)</button>
+              <button type="button" onclick="selectQuickDeliveryDate('teachers_day')" class="px-2 py-0.5 rounded-full border border-ink-black/20 bg-white hover:border-seal-red hover:text-seal-red text-[11px] transition-colors cursor-pointer" data-i18n="co_quick_teachers_day">스승의날(5/15)</button>
+            </div>
+          </div>
           <input type="hidden" id="order-delivery-date">
           <div class="flex flex-col sm:flex-row gap-4 sm:items-start">
             <div id="delivery-calendar" class="w-full sm:w-72 shrink-0 bg-white border border-ink-black/15 rounded-xs p-3" aria-describedby="delivery-date-picked"></div>
@@ -1482,8 +1505,22 @@
 
         <!-- 카드 메시지 · 요청 -->
         <div class="space-y-2 text-xs">
-          <label class="block"><span data-i18n="checkout_message_label" class="block font-bold text-ink-black mb-1">보자기 동봉 전통 한지 메시지</span>
-            <textarea id="order-message" rows="2" maxlength="200" data-i18n-placeholder="checkout_message_placeholder" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs" placeholder="동봉할 메시지를 적어주세요."></textarea></label>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span data-i18n="checkout_message_label" class="font-bold text-ink-black">보자기 동봉 전통 한지 메시지</span>
+              <span class="text-[10px] text-ink-light">최대 200자</span>
+            </div>
+            <!-- 마음 추천 문구 칩 -->
+            <div class="flex items-center gap-1.5 flex-wrap pb-1.5">
+              <span class="text-[11px] text-ink-gray font-medium flex items-center gap-0.5">✨ <span data-i18n="co_msg_template_label">추천 문구:</span></span>
+              <button type="button" onclick="applyCardTemplate('parents')" class="px-2 py-0.5 rounded-full border border-ink-black/20 bg-white hover:border-seal-red hover:text-seal-red text-[11px] transition-colors cursor-pointer" data-i18n="co_tpl_parents">부모님 생신</button>
+              <button type="button" onclick="applyCardTemplate('lover')" class="px-2 py-0.5 rounded-full border border-ink-black/20 bg-white hover:border-seal-red hover:text-seal-red text-[11px] transition-colors cursor-pointer" data-i18n="co_tpl_lover">연인 기념일</button>
+              <button type="button" onclick="applyCardTemplate('comfort')" class="px-2 py-0.5 rounded-full border border-ink-black/20 bg-white hover:border-seal-red hover:text-seal-red text-[11px] transition-colors cursor-pointer" data-i18n="co_tpl_comfort">응원과 위로</button>
+              <button type="button" onclick="applyCardTemplate('celebrate')" class="px-2 py-0.5 rounded-full border border-ink-black/20 bg-white hover:border-seal-red hover:text-seal-red text-[11px] transition-colors cursor-pointer" data-i18n="co_tpl_celebrate">축하·개업</button>
+              <button type="button" onclick="applyCardTemplate('thanks')" class="px-2 py-0.5 rounded-full border border-ink-black/20 bg-white hover:border-seal-red hover:text-seal-red text-[11px] transition-colors cursor-pointer" data-i18n="co_tpl_thanks">감사 인사</button>
+            </div>
+            <textarea id="order-message" rows="2" maxlength="200" data-i18n-placeholder="checkout_message_placeholder" class="w-full bg-white border border-ink-black/20 p-2 rounded-xs" placeholder="동봉할 메시지를 적어주세요."></textarea>
+          </div>
           <label class="flex items-center gap-2 cursor-pointer text-ink-black"><input type="checkbox" id="order-hide-sender" class="w-4 h-4"> <span data-i18n="co_hide_sender">카드에 보내는 분 이름을 적지 않을게요 (익명 선물)</span></label>
 
           <!-- 보자기 동봉 전통 한지 엽서 실시간 미리보기 -->
@@ -1976,34 +2013,34 @@
   </div>
 
   <!-- 상품 데이터 및 공통 스토리지 스크립트 -->
-  <script src="assets/js/products-data.js?v=106"></script>
-  <script src="assets/js/flowers-data.js?v=106"></script>
-  <script src="assets/js/i18n.js?v=106"></script>
-  <script src="assets/js/site-settings.js?v=106"></script>
-  <script src="assets/js/popups.js?v=106"></script>
-  <script src="assets/js/integrations.js?v=106"></script>
-  <script src="assets/js/site-pages.js?v=106"></script>
-  <script src="assets/js/restock.js?v=106"></script>
-  <script src="assets/js/csv-db.js?v=106"></script>
-  <script src="assets/js/data-sync.js?v=106"></script>
-  <script src="assets/js/coupons.js?v=106"></script>
+  <script src="assets/js/products-data.js?v=107"></script>
+  <script src="assets/js/flowers-data.js?v=107"></script>
+  <script src="assets/js/i18n.js?v=107"></script>
+  <script src="assets/js/site-settings.js?v=107"></script>
+  <script src="assets/js/popups.js?v=107"></script>
+  <script src="assets/js/integrations.js?v=107"></script>
+  <script src="assets/js/site-pages.js?v=107"></script>
+  <script src="assets/js/restock.js?v=107"></script>
+  <script src="assets/js/csv-db.js?v=107"></script>
+  <script src="assets/js/data-sync.js?v=107"></script>
+  <script src="assets/js/coupons.js?v=107"></script>
 
   <!-- JavaScript: 쇼핑몰 동작 & 인터랙션 로직 -->
   <!-- 쇼핑몰 화면 동작 (화면별 파일, 순서 중요) -->
-  <script src="assets/js/shop/shop-core.js?v=106"></script>
-  <script src="assets/js/shop/shop-product.js?v=106"></script>
-  <script src="assets/js/shop/shop-product-page.js?v=106"></script>
-  <script src="assets/js/shop/shop-checkout.js?v=106"></script>
-  <script src="assets/js/shop/shop-nav.js?v=106"></script>
-  <script src="assets/js/shop/shop-curation.js?v=106"></script>
-  <script src="assets/js/shop/shop-inquiry.js?v=106"></script>
-  <script src="assets/js/shop/shop-guide.js?v=106"></script>
-  <script src="assets/js/shop/shop-settings.js?v=106"></script>
-  <script src="assets/js/shop/shop-browse.js?v=106"></script>
-  <script src="assets/js/shop/shop-flowers.js?v=106"></script>
-  <script src="assets/js/shop/shop-dictionary.js?v=106"></script>
-  <script src="assets/js/shop/shop-router.js?v=106"></script>
-  <script src="assets/js/shop/shop-chat.js?v=106"></script>
-  <script src="assets/js/shop/shop-media-guard.js?v=106"></script>
+  <script src="assets/js/shop/shop-core.js?v=107"></script>
+  <script src="assets/js/shop/shop-product.js?v=107"></script>
+  <script src="assets/js/shop/shop-product-page.js?v=107"></script>
+  <script src="assets/js/shop/shop-checkout.js?v=107"></script>
+  <script src="assets/js/shop/shop-nav.js?v=107"></script>
+  <script src="assets/js/shop/shop-curation.js?v=107"></script>
+  <script src="assets/js/shop/shop-inquiry.js?v=107"></script>
+  <script src="assets/js/shop/shop-guide.js?v=107"></script>
+  <script src="assets/js/shop/shop-settings.js?v=107"></script>
+  <script src="assets/js/shop/shop-browse.js?v=107"></script>
+  <script src="assets/js/shop/shop-flowers.js?v=107"></script>
+  <script src="assets/js/shop/shop-dictionary.js?v=107"></script>
+  <script src="assets/js/shop/shop-router.js?v=107"></script>
+  <script src="assets/js/shop/shop-chat.js?v=107"></script>
+  <script src="assets/js/shop/shop-media-guard.js?v=107"></script>
 </body>
 </html>

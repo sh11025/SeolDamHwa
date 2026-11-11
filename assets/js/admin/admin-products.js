@@ -51,11 +51,14 @@ function previewProduct(prodId) {
 
 function renderProductsTable() {
   const allProducts = loadAdminProducts();
+  renderFeaturedProductCard(allProducts);
   const tbody = document.getElementById('admin-products-table');
   if (!tbody) return;
   tbody.innerHTML = '';
 
   const catNames = Object.fromEntries(PRODUCT_CATEGORIES.map(c => [c.id, c.label]));
+  const currentSettings = typeof loadSettings === 'function' ? loadSettings() : {};
+  const currentFeaturedId = currentSettings.featuredProductId || '';
 
   const q = ((document.getElementById('prod-search') || {}).value || '').trim().toLowerCase();
   const stockFilter = (document.getElementById('prod-stock-filter') || {}).value || 'all';
@@ -129,10 +132,20 @@ function renderProductsTable() {
     }
 
     const catLabel = catNames[p.category] || p.category;
+    const isFeatured = (p.id === currentFeaturedId);
+    const featuredBadge = isFeatured
+      ? '<span class="inline-block ml-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#FAF0E6] text-seal-red border border-seal-red/30 whitespace-nowrap">🌸 이달의 추천</span>'
+      : '';
 
     tr.innerHTML = `
       <td class="py-3 px-4"><img src="${escapeHtml(p.image)}" alt="" class="w-12 h-14 object-cover border border-ink-black/10 rounded-xs"></td>
-      <td class="py-3 px-4 font-bold text-ink-black text-sm">${escapeHtml(p.name)}<p class="text-[11px] text-ink-gray font-normal">${catLabel}</p></td>
+      <td class="py-3 px-4 font-bold text-ink-black text-sm">
+        <div class="flex items-center flex-wrap gap-1">
+          <span>${escapeHtml(p.name)}</span>
+          ${featuredBadge}
+        </div>
+        <p class="text-[11px] text-ink-gray font-normal mt-0.5">${catLabel}</p>
+      </td>
       <td class="py-3 px-4 max-w-xs font-serif text-seal-red font-semibold leading-relaxed line-clamp-2">"${escapeHtml(p.poeticLine)}"</td>
       <td class="py-3 px-4 font-bold text-ink-black">${priceText}</td>
       <td class="py-3 px-4">${stBadge}${p.inquiryOnly ? '' : `<div class="mt-1.5 inline-flex items-center border border-ink-black/20 rounded-xs bg-white overflow-hidden" role="group" aria-label="재고 조절">
@@ -142,10 +155,78 @@ function renderProductsTable() {
         </div>`}${typeof restockWaitingCount === 'function' && restockWaitingCount(p.id) ? `<span class="block mt-1 text-[11px] font-bold text-amber-700">🔔 재입고 알림 ${restockWaitingCount(p.id)}명</span>` : ''}</td>
       <td class="py-3 px-4">${visBadge}<span class="block mt-1 text-[11px] ${p.hideOnHome ? 'text-ink-light' : 'text-ink-gray'}">${p.hideOnHome ? '홈에 숨김' : (typeof p.homeOrder === 'number' ? `홈 ${p.homeOrder}번째` : '홈에 보임')}</span></td>
       <td class="py-3 px-4 text-center whitespace-nowrap space-x-1">
+        ${isFeatured ? '<span class="inline-block px-2 py-1 bg-[#FAF0E6] text-seal-red border border-seal-red/25 rounded-xs font-bold text-[11px]">추천 중</span>' : `<button type="button" onclick="saveFeaturedProduct('${p.id}')" class="px-2 py-1 border border-ink-black/20 bg-white hover:border-seal-red hover:text-seal-red rounded-xs font-bold text-[11px] cursor-pointer" title="이 꽃을 쇼핑몰 메인의 '이달의 추천'으로 지정">⭐ 추천</button>`}
         <button onclick="previewProduct('${p.id}')" class="px-2.5 py-1 border border-ink-black/20 bg-white hover:border-seal-red hover:text-seal-red rounded-xs font-bold cursor-pointer">미리보기</button>
         <button onclick="editProduct('${p.id}')" class="px-2.5 py-1 border border-ink-black/20 bg-white hover:border-seal-red hover:text-seal-red rounded-xs font-bold cursor-pointer">수정</button>
       </td>
     `;
     tbody.appendChild(tr);
   });
+}
+
+// ---- 🌸 쇼핑몰 메인 '이달의 추천 꽃' 관리 함수들 ----
+function renderFeaturedProductCard(products) {
+  const select = document.getElementById('featured-prod-select');
+  const badge = document.getElementById('featured-prod-badge');
+  if (!select) return;
+
+  const all = products || loadAdminProducts();
+  const settings = typeof loadSettings === 'function' ? loadSettings() : {};
+  const featuredId = settings.featuredProductId || '';
+  
+  // 현재 지정된 추천 꽃
+  let activeProduct = all.find(p => p.id === featuredId);
+  let isAuto = false;
+  if (!activeProduct) {
+    isAuto = true;
+    activeProduct = (typeof homeProducts === 'function' ? homeProducts('all')[0] : null) || all[0];
+  }
+
+  if (badge) {
+    if (activeProduct) {
+      badge.textContent = isAuto ? `자동: ${activeProduct.name}` : `지정됨: ${activeProduct.name}`;
+      badge.className = isAuto
+        ? 'px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-200'
+        : 'px-2 py-0.5 rounded text-[11px] font-bold bg-[#FAF0E6] text-seal-red border border-seal-red/30';
+    } else {
+      badge.textContent = '지정된 상품 없음';
+      badge.className = 'px-2 py-0.5 rounded text-[11px] font-bold bg-gray-100 text-gray-600 border border-gray-200';
+    }
+  }
+
+  // 드롭다운 채우기
+  select.innerHTML = '<option value="">-- 상품을 선택해 주세요 --</option>' + all.map(p => {
+    const isSel = (p.id === (featuredId || (activeProduct && activeProduct.id)));
+    return `<option value="${escapeHtml(p.id)}" ${isSel ? 'selected' : ''}>${escapeHtml(p.name)} (${(p.price || 0).toLocaleString()}원)</option>`;
+  }).join('');
+}
+
+function saveFeaturedProduct(prodId) {
+  if (!prodId) return;
+  const all = loadAdminProducts();
+  const target = all.find(p => p.id === prodId);
+  if (!target) return;
+
+  if (typeof saveSettings === 'function') {
+    saveSettings({ featuredProductId: prodId });
+  }
+  alert(`🌸 '${target.name}' 상품이 쇼핑몰 메인의 [이달의 추천]으로 지정되었습니다.`);
+  renderProductsTable();
+}
+
+function saveFeaturedProductFromSelect() {
+  const select = document.getElementById('featured-prod-select');
+  if (!select || !select.value) {
+    alert('이달의 추천으로 지정할 상품을 목록에서 선택해 주세요.');
+    return;
+  }
+  saveFeaturedProduct(select.value);
+}
+
+function resetFeaturedProduct() {
+  if (typeof saveSettings === 'function') {
+    saveSettings({ featuredProductId: '' });
+  }
+  alert('🌸 이달의 추천 꽃이 기본값(홈 제철 꽃 1순위)으로 재설정되었습니다.');
+  renderProductsTable();
 }

@@ -284,8 +284,16 @@ function filterCategory(cat) {
 }
 
 // 히어로 "이달의 추천" 버튼 핸들러 (B4)
-// 이달의 추천 = 홈 '제철 꽃 컬렉션' 맨 앞 상품 (관리자 홈 순서 → 지금 제철 → 목록 순서)
+// 이달의 추천 = 관리자 지정 상품(settings.featuredProductId) 우선 → 없으면 홈 '제철 꽃 컬렉션' 맨 앞 상품 (관리자 홈 순서 → 지금 제철 → 목록 순서)
 function heroRecommendProduct() {
+  const settings = typeof loadSettings === 'function' ? loadSettings() : {};
+  if (settings.featuredProductId) {
+    const list = loadProducts();
+    const target = list.find(p => p.id === settings.featuredProductId);
+    if (target && (typeof isProductVisible === 'function' ? isProductVisible(target) : true)) {
+      return target;
+    }
+  }
   return homeProducts('all')[0] || loadProducts().find(p => typeof isProductVisible === 'function' ? isProductVisible(p) : true) || null;
 }
 

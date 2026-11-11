@@ -226,6 +226,48 @@ function pickDeliveryDate(value) {
   renderDeliveryCalendar();
 }
 
+// 빠른 날짜 선택 피커 (내일, 이번 주말, 어버이날 등)
+function selectQuickDeliveryDate(key) {
+  const dates = getAvailableDeliveryDates();
+  if (!dates.length) return;
+
+  const kp = typeof getKoreaTimeParts === 'function' ? getKoreaTimeParts(new Date()) : { dateStr: new Date().toISOString().slice(0, 10), year: new Date().getFullYear() };
+  const currentYear = kp.year || new Date().getFullYear();
+
+  let targetDate = '';
+  if (key === 'tomorrow') {
+    targetDate = dates[0]?.value || '';
+  } else if (key === 'weekend') {
+    const weekendDate = dates.find(d => {
+      const dt = new Date(d.value + 'T00:00:00');
+      const day = dt.getDay();
+      return day === 6 || day === 0;
+    });
+    targetDate = weekendDate ? weekendDate.value : (dates[0]?.value || '');
+  } else if (key === 'parents_day') {
+    const pDate = `${currentYear}-05-08`;
+    const found = dates.find(d => d.value === pDate);
+    targetDate = found ? found.value : '';
+    if (!targetDate) {
+      alert(coT('co_date_unavailable_quick', '선택하신 날짜는 현재 주문 가능 기간(영업일 14일) 밖이거나 마감되었습니다.'));
+      return;
+    }
+  } else if (key === 'teachers_day') {
+    const tDate = `${currentYear}-05-15`;
+    const found = dates.find(d => d.value === tDate);
+    targetDate = found ? found.value : '';
+    if (!targetDate) {
+      alert(coT('co_date_unavailable_quick', '선택하신 날짜는 현재 주문 가능 기간(영업일 14일) 밖이거나 마감되었습니다.'));
+      return;
+    }
+  }
+
+  if (targetDate) {
+    deliveryCalMonth = targetDate.slice(0, 7);
+    pickDeliveryDate(targetDate);
+  }
+}
+
 function renderDeliveryCalendar() {
   const box = document.getElementById('delivery-calendar');
   const input = document.getElementById('order-delivery-date');
@@ -1141,6 +1183,19 @@ function initCardMessagePreview() {
   }
 
   updateCardMessagePreview();
+}
+
+// 마음 추천 문구 원클릭 채우기
+function applyCardTemplate(type) {
+  const msgInput = document.getElementById('order-message');
+  if (!msgInput) return;
+  const key = `co_tpl_msg_${type}`;
+  const tpl = coT(key, '');
+  if (tpl) {
+    msgInput.value = tpl;
+    updateCardMessagePreview();
+    msgInput.focus();
+  }
 }
 
 // ---- 결제 단계 (① 주문할 꽃 → ② 받는 분·배송 → ③ 확인·주문) ----

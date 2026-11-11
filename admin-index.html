@@ -12,21 +12,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
   
-  <script src="assets/js/data-store.js?v=106"></script>
-  <script src="assets/js/products-data.js?v=106"></script>
-  <script src="assets/js/flowers-data.js?v=106"></script>
-  <script src="assets/js/site-theme.js?v=106"></script>
-  <script src="assets/js/site-settings.js?v=106"></script>
-  <script src="assets/js/popups.js?v=106"></script>
-  <script src="assets/js/finance-data.js?v=106"></script>
-  <script src="assets/js/integrations.js?v=106"></script>
-  <script src="assets/js/admin-tools.js?v=106"></script>
-  <script src="assets/js/site-pages.js?v=106"></script>
-  <script src="assets/js/image-library.js?v=106"></script>
-  <script src="assets/js/restock.js?v=106"></script>
-  <script src="assets/js/csv-db.js?v=106"></script>
-  <script src="assets/js/data-sync.js?v=106"></script>
-  <script src="assets/js/coupons.js?v=106"></script>
+  <script src="assets/js/data-store.js?v=107"></script>
+  <script src="assets/js/products-data.js?v=107"></script>
+  <script src="assets/js/flowers-data.js?v=107"></script>
+  <script src="assets/js/site-theme.js?v=107"></script>
+  <script src="assets/js/site-settings.js?v=107"></script>
+  <script src="assets/js/popups.js?v=107"></script>
+  <script src="assets/js/finance-data.js?v=107"></script>
+  <script src="assets/js/integrations.js?v=107"></script>
+  <script src="assets/js/admin-tools.js?v=107"></script>
+  <script src="assets/js/site-pages.js?v=107"></script>
+  <script src="assets/js/image-library.js?v=107"></script>
+  <script src="assets/js/restock.js?v=107"></script>
+  <script src="assets/js/csv-db.js?v=107"></script>
+  <script src="assets/js/data-sync.js?v=107"></script>
+  <script src="assets/js/coupons.js?v=107"></script>
   <!-- 운송장 바코드: JsBarcode -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
   <!-- 차트: Chart.js -->
@@ -416,7 +416,7 @@
     }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=106">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=107">
 </head>
 <body class="min-h-screen flex flex-col selection:bg-seal-red/15 selection:text-seal-red">
   <!-- 1. 관리자 상단 헤더 (Admin Top Bar) -->
@@ -781,6 +781,27 @@
         <!-- 종류별 나누기 (괄호 안 = 상품 수). admin-products.js renderProductCategoryFilter -->
         <div id="prod-cat-filter" class="flex flex-wrap items-center gap-1.5" role="group" aria-label="상품 종류"></div>
 
+        <!-- 🌸 쇼핑몰 메인 '이달의 추천 꽃' 설정 카드 -->
+        <div class="admin-card p-4 rounded-sm bg-[#FAF7F2] border border-seal-red/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div class="flex items-center gap-3">
+            <span class="w-9 h-9 rounded-full bg-seal-red/10 text-seal-red flex items-center justify-center font-bold text-lg shrink-0">🌸</span>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-extrabold text-ink-black">쇼핑몰 메인 '이달의 추천 꽃'</h3>
+                <span id="featured-prod-badge" class="px-2 py-0.5 rounded text-[11px] font-bold bg-[#FAF0E6] text-seal-red border border-seal-red/30">설정 중...</span>
+              </div>
+              <p class="text-xs text-ink-gray mt-0.5">쇼핑몰 상단 첫 화면의 [이달의 추천 : ○○○ 보기] 버튼으로 연결될 대표 상품이에요.</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <select id="featured-prod-select" class="bg-white border border-ink-black/25 py-1.5 px-2.5 rounded-xs text-xs font-bold min-w-[190px]" aria-label="이달의 추천 꽃 선택">
+              <option value="">불러오는 중...</option>
+            </select>
+            <button type="button" onclick="saveFeaturedProductFromSelect()" class="px-3.5 py-1.5 bg-ink-black text-white hover:bg-seal-red rounded-xs text-xs font-bold cursor-pointer transition-colors">지정하기</button>
+            <button type="button" onclick="resetFeaturedProduct()" class="px-2.5 py-1.5 bg-white border border-ink-black/20 text-ink-gray hover:text-ink-black rounded-xs text-xs font-bold cursor-pointer" title="홈 제철 꽃 1순위로 자동 선택">기본값</button>
+          </div>
+        </div>
+
         <!-- 상품 목록 테이블 -->
         <div class="admin-card rounded-sm overflow-hidden">
           <div class="overflow-x-auto">
@@ -946,7 +967,28 @@
             <h1 class="text-2xl font-extrabold text-ink-black tracking-tight">주문 및 배송 관리</h1>
             <p class="text-sm text-ink-gray mt-1">줄을 누르면 연락처·주소·카드 메시지·운송장 입력이 펼쳐져요. 체크한 주문은 운송장을 한 번에 출력할 수 있어요.</p>
           </div>
-          <button type="button" onclick="printSelectedLabels()" id="print-labels-btn" class="jakae-btn px-4 py-2 rounded-sm text-sm font-bold cursor-pointer whitespace-nowrap">선택한 주문 운송장 출력</button>
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- 뷰 전환: 전체 목록 / 오늘의 제작·출고 시간표 -->
+            <div class="inline-flex rounded-sm p-0.5 bg-[#E8E4DC] border border-ink-black/15 text-xs font-bold" role="tablist" aria-label="주문 보기 방식">
+              <button type="button" id="btn-view-list" onclick="setOrderViewMode('list')" class="px-3 py-1.5 rounded-xs bg-ink-black text-white transition-colors cursor-pointer" role="tab" aria-selected="true">📋 전체 목록</button>
+              <button type="button" id="btn-view-timeline" onclick="setOrderViewMode('timeline')" class="px-3 py-1.5 rounded-xs text-ink-black hover:text-seal-red transition-colors cursor-pointer" role="tab" aria-selected="false">⏰ 오늘 제작·출고 시간표</button>
+            </div>
+            <button type="button" onclick="printSelectedLabels()" id="print-labels-btn" class="jakae-btn px-4 py-2 rounded-sm text-sm font-bold cursor-pointer whitespace-nowrap">선택한 주문 운송장 출력</button>
+          </div>
+        </div>
+
+        <!-- 선택 주문 일괄 처리 툴바 -->
+        <div id="order-batch-toolbar" class="hidden admin-card p-3 rounded-sm bg-amber-50/90 border border-amber-300/80 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div class="flex items-center gap-2 font-bold text-ink-black">
+            <span class="inline-block w-2 h-2 rounded-full bg-seal-red animate-pulse"></span>
+            <span id="batch-selected-count">0건 선택됨</span>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button type="button" onclick="batchUpdateOrderStatus('delivering')" class="px-2.5 py-1.5 bg-ink-black text-white rounded-xs font-bold hover:bg-seal-red cursor-pointer">🚚 선택 일괄 '배송 출발'</button>
+            <button type="button" onclick="batchUpdateOrderStatus('completed')" class="px-2.5 py-1.5 bg-emerald-800 text-white rounded-xs font-bold hover:bg-emerald-700 cursor-pointer">✅ 선택 일괄 '배송 완료'</button>
+            <button type="button" onclick="openBatchTrackingModal()" class="px-2.5 py-1.5 bg-white border border-ink-black/30 text-ink-black rounded-xs font-bold hover:border-ink-black cursor-pointer">📦 송장 일괄 입력</button>
+            <button type="button" onclick="clearOrderChecks()" class="px-2 py-1.5 text-ink-gray hover:text-ink-black cursor-pointer">선택 해제</button>
+          </div>
         </div>
 
         <!-- 거르기 -->
@@ -963,7 +1005,8 @@
           <input type="search" id="order-search" oninput="renderOrdersList()" placeholder="이름·전화·주문번호 찾기" class="flex-1 min-w-[180px] bg-white border border-ink-black/20 p-1.5 rounded-xs text-sm">
         </div>
 
-        <div class="admin-card rounded-sm overflow-hidden">
+        <!-- 1) 테이블 목록 뷰 -->
+        <div id="admin-orders-table-container" class="admin-card rounded-sm overflow-hidden">
           <div class="overflow-x-auto">
             <table id="admin-orders-table" class="admin-card-table w-full text-left text-sm">
               <thead>
@@ -985,6 +1028,20 @@
           <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-t border-ink-black/10 text-xs text-ink-gray">
             <span id="order-list-count"></span>
             <button type="button" id="order-more-btn" onclick="showMoreOrders()" class="hidden px-3 py-1.5 border border-ink-black/20 bg-white rounded-xs font-bold text-ink-black cursor-pointer hover:border-ink-black">더 보기</button>
+          </div>
+        </div>
+
+        <!-- 2) 오늘의 제작·출고 시간표 뷰 (보드 형태) -->
+        <div id="admin-orders-timeline-container" class="hidden space-y-4">
+          <div class="admin-card p-4 rounded-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-[#FAF7F2]">
+            <div>
+              <h2 id="timeline-today-title" class="text-base font-extrabold text-ink-black">오늘의 꽃 작업 시간표</h2>
+              <p class="text-xs text-ink-gray mt-0.5">오늘 수령/출고 예정인 주문을 시간대별로 한눈에 확인하고, 포장이 끝난 꽃은 [제작 완료]를 눌러 체크하세요.</p>
+            </div>
+            <div id="timeline-summary-counts" class="flex items-center gap-2 text-xs font-bold"></div>
+          </div>
+          <div id="admin-orders-timeline-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            <!-- 자바스크립트로 시간대별 카드 컬럼 렌더링 -->
           </div>
         </div>
       </section>
@@ -2162,7 +2219,11 @@
                 홈 순서
                 <input type="number" id="edit-prod-home-order" min="1" max="999" placeholder="자동" class="w-20 bg-white border border-ink-black/20 p-1.5 rounded-xs focus:border-seal-red">
               </label>
-              <p class="w-full text-[11px] text-ink-gray">순서는 작은 숫자가 앞이에요. 비워 두면 지금 제철인 상품 → 목록 순서로 나와요. 숨겨도 '꽃 둘러보기'에는 보여요.</p>
+              <label class="inline-flex items-center gap-2 cursor-pointer font-bold text-seal-red ml-auto">
+                <input type="checkbox" id="edit-prod-is-featured" class="w-4 h-4 cursor-pointer accent-seal-red">
+                🌸 이달의 추천 꽃으로 지정
+              </label>
+              <p class="w-full text-[11px] text-ink-gray">순서는 작은 숫자가 앞이에요. '이달의 추천'으로 지정하면 쇼핑몰 메인 상단 버튼에 바로 연결돼요.</p>
             </div>
           </div>
         </section>
@@ -2182,19 +2243,19 @@
 
   <!-- JavaScript: Admin 로직 & 쇼핑몰 데이터 양방향 실시간 동기화 -->
   <!-- 관리자 화면 동작 (화면별 파일, 순서 중요) -->
-  <script src="assets/js/admin/admin-dashboard.js?v=106"></script>
-  <script src="assets/js/admin/admin-products.js?v=106"></script>
-  <script src="assets/js/admin/admin-orders.js?v=106"></script>
-  <script src="assets/js/admin/admin-inquiries.js?v=106"></script>
-  <script src="assets/js/admin/admin-product-modal.js?v=106"></script>
-  <script src="assets/js/admin/admin-flowers.js?v=106"></script>
-  <script src="assets/js/admin/admin-coupons.js?v=106"></script>
-  <script src="assets/js/admin/admin-settings.js?v=106"></script>
-  <script src="assets/js/admin/admin-popups.js?v=106"></script>
-  <script src="assets/js/admin/admin-finance.js?v=106"></script>
-  <script src="assets/js/admin/admin-integrations.js?v=106"></script>
-  <script src="assets/js/admin/admin-pages.js?v=106"></script>
-  <script src="assets/js/admin/admin-tools-ui.js?v=106"></script>
+  <script src="assets/js/admin/admin-dashboard.js?v=107"></script>
+  <script src="assets/js/admin/admin-products.js?v=107"></script>
+  <script src="assets/js/admin/admin-orders.js?v=107"></script>
+  <script src="assets/js/admin/admin-inquiries.js?v=107"></script>
+  <script src="assets/js/admin/admin-product-modal.js?v=107"></script>
+  <script src="assets/js/admin/admin-flowers.js?v=107"></script>
+  <script src="assets/js/admin/admin-coupons.js?v=107"></script>
+  <script src="assets/js/admin/admin-settings.js?v=107"></script>
+  <script src="assets/js/admin/admin-popups.js?v=107"></script>
+  <script src="assets/js/admin/admin-finance.js?v=107"></script>
+  <script src="assets/js/admin/admin-integrations.js?v=107"></script>
+  <script src="assets/js/admin/admin-pages.js?v=107"></script>
+  <script src="assets/js/admin/admin-tools-ui.js?v=107"></script>
 
   <!-- 슬라이드 편집 모달 -->
   <div id="slide-edit-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-black/60 hidden">
@@ -2382,6 +2443,58 @@
           <button type="submit" class="px-4 py-1.5 bg-ink-black text-white rounded-xs text-xs font-bold hover:bg-seal-red cursor-pointer">저장</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- 운송장 번호 일괄 입력 모달 -->
+  <div id="batch-tracking-modal" class="fixed inset-0 z-[65] bg-ink-black/60 hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="batch-tracking-title">
+    <div class="bg-white rounded-sm max-w-2xl w-full p-5 space-y-4 shadow-xl border border-ink-black/20 text-sm max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-ink-black/10 pb-2">
+        <div>
+          <h3 id="batch-tracking-title" class="font-bold text-base text-ink-black">운송장 번호 일괄 입력</h3>
+          <p class="text-xs text-ink-gray mt-0.5">선택한 주문의 택배사와 운송장 번호를 한 번에 입력하고 배송 중으로 변경할 수 있어요.</p>
+        </div>
+        <button type="button" onclick="closeBatchTrackingModal()" class="text-ink-gray hover:text-ink-black text-lg font-bold p-1 cursor-pointer" aria-label="닫기">&times;</button>
+      </div>
+
+      <div class="p-3 bg-amber-50/70 border border-amber-200 rounded-xs flex flex-wrap items-center gap-2 text-xs">
+        <span class="font-bold text-ink-black">택배사 일괄 지정:</span>
+        <select id="batch-courier-select" class="bg-white border border-ink-black/20 p-1.5 rounded-xs text-xs" aria-label="일괄 적용할 택배사">
+          <option value="직접 배송">직접 배송</option>
+          <option value="퀵서비스">퀵서비스</option>
+          <option value="CJ대한통운" selected>CJ대한통운</option>
+          <option value="우체국택배">우체국택배</option>
+          <option value="한진택배">한진택배</option>
+          <option value="롯데택배">롯데택배</option>
+          <option value="로젠택배">로젠택배</option>
+        </select>
+        <button type="button" onclick="applyBatchCourier()" class="px-2.5 py-1 bg-white border border-ink-black/20 text-ink-black rounded-xs font-bold hover:border-ink-black cursor-pointer">아래 목록 전체 적용</button>
+      </div>
+
+      <div class="overflow-y-auto flex-1 border border-ink-black/10 rounded-xs">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-[#EFECE6] text-ink-gray font-bold sticky top-0">
+            <tr>
+              <th class="py-2 px-2.5">주문번호 / 수령인</th>
+              <th class="py-2 px-2">상품</th>
+              <th class="py-2 px-2 w-32">택배사</th>
+              <th class="py-2 px-2 w-48">운송장 번호</th>
+            </tr>
+          </thead>
+          <tbody id="batch-tracking-list" class="divide-y divide-ink-black/5"></tbody>
+        </table>
+      </div>
+
+      <div class="flex items-center justify-between pt-2 border-t border-ink-black/10">
+        <label class="flex items-center gap-1.5 cursor-pointer text-xs">
+          <input type="checkbox" id="batch-mark-delivering" checked class="w-4 h-4 text-seal-red rounded-xs">
+          <span class="font-bold text-ink-black">운송장 번호가 있는 주문을 '배송 중'으로 변경하기</span>
+        </label>
+        <div class="flex gap-2">
+          <button type="button" onclick="closeBatchTrackingModal()" class="px-3 py-1.5 border border-ink-black/20 rounded-xs text-xs font-bold text-ink-gray hover:bg-gray-50 cursor-pointer">취소</button>
+          <button type="button" onclick="saveBatchTracking()" class="px-4 py-1.5 bg-ink-black text-white rounded-xs text-xs font-bold hover:bg-seal-red cursor-pointer">일괄 저장하기</button>
+        </div>
+      </div>
     </div>
   </div>
 

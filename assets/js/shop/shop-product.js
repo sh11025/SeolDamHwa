@@ -142,6 +142,7 @@ function renderProductPage(productId, isPreview = false) {
   }
 
   updatePDPPrice();
+  updateSizeGuideCard();
   try { updateRestockBox(prod, typeof isPreviewMode !== 'undefined' && isPreviewMode); } catch (e) { console.error('restock box error:', e); }
   document.getElementById('pdp-modal').classList.remove('hidden');
   if (typeof updatePopupVisibility === 'function') updatePopupVisibility();
@@ -228,6 +229,51 @@ function updatePDPPrice() {
 
   document.getElementById('pdp-price').innerText = formatPrice(unitPrice);
   document.getElementById('pdp-total').innerText = formatPrice(totalPrice);
+
+  updatePackagePreviewCard();
+}
+
+// 체감 사이즈 가이드 카드 업데이트
+function updateSizeGuideCard() {
+  const card = document.getElementById('pdp-size-guide-card');
+  const textEl = document.getElementById('pdp-size-guide-text');
+  if (!card || !textEl) return;
+  if (!currentSelectedSize) {
+    card.classList.add('hidden');
+    return;
+  }
+  const lbl = String(currentSelectedSize.label || '').toUpperCase();
+  let guideText = '';
+  if (lbl.includes('S') || lbl.includes('소') || lbl.includes('SMALL')) {
+    guideText = typeof t === 'function' ? t('pdp_size_guide_s', '한 손에 가볍게 안기는 아담한 크기 (가로 약 25cm)') : '한 손에 가볍게 안기는 아담한 크기 (가로 약 25cm)';
+  } else if (lbl.includes('L') || lbl.includes('대') || lbl.includes('LARGE')) {
+    guideText = typeof t === 'function' ? t('pdp_size_guide_l', '품에 가득 차는 특별한 날의 대형 크기 (가로 약 45cm)') : '품에 가득 차는 특별한 날의 대형 크기 (가로 약 45cm)';
+  } else {
+    guideText = typeof t === 'function' ? t('pdp_size_guide_m', '양손으로 풍성하게 안기는 시그니처 크기 (가로 약 35cm)') : '양손으로 풍성하게 안기는 시그니처 크기 (가로 약 35cm)';
+  }
+  textEl.textContent = `${currentSelectedSize.label}: ${guideText}`;
+  card.classList.remove('hidden');
+}
+
+// 보자기 포장 실물 비교 카드 업데이트
+function updatePackagePreviewCard() {
+  const nameEl = document.getElementById('pdp-package-preview-name');
+  const descEl = document.getElementById('pdp-package-preview-desc');
+  if (!nameEl || !descEl) return;
+  const optSelect = document.getElementById('pdp-package-opt');
+  if (!optSelect) return;
+  const selOpt = optSelect.options[optSelect.selectedIndex];
+  if (!selOpt) return;
+
+  const pkgName = selOpt.dataset.name || selOpt.textContent || '기본 포장';
+  const pkgPrice = selOpt.dataset.price !== undefined ? selOpt.dataset.price : selOpt.value;
+  const isBasic = String(pkgPrice) === '0';
+  const pkgDesc = selOpt.dataset.desc || (isBasic
+    ? (typeof t === 'function' ? t('pdp_pkg_desc_basic', '정갈한 백색/미색 전통 한지와 지끈으로 소박하고 단아하게 포장합니다.') : '정갈한 백색/미색 전통 한지와 지끈으로 소박하고 단아하게 포장합니다.')
+    : (typeof t === 'function' ? t('pdp_pkg_desc_silk', '최고급 실크 본견 보자기와 수작업 전통 노리개 매듭으로 고이 감싸 전합니다.') : '최고급 실크 본견 보자기와 수작업 전통 노리개 매듭으로 고이 감싸 전합니다.'));
+
+  nameEl.textContent = pkgName;
+  descEl.textContent = pkgDesc;
 }
 
 // A1: 복원된 PDP 옵션 변경 및 수량 조절 함수
@@ -239,6 +285,7 @@ function onSizeChanged() {
   if (!isNaN(idx) && currentSelectedProduct.sizes[idx]) {
     currentSelectedSize = currentSelectedProduct.sizes[idx];
   }
+  updateSizeGuideCard();
   updatePDPPrice();
 }
 
