@@ -340,7 +340,7 @@ function openFeaturedPickerModal() {
             </button>
           ` : `
             <button type="button" onclick="selectFeaturedProduct('${p.id}')" class="w-full py-2 jakae-btn rounded-xs text-xs font-bold cursor-pointer hover:shadow-md transition-all">
-              이 꽃으로 추천 변경하기
+              👀 선택하여 프리뷰 체험하기
             </button>
           `}
         </div>
@@ -357,10 +357,21 @@ function closeFeaturedPickerModal() {
 }
 
 function selectFeaturedProduct(prodId) {
-  if (typeof saveFeaturedProduct === 'function') {
-    saveFeaturedProduct(prodId);
-  }
   closeFeaturedPickerModal();
+  // 상품 관리 탭으로 전환 후 해당 꽃을 실시간 프리뷰로 지정
+  if (typeof switchAdminTab === 'function') {
+    switchAdminTab('products');
+  }
+  if (typeof previewFeaturedProductSelection === 'function') {
+    previewFeaturedProductSelection(prodId);
+  }
+  // 추천 꽃 설정 카드로 스크롤
+  setTimeout(() => {
+    const card = document.getElementById('featured-product-card-container');
+    if (card) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 100);
 }
 
 

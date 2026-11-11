@@ -12,21 +12,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
   
-  <script src="assets/js/data-store.js?v=108"></script>
-  <script src="assets/js/products-data.js?v=108"></script>
-  <script src="assets/js/flowers-data.js?v=108"></script>
-  <script src="assets/js/site-theme.js?v=108"></script>
-  <script src="assets/js/site-settings.js?v=108"></script>
-  <script src="assets/js/popups.js?v=108"></script>
-  <script src="assets/js/finance-data.js?v=108"></script>
-  <script src="assets/js/integrations.js?v=108"></script>
-  <script src="assets/js/admin-tools.js?v=108"></script>
-  <script src="assets/js/site-pages.js?v=108"></script>
-  <script src="assets/js/image-library.js?v=108"></script>
-  <script src="assets/js/restock.js?v=108"></script>
-  <script src="assets/js/csv-db.js?v=108"></script>
-  <script src="assets/js/data-sync.js?v=108"></script>
-  <script src="assets/js/coupons.js?v=108"></script>
+  <script src="assets/js/data-store.js?v=109"></script>
+  <script src="assets/js/products-data.js?v=109"></script>
+  <script src="assets/js/flowers-data.js?v=109"></script>
+  <script src="assets/js/site-theme.js?v=109"></script>
+  <script src="assets/js/site-settings.js?v=109"></script>
+  <script src="assets/js/popups.js?v=109"></script>
+  <script src="assets/js/finance-data.js?v=109"></script>
+  <script src="assets/js/integrations.js?v=109"></script>
+  <script src="assets/js/admin-tools.js?v=109"></script>
+  <script src="assets/js/site-pages.js?v=109"></script>
+  <script src="assets/js/image-library.js?v=109"></script>
+  <script src="assets/js/restock.js?v=109"></script>
+  <script src="assets/js/csv-db.js?v=109"></script>
+  <script src="assets/js/data-sync.js?v=109"></script>
+  <script src="assets/js/coupons.js?v=109"></script>
   <!-- 운송장 바코드: JsBarcode -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
   <!-- 차트: Chart.js -->
@@ -416,7 +416,7 @@
     }
   </style>
   <!-- 화면 스타일: Tailwind를 미리 만들어 둔 파일 (클래스를 바꾸면 npm run build:css). 예전 CDN처럼 페이지 CSS 뒤에 둠 -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=108">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=109">
 </head>
 <body class="min-h-screen flex flex-col selection:bg-seal-red/15 selection:text-seal-red">
   <!-- 1. 관리자 상단 헤더 (Admin Top Bar) -->
@@ -434,23 +434,32 @@
       <span class="hidden sm:inline text-xs bg-seal-red text-white px-2 py-0.5 rounded font-bold tracking-wider">
         전용 관리자 센터
       </span>
-
-      <!-- 🔍 스마트 전역 통합 검색 버튼 (Ctrl+K) -->
-      <button type="button" onclick="openCommandPalette()" class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-sm bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-xs font-bold border border-white/15 cursor-pointer transition-colors" title="전체 검색 단축키: Ctrl + K (또는 / 키)">
-        <svg class="w-3.5 h-3.5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        <span>주문·상품·메뉴 빠른 검색</span>
-        <kbd class="px-1.5 py-0.2 rounded bg-black/40 text-[10px] text-white/60 font-mono">Ctrl K</kbd>
-      </button>
     </div>
 
+    <!-- 우측 도구 모음: 빠른 검색(Ctrl+K) + 초보 사용 설명서 + 소리 알림 + 쇼핑몰 보기 -->
     <div class="flex items-center gap-2">
+      <!-- 🔍 스마트 전역 통합 검색 버튼 (우측 상단 배치) -->
+      <button type="button" onclick="openCommandPalette()" class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-sm bg-white/10 hover:bg-white/20 text-white/90 hover:text-white text-xs font-bold border border-white/20 cursor-pointer transition-colors" title="전체 검색 단축키: Ctrl + K (또는 / 키)">
+        <svg class="w-3.5 h-3.5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <span>빠른 검색</span>
+        <kbd class="px-1.5 py-0.2 rounded bg-black/40 text-[10px] text-white/70 font-mono">Ctrl K</kbd>
+      </button>
+
       <!-- 모바일용 검색 아이콘 버튼 -->
-      <button type="button" onclick="openCommandPalette()" class="md:hidden p-2 text-white/80 hover:text-white rounded-sm hover:bg-white/10 cursor-pointer" aria-label="통합 검색">
+      <button type="button" onclick="openCommandPalette()" class="md:hidden p-2 text-white/80 hover:text-white rounded-sm hover:bg-white/10 cursor-pointer" aria-label="빠른 검색">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
       </button>
-      <button type="button" id="admin-sound-btn" onclick="toggleAdminSound()" aria-pressed="true" class="hidden sm:inline-flex items-center px-3 py-1.5 rounded-sm text-xs font-bold border border-white/25 hover:bg-white/10 cursor-pointer">🔔 새 주문 소리 켜짐</button>
+
+      <!-- 📖 초보 사장님 사용 설명서 (헤더 상단에도 배치하여 항상 접근 가능) -->
+      <button type="button" onclick="openAdminManualModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-seal-red/90 hover:bg-seal-red text-white text-xs font-extrabold cursor-pointer transition-all shadow-xs" title="초보 사장님 상세 사용 설명서 열기">
+        <span>📖</span>
+        <span class="hidden sm:inline">사용 설명서</span>
+      </button>
+
+      <button type="button" id="admin-sound-btn" onclick="toggleAdminSound()" aria-pressed="true" class="hidden lg:inline-flex items-center px-2.5 py-1.5 rounded-sm text-xs font-bold border border-white/25 hover:bg-white/10 cursor-pointer">🔔 새 주문 소리 켜짐</button>
+
       <!-- 고객 쇼핑몰 바로가기 링크 -->
-      <a href="index.html" class="flex items-center gap-2 bg-[#FAF7F2] text-ink-black hover:bg-seal-red hover:text-white px-3.5 py-1.5 rounded-sm text-xs font-bold transition-all shadow-xs">
+      <a href="index.html" class="flex items-center gap-1.5 bg-[#FAF7F2] text-ink-black hover:bg-seal-red hover:text-white px-3 py-1.5 rounded-sm text-xs font-bold transition-all shadow-xs">
         <span>쇼핑몰 보기</span>
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
       </a>
@@ -488,6 +497,12 @@
             <p class="text-[11px] text-ink-gray">실시간 상점 연동 활성화</p>
           </div>
         </div>
+
+        <!-- 📖 사이드바 상단 초보 사장님 사용 설명서 버튼 (스크롤 없이 바로 클릭!) -->
+        <button type="button" onclick="openAdminManualModal()" class="w-full jakae-btn py-2.5 px-3 rounded-sm text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer shadow-xs hover:shadow-md transition-all">
+          <span class="text-base">📖</span>
+          <span>초보 사장님 사용 설명서</span>
+        </button>
 
         <!-- 사이드바 메뉴: 판매 / 주문·상담 / 매출 / 매장 / 연동 -->
         <nav class="space-y-1.5" aria-label="관리자 메뉴">
@@ -847,24 +862,48 @@
               </div>
             </div>
 
-            <!-- 우측: 쇼핑몰 메인 버튼 실제 모양 & 드롭다운 빠른 선택 -->
-            <div class="p-3 bg-white rounded-xs border border-ink-black/10 space-y-2 text-xs">
+            <!-- 우측: 쇼핑몰 메인 버튼 실제 모양 & 실시간 인터랙티브 프리뷰 -->
+            <div class="p-3.5 bg-white rounded-xs border border-ink-black/10 space-y-2 text-xs">
               <div class="flex items-center justify-between">
-                <span class="font-bold text-ink-gray text-[11px]">실제 손님 화면에 뜨는 버튼:</span>
-                <span class="text-[10px] text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded font-mono font-bold">LIVE</span>
-              </div>
-              <!-- 실제 쇼핑몰 자개 펄 버튼 실시간 렌더링 -->
-              <div class="py-1">
-                <span id="featured-hero-btn-preview" class="inline-block jakae-btn px-4 py-2 rounded-xs text-xs font-bold shadow-xs">
-                  🌸 이달의 추천 꽃 보기
+                <span class="font-bold text-ink-black text-xs flex items-center gap-1.5">
+                  <span>실제 손님 화면에 뜨는 버튼:</span>
+                </span>
+                <span id="featured-status-pill" class="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                  LIVE (현재 적용 중)
                 </span>
               </div>
-              <div class="flex items-center gap-2 pt-1 border-t border-ink-black/5">
-                <select id="featured-prod-select" class="flex-1 min-w-0 bg-[#FAF7F2] border border-ink-black/20 py-1.5 px-2 rounded-xs text-xs font-bold" aria-label="이달의 추천 꽃 빠른 선택">
-                  <option value="">불러오는 중...</option>
-                </select>
-                <button type="button" onclick="saveFeaturedProductFromSelect()" class="px-3 py-1.5 bg-ink-black text-white hover:bg-seal-red rounded-xs text-xs font-bold cursor-pointer transition-colors whitespace-nowrap">지정</button>
-                <button type="button" onclick="resetFeaturedProduct()" class="px-2.5 py-1.5 bg-white border border-ink-black/20 text-ink-gray hover:text-ink-black rounded-xs text-xs font-bold cursor-pointer whitespace-nowrap" title="홈 제철 꽃 1순위로 자동 선택">기본값</button>
+
+              <!-- 실제 쇼핑몰 자개 펄 버튼 실시간 렌더링 (어떤 느낌인지 바로 확인!) -->
+              <div class="py-1">
+                <span id="featured-hero-btn-preview" class="inline-block jakae-btn px-4 py-2.5 rounded-xs text-xs font-bold shadow-xs transition-all">
+                  🌸 이달의 추천 : 꽃을 선택해 보세요
+                </span>
+              </div>
+
+              <!-- 선택 드롭다운 & 확정/취소 액션 바 -->
+              <div class="pt-2 border-t border-ink-black/10 space-y-2">
+                <div class="flex items-center gap-2">
+                  <select id="featured-prod-select" onchange="previewFeaturedProductSelection(this.value)" class="flex-1 min-w-0 bg-[#FAF7F2] border border-ink-black/25 py-2 px-2.5 rounded-xs text-xs font-bold" aria-label="이달의 추천 꽃 선택 및 실시간 프리뷰">
+                    <option value="">불러오는 중...</option>
+                  </select>
+                </div>
+                <!-- 버튼 액션 그룹 -->
+                <div class="flex flex-wrap items-center gap-1.5 justify-between">
+                  <div class="flex items-center gap-1.5">
+                    <button type="button" id="btn-confirm-featured" onclick="confirmFeaturedProductSelection()" class="hidden px-3.5 py-1.5 bg-seal-red text-white hover:bg-seal-red/90 rounded-xs text-xs font-extrabold cursor-pointer transition-colors shadow-xs">
+                      👉 이 꽃으로 추천 확정 저장
+                    </button>
+                    <button type="button" id="btn-cancel-featured" onclick="cancelFeaturedPreview()" class="hidden px-2.5 py-1.5 bg-white border border-ink-black/20 text-ink-gray hover:text-ink-black rounded-xs text-xs font-bold cursor-pointer">
+                      취소 (원래대로)
+                    </button>
+                  </div>
+                  <button type="button" onclick="resetFeaturedProduct()" class="px-2.5 py-1.5 bg-white border border-ink-black/20 text-ink-gray hover:text-ink-black rounded-xs text-xs font-bold cursor-pointer ml-auto" title="홈 제철 꽃 1순위로 자동 선택">
+                    기본값(자동 제철)
+                  </button>
+                </div>
+                <p id="featured-preview-hint" class="hidden text-[11px] font-bold text-amber-800 bg-amber-50 p-1.5 rounded-xs border border-amber-200">
+                  👀 미리보기 체험 중입니다. 마음에 드시면 [이 꽃으로 추천 확정 저장]을 눌러주세요!
+                </p>
               </div>
             </div>
           </div>
@@ -2314,20 +2353,20 @@
 
   <!-- JavaScript: Admin 로직 & 쇼핑몰 데이터 양방향 실시간 동기화 -->
   <!-- 관리자 화면 동작 (화면별 파일, 순서 중요) -->
-  <script src="assets/js/admin/admin-dashboard.js?v=108"></script>
-  <script src="assets/js/admin/admin-products.js?v=108"></script>
-  <script src="assets/js/admin/admin-orders.js?v=108"></script>
-  <script src="assets/js/admin/admin-inquiries.js?v=108"></script>
-  <script src="assets/js/admin/admin-product-modal.js?v=108"></script>
-  <script src="assets/js/admin/admin-flowers.js?v=108"></script>
-  <script src="assets/js/admin/admin-coupons.js?v=108"></script>
-  <script src="assets/js/admin/admin-settings.js?v=108"></script>
-  <script src="assets/js/admin/admin-popups.js?v=108"></script>
-  <script src="assets/js/admin/admin-finance.js?v=108"></script>
-  <script src="assets/js/admin/admin-integrations.js?v=108"></script>
-  <script src="assets/js/admin/admin-pages.js?v=108"></script>
-  <script src="assets/js/admin/admin-tools-ui.js?v=108"></script>
-  <script src="assets/js/admin/admin-quick.js?v=108"></script>
+  <script src="assets/js/admin/admin-dashboard.js?v=109"></script>
+  <script src="assets/js/admin/admin-products.js?v=109"></script>
+  <script src="assets/js/admin/admin-orders.js?v=109"></script>
+  <script src="assets/js/admin/admin-inquiries.js?v=109"></script>
+  <script src="assets/js/admin/admin-product-modal.js?v=109"></script>
+  <script src="assets/js/admin/admin-flowers.js?v=109"></script>
+  <script src="assets/js/admin/admin-coupons.js?v=109"></script>
+  <script src="assets/js/admin/admin-settings.js?v=109"></script>
+  <script src="assets/js/admin/admin-popups.js?v=109"></script>
+  <script src="assets/js/admin/admin-finance.js?v=109"></script>
+  <script src="assets/js/admin/admin-integrations.js?v=109"></script>
+  <script src="assets/js/admin/admin-pages.js?v=109"></script>
+  <script src="assets/js/admin/admin-tools-ui.js?v=109"></script>
+  <script src="assets/js/admin/admin-quick.js?v=109"></script>
 
   <!-- 슬라이드 편집 모달 -->
   <div id="slide-edit-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-black/60 hidden">

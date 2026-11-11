@@ -165,6 +165,8 @@ function renderProductsTable() {
 }
 
 // ---- 🌸 쇼핑몰 메인 '이달의 추천 꽃' 관리 함수들 ----
+let tempPreviewFeaturedId = null;
+
 function renderFeaturedProductCard(products) {
   const cardContainer = document.getElementById('featured-product-card-container');
   const select = document.getElementById('featured-prod-select');
@@ -174,13 +176,20 @@ function renderFeaturedProductCard(products) {
   const previewPoetic = document.getElementById('featured-prod-preview-poetic');
   const previewPrice = document.getElementById('featured-prod-preview-price');
   const heroBtnPreview = document.getElementById('featured-hero-btn-preview');
+  const statusPill = document.getElementById('featured-status-pill');
+  const confirmBtn = document.getElementById('btn-confirm-featured');
+  const cancelBtn = document.getElementById('btn-cancel-featured');
+  const previewHint = document.getElementById('featured-preview-hint');
 
   const all = products || loadAdminProducts();
   const settings = typeof loadSettings === 'function' ? loadSettings() : {};
-  const featuredId = settings.featuredProductId || '';
+  const currentSavedFeaturedId = settings.featuredProductId || '';
   
-  // 현재 지정된 추천 꽃
-  let activeProduct = all.find(p => p.id === featuredId);
+  // 현재 프리뷰 중인 꽃이 있다면 그것을 우선 표시, 없으면 저장된 꽃 표시
+  const targetId = tempPreviewFeaturedId || currentSavedFeaturedId;
+  const isPreviewing = !!(tempPreviewFeaturedId && tempPreviewFeaturedId !== currentSavedFeaturedId);
+
+  let activeProduct = all.find(p => p.id === targetId);
   let isAuto = false;
   if (!activeProduct) {
     isAuto = true;
@@ -189,15 +198,28 @@ function renderFeaturedProductCard(products) {
 
   if (badge) {
     if (activeProduct) {
-      badge.textContent = isAuto ? `자동 추천 (홈 1순위)` : `사장님 직접 지정`;
-      badge.className = isAuto
-        ? 'px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-200'
-        : 'px-2 py-0.5 rounded text-[11px] font-bold bg-[#FAF0E6] text-seal-red border border-seal-red/30';
-    } else {
-      badge.textContent = '지정된 상품 없음';
-      badge.className = 'px-2 py-0.5 rounded text-[11px] font-bold bg-gray-100 text-gray-600 border border-gray-200';
+      badge.textContent = isPreviewing ? `미리보기 체험 중` : (isAuto ? `자동 추천 (홈 1순위)` : `사장님 직접 지정`);
+      badge.className = isPreviewing
+        ? 'px-2 py-0.5 rounded text-[11px] font-bold bg-amber-200 text-amber-900 border border-amber-400 animate-pulse'
+        : (isAuto
+          ? 'px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-200'
+          : 'px-2 py-0.5 rounded text-[11px] font-bold bg-[#FAF0E6] text-seal-red border border-seal-red/30');
     }
   }
+
+  if (statusPill) {
+    if (isPreviewing) {
+      statusPill.textContent = '👀 체험 미리보기 (미저장)';
+      statusPill.className = 'text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300';
+    } else {
+      statusPill.textContent = 'LIVE (현재 쇼핑몰 적용 중)';
+      statusPill.className = 'text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800';
+    }
+  }
+
+  if (confirmBtn) confirmBtn.classList.toggle('hidden', !isPreviewing);
+  if (cancelBtn) cancelBtn.classList.toggle('hidden', !isPreviewing);
+  if (previewHint) previewHint.classList.toggle('hidden', !isPreviewing);
 
   // 비주얼 미리보기 갱신
   if (activeProduct) {
@@ -213,16 +235,42 @@ function renderFeaturedProductCard(products) {
     }
     if (heroBtnPreview) {
       heroBtnPreview.textContent = `🌸 이달의 추천 : ${activeProduct.name} 보기`;
+      if (isPreviewing) {
+        heroBtnPreview.classList.add('ring-2', 'ring-amber-400');
+      } else {
+        heroBtnPreview.classList.remove('ring-2', 'ring-amber-400');
+      }
     }
   }
 
   // 드롭다운 채우기
   if (select) {
-    select.innerHTML = '<option value="">-- 상품을 선택해 주세요 --</option>' + all.map(p => {
-      const isSel = (p.id === (featuredId || (activeProduct && activeProduct.id)));
+    select.innerHTML = '<option value="">-- 꽃을 선택하면 아래 버튼 모양이 실시간으로 바뀌어요 --</option>' + all.map(p => {
+      const isSel = (p.id === (targetId || (activeProduct && activeProduct.id)));
       return `<option value="${escapeHtml(p.id)}" ${isSel ? 'selected' : ''}>${escapeHtml(p.name)} (${(p.price || 0).toLocaleString()}원)</option>`;
     }).join('');
   }
+}
+
+// 사장님이 드롭다운에서 꽃을 바꿀 때: 실시간으로 버튼 모양과 사진 프리뷰 체험!
+function previewFeaturedProductSelection(prodId) {
+  if (!prodId) return;
+  tempPreviewFeaturedId = prodId;
+  renderFeaturedProductCard();
+}
+
+// 마음에 들어 확정할 때: 비로소 정식 저장!
+function confirmFeaturedProductSelection() {
+  if (!tempPreviewFeaturedId) return;
+  saveFeaturedProduct(tempPreviewFeaturedId);
+  tempPreviewFeaturedId = null;
+  renderFeaturedProductCard();
+}
+
+// 취소하고 원래대로 되돌릴 때
+function cancelFeaturedPreview() {
+  tempPreviewFeaturedId = null;
+  renderFeaturedProductCard();
 }
 
 function saveFeaturedProduct(prodId) {
@@ -234,7 +282,8 @@ function saveFeaturedProduct(prodId) {
   if (typeof saveSettings === 'function') {
     saveSettings({ featuredProductId: prodId });
   }
-  alert(`🌸 '${target.name}' 상품이 쇼핑몰 메인의 [이달의 추천]으로 지정되었습니다.`);
+  tempPreviewFeaturedId = null;
+  alert(`🌸 '${target.name}' 상품이 쇼핑몰 메인의 [이달의 추천]으로 확정 지정되었습니다!\n실제 쇼핑몰(index.html)에도 즉시 반영됩니다.`);
   renderProductsTable();
 }
 
@@ -248,6 +297,7 @@ function saveFeaturedProductFromSelect() {
 }
 
 function resetFeaturedProduct() {
+  tempPreviewFeaturedId = null;
   if (typeof saveSettings === 'function') {
     saveSettings({ featuredProductId: '' });
   }
